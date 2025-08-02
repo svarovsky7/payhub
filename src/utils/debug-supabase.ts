@@ -12,7 +12,7 @@ export const debugSupabase = {
     }
   },
 
-  async testRegistration(email: string, password: string, fullName: string) {
+  async testRegistration(email: string, password: string, _fullName: string) {
     try {
       console.log('Testing registration with minimal data...');
       

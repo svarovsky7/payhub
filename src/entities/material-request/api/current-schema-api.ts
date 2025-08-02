@@ -11,7 +11,8 @@ export const materialRequestApi = {
         contractors(id, name, inn),
         payers(id, name, inn),
         responsible_persons(id, full_name, position),
-        user_profiles!construction_manager_id(id, full_name, email, role)
+        user_profiles!construction_manager_id(id, full_name, email, role_id, user_roles(id, code, name)),
+        created_by_profile:user_profiles!created_by(id, full_name, email)
       `)
       .order('created_at', { ascending: false });
 
@@ -62,7 +63,7 @@ export const materialRequestApi = {
         contractors(id, name, inn),
         payers(id, name, inn),
         responsible_persons(id, full_name, position),
-        user_profiles!construction_manager_id(id, full_name, email, role)
+        user_profiles!construction_manager_id(id, full_name, email, role_id, user_roles(id, code, name))
       `)
       .eq('id', id)
       .single();
@@ -90,7 +91,7 @@ export const materialRequestApi = {
         contractors(id, name, inn),
         payers(id, name, inn),
         responsible_persons(id, full_name, position),
-        user_profiles!construction_manager_id(id, full_name, email, role)
+        user_profiles!construction_manager_id(id, full_name, email, role_id, user_roles(id, code, name))
       `)
       .single();
 
@@ -116,7 +117,7 @@ export const materialRequestApi = {
         contractors(id, name, inn),
         payers(id, name, inn),
         responsible_persons(id, full_name, position),
-        user_profiles!construction_manager_id(id, full_name, email, role)
+        user_profiles!construction_manager_id(id, full_name, email, role_id, user_roles(id, code, name))
       `)
       .single();
 
@@ -152,7 +153,7 @@ export const materialRequestApi = {
         contractors(id, name, inn),
         payers(id, name, inn),
         responsible_persons(id, full_name, position),
-        user_profiles!construction_manager_id(id, full_name, email, role)
+        user_profiles!construction_manager_id(id, full_name, email, role_id, user_roles(id, code, name))
       `)
       .single();
 
@@ -210,7 +211,7 @@ export const materialRequestApi = {
     return data as MaterialRequest;
   },
 
-  async markAsPaid(id: number, paidAmount: number, paymentDocumentId?: number) {
+  async markAsPaid(id: number, _paidAmount: number, paymentDocumentId?: number) {
     const { data: user } = await supabase.auth.getUser();
     
     const { data, error } = await supabase

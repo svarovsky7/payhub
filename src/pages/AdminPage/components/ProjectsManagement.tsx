@@ -25,14 +25,16 @@ export const ProjectsManagement: React.FC = () => {
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['projects-admin'],
+    queryKey: ['admin', 'projects'],
     queryFn: projectsApi.getAll,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   const createMutation = useMutation({
     mutationFn: projectsApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       message.success('Проект успешно создан!');
       setIsModalVisible(false);
@@ -47,7 +49,7 @@ export const ProjectsManagement: React.FC = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<CreateProjectData> }) =>
       projectsApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       message.success('Проект успешно обновлен!');
       setIsModalVisible(false);
@@ -62,7 +64,7 @@ export const ProjectsManagement: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: projectsApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       message.success('Проект успешно удален!');
     },
@@ -106,14 +108,12 @@ export const ProjectsManagement: React.FC = () => {
       key: 'id',
       sorter: (a, b) => a.id - b.id,
       defaultSortOrder: 'descend',
-      resizable: true,
     },
     {
       title: 'Код проекта',
       dataIndex: 'code',
       key: 'code',
       sorter: (a, b) => (a.code || '').localeCompare(b.code || ''),
-      resizable: true,
     },
     {
       title: 'Название',
@@ -121,7 +121,6 @@ export const ProjectsManagement: React.FC = () => {
       key: 'name',
       ellipsis: true,
       sorter: (a, b) => a.name.localeCompare(b.name),
-      resizable: true,
     },
     {
       title: 'Дата создания',
@@ -129,7 +128,6 @@ export const ProjectsManagement: React.FC = () => {
       key: 'created_at',
       render: formatDate,
       sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-      resizable: true,
     },
     {
       title: 'Действия',

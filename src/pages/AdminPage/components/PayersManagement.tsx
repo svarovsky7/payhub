@@ -25,14 +25,16 @@ export const PayersManagement: React.FC = () => {
   const queryClient = useQueryClient();
 
   const { data: payers = [], isLoading } = useQuery({
-    queryKey: ['payers-admin'],
+    queryKey: ['admin', 'payers'],
     queryFn: payersApi.getAll,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   const createMutation = useMutation({
     mutationFn: payersApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payers-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'payers'] });
       queryClient.invalidateQueries({ queryKey: ['payers'] });
       message.success('Плательщик успешно создан!');
       setIsModalVisible(false);
@@ -47,7 +49,7 @@ export const PayersManagement: React.FC = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<CreatePayerData> }) =>
       payersApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payers-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'payers'] });
       queryClient.invalidateQueries({ queryKey: ['payers'] });
       message.success('Плательщик успешно обновлен!');
       setIsModalVisible(false);
@@ -62,7 +64,7 @@ export const PayersManagement: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: payersApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payers-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'payers'] });
       queryClient.invalidateQueries({ queryKey: ['payers'] });
       message.success('Плательщик успешно удален!');
     },
@@ -106,7 +108,6 @@ export const PayersManagement: React.FC = () => {
       key: 'id',
       sorter: (a, b) => a.id - b.id,
       defaultSortOrder: 'descend',
-      resizable: true,
     },
     {
       title: 'Название',
@@ -114,14 +115,12 @@ export const PayersManagement: React.FC = () => {
       key: 'name',
       ellipsis: true,
       sorter: (a, b) => a.name.localeCompare(b.name),
-      resizable: true,
     },
     {
       title: 'ИНН',
       dataIndex: 'inn',
       key: 'inn',
       sorter: (a, b) => (a.inn || '').localeCompare(b.inn || ''),
-      resizable: true,
     },
     {
       title: 'Дата создания',
@@ -129,7 +128,6 @@ export const PayersManagement: React.FC = () => {
       key: 'created_at',
       render: formatDate,
       sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-      resizable: true,
     },
     {
       title: 'Действия',

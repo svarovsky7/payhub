@@ -20,7 +20,6 @@ import {
   FilterOutlined,
   ExportOutlined,
   CheckOutlined,
-  CloseOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ColumnsType } from 'antd/es/table';
@@ -75,7 +74,7 @@ export const ApprovalsPage: React.FC = () => {
     if (user?.role === 'DIRECTOR') {
       return {
         ...filters,
-        status: 'pending_director', // Директор видит заявки на директорском согласовании
+        status: RequestStatus.PENDING_DIRECTOR, // Директор видит заявки на директорском согласовании
       };
     }
     return filters;
@@ -351,7 +350,7 @@ export const ApprovalsPage: React.FC = () => {
                   placeholder="0.00"
                   precision={2}
                   formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={(value) => value!.replace(/,/g, '')}
+                  parser={(value) => value!.replace(/,/g, '') as any}
                 />
               </Form.Item>
 

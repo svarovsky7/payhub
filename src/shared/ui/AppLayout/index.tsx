@@ -36,10 +36,7 @@ export const AppLayout: React.FC = () => {
       key: 'profile',
       label: 'Профиль',
       icon: <UserOutlined />,
-      onClick: () => {
-        // TODO: Navigate to profile page
-        console.log('Navigate to profile');
-      },
+      onClick: () => navigate('/profile'),
     },
   ];
 
@@ -53,14 +50,15 @@ export const AppLayout: React.FC = () => {
     });
   }
 
-  userMenuItems.push({
-    type: 'divider' as const,
-  }, {
-    key: 'logout',
-    label: 'Выход',
-    icon: <LogoutOutlined />,
-    onClick: signOut,
-  });
+  userMenuItems.push(
+    { type: 'divider' } as any,
+    {
+      key: 'logout',
+      label: 'Выход',
+      icon: <LogoutOutlined />,
+      onClick: signOut,
+    }
+  );
 
   const handleMenuClick = ({ key }: { key: string }) => {
     navigate(key);

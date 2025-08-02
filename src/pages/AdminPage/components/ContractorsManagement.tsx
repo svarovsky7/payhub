@@ -25,14 +25,16 @@ export const ContractorsManagement: React.FC = () => {
   const queryClient = useQueryClient();
 
   const { data: contractors = [], isLoading } = useQuery({
-    queryKey: ['contractors-admin'],
+    queryKey: ['admin', 'contractors'],
     queryFn: contractorsApi.getAll,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   const createMutation = useMutation({
     mutationFn: contractorsApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contractors-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'contractors'] });
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
       message.success('Контрагент успешно создан!');
       setIsModalVisible(false);
@@ -47,7 +49,7 @@ export const ContractorsManagement: React.FC = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<CreateContractorData> }) =>
       contractorsApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contractors-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'contractors'] });
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
       message.success('Контрагент успешно обновлен!');
       setIsModalVisible(false);
@@ -62,7 +64,7 @@ export const ContractorsManagement: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: contractorsApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contractors-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'contractors'] });
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
       message.success('Контрагент успешно удален!');
     },
@@ -106,7 +108,6 @@ export const ContractorsManagement: React.FC = () => {
       key: 'id',
       sorter: (a, b) => a.id - b.id,
       defaultSortOrder: 'descend',
-      resizable: true,
     },
     {
       title: 'Название',
@@ -114,21 +115,18 @@ export const ContractorsManagement: React.FC = () => {
       key: 'name',
       ellipsis: true,
       sorter: (a, b) => a.name.localeCompare(b.name),
-      resizable: true,
     },
     {
       title: 'ИНН',
       dataIndex: 'inn',
       key: 'inn',
       sorter: (a, b) => (a.inn || '').localeCompare(b.inn || ''),
-      resizable: true,
     },
     {
       title: 'КПП',
       dataIndex: 'kpp',
       key: 'kpp',
       sorter: (a, b) => (a.kpp || '').localeCompare(b.kpp || ''),
-      resizable: true,
     },
     {
       title: 'Адрес',
@@ -136,7 +134,6 @@ export const ContractorsManagement: React.FC = () => {
       key: 'address',
       ellipsis: true,
       sorter: (a, b) => (a.address || '').localeCompare(b.address || ''),
-      resizable: true,
     },
     {
       title: 'Дата создания',
@@ -144,7 +141,6 @@ export const ContractorsManagement: React.FC = () => {
       key: 'created_at',
       render: formatDate,
       sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-      resizable: true,
     },
     {
       title: 'Действия',

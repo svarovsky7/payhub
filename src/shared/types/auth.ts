@@ -10,8 +10,19 @@ export const UserRole = {
 
 export type UserRole = typeof UserRole[keyof typeof UserRole];
 
+export interface UserRoleEntity {
+  id: number;
+  code: UserRole;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface User extends SupabaseUser {
   role?: UserRole;
+  role_id?: number;
+  role_name?: string;
   full_name?: string;
 }
 

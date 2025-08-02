@@ -161,6 +161,279 @@
     "column_default": null
   },
   {
+    "table_name": "dashboard_stats",
+    "column_name": "total_requests",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "draft_requests",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "pending_manager_requests",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "pending_director_requests",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "approved_requests",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "paid_requests",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "total_requested_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "total_approved_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "total_paid_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "dashboard_stats",
+    "column_name": "active_projects",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('invoice_approvals_id_seq'::regclass)"
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "invoice_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "manager_approved_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "manager_approved_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "manager_approved_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "manager_comment",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "director_approved_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "director_approved_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "director_comment",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "accountant_processed_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "accountant_processed_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "payment_document_id",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "paid_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "paid_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "accountant_comment",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "status_id",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "invoice_approvals",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('invoices_id_seq'::regclass)"
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "invoice_number",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "invoice_date",
+    "data_type": "date",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "contractor_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "payer_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "total_amount",
+    "data_type": "numeric",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "description",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "attachment_path",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "created_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "invoices",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
     "table_name": "material_request_attachments",
     "column_name": "id",
     "data_type": "integer",
@@ -287,6 +560,104 @@
     "column_default": null
   },
   {
+    "table_name": "material_request_invoices",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('material_request_invoices_id_seq'::regclass)"
+  },
+  {
+    "table_name": "material_request_invoices",
+    "column_name": "material_request_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "material_request_invoices",
+    "column_name": "invoice_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "material_request_invoices",
+    "column_name": "allocated_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_request_invoices",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('material_request_statuses_id_seq'::regclass)"
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "code",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "name",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "description",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "color",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": "'#1890ff'::character varying"
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "order_index",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": "0"
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "YES",
+    "column_default": "true"
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "material_request_statuses",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
     "table_name": "material_requests",
     "column_name": "id",
     "data_type": "integer",
@@ -309,20 +680,6 @@
   },
   {
     "table_name": "material_requests",
-    "column_name": "contractor_id",
-    "data_type": "integer",
-    "is_nullable": "NO",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "payer_id",
-    "data_type": "integer",
-    "is_nullable": "NO",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
     "column_name": "responsible_person_id",
     "data_type": "integer",
     "is_nullable": "NO",
@@ -337,13 +694,6 @@
   },
   {
     "table_name": "material_requests",
-    "column_name": "invoice_number",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
     "column_name": "materials_description",
     "data_type": "text",
     "is_nullable": "NO",
@@ -351,80 +701,31 @@
   },
   {
     "table_name": "material_requests",
-    "column_name": "amount",
+    "column_name": "requested_amount",
     "data_type": "numeric",
     "is_nullable": "NO",
     "column_default": null
   },
   {
     "table_name": "material_requests",
-    "column_name": "comment",
+    "column_name": "priority",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": "'medium'::character varying"
+  },
+  {
+    "table_name": "material_requests",
+    "column_name": "delivery_deadline",
+    "data_type": "date",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests",
+    "column_name": "notes",
     "data_type": "text",
     "is_nullable": "YES",
     "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "approved_amount",
-    "data_type": "numeric",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "manager_approved_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "manager_approved_by",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "director_approved_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "director_approved_by",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "payment_document_id",
-    "data_type": "integer",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "paid_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "paid_by",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests",
-    "column_name": "status",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": "'draft'::character varying"
   },
   {
     "table_name": "material_requests",
@@ -448,260 +749,316 @@
     "column_default": "now()"
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "id",
+    "table_name": "material_requests_full_view",
+    "column_name": "request_id",
     "data_type": "integer",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "project_id",
     "data_type": "integer",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "construction_manager_id",
     "data_type": "uuid",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "contractor_id",
-    "data_type": "integer",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "payer_id",
-    "data_type": "integer",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "responsible_person_id",
     "data_type": "integer",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "material_request_number",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "invoice_number",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "materials_description",
     "data_type": "text",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "amount",
+    "table_name": "material_requests_full_view",
+    "column_name": "requested_amount",
     "data_type": "numeric",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "comment",
-    "data_type": "text",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "approved_amount",
-    "data_type": "numeric",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "manager_approved_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "manager_approved_by",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "director_approved_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "director_approved_by",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "payment_document_id",
-    "data_type": "integer",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "paid_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "paid_by",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "status",
+    "table_name": "material_requests_full_view",
+    "column_name": "priority",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "created_at",
+    "table_name": "material_requests_full_view",
+    "column_name": "delivery_deadline",
+    "data_type": "date",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "notes",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "request_created_at",
     "data_type": "timestamp with time zone",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "created_by",
+    "table_name": "material_requests_full_view",
+    "column_name": "request_created_by",
     "data_type": "uuid",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "updated_at",
+    "table_name": "material_requests_full_view",
+    "column_name": "request_updated_at",
     "data_type": "timestamp with time zone",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "project_name",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "project_code",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "contractor_name",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "contractor_inn",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "payer_name",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "payer_inn",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "responsible_person_name",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
-    "column_name": "responsible_person_position",
-    "data_type": "character varying",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "construction_manager_name",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
     "column_name": "construction_manager_email",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
+    "table_name": "material_requests_full_view",
+    "column_name": "responsible_person_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "responsible_person_position",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
     "column_name": "created_by_name",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "manager_approved_by_name",
+    "table_name": "material_requests_full_view",
+    "column_name": "created_by_email",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "director_approved_by_name",
+    "table_name": "material_requests_full_view",
+    "column_name": "invoice_id",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "invoice_number",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
   },
   {
-    "table_name": "material_requests_with_details",
-    "column_name": "paid_by_name",
+    "table_name": "material_requests_full_view",
+    "column_name": "invoice_date",
+    "data_type": "date",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "invoice_total_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "invoice_description",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "allocated_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "contractor_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "contractor_inn",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "payer_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "payer_inn",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "manager_approved_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "manager_approved_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "manager_approved_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "manager_comment",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "director_approved_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "director_approved_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "director_comment",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "accountant_processed_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "accountant_processed_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "paid_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "paid_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "status_code",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "status_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "material_requests_full_view",
+    "column_name": "status_color",
     "data_type": "character varying",
     "is_nullable": "YES",
     "column_default": null
@@ -897,8 +1254,8 @@
   },
   {
     "table_name": "user_profiles",
-    "column_name": "role",
-    "data_type": "character varying",
+    "column_name": "role_id",
+    "data_type": "integer",
     "is_nullable": "NO",
     "column_default": null
   },
@@ -947,6 +1304,48 @@
   {
     "table_name": "user_projects",
     "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "user_roles",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('user_roles_id_seq'::regclass)"
+  },
+  {
+    "table_name": "user_roles",
+    "column_name": "code",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "user_roles",
+    "column_name": "name",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "user_roles",
+    "column_name": "description",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "user_roles",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "user_roles",
+    "column_name": "updated_at",
     "data_type": "timestamp with time zone",
     "is_nullable": "YES",
     "column_default": "now()"

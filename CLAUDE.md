@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # PayHub Project Definition
 
 ## Overview
@@ -16,14 +20,16 @@ Following the proven FSD architecture from GarantHUB:
 
 ## 2. Tech Stack
 
-- **Frontend**: TypeScript in strict mode, React 18, Vite bundler
-- **UI Library**: Ant Design as the single design system; wrapper components in **`shared/ui`**
-- **Data Layer**: TanStack Query (react-query) + Supabase (RLS disabled as per requirement)
-- **Routing**: React Router v6 with type-safe navigation
-- **State Management**: Zustand for auth store, React Query for server state
-- **Notifications**: Notistack for user feedback
-- **Date handling**: Day.js for date formatting
-- **File handling**: Excel import/export with xlsx library
+- **Frontend**: TypeScript in strict mode, React 19, Vite 7 bundler
+- **UI Library**: Ant Design 5.22+ as the single design system; wrapper components in **`shared/ui`**
+- **Data Layer**: TanStack Query (react-query) 5.61+ + Supabase 2.46+ (RLS disabled as per requirement)
+- **Routing**: React Router v6.28+ with type-safe navigation  
+- **State Management**: Zustand 5.0+ for auth store, React Query for server state
+- **Notifications**: Notistack 3.0+ for user feedback
+- **Date handling**: Day.js 1.11+ for date formatting
+- **File handling**: Excel import/export with xlsx 0.18+ library
+- **Linting**: ESLint 9.30+ with TypeScript ESLint 8.35+
+- **Formatting**: Prettier 3.3+ for code formatting
 
 ## 3. Core Business Logic
 
@@ -32,6 +38,7 @@ Following the proven FSD architecture from GarantHUB:
 2. **CONSTRUCTION_MANAGER** (Руководитель строительства) - Approves payment amounts
 3. **DIRECTOR** (Генеральный директор) - Final approval for payments
 4. **ACCOUNTANT** (Бухгалтер) - Processes approved payments and uploads payment documents
+5. **ADMIN** (Администратор) 
 
 ### Material Request Fields
 ```typescript
@@ -75,154 +82,42 @@ interface MaterialRequest {
 
 ## 4. Database Schema
 
-```sql
--- Projects table
-CREATE TABLE projects (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  code VARCHAR(50),
-  description TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES user_profiles(id),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+**🚨 КРИТИЧЕСКИ ВАЖНО**: Все данные о структуре базы данных, индексах и функциях строго берутся из следующих файлов:
 
--- Contractors table
-CREATE TABLE contractors (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  inn VARCHAR(12),
-  kpp VARCHAR(9),
-  address TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES user_profiles(id)
-);
+### 📁 Справочные файлы базы данных:
+- **`database_structure.json`** - полная актуальная структура БД (экспорт всех таблиц, колонок и типов данных)
+- **`db_indexes.md`** - документация по всем индексам, их назначению и оптимизации  
+- **`db_functions.md`** - документация по всем функциям БД и их исходному коду
 
--- Payers table (legal entities that pay)
-CREATE TABLE payers (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  inn VARCHAR(12),
-  kpp VARCHAR(9),
-  bank_details TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES user_profiles(id)
-);
+### ⚠️ Обязательное правило:
+При работе с базой данных **ВСЕГДА** используйте информацию из указанных файлов:
+- Структуру таблиц смотрите в `database_structure.json`
+- Индексы и их назначение смотрите в `db_indexes.md` 
+- Функции и их код смотрите в `db_functions.md`
+- **НЕ** полагайтесь на устаревшую информацию из других источников
 
--- Responsible persons (МОЛ)
-CREATE TABLE responsible_persons (
-  id SERIAL PRIMARY KEY,
-  full_name VARCHAR(255) NOT NULL,
-  position VARCHAR(255),
-  phone VARCHAR(20),
-  email VARCHAR(255),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+### Основные таблицы (из database_structure.json):
+- `material_requests` - основная таблица заявок на материалы
+- `material_requests_with_details` - представление с объединенными данными
+- `material_request_history` - история изменений заявок (аудит)
+- `projects` - проекты
+- `contractors` - контрагенты  
+- `payers` - плательщики
+- `responsible_persons` - материально ответственные лица
+- `user_profiles` - профили пользователей
+- `user_roles` - роли пользователей
+- `user_projects` - связь пользователей и проектов
+- `attachments` - файлы и документы
+- `material_request_attachments` - связь заявок и файлов
+- `custom_fields` - настраиваемые поля
+- `material_request_custom_values` - значения настраиваемых полей
+- `system_settings` - системные настройки
 
--- User profiles with roles
-CREATE TABLE user_profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  email VARCHAR(255) NOT NULL,
-  full_name VARCHAR(255),
-  role VARCHAR(50) NOT NULL CHECK (role IN ('PROCUREMENT_OFFICER', 'CONSTRUCTION_MANAGER', 'DIRECTOR', 'ACCOUNTANT', 'ADMIN')),
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Project assignments (which managers can see which projects)
-CREATE TABLE user_projects (
-  id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id),
-  project_id INTEGER REFERENCES projects(id),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, project_id)
-);
-
--- Main material requests table
-CREATE TABLE material_requests (
-  id SERIAL PRIMARY KEY,
-  project_id INTEGER REFERENCES projects(id) NOT NULL,
-  construction_manager_id UUID REFERENCES auth.users(id) NOT NULL,
-  contractor_id INTEGER REFERENCES contractors(id) NOT NULL,
-  payer_id INTEGER REFERENCES payers(id) NOT NULL,
-  responsible_person_id INTEGER REFERENCES responsible_persons(id) NOT NULL,
-  material_request_number VARCHAR(100),
-  invoice_number VARCHAR(100),
-  materials_description TEXT NOT NULL,
-  amount DECIMAL(15,2) NOT NULL,
-  comment TEXT,
-  
-  -- Approval workflow
-  approved_amount DECIMAL(15,2),
-  manager_approved_at TIMESTAMPTZ,
-  manager_approved_by UUID REFERENCES auth.users(id),
-  director_approved_at TIMESTAMPTZ,
-  director_approved_by UUID REFERENCES auth.users(id),
-  payment_document_id INTEGER,
-  paid_at TIMESTAMPTZ,
-  paid_by UUID REFERENCES auth.users(id),
-  
-  -- Status and metadata
-  status VARCHAR(50) DEFAULT 'draft' CHECK (status IN ('draft', 'pending_manager', 'pending_director', 'approved', 'paid')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES auth.users(id),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Attachments table for documents
-CREATE TABLE attachments (
-  id SERIAL PRIMARY KEY,
-  original_name VARCHAR(255) NOT NULL,
-  storage_path VARCHAR(500) NOT NULL,
-  mime_type VARCHAR(100),
-  size_bytes BIGINT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES user_profiles(id)
-);
-
--- Link attachments to material requests
-CREATE TABLE material_request_attachments (
-  id SERIAL PRIMARY KEY,
-  material_request_id INTEGER REFERENCES material_requests(id) ON DELETE CASCADE,
-  attachment_id INTEGER REFERENCES attachments(id) ON DELETE CASCADE,
-  attachment_type VARCHAR(50) CHECK (attachment_type IN ('material_request', 'invoice', 'payment_document', 'other')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(material_request_id, attachment_id)
-);
-
--- Custom fields configuration (for dynamic columns)
-CREATE TABLE custom_fields (
-  id SERIAL PRIMARY KEY,
-  field_name VARCHAR(100) NOT NULL,
-  field_type VARCHAR(50) NOT NULL CHECK (field_type IN ('text', 'number', 'date', 'select')),
-  field_label VARCHAR(255) NOT NULL,
-  is_required BOOLEAN DEFAULT false,
-  display_order INTEGER,
-  options JSONB, -- For select fields
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  created_by UUID REFERENCES user_profiles(id)
-);
-
--- Custom field values for material requests
-CREATE TABLE material_request_custom_values (
-  id SERIAL PRIMARY KEY,
-  material_request_id INTEGER REFERENCES material_requests(id) ON DELETE CASCADE,
-  custom_field_id INTEGER REFERENCES custom_fields(id) ON DELETE CASCADE,
-  value TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(material_request_id, custom_field_id)
-);
-
--- Indexes for performance
-CREATE INDEX idx_material_requests_project ON material_requests(project_id);
-CREATE INDEX idx_material_requests_status ON material_requests(status);
-CREATE INDEX idx_material_requests_manager ON material_requests(construction_manager_id);
-CREATE INDEX idx_material_requests_created ON material_requests(created_at DESC);
-CREATE INDEX idx_user_projects_user ON user_projects(user_id);
-CREATE INDEX idx_user_projects_project ON user_projects(project_id);
-CREATE INDEX idx_custom_values_request ON material_request_custom_values(material_request_id);
-```
+### Ключевые отличия от исходного дизайна:
+- Роли пользователей вынесены в отдельную таблицу `user_roles` с связью по `role_id`
+- Добавлена таблица `material_request_history` для аудита изменений
+- Добавлено представление `material_requests_with_details` для удобных выборок
+- Добавлена таблица `system_settings` для конфигурации
 
 ## 5. Key Features
 
@@ -356,18 +251,24 @@ npm install
 # Development server
 npm run dev
 
-# Type checking
-npm run typecheck
-
-# Linting
-npm run lint
-
-# Build
+# Build (TypeScript compilation + Vite build)
 npm run build
 
-# Run tests
-npm run test
+# Linting (ESLint with TypeScript rules)
+npm run lint
+
+# Code formatting (Prettier)
+npm run format
+
+# Preview production build
+npm run preview
 ```
+
+### Testing Commands
+Currently no test scripts are configured in package.json. When implementing tests, add:
+- Unit tests: `npm test`
+- E2E tests: `npm run test:e2e`
+- Test coverage: `npm run test:coverage`
 
 ## 11. Testing Strategy
 
@@ -393,8 +294,9 @@ npm run test
 VITE_SUPABASE_URL=<your Supabase project URL>
 VITE_SUPABASE_ANON_KEY=<your project's anon key>
 VITE_STORAGE_BUCKET=<your STORAGE BUCKET URL>
-
 ```
+
+**Note**: No `.env` files are currently committed to the repository. Create `.env.local` for development environment variables.
 
 ### Database Migrations
 - Version control for schema changes
@@ -415,26 +317,63 @@ src/
 │   ├── providers/          # App providers (Auth, Query, Notifications)
 │   └── router/            # Application routing
 ├── pages/
-│   └── MaterialRequestsPage/  # Main material requests page
+│   ├── AdminPage/         # Admin management interface
+│   ├── ApprovalsPage/     # Approval workflow interface
+│   ├── MaterialRequestsPage/  # Main material requests page
+│   ├── LoginPage/         # Authentication
+│   ├── ProfilePage/       # User profile management
+│   └── RegisterPage/      # User registration
 ├── entities/
 │   ├── material-request/   # Material request entity
 │   │   └── api/           # API layer
-│   └── reference-data/    # Reference data entity
-│       └── api/           # Reference data API
+│   ├── reference-data/    # Reference data entity (projects, contractors, payers)
+│   │   └── api/           # Reference data API
+│   ├── user-roles/        # User roles management
+│   │   └── api/           # User roles API
+│   └── user/              # User entity
+├── features/
+│   └── auth/              # Authentication features
 ├── shared/
 │   ├── api/               # Supabase client configuration
 │   ├── config/            # Environment configuration
 │   ├── store/             # Zustand auth store
 │   ├── types/             # TypeScript type definitions
-│   └── ui/                # Shared UI components (message wrapper)
+│   ├── ui/                # Shared UI components (AppLayout, ProtectedRoute, message)
+│   └── utils/             # Utility functions
+├── widgets/               # Complex UI widgets (currently empty)
+└── utils/                 # Debug utilities
 ```
 
 ## 15. Database Files Structure
 
+**🗂️ Критически важные справочные файлы базы данных:**
+
 ```
 /project-root/
-├── database_structure.json    # Current DB structure export
+├── database_structure.json    # 📊 Полная структура БД (таблицы, колонки, типы данных)
+├── db_indexes.md              # 🚀 Документация по всем индексам и оптимизации
+└── db_functions.md            # ⚙️ Документация по всем функциям БД и их коду
 ```
+
+### 📋 Описание файлов:
+
+#### `database_structure.json`
+- **Назначение**: Экспорт всех таблиц, колонок и их типов данных из реальной Supabase БД
+- **Использование**: Единственный источник правды о структуре базы данных
+- **Обновление**: При изменениях схемы БД
+
+#### `db_indexes.md` 
+- **Назначение**: Полная документация всех индексов, их назначения и рекомендаций по оптимизации
+- **Содержание**: Анализ производительности, покрытие запросов, рекомендации по новым индексам
+- **Использование**: При оптимизации запросов и планировании производительности
+
+#### `db_functions.md`
+- **Назначение**: Документация всех функций PostgreSQL с их исходным кодом
+- **Содержание**: Назначение функций, параметры, примеры использования, интеграция с приложением
+- **Использование**: При работе с триггерами, RPC вызовами и бизнес-логикой БД
+
+### ⚠️ Важное правило:
+**ВСЕГДА** используйте эти файлы как единственный источник правды о базе данных. Не полагайтесь на устаревшую информацию из других источников.
 
 ## Critical Success Factors
 
@@ -445,3 +384,75 @@ src/
 5. **Mobile responsive** - Ant Design responsive components
 6. **Excel compatibility** - Working export, import planned
 7. **Scalability** - Optimized indexes and query patterns
+
+## 16. Key Architectural Notes
+
+### Path Aliases
+The project uses TypeScript path mapping configured in both `tsconfig.app.json` and `vite.config.ts`:
+- `@/` → `src/`
+- `@/app/*` → `src/app/*`  
+- `@/pages/*` → `src/pages/*`
+- `@/widgets/*` → `src/widgets/*`
+- `@/features/*` → `src/features/*`
+- `@/entities/*` → `src/entities/*`
+- `@/shared/*` → `src/shared/*`
+
+### TypeScript Configuration
+- **Strict mode enabled** with additional linting rules
+- React JSX transform configured (`jsx: "react-jsx"`)
+- ES2022 target with DOM libraries
+- No emit mode (handled by Vite)
+- Build info file: `./node_modules/.tmp/tsconfig.app.tsbuildinfo`
+
+### API Pattern
+Material request API (`src/entities/material-request/api/current-schema-api.ts`) demonstrates the standard pattern:
+- Complex Supabase joins for relational data
+- Role-based filtering
+- Workflow state management methods
+- Error handling with console logging
+
+### ESLint Configuration
+- Uses flat config format (`eslint.config.js`) with TypeScript ESLint
+- Includes React hooks and React refresh plugins
+- Configured for browser globals and ES2020
+- Ignores `dist` directory
+- Strict TypeScript linting with recommended rules
+
+### Current Development Status
+The application is actively developed with a solid foundation:
+- **Routing**: Complete React Router structure with protected routes
+- **Authentication**: Fully implemented with Zustand store and Supabase auth
+- **Entity Layer**: Material requests, reference data, and user roles APIs implemented
+- **Admin Interface**: Management interfaces for projects, contractors, payers
+- **User Workflow**: Multiple page components for different user types (approvals, material requests)
+- **Database**: Full schema implemented with detailed structure in `database_structure.json`
+
+### Key Implementation Details
+- Material request API with full CRUD operations and approval workflow methods
+- Complex Supabase queries with table joins for relational data
+- Role-based access control with user roles stored in separate table
+- Comprehensive type definitions in `@/shared/types`
+
+## 17. Important Instructions
+
+### Code Quality Requirements
+- **ALWAYS** run `npm run lint` after making changes to ensure code quality
+- Use `npm run format` to maintain consistent code formatting
+- TypeScript strict mode is enabled - all type errors must be resolved
+- Follow the established FSD architecture patterns
+- Additional TypeScript strictness: `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`
+
+### File Creation Guidelines
+- NEVER create files unless absolutely necessary for achieving your goal
+- ALWAYS prefer editing existing files to creating new ones
+- NEVER proactively create documentation files (*.md) or README files unless explicitly requested
+- Follow the existing project structure and naming conventions
+
+### Development Workflow
+- **ALWAYS** use absolute imports with the configured path aliases (@/, @/app/, etc.)
+- Maintain the public API pattern with index.ts files in each slice
+- Follow Ant Design component patterns for UI consistency
+- Use React Query for all server state management
+- Use Zustand only for client-side auth state
+- When working with the material request API, follow the established pattern in `current-schema-api.ts`
+- All Supabase queries should include proper error handling and console logging

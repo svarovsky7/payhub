@@ -12,7 +12,13 @@
       "Bash(mv:*)",
       "Bash(npm run typecheck:*)",
       "Bash(npm run:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(psql:*)",
+      "Bash(awk:*)"
     ],
     "deny": []
   }

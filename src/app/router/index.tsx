@@ -5,6 +5,7 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { MaterialRequestsPage } from '@/pages/MaterialRequestsPage';
 import { ApprovalsPage } from '@/pages/ApprovalsPage';
 import { AdminPage } from '@/pages/AdminPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
       {
         path: 'admin',
         element: <AdminPage />,
+      },
+      {
+        path: 'profile',
+        element: <ProfilePage />,
       },
       {
         index: true,

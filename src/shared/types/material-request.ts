@@ -18,42 +18,74 @@ export const RequestPriority = {
 
 export type RequestPriority = typeof RequestPriority[keyof typeof RequestPriority];
 
+// Цвета приоритетов
+export const PriorityColors = {
+  [RequestPriority.LOW]: '#52c41a',
+  [RequestPriority.MEDIUM]: '#1890ff', 
+  [RequestPriority.HIGH]: '#faad14',
+  [RequestPriority.URGENT]: '#ff4d4f',
+};
+
+// Названия приоритетов
+export const PriorityLabels = {
+  [RequestPriority.LOW]: 'Низкий',
+  [RequestPriority.MEDIUM]: 'Средний',
+  [RequestPriority.HIGH]: 'Высокий', 
+  [RequestPriority.URGENT]: 'Срочный',
+};
+
 export interface MaterialRequest {
   id: number;
   project_id: number;
   construction_manager_id: string;
-  contractor_id: number;
-  payer_id: number;
-  responsible_person_id: number;
+  responsible_person_id?: number;
   material_request_number?: string;
-  invoice_number?: string;
-  invoice_date?: string;
   materials_description: string;
-  amount: number;
-  comment?: string;
-  
-  // Workflow fields
-  approved_amount?: number;
-  manager_comment?: string;
-  manager_approved_at?: string;
-  manager_approved_by?: string;
-  director_comment?: string;
-  director_approved_at?: string;
-  director_approved_by?: string;
-  
-  // Payment fields
-  payment_document_number?: string;
-  payment_date?: string;
-  paid_amount?: number;
-  paid_at?: string;
-  paid_by?: string;
-  accountant_comment?: string;
+  requested_amount: number;
+  priority: RequestPriority;
+  delivery_deadline?: string;
+  notes?: string;
   
   // Metadata
-  status: RequestStatus;
   created_at: string;
   created_by: string;
   updated_at: string;
+  
+  // Связанные данные
+  project?: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  construction_manager?: {
+    id: string;
+    full_name: string;
+    email: string;
+  };
+  responsible_person?: {
+    id: number;
+    full_name: string;
+    position: string;
+  };
+  created_by_profile?: {
+    id: string;
+    full_name: string;
+    email: string;
+  };
+  // Связанные счета
+  invoices?: Array<{
+    id: number;
+    invoice_number: string;
+    total_amount: number;
+    allocated_amount?: number;
+    approval?: {
+      status?: {
+        code: string;
+        name: string;
+        color: string;
+      };
+    };
+  }>;
 }
 
 export interface MaterialRequestFilters {
@@ -69,13 +101,11 @@ export interface MaterialRequestFilters {
 export interface CreateMaterialRequestData {
   project_id: number;
   construction_manager_id: string;
-  contractor_id: number;
-  payer_id: number;
-  responsible_person_id: number;
+  responsible_person_id?: number;
   material_request_number?: string;
-  invoice_number?: string;
-  invoice_date?: string;
   materials_description: string;
-  amount: number;
-  comment?: string;
+  requested_amount: number;
+  priority?: RequestPriority;
+  delivery_deadline?: string;
+  notes?: string;
 }

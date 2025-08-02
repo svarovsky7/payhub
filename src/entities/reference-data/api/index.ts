@@ -44,8 +44,14 @@ export const referenceDataApi = {
   async getConstructionManagers() {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, full_name, email, role')
-      .eq('role', 'CONSTRUCTION_MANAGER')
+      .select(`
+        id, 
+        full_name, 
+        email, 
+        role_id,
+        user_roles(id, code, name)
+      `)
+      .eq('user_roles.code', 'CONSTRUCTION_MANAGER')
       .eq('is_active', true)
       .order('full_name');
 
@@ -56,7 +62,14 @@ export const referenceDataApi = {
   async getUserProfiles() {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, full_name, email, role, is_active')
+      .select(`
+        id, 
+        full_name, 
+        email, 
+        role_id, 
+        is_active,
+        user_roles(id, code, name)
+      `)
       .eq('is_active', true)
       .order('full_name');
 
