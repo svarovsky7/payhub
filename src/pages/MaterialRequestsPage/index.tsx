@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Layout,
   Table,
   Button,
   Input,
@@ -12,19 +11,16 @@ import {
   Card,
   Row,
   Col,
-  Avatar,
-  Dropdown,
   Modal,
   Form,
   InputNumber,
+  Dropdown,
 } from 'antd';
 import {
   PlusOutlined,
   SearchOutlined,
   FilterOutlined,
   ExportOutlined,
-  UserOutlined,
-  LogoutOutlined,
   MoreOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -42,7 +38,6 @@ import {
 import { materialRequestApi, referenceDataApi } from '@/entities';
 import { message } from '@/shared/ui';
 
-const { Header, Content } = Layout;
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
@@ -252,48 +247,10 @@ export const MaterialRequestsPage: React.FC = () => {
     },
   ];
 
-  const userMenuItems = [
-    {
-      key: 'profile',
-      label: 'Профиль',
-      icon: <UserOutlined />,
-    },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'logout',
-      label: 'Выход',
-      icon: <LogoutOutlined />,
-      onClick: signOut,
-    },
-  ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header
-        style={{
-          padding: '0 24px',
-          background: '#fff',
-          borderBottom: '1px solid #f0f0f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-          PayHub - Заявки на материалы
-        </Title>
-        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-          <Space style={{ cursor: 'pointer' }}>
-            <Avatar icon={<UserOutlined />} />
-            <span>{user?.full_name || user?.email}</span>
-          </Space>
-        </Dropdown>
-      </Header>
-
-      <Content style={{ padding: '24px' }}>
-        <Card>
+    <>
+      <Card>
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
             <Col xs={24} sm={12} md={8} lg={6}>
               <Input
@@ -560,7 +517,6 @@ export const MaterialRequestsPage: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
-      </Content>
-    </Layout>
+    </>
   );
 };

@@ -64,3 +64,8 @@ export const referenceDataApi = {
     return data || [];
   },
 };
+
+// Export individual APIs for CRUD operations
+export { projectsApi } from './projects-api';
+export { contractorsApi } from './contractors-api';
+export { payersApi } from './payers-api';

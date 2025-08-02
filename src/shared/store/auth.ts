@@ -81,39 +81,36 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signUp: async (credentials: RegisterCredentials) => {
     try {
+      console.log('Starting registration with credentials:', {
+        email: credentials.email,
+        fullName: credentials.fullName,
+        role: credentials.role
+      });
+
       const { data, error } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
         options: {
           data: {
             full_name: credentials.fullName,
+            role: credentials.role || 'PROCUREMENT_OFFICER',
           },
         },
       });
 
+      console.log('Supabase auth.signUp response:', { data, error });
+
       if (error) {
+        console.error('Supabase auth error:', error);
         return { error: error.message };
       }
 
-      // Create profile record
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: data.user.id,
-            full_name: credentials.fullName,
-            role: credentials.role || 'PROCUREMENT_OFFICER',
-            email: credentials.email,
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          return { error: 'Не удалось создать профиль пользователя' };
-        }
-      }
-
+      // Profile record will be created automatically by database trigger
+      console.log('User registered successfully:', data);
+      
       return {};
-    } catch {
+    } catch (error) {
+      console.error('Registration catch error:', error);
       return { error: 'Произошла непредвиденная ошибка' };
     }
   },

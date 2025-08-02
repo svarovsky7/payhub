@@ -1,8 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { ProtectedRoute } from '@/shared/ui';
+import { ProtectedRoute, AppLayout } from '@/shared/ui';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { MaterialRequestsPage } from '@/pages/MaterialRequestsPage';
+import { ApprovalsPage } from '@/pages/ApprovalsPage';
+import { AdminPage } from '@/pages/AdminPage';
 
 export const router = createBrowserRouter([
   {
@@ -14,19 +16,33 @@ export const router = createBrowserRouter([
     element: <RegisterPage />,
   },
   {
-    path: '/material-requests',
+    path: '/',
     element: (
       <ProtectedRoute>
-        <MaterialRequestsPage />
+        <AppLayout />
       </ProtectedRoute>
     ),
-  },
-  {
-    path: '/',
-    element: <Navigate to="/material-requests" replace />,
+    children: [
+      {
+        path: 'materials',
+        element: <MaterialRequestsPage />,
+      },
+      {
+        path: 'approvals',
+        element: <ApprovalsPage />,
+      },
+      {
+        path: 'admin',
+        element: <AdminPage />,
+      },
+      {
+        index: true,
+        element: <Navigate to="/materials" replace />,
+      },
+    ],
   },
   {
     path: '*',
-    element: <Navigate to="/material-requests" replace />,
+    element: <Navigate to="/materials" replace />,
   },
 ]);
