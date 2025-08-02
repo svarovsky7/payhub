@@ -1,0 +1,5 @@
+// Временно используем адаптер для работы с существующей схемой БД
+export { materialRequestApi } from './temp-api';
+
+// Оригинальный API для PayHub схемы закомментирован
+// export { materialRequestApi } from './payhub-api';
