@@ -17,7 +17,6 @@ import {
   Col,
   DatePicker,
   Alert,
-  Switch,
   Upload,
   Image,
   Grid,
@@ -55,7 +54,6 @@ interface InvoiceFormData {
   contractor_id: number;
   payer_id: number;
   amount: number;
-  includeVat: boolean;
   description: string;
   project_id: number;
   invoice_date: string;
@@ -106,7 +104,6 @@ export function InvoicesPage() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>([]);
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type?: string } | null>(null);
-  const [includeVat, setIncludeVat] = useState(true);
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -255,16 +252,13 @@ export function InvoicesPage() {
   const handleCreate = () => {
     setEditingInvoice(null);
     form.resetFields();
-    setIncludeVat(true); // Reset to default
     setIsModalOpen(true);
   };
 
   const handleEdit = async (invoice: Invoice) => {
     setEditingInvoice(invoice);
-    // Calculate if original amount was with or without VAT
-    const hasVat = invoice.vat_amount && invoice.vat_amount > 0;
-    setIncludeVat(hasVat); // Set state based on invoice
-    const displayAmount = hasVat ? invoice.total_amount : invoice.without_vat || invoice.total_amount;
+    // Always display the total amount (which includes VAT by default)
+    const displayAmount = invoice.total_amount;
     
     // Calculate expected delivery date if delivery_days exists
     if (invoice.delivery_days) {
@@ -278,7 +272,6 @@ export function InvoicesPage() {
     form.setFieldsValue({
       ...invoice,
       amount: displayAmount,
-      includeVat: hasVat,
       invoice_date: invoice.invoice_date ? dayjs(invoice.invoice_date) : null,
       delivery_days: invoice.delivery_days,
     });
@@ -312,27 +305,15 @@ export function InvoicesPage() {
     setAttachments([]);
     setUploadedAttachments([]);
     setPreviewFile(null);
-    setIncludeVat(true); // Reset to default
     setExpectedDeliveryDate(null); // Reset expected delivery date
   };
 
   const handleSubmit = async (values: InvoiceFormData) => {
     try {
-      // Calculate VAT amounts
-      let totalAmount = values.amount || 0;
-      let withoutVat = null;
-      let vatAmount = null;
-      
-      if (values.includeVat) {
-        // Amount includes VAT (20%)
-        withoutVat = Math.round(totalAmount / 1.2 * 100) / 100;
-        vatAmount = Math.round((totalAmount - withoutVat) * 100) / 100;
-      } else {
-        // Amount without VAT
-        withoutVat = totalAmount;
-        vatAmount = Math.round(totalAmount * 0.2 * 100) / 100;
-        totalAmount = Math.round((withoutVat + vatAmount) * 100) / 100;
-      }
+      // Calculate VAT amounts - amount always includes VAT (20%)
+      const totalAmount = values.amount || 0;
+      const withoutVat = Math.round(totalAmount / 1.2 * 100) / 100;
+      const vatAmount = Math.round((totalAmount - withoutVat) * 100) / 100;
 
       const invoiceData = {
         invoice_number: values.invoice_number,
@@ -1104,30 +1085,113 @@ export function InvoicesPage() {
           }
         }}
         className="uniform-form-modal"
+        styles={{
+          content: {
+            padding: 0
+          }
+        }}
       >
+        <style>
+          {`
+            .uniform-form-modal .ant-modal-body {
+              padding: ${isMobile ? '16px' : '24px'};
+            }
+            
+            .uniform-form .ant-form-item {
+              margin-bottom: 24px;
+            }
+            
+            .uniform-input:hover {
+              border-color: #40a9ff;
+              box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+            }
+            
+            .uniform-input:focus-within {
+              border-color: #1890ff;
+              box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+            }
+            
+            .ant-input-number.uniform-input .ant-input-number-input {
+              height: 40px;
+            }
+            
+            .ant-select.uniform-input .ant-select-selector {
+              height: 44px !important;
+              border-radius: 8px !important;
+              border: 1.5px solid #d9d9d9 !important;
+            }
+            
+            .ant-select.uniform-input .ant-select-selection-item {
+              line-height: 40px !important;
+            }
+            
+            .ant-picker.uniform-input {
+              border-radius: 8px !important;
+              border: 1.5px solid #d9d9d9 !important;
+            }
+            
+            .ant-input-number.uniform-input {
+              border-radius: 8px !important;
+              border: 1.5px solid #d9d9d9 !important;
+            }
+            
+            .ant-input.uniform-input,
+            .ant-input-affix-wrapper.uniform-input {
+              border-radius: 8px !important;
+              border: 1.5px solid #d9d9d9 !important;
+            }
+            
+            .uniform-form .ant-form-item-label > label {
+              font-size: 14px;
+              font-weight: 500;
+              color: #434343;
+            }
+            
+            .uniform-form .ant-form-item-extra {
+              font-size: 12px;
+              color: #8c8c8c;
+              margin-top: 4px;
+            }
+            
+            @media (max-width: 768px) {
+              .uniform-form-modal .ant-modal-body {
+                padding: 16px;
+              }
+              
+              .uniform-form .ant-form-item {
+                margin-bottom: 20px;
+              }
+            }
+          `}
+        </style>
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={{
             invoice_date: dayjs(),
-            includeVat: true,
           }}
+          className="uniform-form"
         >
-          <Row gutter={[16, 0]}>
+          <Row gutter={[20, 24]}>
             <Col span={isMobile ? 24 : 8}>
               <Form.Item
                 name="invoice_number"
-                label="Номер счета"
+                label={<span style={{ fontWeight: 500, color: '#434343' }}>Номер счета</span>}
                 rules={[
                   { required: true, message: 'Введите номер счета' },
                 ]}
-                style={{ marginBottom: 16 }}
               >
                 <Input 
-                  placeholder="Введите номер счета" 
-                  size={isMobile ? 'large' : 'middle'}
-                  className="touch-target"
+                  placeholder="Например: СЧ-001"
+                  size="large"
+                  style={{ 
+                    height: 44,
+                    borderRadius: 8,
+                    border: '1.5px solid #d9d9d9',
+                    transition: 'all 0.3s'
+                  }}
+                  className="uniform-input"
                   autoComplete="off"
                 />
               </Form.Item>
@@ -1135,35 +1199,41 @@ export function InvoicesPage() {
             <Col span={isMobile ? 24 : 8}>
               <Form.Item
                 name="invoice_date"
-                label="Дата счета"
+                label={<span style={{ fontWeight: 500, color: '#434343' }}>Дата счета</span>}
                 rules={[
                   { required: true, message: 'Выберите дату счета' },
                 ]}
-                style={{ marginBottom: 16 }}
               >
                 <DatePicker
-                  style={{ width: '100%' }}
+                  style={{ 
+                    width: '100%',
+                    height: 44,
+                    borderRadius: 8,
+                    border: '1.5px solid #d9d9d9'
+                  }}
                   format="DD.MM.YYYY"
                   placeholder="Выберите дату"
-                  size={isMobile ? 'large' : 'middle'}
-                  className="touch-target"
+                  size="large"
+                  className="uniform-input"
                 />
               </Form.Item>
             </Col>
             <Col span={isMobile ? 24 : 8}>
               <Form.Item
                 name="project_id"
-                label="Проект"
+                label={<span style={{ fontWeight: 500, color: '#434343' }}>Проект</span>}
                 rules={[
                   { required: true, message: 'Выберите проект' },
                 ]}
-                style={{ marginBottom: 16 }}
               >
                 <Select
                   placeholder="Выберите проект"
                   showSearch
-                  size={isMobile ? 'large' : 'middle'}
-                  className="touch-target"
+                  size="large"
+                  style={{
+                    height: 44
+                  }}
+                  className="uniform-input"
                   filterOption={(input, option) =>
                     (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
                   }
@@ -1193,62 +1263,66 @@ export function InvoicesPage() {
             </Col>
           </Row>
 
-          <Row gutter={[16, 0]}>
+          <Row gutter={[20, 24]}>
             <Col span={isMobile ? 24 : 12}>
               <Form.Item
                 name="contractor_id"
-                label="Поставщик"
+                label={<span style={{ fontWeight: 500, color: '#434343' }}>Поставщик</span>}
                 rules={[
                   { required: true, message: 'Выберите поставщика' },
                 ]}
-                style={{ marginBottom: 16 }}
               >
-            <Select
-              placeholder="Выберите поставщика"
-              showSearch
-              size={isMobile ? 'large' : 'middle'}
-              className="touch-target"
-              filterOption={(input, option) =>
-                (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
-              }
-              popupRender={(menu) => (
-                <>
-                  {menu}
-                  <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
-                    <Button
-                      type="link"
-                      icon={<PlusOutlined />}
-                      onClick={() => setIsContractorModalOpen(true)}
-                      style={{ width: '100%', textAlign: 'left' }}
-                    >
-                      Добавить нового поставщика
-                    </Button>
-                  </div>
-                </>
-              )}
-            >
-              {contractors.map((contractor) => (
-                <Option key={contractor.id} value={contractor.id}>
-                  {contractor.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+                <Select
+                  placeholder="Выберите поставщика"
+                  showSearch
+                  size="large"
+                  style={{
+                    height: 44
+                  }}
+                  className="uniform-input"
+                  filterOption={(input, option) =>
+                    (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
+                  }
+                  popupRender={(menu) => (
+                    <>
+                      {menu}
+                      <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                        <Button
+                          type="link"
+                          icon={<PlusOutlined />}
+                          onClick={() => setIsContractorModalOpen(true)}
+                          style={{ width: '100%', textAlign: 'left' }}
+                        >
+                          Добавить нового поставщика
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                >
+                  {contractors.map((contractor) => (
+                    <Option key={contractor.id} value={contractor.id}>
+                      {contractor.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
             </Col>
             <Col span={isMobile ? 24 : 12}>
               <Form.Item
                 name="payer_id"
-                label="Плательщик"
+                label={<span style={{ fontWeight: 500, color: '#434343' }}>Плательщик</span>}
                 rules={[
                   { required: true, message: 'Выберите плательщика' },
                 ]}
-                style={{ marginBottom: 16 }}
               >
                 <Select
                   placeholder="Выберите плательщика"
                   showSearch
-                  size={isMobile ? 'large' : 'middle'}
-                  className="touch-target"
+                  size="large"
+                  style={{
+                    height: 44
+                  }}
+                  className="uniform-input"
                   filterOption={(input, option) =>
                     (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
                   }
@@ -1278,112 +1352,112 @@ export function InvoicesPage() {
             </Col>
           </Row>
 
-          <Row gutter={[16, 0]}>
-            <Col span={isMobile ? 24 : 8}>
+          <Row gutter={[20, 24]}>
+            <Col span={isMobile ? 24 : 12}>
               <Form.Item
                 name="amount"
-                label="Сумма"
+                label={
+                  <span style={{ fontWeight: 500, color: '#434343' }}>
+                    Сумма с НДС
+                    <span style={{ fontSize: '12px', color: '#8c8c8c', fontWeight: 400, marginLeft: 8 }}>
+                      (включая НДС 20%)
+                    </span>
+                  </span>
+                }
                 rules={[
                   { required: true, message: 'Введите сумму' },
                   { type: 'number', min: 0.01, message: 'Сумма должна быть больше 0' },
                 ]}
-                style={{ marginBottom: 16 }}
+                extra={
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#8c8c8c',
+                    marginTop: 4
+                  }}>
+                    Сумма автоматически включает НДС 20%
+                  </div>
+                }
               >
                 <InputNumber
-                  style={{ width: '100%' }}
-                  placeholder="Введите сумму"
+                  style={{ 
+                    width: '100%',
+                    height: 44
+                  }}
+                  placeholder="Введите сумму с НДС"
                   precision={2}
-                  size={isMobile ? 'large' : 'middle'}
-                  className="touch-target"
+                  size="large"
+                  className="uniform-input"
                   formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
                   parser={(value) => value!.replace(/\s?/g, '')}
                   addonAfter="₽"
                   onChange={(value) => {
-                    const vatEnabled = form.getFieldValue('includeVat');
-                    if (value) {
-                      let displayText = '';
-                      if (vatEnabled) {
-                        const withoutVat = Math.round(value / 1.2 * 100) / 100;
-                        const vat = Math.round((value - withoutVat) * 100) / 100;
-                        displayText = `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vat.toLocaleString('ru-RU')} ₽`;
-                      } else {
-                        const vat = Math.round(value * 0.2 * 100) / 100;
-                        const total = Math.round((value + vat) * 100) / 100;
-                        displayText = `НДС 20%: ${vat.toLocaleString('ru-RU')} ₽ | Итого: ${total.toLocaleString('ru-RU')} ₽`;
-                      }
-                      form.setFieldsValue({ vatDisplay: displayText });
+                    if (value && value > 0) {
+                      const withoutVat = Math.round(value / 1.2 * 100) / 100;
+                      const vatAmount = Math.round((value - withoutVat) * 100) / 100;
+                      form.setFieldsValue({ 
+                        vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
+                      });
+                    } else {
+                      form.setFieldsValue({ vatDisplay: '' });
                     }
                   }}
                 />
               </Form.Item>
             </Col>
-            <Col span={isMobile ? 24 : 4}>
-              <Form.Item
-                name="includeVat"
-                label="НДС"
-                valuePropName="checked"
-                initialValue={true}
-                style={{ marginBottom: 16 }}
-              >
-                <Space>
-                  <Switch 
-                    size="small"
-                    onChange={(checked) => {
-                      setIncludeVat(checked);
-                      const amount = form.getFieldValue('amount');
-                      if (amount) {
-                        let displayText = '';
-                        if (checked) {
-                          const withoutVat = Math.round(amount / 1.2 * 100) / 100;
-                          const vat = Math.round((amount - withoutVat) * 100) / 100;
-                          displayText = `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vat.toLocaleString('ru-RU')} ₽`;
-                        } else {
-                          const vat = Math.round(amount * 0.2 * 100) / 100;
-                          const total = Math.round((amount + vat) * 100) / 100;
-                          displayText = `НДС 20%: ${vat.toLocaleString('ru-RU')} ₽ | Итого: ${total.toLocaleString('ru-RU')} ₽`;
-                        }
-                        form.setFieldsValue({ vatDisplay: displayText });
-                      }
-                    }}
-                  />
-                  <span style={{ fontSize: '13px', color: '#8c8c8c' }}>
-                    {includeVat ? 'С НДС' : 'Без НДС'}
-                  </span>
-                </Space>
-              </Form.Item>
-            </Col>
             <Col span={isMobile ? 24 : 12}>
-              {form.getFieldValue('amount') && (
+              <div style={{
+                marginTop: isMobile ? 0 : 32,
+                padding: '12px 16px',
+                background: 'linear-gradient(135deg, #e6f7ff 0%, #f6ffed 100%)',
+                borderRadius: '8px',
+                border: '1px solid #b7eb8f',
+                minHeight: 44,
+                display: 'flex',
+                alignItems: 'center'
+              }}>
                 <div style={{ 
-                  fontSize: '12px', 
-                  color: '#8c8c8c',
-                  background: '#f5f5f5',
-                  padding: '6px 12px',
-                  borderRadius: '6px',
-                  marginTop: 28,
-                  height: 32,
-                  display: 'flex',
-                  alignItems: 'center'
+                  fontSize: '13px', 
+                  color: '#52c41a',
+                  fontWeight: 500,
+                  width: '100%'
                 }}>
-                  <span id="vat-display">{form.getFieldValue('vatDisplay') || 'Введите сумму для расчета НДС'}</span>
+                  <div style={{ fontSize: '11px', color: '#8c8c8c', marginBottom: 2 }}>
+                    Расчет НДС:
+                  </div>
+                  <span id="vat-display">
+                    {form.getFieldValue('vatDisplay') || 'Введите сумму для автоматического расчета'}
+                  </span>
                 </div>
-              )}
+              </div>
             </Col>
           </Row>
 
-          <Row gutter={[16, 0]}>
+          <Row gutter={[20, 24]}>
             <Col span={isMobile ? 24 : 12}>
               <Form.Item
                 name="delivery_days"
-                label="Срок поставки (кал. дней)"
-                style={{ marginBottom: 16 }}
+                label={<span style={{ fontWeight: 500, color: '#434343' }}>Срок поставки</span>}
+                extra={
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#8c8c8c',
+                    marginTop: 4
+                  }}>
+                    Количество календарных дней после оплаты
+                  </div>
+                }
               >
                 <InputNumber
                   min={1}
                   max={365}
-                  placeholder="Количество календарных дней"
-                  style={{ width: '100%' }}
-                  size={isMobile ? 'large' : 'middle'}
+                  placeholder="Например: 7"
+                  style={{ 
+                    width: '100%',
+                    height: 44
+                  }}
+                  size="large"
+                  className="uniform-input"
+                  addonAfter="дней"
                   onChange={(value) => {
                     if (value) {
                       const today = new Date();
@@ -1400,24 +1474,29 @@ export function InvoicesPage() {
               {expectedDeliveryDate && (
                 <div style={{
                   marginTop: isMobile ? 0 : 32,
-                  padding: '8px 12px',
-                  background: '#e6f7ff',
-                  borderRadius: '6px',
-                  border: '1px solid #91d5ff'
+                  padding: '12px 16px',
+                  background: 'linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%)',
+                  borderRadius: '8px',
+                  border: '1px solid #91d5ff',
+                  minHeight: 44,
+                  display: 'flex',
+                  alignItems: 'center'
                 }}>
-                  <div style={{ fontSize: '12px', color: '#1890ff', marginBottom: 4 }}>
-                    Ожидаемая дата поставки:
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: 500, color: '#096dd9' }}>
-                    {expectedDeliveryDate.toLocaleDateString('ru-RU', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#52c41a', marginTop: 4 }}>
-                    * Следующий рабочий день + {form.getFieldValue('delivery_days')} календарных дней
+                  <div style={{ width: '100%' }}>
+                    <div style={{ fontSize: '11px', color: '#1890ff', marginBottom: 2, fontWeight: 500 }}>
+                      Ожидаемая дата поставки:
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#096dd9', marginBottom: 2 }}>
+                      {expectedDeliveryDate.toLocaleDateString('ru-RU', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#52c41a' }}>
+                      * След. раб. день + {form.getFieldValue('delivery_days')} кал. дней
+                    </div>
                   </div>
                 </div>
               )}
@@ -1426,20 +1505,41 @@ export function InvoicesPage() {
 
           <Form.Item
             name="description"
-            label="Описание"
-            style={{ marginBottom: 16 }}
+            label={<span style={{ fontWeight: 500, color: '#434343' }}>Описание</span>}
+            extra={
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#8c8c8c',
+                marginTop: 4
+              }}>
+                Краткое описание товаров или услуг
+              </div>
+            }
           >
             <TextArea
-              rows={2}
-              placeholder="Введите описание счета"
-              size={isMobile ? 'large' : 'middle'}
-              className="touch-target"
+              rows={3}
+              placeholder="Например: Строительные материалы для объекта..."
+              style={{
+                borderRadius: 8,
+                border: '1.5px solid #d9d9d9',
+                resize: 'vertical',
+                minHeight: 44
+              }}
+              className="uniform-input"
             />
           </Form.Item>
 
           <Form.Item 
-            label="Файлы"
-            style={{ marginBottom: 16 }}
+            label={<span style={{ fontWeight: 500, color: '#434343' }}>Прикрепленные файлы</span>}
+            extra={
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#8c8c8c',
+                marginTop: 4
+              }}>
+                Счета, накладные, спецификации (макс. 50 МБ на файл)
+              </div>
+            }
           >
             <Upload
               fileList={fileList}
@@ -1595,36 +1695,44 @@ export function InvoicesPage() {
             >
               <Button 
                 icon={<UploadOutlined />}
-                size={isMobile ? 'large' : 'middle'}
-                className="touch-target"
+                size="large"
+                style={{
+                  height: 44,
+                  borderRadius: 8,
+                  border: '1.5px dashed #d9d9d9',
+                  background: '#fafafa'
+                }}
+                className="uniform-input"
               >
-                {isMobile ? 'Загрузить' : 'Загрузить файл'}
+                {isMobile ? 'Загрузить' : 'Выбрать файлы'}
               </Button>
             </Upload>
           </Form.Item>
 
           <Form.Item style={{ 
             marginBottom: 0, 
-            marginTop: 16,
-            paddingTop: 12,
+            marginTop: 32,
+            paddingTop: 20,
             borderTop: '1px solid #f0f0f0'
           }}>
             <Space 
               style={{ 
                 width: '100%', 
                 justifyContent: isMobile ? 'space-between' : 'flex-end',
-                gap: isMobile ? 0 : 8
+                gap: 16
               }}
-              size={isMobile ? 'large' : 'middle'}
+              size="large"
             >
               <Button 
                 onClick={handleModalClose}
-                size={isMobile ? 'large' : 'middle'}
+                size="large"
                 style={{ 
                   flex: isMobile ? 1 : 'none',
-                  minHeight: isMobile ? 44 : 'auto'
+                  height: 44,
+                  borderRadius: 8,
+                  border: '1.5px solid #d9d9d9'
                 }}
-                className="touch-target"
+                className="uniform-input"
               >
                 Отмена
               </Button>
@@ -1632,15 +1740,18 @@ export function InvoicesPage() {
                 type="primary"
                 htmlType="submit"
                 loading={createMutation.isPending || updateMutation.isPending}
-                size={isMobile ? 'large' : 'middle'}
+                size="large"
                 style={{ 
                   flex: isMobile ? 1 : 'none',
-                  minHeight: isMobile ? 44 : 'auto',
-                  marginLeft: isMobile ? 16 : 0
+                  height: 44,
+                  borderRadius: 8,
+                  background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
+                  fontWeight: 500
                 }}
-                className="touch-target"
               >
-                {editingInvoice ? 'Сохранить' : 'Создать'}
+                {editingInvoice ? 'Сохранить изменения' : 'Создать счет'}
               </Button>
             </Space>
           </Form.Item>
