@@ -174,3 +174,42 @@ The project uses ESLint flat config (`eslint.config.js`). Note: Line 6 has an in
 - ESLint with TypeScript rules (flat config)
 - Prettier for formatting
 - No testing framework currently configured
+
+## Automatic Git Commits and Pull Requests
+
+After completing each task, use one of these scripts to automatically commit changes and create pull requests:
+
+### Windows PowerShell (Recommended)
+```powershell
+.\commit-and-pr.ps1 "feat: Description of changes" "PR Title" "Detailed PR description"
+```
+
+### Windows Command Prompt
+```batch
+commit-and-pr.bat "feat: Description of changes" "PR Title" "Detailed PR description"
+```
+
+### Git Bash/WSL
+```bash
+./commit-and-pr.sh "feat: Description of changes" "PR Title" "Detailed PR description"
+```
+
+### Commit Message Format
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `refactor:` - Code refactoring
+- `docs:` - Documentation changes
+- `style:` - UI/UX improvements
+- `test:` - Test additions/changes
+- `chore:` - Maintenance tasks
+
+### Prerequisites
+1. GitHub CLI must be installed: `winget install GitHub.cli`
+2. Authenticate with GitHub: `gh auth login`
+3. Set up remote repository: `git remote add origin https://github.com/USERNAME/REPO.git`
+
+## Important Reminders
+- AFTER COMPLETING EACH TASK: Run the appropriate commit script to save changes
+- Create files only when absolutely necessary
+- Always prefer editing existing files
+- Never proactively create documentation files
