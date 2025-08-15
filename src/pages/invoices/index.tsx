@@ -17,6 +17,7 @@ import {
   Col,
   DatePicker,
   Alert,
+  Switch,
   Upload,
   Image,
   Grid,
@@ -105,6 +106,7 @@ export function InvoicesPage() {
   const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>([]);
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type?: string } | null>(null);
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
+  const [includeVat, setIncludeVat] = useState(true); // По умолчанию сумма с НДС
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   
@@ -306,14 +308,26 @@ export function InvoicesPage() {
     setUploadedAttachments([]);
     setPreviewFile(null);
     setExpectedDeliveryDate(null); // Reset expected delivery date
+    setIncludeVat(true); // Reset to default (with VAT)
   };
 
   const handleSubmit = async (values: InvoiceFormData) => {
     try {
-      // Calculate VAT amounts - amount always includes VAT (20%)
-      const totalAmount = values.amount || 0;
-      const withoutVat = Math.round(totalAmount / 1.2 * 100) / 100;
-      const vatAmount = Math.round((totalAmount - withoutVat) * 100) / 100;
+      // Calculate VAT amounts based on includeVat flag
+      const inputAmount = values.amount || 0;
+      let totalAmount, withoutVat, vatAmount;
+      
+      if (includeVat) {
+        // Сумма введена с НДС
+        totalAmount = inputAmount;
+        withoutVat = Math.round(inputAmount / 1.2 * 100) / 100;
+        vatAmount = Math.round((totalAmount - withoutVat) * 100) / 100;
+      } else {
+        // Сумма введена без НДС
+        withoutVat = inputAmount;
+        vatAmount = Math.round(inputAmount * 0.2 * 100) / 100;
+        totalAmount = Math.round((withoutVat + vatAmount) * 100) / 100;
+      }
 
       const invoiceData = {
         invoice_number: values.invoice_number,
@@ -1369,37 +1383,55 @@ export function InvoicesPage() {
           </Row>
 
           <Row gutter={[20, 24]}>
-            <Col span={isMobile ? 24 : 12}>
+            <Col span={isMobile ? 24 : 16}>
               <Form.Item
                 name="amount"
                 label={
-                  <span style={{ fontWeight: 500, color: '#434343' }}>
-                    Сумма с НДС
-                    <span style={{ fontSize: '12px', color: '#8c8c8c', fontWeight: 400, marginLeft: 8 }}>
-                      (включая НДС 20%)
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontWeight: 500, color: '#434343' }}>
+                      {includeVat ? 'Сумма с НДС' : 'Сумма без НДС'}
                     </span>
-                  </span>
+                    <Switch
+                      checked={includeVat}
+                      onChange={(checked) => {
+                        setIncludeVat(checked);
+                        // Пересчитываем отображение при изменении переключателя
+                        const amount = form.getFieldValue('amount');
+                        if (amount && amount > 0) {
+                          if (checked) {
+                            // Переключили на "с НДС"
+                            const withoutVat = Math.round(amount / 1.2 * 100) / 100;
+                            const vatAmount = Math.round((amount - withoutVat) * 100) / 100;
+                            form.setFieldsValue({ 
+                              vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
+                            });
+                          } else {
+                            // Переключили на "без НДС"
+                            const vatAmount = Math.round(amount * 0.2 * 100) / 100;
+                            const totalAmount = Math.round((amount + vatAmount) * 100) / 100;
+                            form.setFieldsValue({ 
+                              vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
+                            });
+                          }
+                        }
+                      }}
+                      checkedChildren="С НДС"
+                      unCheckedChildren="Без НДС"
+                      style={{ minWidth: 90 }}
+                    />
+                  </div>
                 }
                 rules={[
                   { required: true, message: 'Введите сумму' },
                   { type: 'number', min: 0.01, message: 'Сумма должна быть больше 0' },
                 ]}
-                extra={
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#8c8c8c',
-                    marginTop: 4
-                  }}>
-                    Сумма автоматически включает НДС 20%
-                  </div>
-                }
               >
                 <InputNumber
                   style={{ 
                     width: '100%',
                     height: 44
                   }}
-                  placeholder="Введите сумму с НДС"
+                  placeholder={includeVat ? "Введите сумму с НДС" : "Введите сумму без НДС"}
                   precision={2}
                   size="large"
                   className="uniform-input"
@@ -1408,11 +1440,21 @@ export function InvoicesPage() {
                   addonAfter="₽"
                   onChange={(value) => {
                     if (value && value > 0) {
-                      const withoutVat = Math.round(value / 1.2 * 100) / 100;
-                      const vatAmount = Math.round((value - withoutVat) * 100) / 100;
-                      form.setFieldsValue({ 
-                        vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
-                      });
+                      if (includeVat) {
+                        // Введена сумма с НДС
+                        const withoutVat = Math.round(value / 1.2 * 100) / 100;
+                        const vatAmount = Math.round((value - withoutVat) * 100) / 100;
+                        form.setFieldsValue({ 
+                          vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
+                        });
+                      } else {
+                        // Введена сумма без НДС
+                        const vatAmount = Math.round(value * 0.2 * 100) / 100;
+                        const totalAmount = Math.round((value + vatAmount) * 100) / 100;
+                        form.setFieldsValue({ 
+                          vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
+                        });
+                      }
                     } else {
                       form.setFieldsValue({ vatDisplay: '' });
                     }
@@ -1420,7 +1462,7 @@ export function InvoicesPage() {
                 />
               </Form.Item>
             </Col>
-            <Col span={isMobile ? 24 : 12}>
+            <Col span={isMobile ? 24 : 8}>
               <div style={{
                 marginTop: isMobile ? 0 : 32,
                 padding: '12px 16px',
