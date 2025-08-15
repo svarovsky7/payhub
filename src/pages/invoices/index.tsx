@@ -1102,8 +1102,7 @@ export function InvoicesPage() {
             }
             
             .uniform-input:hover {
-              border-color: #40a9ff;
-              box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+              border-color: #d9d9d9;
             }
             
             .uniform-input:focus-within {
@@ -1121,6 +1120,10 @@ export function InvoicesPage() {
               border: 1.5px solid #d9d9d9 !important;
             }
             
+            .ant-select.uniform-input:hover .ant-select-selector {
+              border-color: #d9d9d9 !important;
+            }
+            
             .ant-select.uniform-input .ant-select-selection-item {
               line-height: 40px !important;
             }
@@ -1130,15 +1133,28 @@ export function InvoicesPage() {
               border: 1.5px solid #d9d9d9 !important;
             }
             
+            .ant-picker.uniform-input:hover {
+              border-color: #d9d9d9 !important;
+            }
+            
             .ant-input-number.uniform-input {
               border-radius: 8px !important;
               border: 1.5px solid #d9d9d9 !important;
+            }
+            
+            .ant-input-number.uniform-input:hover {
+              border-color: #d9d9d9 !important;
             }
             
             .ant-input.uniform-input,
             .ant-input-affix-wrapper.uniform-input {
               border-radius: 8px !important;
               border: 1.5px solid #d9d9d9 !important;
+            }
+            
+            .ant-input.uniform-input:hover,
+            .ant-input-affix-wrapper.uniform-input:hover {
+              border-color: #d9d9d9 !important;
             }
             
             .uniform-form .ant-form-item-label > label {
