@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Table,
   Button,
@@ -18,11 +18,11 @@ import {
   DatePicker,
   Alert,
   Switch,
-  Upload,
   Image,
   Grid,
   List,
   Segmented,
+  Progress,
 } from 'antd';
 import {
   PlusOutlined,
@@ -32,12 +32,21 @@ import {
   FileTextOutlined,
   SearchOutlined,
   FilterOutlined,
-  UploadOutlined,
   EyeOutlined,
   PaperClipOutlined,
   TableOutlined,
   AppstoreOutlined,
   MoreOutlined,
+  CalendarOutlined,
+  UserOutlined,
+  BankOutlined,
+  ProjectOutlined,
+  CalculatorOutlined,
+  CloseOutlined,
+  CheckOutlined,
+  SaveOutlined,
+  CloudUploadOutlined,
+  InboxOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/model/auth-store';
@@ -107,6 +116,8 @@ export function InvoicesPage() {
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type?: string } | null>(null);
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
   const [includeVat, setIncludeVat] = useState(true); // По умолчанию сумма с НДС
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   
@@ -251,6 +262,79 @@ export function InvoicesPage() {
     },
   });
 
+  // Drag and drop handlers
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    handleFiles(files);
+  };
+
+  const handleFiles = (files: File[]) => {
+    const validFiles = files.filter(file => file.size <= 50 * 1024 * 1024);
+    
+    validFiles.forEach(async (file) => {
+      const uid = `${Date.now()}-${Math.random()}`;
+      
+      // Add to fileList immediately with uploading status
+      setFileList(prev => [...prev, {
+        uid,
+        name: file.name,
+        status: 'uploading',
+        percent: 0,
+      }]);
+      
+      try {
+        // Upload file
+        const attachment = await attachmentApi.upload(file, editingInvoice?.id);
+        
+        // Update fileList with success status
+        setFileList(prev => prev.map(f => 
+          f.uid === uid 
+            ? {
+                uid: f.uid,
+                name: f.name,
+                status: 'done',
+                url: attachmentApi.getPublicUrl(attachment.file_path),
+                attachmentId: attachment.id,
+                percent: 100,
+              }
+            : f
+        ));
+        
+        setUploadedAttachments(prev => [...prev, attachment]);
+        message.success(`${file.name} загружен успешно`);
+      } catch (error) {
+        console.error('Upload error:', error);
+        
+        // Update fileList with error status
+        setFileList(prev => prev.map(f =>
+          f.uid === uid
+            ? { ...f, status: 'error' }
+            : f
+        ));
+        
+        message.error(`Ошибка загрузки ${file.name}`);
+      }
+    });
+    
+    if (files.length > validFiles.length) {
+      message.warning(`${files.length - validFiles.length} файл(ов) превышают максимальный размер 50MB`);
+    }
+  };
+
   const handleCreate = () => {
     setEditingInvoice(null);
     form.resetFields();
@@ -309,6 +393,13 @@ export function InvoicesPage() {
     setPreviewFile(null);
     setExpectedDeliveryDate(null); // Reset expected delivery date
     setIncludeVat(true); // Reset to default (with VAT)
+  };
+
+  const handleSaveDraft = () => {
+    const values = form.getFieldsValue();
+    console.log('Сохранение черновика:', values);
+    message.info('Функция сохранения черновика будет реализована позже');
+    // TODO: Implement draft saving logic
   };
 
   const handleSubmit = async (values: InvoiceFormData) => {
@@ -1081,739 +1172,743 @@ export function InvoicesPage() {
       )}
 
       <Modal
-        title={editingInvoice ? 'Редактировать счет' : 'Создать счет'}
         open={isModalOpen}
         onCancel={handleModalClose}
         footer={null}
-        width={isMobile ? '90vw' : isTablet ? 900 : 850}
-        centered
+        width={isMobile ? '100vw' : isTablet ? '90vw' : 1000}
+        centered={!isMobile}
         style={{
-          top: isMobile ? 20 : undefined,
-          maxHeight: isMobile ? '90vh' : '85vh'
+          top: isMobile ? 0 : 20,
+          maxWidth: '1200px'
         }}
-        styles={{
-          body: {
-            maxHeight: isMobile ? '70vh' : '65vh',
-            overflowY: 'auto',
-            padding: isMobile ? 16 : '20px 24px'
-          }
-        }}
-        className="uniform-form-modal"
+        className="modern-invoice-modal"
         styles={{
           content: {
+            padding: 0,
+            borderRadius: isMobile ? 0 : 16,
+            overflow: 'hidden'
+          },
+          body: {
             padding: 0
+          },
+          mask: {
+            backgroundColor: 'rgba(0, 0, 0, 0.45)'
           }
         }}
+        closeIcon={null}
       >
-        <style>
-          {`
-            .uniform-form-modal .ant-modal-body {
-              padding: ${isMobile ? '16px' : '24px'};
-            }
-            
-            .uniform-form .ant-form-item {
-              margin-bottom: 24px;
-            }
-            
-            .uniform-input:hover {
-              border-color: #d9d9d9;
-            }
-            
-            .uniform-input:focus-within {
-              border-color: #1890ff;
-              box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-            }
-            
-            .ant-input-number.uniform-input .ant-input-number-input {
-              height: 40px;
-            }
-            
-            .ant-select.uniform-input .ant-select-selector {
-              height: 44px !important;
-              border-radius: 8px !important;
-              border: 1.5px solid #d9d9d9 !important;
-            }
-            
-            .ant-select.uniform-input:hover .ant-select-selector {
-              border-color: #d9d9d9 !important;
-            }
-            
-            .ant-select.uniform-input .ant-select-selection-item {
-              line-height: 40px !important;
-            }
-            
-            .ant-picker.uniform-input {
-              border-radius: 8px !important;
-              border: 1.5px solid #d9d9d9 !important;
-            }
-            
-            .ant-picker.uniform-input:hover {
-              border-color: #d9d9d9 !important;
-            }
-            
-            .ant-input-number.uniform-input {
-              border-radius: 8px !important;
-              border: 1.5px solid #d9d9d9 !important;
-            }
-            
-            .ant-input-number.uniform-input:hover {
-              border-color: #d9d9d9 !important;
-            }
-            
-            .ant-input.uniform-input,
-            .ant-input-affix-wrapper.uniform-input {
-              border-radius: 8px !important;
-              border: 1.5px solid #d9d9d9 !important;
-            }
-            
-            .ant-input.uniform-input:hover,
-            .ant-input-affix-wrapper.uniform-input:hover {
-              border-color: #d9d9d9 !important;
-            }
-            
-            .uniform-form .ant-form-item-label > label {
-              font-size: 14px;
-              font-weight: 500;
-              color: #434343;
-            }
-            
-            .uniform-form .ant-form-item-extra {
-              font-size: 12px;
-              color: #8c8c8c;
-              margin-top: 4px;
-            }
-            
-            @media (max-width: 768px) {
-              .uniform-form-modal .ant-modal-body {
-                padding: 16px;
-              }
-              
-              .uniform-form .ant-form-item {
-                margin-bottom: 20px;
-              }
-            }
-          `}
-        </style>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{
-            invoice_date: dayjs(),
-          }}
-          className="uniform-form"
-        >
-          <Row gutter={[20, 24]}>
-            <Col span={isMobile ? 24 : 8}>
-              <Form.Item
-                name="invoice_number"
-                label={<span style={{ fontWeight: 500, color: '#434343' }}>Номер счета</span>}
-                rules={[
-                  { required: true, message: 'Введите номер счета' },
-                ]}
-              >
-                <Input 
-                  placeholder="Например: СЧ-001"
-                  size="large"
-                  style={{ 
-                    height: 44,
-                    borderRadius: 8,
-                    border: '1.5px solid #d9d9d9',
-                    transition: 'all 0.3s'
-                  }}
-                  className="uniform-input"
-                  autoComplete="off"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={isMobile ? 24 : 8}>
-              <Form.Item
-                name="invoice_date"
-                label={<span style={{ fontWeight: 500, color: '#434343' }}>Дата счета</span>}
-                rules={[
-                  { required: true, message: 'Выберите дату счета' },
-                ]}
-              >
-                <DatePicker
-                  style={{ 
-                    width: '100%',
-                    height: 44,
-                    borderRadius: 8,
-                    border: '1.5px solid #d9d9d9'
-                  }}
-                  format="DD.MM.YYYY"
-                  placeholder="Выберите дату"
-                  size="large"
-                  className="uniform-input"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={isMobile ? 24 : 8}>
-              <Form.Item
-                name="project_id"
-                label={<span style={{ fontWeight: 500, color: '#434343' }}>Проект</span>}
-                rules={[
-                  { required: true, message: 'Выберите проект' },
-                ]}
-              >
-                <Select
-                  placeholder="Выберите проект"
-                  showSearch
-                  size="large"
-                  style={{
-                    height: 44
-                  }}
-                  className="uniform-input"
-                  filterOption={(input, option) =>
-                    (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
-                  }
-                  popupRender={(menu) => (
-                    <>
-                      {menu}
-                      <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
-                        <Button
-                          type="link"
-                          icon={<PlusOutlined />}
-                          onClick={() => setIsProjectModalOpen(true)}
-                          style={{ width: '100%', textAlign: 'left' }}
-                        >
-                          Добавить новый проект
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                >
-                  {projects.map((project) => (
-                    <Option key={project.id} value={project.id}>
-                      {project.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+        <div className="modern-invoice-form">
+          {/* Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: isMobile ? '20px' : '24px 32px',
+            color: 'white'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: 8,
+                  padding: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <FileTextOutlined style={{ fontSize: 20 }} />
+                </div>
+                <Title level={isMobile ? 4 : 3} style={{ margin: 0, color: 'white' }}>
+                  {editingInvoice ? 'Редактировать счет' : 'Создать счет'}
+                </Title>
+              </div>
+              <Button
+                type="text"
+                icon={<CloseOutlined />}
+                onClick={handleModalClose}
+                style={{ color: 'white' }}
+              />
+            </div>
+          </div>
 
-          <Row gutter={[20, 24]}>
-            <Col span={isMobile ? 24 : 12}>
-              <Form.Item
-                name="contractor_id"
-                label={<span style={{ fontWeight: 500, color: '#434343' }}>Поставщик</span>}
-                rules={[
-                  { required: true, message: 'Выберите поставщика' },
-                ]}
+          {/* Form Content */}
+          <div style={{ padding: isMobile ? 20 : 32, maxHeight: isMobile ? 'calc(100vh - 140px)' : 'calc(85vh - 100px)', overflowY: 'auto' }}>
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSubmit}
+              initialValues={{
+                invoice_date: dayjs(),
+              }}
+              className="modern-form"
+            >
+              {/* Basic Info Section */}
+              <Card 
+                style={{ 
+                  marginBottom: 24,
+                  borderRadius: 12,
+                  border: '1px solid #f0f0f0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                }}
               >
-                <Select
-                  placeholder="Выберите поставщика"
-                  showSearch
-                  size="large"
-                  style={{
-                    height: 44
-                  }}
-                  className="uniform-input"
-                  filterOption={(input, option) =>
-                    (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
-                  }
-                  popupRender={(menu) => (
-                    <>
-                      {menu}
-                      <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
-                        <Button
-                          type="link"
-                          icon={<PlusOutlined />}
-                          onClick={() => setIsContractorModalOpen(true)}
-                          style={{ width: '100%', textAlign: 'left' }}
-                        >
-                          Добавить нового поставщика
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                >
-                  {contractors.map((contractor) => (
-                    <Option key={contractor.id} value={contractor.id}>
-                      {contractor.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={isMobile ? 24 : 12}>
-              <Form.Item
-                name="payer_id"
-                label={<span style={{ fontWeight: 500, color: '#434343' }}>Плательщик</span>}
-                rules={[
-                  { required: true, message: 'Выберите плательщика' },
-                ]}
-              >
-                <Select
-                  placeholder="Выберите плательщика"
-                  showSearch
-                  size="large"
-                  style={{
-                    height: 44
-                  }}
-                  className="uniform-input"
-                  filterOption={(input, option) =>
-                    (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
-                  }
-                  popupRender={(menu) => (
-                    <>
-                      {menu}
-                      <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
-                        <Button
-                          type="link"
-                          icon={<PlusOutlined />}
-                          onClick={() => setIsPayerModalOpen(true)}
-                          style={{ width: '100%', textAlign: 'left' }}
-                        >
-                          Добавить нового плательщика
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                >
-                  {payers.map((payer) => (
-                    <Option key={payer.id} value={payer.id}>
-                      {payer.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={[20, 24]}>
-            <Col span={isMobile ? 24 : 16}>
-              <Form.Item
-                name="amount"
-                label={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontWeight: 500, color: '#434343' }}>
-                      {includeVat ? 'Сумма с НДС' : 'Сумма без НДС'}
-                    </span>
-                    <Switch
-                      checked={includeVat}
-                      onChange={(checked) => {
-                        setIncludeVat(checked);
-                        // Пересчитываем отображение при изменении переключателя
-                        const amount = form.getFieldValue('amount');
-                        if (amount && amount > 0) {
-                          if (checked) {
-                            // Переключили на "с НДС"
-                            const withoutVat = Math.round(amount / 1.2 * 100) / 100;
-                            const vatAmount = Math.round((amount - withoutVat) * 100) / 100;
-                            form.setFieldsValue({ 
-                              vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
-                            });
-                          } else {
-                            // Переключили на "без НДС"
-                            const vatAmount = Math.round(amount * 0.2 * 100) / 100;
-                            const totalAmount = Math.round((amount + vatAmount) * 100) / 100;
-                            form.setFieldsValue({ 
-                              vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
-                            });
-                          }
+                <Row gutter={[20, 0]}>
+                  <Col span={isMobile ? 24 : 8}>
+                    <Form.Item
+                      name="invoice_number"
+                      label={
+                        <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                          Номер счета <span style={{ color: '#ff4d4f' }}>*</span>
+                        </span>
+                      }
+                      rules={[
+                        { required: true, message: 'Введите номер счета' },
+                      ]}
+                    >
+                      <Input 
+                        placeholder="Например: СЧ-001"
+                        size="large"
+                        prefix={<FileTextOutlined style={{ color: '#8c8c8c' }} />}
+                        style={{ 
+                          height: 48,
+                          borderRadius: 10,
+                          fontSize: 15
+                        }}
+                        autoComplete="off"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={isMobile ? 24 : 8}>
+                    <Form.Item
+                      name="invoice_date"
+                      label={
+                        <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                          <CalendarOutlined style={{ marginRight: 4 }} />
+                          Дата счета <span style={{ color: '#ff4d4f' }}>*</span>
+                        </span>
+                      }
+                      rules={[
+                        { required: true, message: 'Выберите дату счета' },
+                      ]}
+                    >
+                      <DatePicker
+                        style={{ 
+                          width: '100%',
+                          height: 48,
+                          borderRadius: 10,
+                          fontSize: 15
+                        }}
+                        format="DD.MM.YYYY"
+                        placeholder="Выберите дату"
+                        size="large"
+                        suffixIcon={<CalendarOutlined />}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={isMobile ? 24 : 8}>
+                    <Form.Item
+                      name="project_id"
+                      label={
+                        <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                          <ProjectOutlined style={{ marginRight: 4 }} />
+                          Проект <span style={{ color: '#ff4d4f' }}>*</span>
+                        </span>
+                      }
+                      rules={[
+                        { required: true, message: 'Выберите проект' },
+                      ]}
+                    >
+                      <Select
+                        placeholder="Выберите проект"
+                        showSearch
+                        size="large"
+                        style={{
+                          height: 48,
+                          borderRadius: 10,
+                          fontSize: 15
+                        }}
+                        filterOption={(input, option) =>
+                          (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
                         }
-                      }}
-                      checkedChildren="С НДС"
-                      unCheckedChildren="Без НДС"
-                      style={{ minWidth: 90 }}
+                        popupRender={(menu) => (
+                          <>
+                            {menu}
+                            <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                              <Button
+                                type="link"
+                                icon={<PlusOutlined />}
+                                onClick={() => setIsProjectModalOpen(true)}
+                                style={{ width: '100%', textAlign: 'left' }}
+                              >
+                                Добавить новый проект
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      >
+                        {projects.map((project) => (
+                          <Option key={project.id} value={project.id}>
+                            {project.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Card>
+
+              {/* Parties Section */}
+              <Card 
+                style={{ 
+                  marginBottom: 24,
+                  borderRadius: 12,
+                  border: '1px solid #f0f0f0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                }}
+              >
+                <Row gutter={[20, 0]}>
+                  <Col span={isMobile ? 24 : 12}>
+                    <Form.Item
+                      name="contractor_id"
+                      label={
+                        <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                          <UserOutlined style={{ marginRight: 4 }} />
+                          Поставщик <span style={{ color: '#ff4d4f' }}>*</span>
+                        </span>
+                      }
+                      rules={[
+                        { required: true, message: 'Выберите поставщика' },
+                      ]}
+                    >
+                      <Select
+                        placeholder="Выберите поставщика"
+                        showSearch
+                        size="large"
+                        style={{
+                          height: 48,
+                          borderRadius: 10,
+                          fontSize: 15
+                        }}
+                        filterOption={(input, option) =>
+                          (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        popupRender={(menu) => (
+                          <>
+                            {menu}
+                            <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                              <Button
+                                type="link"
+                                icon={<PlusOutlined />}
+                                onClick={() => setIsContractorModalOpen(true)}
+                                style={{ width: '100%', textAlign: 'left' }}
+                              >
+                                Добавить нового поставщика
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      >
+                        {contractors.map((contractor) => (
+                          <Option key={contractor.id} value={contractor.id}>
+                            {contractor.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={isMobile ? 24 : 12}>
+                    <Form.Item
+                      name="payer_id"
+                      label={
+                        <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                          <BankOutlined style={{ marginRight: 4 }} />
+                          Плательщик <span style={{ color: '#ff4d4f' }}>*</span>
+                        </span>
+                      }
+                      rules={[
+                        { required: true, message: 'Выберите плательщика' },
+                      ]}
+                    >
+                      <Select
+                        placeholder="Выберите плательщика"
+                        showSearch
+                        size="large"
+                        style={{
+                          height: 48,
+                          borderRadius: 10,
+                          fontSize: 15
+                        }}
+                        filterOption={(input, option) =>
+                          (option?.children as React.ReactNode as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        popupRender={(menu) => (
+                          <>
+                            {menu}
+                            <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                              <Button
+                                type="link"
+                                icon={<PlusOutlined />}
+                                onClick={() => setIsPayerModalOpen(true)}
+                                style={{ width: '100%', textAlign: 'left' }}
+                              >
+                                Добавить нового плательщика
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      >
+                        {payers.map((payer) => (
+                          <Option key={payer.id} value={payer.id}>
+                            {payer.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Card>
+
+              {/* Amount Section */}
+              <Card 
+                style={{ 
+                  marginBottom: 24,
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg, #f0f9ff 0%, #f6ffed 100%)',
+                  border: '1px solid #e6f7ff',
+                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.08)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                  <CalculatorOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                  <Title level={5} style={{ margin: 0, color: '#262626' }}>Сумма и НДС</Title>
+                </div>
+                
+                <Row gutter={[20, 0]}>
+                  <Col span={isMobile ? 24 : 12}>
+                    <Form.Item
+                      name="amount"
+                      label={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                            {includeVat ? 'Сумма с НДС' : 'Сумма без НДС'} <span style={{ color: '#ff4d4f' }}>*</span>
+                          </span>
+                          <Switch
+                            checked={includeVat}
+                            onChange={(checked) => {
+                              setIncludeVat(checked);
+                              const amount = form.getFieldValue('amount');
+                              if (amount && amount > 0) {
+                                if (checked) {
+                                  const withoutVat = Math.round(amount / 1.2 * 100) / 100;
+                                  const vatAmount = Math.round((amount - withoutVat) * 100) / 100;
+                                  form.setFieldsValue({ 
+                                    vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
+                                  });
+                                } else {
+                                  const vatAmount = Math.round(amount * 0.2 * 100) / 100;
+                                  const totalAmount = Math.round((amount + vatAmount) * 100) / 100;
+                                  form.setFieldsValue({ 
+                                    vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
+                                  });
+                                }
+                              }
+                            }}
+                            checkedChildren="С НДС"
+                            unCheckedChildren="Без НДС"
+                            style={{ minWidth: 90 }}
+                          />
+                        </div>
+                      }
+                      rules={[
+                        { required: true, message: 'Введите сумму' },
+                        { type: 'number', min: 0.01, message: 'Сумма должна быть больше 0' },
+                      ]}
+                    >
+                      <InputNumber
+                        style={{ 
+                          width: '100%',
+                          height: 48,
+                          borderRadius: 10,
+                          fontSize: 15
+                        }}
+                        placeholder={includeVat ? "0" : "0"}
+                        precision={2}
+                        size="large"
+                        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
+                        parser={(value) => value!.replace(/\s?/g, '')}
+                        addonAfter="₽"
+                        onChange={(value) => {
+                          if (value && value > 0) {
+                            if (includeVat) {
+                              const withoutVat = Math.round(value / 1.2 * 100) / 100;
+                              const vatAmount = Math.round((value - withoutVat) * 100) / 100;
+                              form.setFieldsValue({ 
+                                vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
+                              });
+                            } else {
+                              const vatAmount = Math.round(value * 0.2 * 100) / 100;
+                              const totalAmount = Math.round((value + vatAmount) * 100) / 100;
+                              form.setFieldsValue({ 
+                                vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
+                              });
+                            }
+                          } else {
+                            form.setFieldsValue({ vatDisplay: '' });
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  
+                  <Col span={isMobile ? 24 : 12}>
+                    <div style={{
+                      background: 'white',
+                      borderRadius: 10,
+                      padding: '16px',
+                      border: '1px solid #e6f7ff',
+                      marginTop: isMobile ? 0 : 28
+                    }}>
+                      <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8, fontWeight: 600 }}>
+                        Расчет НДС:
+                      </div>
+                      <div style={{ 
+                        fontSize: 14, 
+                        color: '#262626',
+                        fontWeight: 500,
+                        lineHeight: 1.8
+                      }}>
+                        {form.getFieldValue('vatDisplay') || 
+                          <span style={{ color: '#bfbfbf' }}>Введите сумму для автоматического расчета</span>
+                        }
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+
+              {/* Delivery Terms */}
+              <Card 
+                style={{ 
+                  marginBottom: 24,
+                  borderRadius: 12,
+                  border: '1px solid #f0f0f0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                }}
+              >
+                <Title level={5} style={{ marginBottom: 20, color: '#262626' }}>Срок поставки</Title>
+                <Row gutter={[20, 0]}>
+                  <Col span={isMobile ? 24 : 12}>
+                    <Form.Item
+                      name="delivery_days"
+                      label={
+                        <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                          Количество дней
+                        </span>
+                      }
+                    >
+                      <InputNumber
+                        min={1}
+                        max={365}
+                        placeholder="Например: 7"
+                        style={{ 
+                          width: '100%',
+                          height: 48,
+                          borderRadius: 10,
+                          fontSize: 15
+                        }}
+                        size="large"
+                        addonAfter="дней"
+                        onChange={(value) => {
+                          if (value) {
+                            const today = new Date();
+                            const deliveryDate = calculateDeliveryDate(today, value);
+                            setExpectedDeliveryDate(deliveryDate);
+                          } else {
+                            setExpectedDeliveryDate(null);
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  
+                  <Col span={isMobile ? 24 : 12}>
+                    {expectedDeliveryDate && (
+                      <div style={{
+                        background: 'linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%)',
+                        borderRadius: 10,
+                        padding: '16px',
+                        border: '1px solid #91d5ff',
+                        marginTop: isMobile ? 0 : 28
+                      }}>
+                        <div style={{ fontSize: 12, color: '#1890ff', marginBottom: 4, fontWeight: 600 }}>
+                          Ожидаемая дата поставки:
+                        </div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: '#096dd9', marginBottom: 4 }}>
+                          {expectedDeliveryDate.toLocaleDateString('ru-RU', {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#52c41a' }}>
+                          * След. раб. день + {form.getFieldValue('delivery_days')} кал. дней
+                        </div>
+                      </div>
+                    )}
+                  </Col>
+                </Row>
+              </Card>
+
+              {/* Description */}
+              <Card 
+                style={{ 
+                  marginBottom: 24,
+                  borderRadius: 12,
+                  border: '1px solid #f0f0f0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                }}
+              >
+                <Form.Item
+                  name="description"
+                  label={
+                    <span style={{ fontWeight: 600, color: '#262626', fontSize: 13 }}>
+                      Описание
+                    </span>
+                  }
+                  extra={
+                    <div style={{ 
+                      fontSize: 12, 
+                      color: '#8c8c8c',
+                      marginTop: 4
+                    }}>
+                      Краткое описание товаров или услуг
+                    </div>
+                  }
+                >
+                  <TextArea
+                    rows={4}
+                    placeholder="Например: Строительные материалы для объекта..."
+                    style={{
+                      borderRadius: 10,
+                      fontSize: 15,
+                      resize: 'vertical'
+                    }}
+                  />
+                </Form.Item>
+              </Card>
+
+              {/* File Upload Section */}
+              <Card 
+                style={{ 
+                  marginBottom: 24,
+                  borderRadius: 12,
+                  border: '1px solid #f0f0f0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                  <CloudUploadOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                  <Title level={5} style={{ margin: 0, color: '#262626' }}>Прикрепленные файлы</Title>
+                </div>
+                {/* Drag and Drop Area */}
+                <div
+                  style={{
+                    border: `2px dashed ${dragActive ? '#1890ff' : '#d9d9d9'}`,
+                    borderRadius: 12,
+                    padding: isMobile ? 24 : 32,
+                    textAlign: 'center',
+                    background: dragActive ? 'rgba(24, 144, 255, 0.04)' : '#fafafa',
+                    transition: 'all 0.3s',
+                    cursor: 'pointer'
+                  }}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <InboxOutlined style={{ 
+                    fontSize: 48, 
+                    color: dragActive ? '#1890ff' : '#bfbfbf',
+                    marginBottom: 16
+                  }} />
+                  <Title level={5} style={{ color: '#595959', marginBottom: 8 }}>
+                    Перетащите файлы сюда или
+                  </Title>
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<CloudUploadOutlined />}
+                    style={{
+                      borderRadius: 10,
+                      height: 48,
+                      fontSize: 15,
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    }}
+                  >
+                    Выберите файлы
+                  </Button>
+                  <div style={{ marginTop: 12, color: '#8c8c8c', fontSize: 13 }}>
+                    Счета, накладные, спецификации (макс. 50 МБ на файл)
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={(e) => {
+                      const files = e.target.files ? Array.from(e.target.files) : [];
+                      handleFiles(files);
+                      if (e.target.value) {
+                        e.target.value = ''; // Reset input
+                      }
+                    }}
+                    style={{ display: 'none' }}
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                  />
+                </div>
+
+                {/* File List */}
+                {fileList.length > 0 && (
+                  <div style={{ marginTop: 20 }}>
+                    <List
+                      size="small"
+                      dataSource={fileList}
+                      renderItem={(file) => (
+                        <List.Item
+                          key={file.uid}
+                          style={{
+                            background: 'white',
+                            borderRadius: 8,
+                            padding: '8px 12px',
+                            marginBottom: 8,
+                            border: '1px solid #f0f0f0'
+                          }}
+                          actions={[
+                            file.url && (
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<EyeOutlined />}
+                                onClick={() => {
+                                  if (file.url) {
+                                    window.open(file.url, '_blank');
+                                  }
+                                }}
+                              />
+                            ),
+                            <Button
+                              type="text"
+                              size="small"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => {
+                                setFileList(prev => prev.filter(f => f.uid !== file.uid));
+                                if (file.attachmentId) {
+                                  setUploadedAttachments(prev => prev.filter(a => a.id !== file.attachmentId));
+                                }
+                              }}
+                            />
+                          ].filter(Boolean)}
+                        >
+                          <List.Item.Meta
+                            avatar={<PaperClipOutlined style={{ fontSize: 20, color: '#1890ff' }} />}
+                            title={
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span style={{ fontSize: 14 }}>{file.name}</span>
+                                {file.status === 'uploading' && (
+                                  <Tag color="processing">Загрузка...</Tag>
+                                )}
+                                {file.status === 'done' && (
+                                  <Tag color="success">Загружено</Tag>
+                                )}
+                                {file.status === 'error' && (
+                                  <Tag color="error">Ошибка</Tag>
+                                )}
+                              </div>
+                            }
+                            description={
+                              file.percent !== undefined && file.status === 'uploading' ? (
+                                <Progress 
+                                  percent={file.percent} 
+                                  size="small" 
+                                  showInfo={false}
+                                  strokeColor="#1890ff"
+                                />
+                              ) : null
+                            }
+                          />
+                        </List.Item>
+                      )}
                     />
                   </div>
-                }
-                rules={[
-                  { required: true, message: 'Введите сумму' },
-                  { type: 'number', min: 0.01, message: 'Сумма должна быть больше 0' },
-                ]}
-              >
-                <InputNumber
-                  style={{ 
-                    width: '100%',
-                    height: 44
-                  }}
-                  placeholder={includeVat ? "Введите сумму с НДС" : "Введите сумму без НДС"}
-                  precision={2}
-                  size="large"
-                  className="uniform-input"
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
-                  parser={(value) => value!.replace(/\s?/g, '')}
-                  addonAfter="₽"
-                  onChange={(value) => {
-                    if (value && value > 0) {
-                      if (includeVat) {
-                        // Введена сумма с НДС
-                        const withoutVat = Math.round(value / 1.2 * 100) / 100;
-                        const vatAmount = Math.round((value - withoutVat) * 100) / 100;
-                        form.setFieldsValue({ 
-                          vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
-                        });
-                      } else {
-                        // Введена сумма без НДС
-                        const vatAmount = Math.round(value * 0.2 * 100) / 100;
-                        const totalAmount = Math.round((value + vatAmount) * 100) / 100;
-                        form.setFieldsValue({ 
-                          vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
-                        });
-                      }
-                    } else {
-                      form.setFieldsValue({ vatDisplay: '' });
-                    }
-                  }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={isMobile ? 24 : 8}>
-              <div style={{
-                marginTop: isMobile ? 0 : 32,
-                padding: '12px 16px',
-                background: 'linear-gradient(135deg, #e6f7ff 0%, #f6ffed 100%)',
-                borderRadius: '8px',
-                border: '1px solid #b7eb8f',
-                minHeight: 44,
+                )}
+              </Card>
+
+              {/* Action Buttons */}
+              <div style={{ 
+                marginTop: 32,
+                paddingTop: 24,
+                borderTop: '1px solid #f0f0f0',
                 display: 'flex',
-                alignItems: 'center'
+                justifyContent: 'space-between',
+                gap: 16,
+                flexWrap: isMobile ? 'wrap' : 'nowrap'
               }}>
-                <div style={{ 
-                  fontSize: '13px', 
-                  color: '#52c41a',
-                  fontWeight: 500,
-                  width: '100%'
-                }}>
-                  <div style={{ fontSize: '11px', color: '#8c8c8c', marginBottom: 2 }}>
-                    Расчет НДС:
-                  </div>
-                  <span id="vat-display">
-                    {form.getFieldValue('vatDisplay') || 'Введите сумму для автоматического расчета'}
-                  </span>
-                </div>
-              </div>
-            </Col>
-          </Row>
-
-          <Row gutter={[20, 24]}>
-            <Col span={isMobile ? 24 : 12}>
-              <Form.Item
-                name="delivery_days"
-                label={<span style={{ fontWeight: 500, color: '#434343' }}>Срок поставки</span>}
-                extra={
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#8c8c8c',
-                    marginTop: 4
-                  }}>
-                    Количество календарных дней после оплаты
-                  </div>
-                }
-              >
-                <InputNumber
-                  min={1}
-                  max={365}
-                  placeholder="Например: 7"
-                  style={{ 
-                    width: '100%',
-                    height: 44
-                  }}
+                <Button 
+                  onClick={handleSaveDraft}
                   size="large"
-                  className="uniform-input"
-                  addonAfter="дней"
-                  onChange={(value) => {
-                    if (value) {
-                      const today = new Date();
-                      const deliveryDate = calculateDeliveryDate(today, value);
-                      setExpectedDeliveryDate(deliveryDate);
-                    } else {
-                      setExpectedDeliveryDate(null);
-                    }
+                  icon={<SaveOutlined />}
+                  style={{ 
+                    flex: isMobile ? '1 1 100%' : 'none',
+                    height: 48,
+                    borderRadius: 10,
+                    border: '2px solid #e6e6e6',
+                    fontWeight: 500,
+                    fontSize: 15
                   }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={isMobile ? 24 : 12}>
-              {expectedDeliveryDate && (
+                >
+                  Сохранить как черновик
+                </Button>
                 <div style={{
-                  marginTop: isMobile ? 0 : 32,
-                  padding: '12px 16px',
-                  background: 'linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%)',
-                  borderRadius: '8px',
-                  border: '1px solid #91d5ff',
-                  minHeight: 44,
                   display: 'flex',
-                  alignItems: 'center'
+                  gap: 16,
+                  flex: isMobile ? '1 1 100%' : 'none'
                 }}>
-                  <div style={{ width: '100%' }}>
-                    <div style={{ fontSize: '11px', color: '#1890ff', marginBottom: 2, fontWeight: 500 }}>
-                      Ожидаемая дата поставки:
-                    </div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#096dd9', marginBottom: 2 }}>
-                      {expectedDeliveryDate.toLocaleDateString('ru-RU', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#52c41a' }}>
-                      * След. раб. день + {form.getFieldValue('delivery_days')} кал. дней
-                    </div>
-                  </div>
+                  <Button 
+                    onClick={handleModalClose}
+                    size="large"
+                    style={{ 
+                      height: 48,
+                      borderRadius: 10,
+                      fontWeight: 500,
+                      fontSize: 15,
+                      minWidth: 120
+                    }}
+                  >
+                    Отмена
+                  </Button>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={createMutation.isPending || updateMutation.isPending}
+                    size="large"
+                    icon={<CheckOutlined />}
+                    style={{ 
+                      height: 48,
+                      borderRadius: 10,
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      border: 'none',
+                      boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+                      fontWeight: 600,
+                      fontSize: 15,
+                      minWidth: 160
+                    }}
+                  >
+                    {editingInvoice ? 'Сохранить изменения' : 'Создать счет'}
+                  </Button>
                 </div>
-              )}
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="description"
-            label={<span style={{ fontWeight: 500, color: '#434343' }}>Описание</span>}
-            extra={
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#8c8c8c',
-                marginTop: 4
-              }}>
-                Краткое описание товаров или услуг
               </div>
-            }
-          >
-            <TextArea
-              rows={3}
-              placeholder="Например: Строительные материалы для объекта..."
-              style={{
-                borderRadius: 8,
-                border: '1.5px solid #d9d9d9',
-                resize: 'vertical',
-                minHeight: 44
-              }}
-              className="uniform-input"
-            />
-          </Form.Item>
-
-          <Form.Item 
-            label={<span style={{ fontWeight: 500, color: '#434343' }}>Прикрепленные файлы</span>}
-            extra={
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#8c8c8c',
-                marginTop: 4
-              }}>
-                Счета, накладные, спецификации (макс. 50 МБ на файл)
-              </div>
-            }
-          >
-            <Upload
-              fileList={fileList}
-              multiple
-              beforeUpload={(file) => {
-                // Check file size (max 50MB)
-                const isLt50M = file.size / 1024 / 1024 < 50;
-                if (!isLt50M) {
-                  message.error(`${file.name} превышает максимальный размер 50MB`);
-                  return false;
-                }
-                
-                // Check file type
-                const allowedTypes = [
-                  'image/jpeg',
-                  'image/png',
-                  'image/gif',
-                  'application/pdf',
-                  'application/msword',
-                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                  'application/vnd.ms-excel',
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                ];
-                
-                if (!allowedTypes.includes(file.type) && !file.type.startsWith('image/')) {
-                  message.warning(`Тип файла ${file.name} может не поддерживаться`);
-                }
-                
-                return true;
-              }}
-              customRequest={async ({ file, onSuccess, onError, onProgress }) => {
-                const fileObj = file as File;
-                const fileUid = (file as File & { uid: string }).uid;
-                
-                // Add to fileList with uploading status immediately (check if not already added)
-                setFileList(prev => {
-                  const exists = prev.some(f => f.uid === fileUid);
-                  if (exists) {
-                    return prev.map(f => 
-                      f.uid === fileUid 
-                        ? { ...f, status: 'uploading', percent: 0 }
-                        : f
-                    );
-                  }
-                  return [...prev, {
-                    uid: fileUid,
-                    name: fileObj.name,
-                    status: 'uploading',
-                    percent: 0,
-                  }];
-                });
-                
-                // Small delay to prevent race conditions
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
-                try {
-                  // Update progress
-                  onProgress?.({ percent: 30 });
-                  setFileList(prev => prev.map(f => 
-                    f.uid === fileUid ? { ...f, percent: 30 } : f
-                  ));
-
-                  // Upload file
-                  const attachment = await attachmentApi.upload(fileObj, editingInvoice?.id);
-                  
-                  // Update progress
-                  onProgress?.({ percent: 100 });
-                  
-                  // Store uploaded attachment
-                  setUploadedAttachments(prev => [...prev, attachment]);
-                  
-                  // Update fileList with success status
-                  setFileList(prev => prev.map(f => 
-                    f.uid === fileUid 
-                      ? {
-                          uid: f.uid,
-                          name: f.name,
-                          status: 'done',
-                          url: attachmentApi.getPublicUrl(attachment.file_path),
-                          attachmentId: attachment.id,
-                          percent: 100,
-                        }
-                      : f
-                  ));
-                  
-                  message.success(`${fileObj.name} загружен успешно`);
-                  onSuccess?.(attachment, file);
-                } catch (error: unknown) {
-                  console.error('Upload error:', error);
-                  
-                  // Update fileList with error status
-                  setFileList(prev => prev.map(f =>
-                    f.uid === fileUid
-                      ? { ...f, status: 'error' as const }
-                      : f
-                  ));
-                  
-                  const errorObj = error as Error & {
-                    details?: unknown;
-                    hint?: string;
-                    code?: string;
-                  };
-                  
-                  // More detailed error messages based on the error
-                  if (errorObj?.message?.includes('Storage not configured')) {
-                    message.error('Storage не настроен. Проверьте настройки Supabase Storage.');
-                  } else if (errorObj?.message?.includes('not found')) {
-                    message.error('Storage bucket "attachments" не найден. Создайте его в Supabase Dashboard.');
-                  } else if (errorObj?.message?.includes('policy')) {
-                    message.error('Ошибка политик безопасности. Примените SQL из файла storage-policies.sql');
-                  } else if (errorObj?.message?.includes('authenticated')) {
-                    message.error('Необходима авторизация для загрузки файлов');
-                  } else {
-                    message.error(`Ошибка загрузки ${(file as File).name}: ${errorObj?.message || 'Неизвестная ошибка'}`);
-                  }
-                  
-                  // Show full error in console for debugging
-                  console.error('Full error details:', {
-                    file: (file as File).name,
-                    message: errorObj?.message,
-                    details: errorObj?.details,
-                    hint: errorObj?.hint,
-                    code: errorObj?.code,
-                    stack: errorObj?.stack
-                  });
-                  
-                  onError?.(error as Error);
-                }
-              }}
-              onRemove={(file) => {
-                setFileList(prev => prev.filter(f => f.uid !== file.uid));
-                const fileWithAttachment = file as typeof file & { attachmentId?: number };
-                if (fileWithAttachment.attachmentId) {
-                  setUploadedAttachments(prev => prev.filter(a => a.id !== fileWithAttachment.attachmentId));
-                }
-              }}
-              onPreview={async (file) => {
-                if (file.url) {
-                  const fileType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 
-                                                 file.name.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image' : 'other');
-                  setPreviewFile({
-                    url: file.url,
-                    name: file.name,
-                    type: fileType
-                  });
-                }
-              }}
-              listType="text"
-              showUploadList={{
-                showPreviewIcon: true,
-                showRemoveIcon: true,
-              }}
-            >
-              <Button 
-                icon={<UploadOutlined />}
-                size="large"
-                style={{
-                  height: 44,
-                  borderRadius: 8,
-                  border: '1.5px dashed #d9d9d9',
-                  background: '#fafafa'
-                }}
-                className="uniform-input"
-              >
-                {isMobile ? 'Загрузить' : 'Выбрать файлы'}
-              </Button>
-            </Upload>
-          </Form.Item>
-
-          <Form.Item style={{ 
-            marginBottom: 0, 
-            marginTop: 32,
-            paddingTop: 20,
-            borderTop: '1px solid #f0f0f0'
-          }}>
-            <Space 
-              style={{ 
-                width: '100%', 
-                justifyContent: isMobile ? 'space-between' : 'flex-end',
-                gap: 16
-              }}
-              size="large"
-            >
-              <Button 
-                onClick={handleModalClose}
-                size="large"
-                style={{ 
-                  flex: isMobile ? 1 : 'none',
-                  height: 44,
-                  borderRadius: 8,
-                  border: '1.5px solid #d9d9d9'
-                }}
-                className="uniform-input"
-              >
-                Отмена
-              </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={createMutation.isPending || updateMutation.isPending}
-                size="large"
-                style={{ 
-                  flex: isMobile ? 1 : 'none',
-                  height: 44,
-                  borderRadius: 8,
-                  background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-                  border: 'none',
-                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
-                  fontWeight: 500
-                }}
-              >
-                {editingInvoice ? 'Сохранить изменения' : 'Создать счет'}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
+            </Form>
+          </div>
+        </div>
       </Modal>
 
       {/* Modal for creating new contractor */}
