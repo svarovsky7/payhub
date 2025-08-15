@@ -117,6 +117,7 @@ export function InvoicesPage() {
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
   const [includeVat, setIncludeVat] = useState(true); // По умолчанию сумма с НДС
   const [dragActive, setDragActive] = useState(false);
+  const [vatDisplay, setVatDisplay] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -346,6 +347,13 @@ export function InvoicesPage() {
     // Always display the total amount (which includes VAT by default)
     const displayAmount = invoice.total_amount;
     
+    // Calculate and display VAT
+    if (displayAmount) {
+      const withoutVat = Math.round(displayAmount / 1.2 * 100) / 100;
+      const vatAmount = Math.round((displayAmount - withoutVat) * 100) / 100;
+      setVatDisplay(`Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`);
+    }
+    
     // Calculate expected delivery date if delivery_days exists
     if (invoice.delivery_days) {
       const today = new Date();
@@ -393,6 +401,7 @@ export function InvoicesPage() {
     setPreviewFile(null);
     setExpectedDeliveryDate(null); // Reset expected delivery date
     setIncludeVat(true); // Reset to default (with VAT)
+    setVatDisplay(''); // Reset VAT display
   };
 
   const handleSaveDraft = () => {
@@ -1498,15 +1507,11 @@ export function InvoicesPage() {
                                 if (checked) {
                                   const withoutVat = Math.round(amount / 1.2 * 100) / 100;
                                   const vatAmount = Math.round((amount - withoutVat) * 100) / 100;
-                                  form.setFieldsValue({ 
-                                    vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
-                                  });
+                                  setVatDisplay(`Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`);
                                 } else {
                                   const vatAmount = Math.round(amount * 0.2 * 100) / 100;
                                   const totalAmount = Math.round((amount + vatAmount) * 100) / 100;
-                                  form.setFieldsValue({ 
-                                    vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
-                                  });
+                                  setVatDisplay(`НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`);
                                 }
                               }
                             }}
@@ -1539,18 +1544,14 @@ export function InvoicesPage() {
                             if (includeVat) {
                               const withoutVat = Math.round(value / 1.2 * 100) / 100;
                               const vatAmount = Math.round((value - withoutVat) * 100) / 100;
-                              form.setFieldsValue({ 
-                                vatDisplay: `Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`
-                              });
+                              setVatDisplay(`Без НДС: ${withoutVat.toLocaleString('ru-RU')} ₽ | НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽`);
                             } else {
                               const vatAmount = Math.round(value * 0.2 * 100) / 100;
                               const totalAmount = Math.round((value + vatAmount) * 100) / 100;
-                              form.setFieldsValue({ 
-                                vatDisplay: `НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`
-                              });
+                              setVatDisplay(`НДС 20%: ${vatAmount.toLocaleString('ru-RU')} ₽ | Всего с НДС: ${totalAmount.toLocaleString('ru-RU')} ₽`);
                             }
                           } else {
-                            form.setFieldsValue({ vatDisplay: '' });
+                            setVatDisplay('');
                           }
                         }}
                       />
@@ -1574,7 +1575,7 @@ export function InvoicesPage() {
                         fontWeight: 500,
                         lineHeight: 1.8
                       }}>
-                        {form.getFieldValue('vatDisplay') || 
+                        {vatDisplay || 
                           <span style={{ color: '#bfbfbf' }}>Введите сумму для автоматического расчета</span>
                         }
                       </div>
@@ -1605,7 +1606,7 @@ export function InvoicesPage() {
                     >
                       <InputNumber
                         min={1}
-                        max={365}
+                        max={9999}
                         placeholder="Например: 7"
                         style={{ 
                           width: '100%',
