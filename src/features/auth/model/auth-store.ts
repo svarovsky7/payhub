@@ -89,18 +89,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           console.error('User fetch error:', userError);
         }
 
-        set({
-          user: userData || {
-            id: data.session.user.id,
-            email: data.session.user.email || '',
-            full_name: data.session.user.user_metadata?.full_name || data.session.user.email || '',
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          session: data.session,
-          loading: false,
-        });
+        // If user doesn't exist in public.users, create them
+        if (!userData) {
+          console.log('User not found in public.users, creating...');
+          const { data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert({
+              id: data.session.user.id,
+              email: data.session.user.email || '',
+              full_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              is_active: true
+            })
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('Failed to create user in public.users:', createError);
+          }
+
+          set({
+            user: newUser || {
+              id: data.session.user.id,
+              email: data.session.user.email || '',
+              full_name: data.session.user.user_metadata?.full_name || data.session.user.email || '',
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            session: data.session,
+            loading: false,
+          });
+        } else {
+          set({
+            user: userData,
+            session: data.session,
+            loading: false,
+          });
+        }
       }
     } catch (error) {
       set({ user: null, session: null, loading: false });
@@ -152,33 +179,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
         if (userError) {
           console.error('User fetch error:', userError);
-          // Create basic user object from session if profile doesn't exist
-          const basicUser = {
-            id: session.user.id,
-            email: session.user.email || '',
-            full_name: session.user.user_metadata?.full_name || session.user.email || '',
-            project_id: null,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          set({ user: basicUser, session, loading: false });
-          return;
         }
 
-        set({
-          user: userData || {
-            id: session.user.id,
-            email: session.user.email || '',
-            full_name: session.user.user_metadata?.full_name || session.user.email || '',
-            project_id: null,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          session,
-          loading: false,
-        });
+        // If user doesn't exist in public.users, create them
+        if (!userData) {
+          console.log('User not found in public.users during initialization, creating...');
+          const { data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert({
+              id: session.user.id,
+              email: session.user.email || '',
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              project_id: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              is_active: true
+            })
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('Failed to create user in public.users during initialization:', createError);
+            // Use fallback user data if creation fails
+            const fallbackUser = {
+              id: session.user.id,
+              email: session.user.email || '',
+              full_name: session.user.user_metadata?.full_name || session.user.email || '',
+              project_id: null,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            set({ user: fallbackUser, session, loading: false });
+            return;
+          }
+
+          set({
+            user: newUser,
+            session,
+            loading: false,
+          });
+        } else {
+          set({
+            user: userData,
+            session,
+            loading: false,
+          });
+        }
       } else {
         set({ user: null, session: null, loading: false });
       }

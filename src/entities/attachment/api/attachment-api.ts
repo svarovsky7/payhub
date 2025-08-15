@@ -155,6 +155,41 @@ export const attachmentApi = {
         console.error('Failed to get user:', userError);
       }
       console.log('Current user ID:', user?.id || 'No user');
+      
+      // Check if user exists in public.users table
+      if (user?.id) {
+        const { data: existingUser, error: checkError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error('Failed to check user existence:', checkError);
+        }
+        
+        // If user doesn't exist in public.users, create them
+        if (!existingUser) {
+          console.log('User not found in public.users, creating...');
+          const { error: createUserError } = await supabase
+            .from('users')
+            .insert({
+              id: user.id,
+              email: user.email || '',
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              is_active: true
+            });
+          
+          if (createUserError) {
+            console.error('Failed to create user in public.users:', createUserError);
+            // Continue anyway - maybe the user was created by another process
+          } else {
+            console.log('User created successfully in public.users');
+          }
+        }
+      }
 
       // Create attachment record in database
       const attachmentData = {
