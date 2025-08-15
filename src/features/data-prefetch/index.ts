@@ -1,0 +1,1 @@
+export { usePrefetchCommonData } from './use-prefetch-common-data';

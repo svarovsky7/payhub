@@ -1,0 +1,242 @@
+/* Device-specific optimizations */
+
+/* Base touch targets - minimum 44px for accessibility */
+.touch-target {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  touch-action: manipulation;
+}
+
+/* Desktop-specific styles */
+.device-desktop {
+  --button-height: 32px;
+  --input-height: 32px;
+  --table-row-height: 48px;
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 80px;
+  --padding-base: 16px;
+  --margin-base: 16px;
+  --font-size-base: 14px;
+  --border-radius: 6px;
+}
+
+.device-desktop .ant-btn {
+  height: var(--button-height);
+  padding: 4px 15px;
+  font-size: var(--font-size-base);
+}
+
+.device-desktop .ant-input,
+.device-desktop .ant-select-selector {
+  height: var(--input-height) !important;
+  min-height: var(--input-height) !important;
+}
+
+.device-desktop .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+  height: var(--table-row-height);
+}
+
+.device-desktop .ant-table-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+  cursor: pointer;
+}
+
+/* Tablet/Touch-specific styles */
+.device-tablet {
+  --button-height: 40px;
+  --input-height: 40px;
+  --table-row-height: 56px;
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 60px;
+  --padding-base: 20px;
+  --margin-base: 12px;
+  --font-size-base: 16px;
+  --border-radius: 8px;
+}
+
+.device-tablet .ant-btn {
+  height: var(--button-height);
+  padding: 8px 20px;
+  font-size: var(--font-size-base);
+  min-width: 44px;
+  border-radius: var(--border-radius);
+}
+
+.device-tablet .ant-input,
+.device-tablet .ant-select-selector {
+  height: var(--input-height) !important;
+  min-height: var(--input-height) !important;
+  font-size: var(--font-size-base);
+  border-radius: var(--border-radius);
+}
+
+.device-tablet .ant-table-tbody > tr > td {
+  padding: 16px 20px;
+  height: var(--table-row-height);
+  font-size: var(--font-size-base);
+}
+
+.device-tablet .ant-table-thead > tr > th {
+  padding: 16px 20px;
+  font-size: var(--font-size-base);
+}
+
+/* Touch-specific interactions */
+.device-touch .ant-btn:hover {
+  transform: none; /* Disable hover transforms on touch devices */
+}
+
+.device-touch .ant-table-tbody > tr:hover > td {
+  background-color: transparent; /* Disable hover effects on touch */
+}
+
+.device-touch .ant-table-tbody > tr:active > td {
+  background-color: #e6f7ff; /* Use active state instead */
+}
+
+/* Enhanced touch targets for interactive elements */
+.device-touch .ant-menu-item,
+.device-touch .ant-menu-submenu-title {
+  min-height: 48px !important;
+  line-height: 48px !important;
+  padding: 0 20px !important;
+}
+
+.device-touch .ant-pagination-item,
+.device-touch .ant-pagination-prev,
+.device-touch .ant-pagination-next {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  line-height: 42px !important;
+}
+
+.device-touch .ant-dropdown-menu-item {
+  min-height: 44px !important;
+  padding: 10px 16px !important;
+  line-height: 24px !important;
+}
+
+/* Form optimizations */
+.device-touch .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.device-touch .ant-form-item-label > label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Kanban board optimizations */
+.device-tablet .kanban-card {
+  margin-bottom: 12px;
+  border-radius: var(--border-radius);
+}
+
+.device-tablet .kanban-card .ant-card-body {
+  padding: 16px;
+}
+
+.device-touch .kanban-card {
+  min-height: 60px;
+  cursor: grab;
+}
+
+.device-touch .kanban-card:active {
+  cursor: grabbing;
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal and drawer optimizations */
+.device-touch .ant-modal {
+  margin: 16px;
+  max-width: calc(100vw - 32px);
+}
+
+.device-touch .ant-modal-content {
+  border-radius: var(--border-radius);
+}
+
+.device-touch .ant-drawer-content-wrapper {
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+/* Responsive grid adjustments */
+.device-tablet .ant-col {
+  padding: 0 8px;
+}
+
+.device-touch .ant-col {
+  margin-bottom: 16px;
+}
+
+/* Loading and feedback states */
+.device-touch .ant-spin-container {
+  min-height: 60px;
+}
+
+.device-touch .ant-message {
+  font-size: 16px;
+  padding: 12px 24px;
+}
+
+/* Scroll optimizations */
+.device-touch {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.device-touch .ant-table-body {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Auto-detect device behavior */
+.device-preferred-auto .device-auto {
+  /* Apply auto-detected styles based on screen size and capabilities */
+}
+
+@media (max-width: 767px) {
+  .device-preferred-auto {
+    --button-height: 40px;
+    --input-height: 40px;
+    --table-row-height: 56px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .device-preferred-auto.device-touch {
+    --button-height: 40px;
+    --input-height: 40px;
+  }
+  
+  .device-preferred-auto.device-pointer {
+    --button-height: 32px;
+    --input-height: 32px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .device-preferred-auto {
+    --button-height: 32px;
+    --input-height: 32px;
+    --table-row-height: 48px;
+  }
+}
+
+/* High contrast and accessibility improvements for touch devices */
+.device-touch .ant-btn-primary {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.device-touch .ant-btn:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+.device-touch .ant-input:focus,
+.device-touch .ant-select-focused .ant-select-selector {
+  border-width: 2px;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}

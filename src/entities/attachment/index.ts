@@ -1,0 +1,1 @@
+export { attachmentApi } from './api/attachment-api';

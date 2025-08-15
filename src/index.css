@@ -1,0 +1,1042 @@
+@import './features/device-preferences/styles/device-styles.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.85);
+  background-color: #f0f2f5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Ant Design Layout overrides */
+.ant-layout {
+  min-height: 100vh;
+}
+
+.ant-layout-content {
+  padding: 24px;
+  min-height: 280px;
+  background: #fff;
+  margin: 24px;
+  border-radius: 8px;
+}
+
+/* Table improvements */
+.ant-table {
+  font-size: 14px;
+}
+
+.ant-table-thead > tr > th {
+  background: #fafafa !important;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+}
+
+.ant-table-tbody > tr {
+  transition: background-color 0.2s ease;
+}
+
+.ant-table-tbody > tr > td {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #fafafa !important;
+}
+
+/* Compact table size */
+.ant-table.ant-table-small .ant-table-thead > tr > th {
+  padding: 6px 8px !important;
+}
+
+.ant-table.ant-table-small .ant-table-tbody > tr > td {
+  padding: 6px 8px !important;
+}
+
+/* Sort icons */
+.ant-table-column-sorters {
+  gap: 4px;
+}
+
+.ant-table-column-sorter {
+  color: #bfbfbf;
+}
+
+.ant-table-column-sorter-up.active,
+.ant-table-column-sorter-down.active {
+  color: #1677ff;
+}
+
+.ant-table-tbody > tr.important-row {
+  background-color: #fff7e6;
+}
+
+.ant-table-tbody > tr.important-row:hover > td {
+  background-color: #ffe7ba !important;
+}
+
+.ant-table-pagination {
+  padding: 16px !important;
+  background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Compact filter dropdown */
+.ant-table-filter-dropdown {
+  min-width: 180px !important;
+}
+
+.ant-table-filter-dropdown .ant-checkbox-wrapper {
+  font-size: 13px;
+}
+
+/* Responsive table improvements */
+.ant-table-wrapper {
+  width: 100%;
+}
+
+.ant-table {
+  min-width: 100%;
+}
+
+.ant-table-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #bfbfbf #f1f1f1;
+}
+
+.ant-table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.ant-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.ant-table-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+}
+
+@media (max-width: 1400px) {
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 12px 12px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+  
+  .ant-table-tbody > tr:hover {
+    transform: translateX(2px);
+  }
+}
+
+@media (max-width: 768px) {
+  .ant-table-container {
+    overflow-x: scroll;
+  }
+  
+  .ant-table {
+    min-width: 800px;
+  }
+}
+
+/* Card effects for table containers */
+.ant-card:has(.ant-table) {
+  transition: box-shadow 0.3s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.ant-card:has(.ant-table):hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09) !important;
+}
+
+/* Status tag improvements */
+.ant-tag {
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-weight: 500;
+  border: none;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Custom menu styles */
+.custom-menu .ant-menu-item {
+  margin: 4px 8px !important;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.custom-menu .ant-menu-item:hover {
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%) !important;
+  color: #667eea !important;
+}
+
+.custom-menu .ant-menu-item-selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+}
+
+.custom-menu .ant-menu-item-selected .anticon {
+  color: white !important;
+}
+
+.custom-menu .ant-menu-submenu-title {
+  margin: 4px 8px !important;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.custom-menu .ant-menu-submenu-title:hover {
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%) !important;
+  color: #667eea !important;
+}
+
+.custom-menu .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: #667eea !important;
+}
+
+.custom-menu .ant-menu-sub .ant-menu-item {
+  margin: 2px 8px !important;
+  padding-left: 48px !important;
+}
+
+/* Page container styles */
+.page-container {
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+/* Kanban board specific styles */
+.kanban-board {
+  height: calc(100vh - 200px);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.kanban-columns {
+  display: flex;
+  gap: 16px;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.kanban-column {
+  flex: 0 0 320px;
+  min-width: 320px;
+  max-width: 350px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Enhanced Responsive Design System */
+
+/* 4K Desktop (2560px+) */
+@media (min-width: 2560px) {
+  .ant-layout-content {
+    padding: 32px;
+    margin: 32px;
+  }
+  
+  .kanban-column {
+    min-width: 380px;
+    max-width: 420px;
+  }
+  
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 16px 20px;
+    font-size: 15px;
+  }
+}
+
+/* Full HD Desktop (1920px+) */
+@media (min-width: 1920px) {
+  .ant-layout-content {
+    padding: 28px;
+    margin: 28px;
+  }
+  
+  .kanban-column {
+    min-width: 360px;
+    max-width: 400px;
+  }
+}
+
+/* Large Desktop (1440px+) */
+@media (min-width: 1440px) {
+  .ant-layout-content {
+    padding: 26px;
+    margin: 26px;
+  }
+}
+
+/* Standard Desktop (1280px+) */
+@media (min-width: 1280px) {
+  .ant-layout-content {
+    padding: 24px;
+    margin: 24px;
+  }
+}
+
+/* iPad Pro 12.9" Landscape (1024px-1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .ant-layout-content {
+    margin: 20px;
+    padding: 20px;
+  }
+  
+  .kanban-column {
+    min-width: 300px;
+    max-width: 320px;
+  }
+  
+  /* Touch-friendly table adjustments */
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+  
+  /* Larger touch targets for buttons */
+  .ant-btn {
+    min-height: 40px;
+    padding: 8px 16px;
+  }
+  
+  .ant-btn-sm {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+}
+
+/* iPad Air/Pro 11" (820px-1023px) */
+@media (min-width: 820px) and (max-width: 1023px) {
+  .ant-layout-content {
+    margin: 16px;
+    padding: 18px;
+  }
+  
+  /* Kanban adjustments for medium tablets */
+  .kanban-columns {
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .kanban-column {
+    min-width: 280px;
+    max-width: 300px;
+  }
+  
+  /* Enhanced touch targets */
+  .ant-btn {
+    min-height: 44px;
+    padding: 10px 18px;
+    font-size: 15px;
+  }
+  
+  .ant-btn-sm {
+    min-height: 40px;
+    padding: 8px 14px;
+  }
+  
+  /* Table optimizations */
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 16px 12px;
+    font-size: 14px;
+  }
+  
+  /* Sidebar adjustments */
+  .ant-layout-sider {
+    width: 220px !important;
+    min-width: 220px !important;
+  }
+  
+  .ant-layout-sider.ant-layout-sider-collapsed {
+    width: 60px !important;
+    min-width: 60px !important;
+  }
+}
+
+/* iPad 10.9" (810px-819px) */
+@media (min-width: 810px) and (max-width: 819px) {
+  .ant-layout-content {
+    margin: 14px;
+    padding: 16px;
+  }
+  
+  .kanban-column {
+    min-width: 260px;
+    max-width: 280px;
+  }
+  
+  /* Optimize for touch */
+  .ant-btn {
+    min-height: 44px;
+    padding: 10px 18px;
+  }
+  
+  /* Compact sidebar for space efficiency */
+  .ant-layout-sider {
+    width: 200px !important;
+    min-width: 200px !important;
+  }
+}
+
+/* iPad Mini (768px-809px) */
+@media (min-width: 768px) and (max-width: 809px) {
+  .ant-layout-content {
+    margin: 12px;
+    padding: 16px;
+  }
+  
+  /* Single column kanban for small tablets */
+  .kanban-columns {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .kanban-column {
+    min-width: 100%;
+    max-width: 100%;
+    max-height: 400px;
+  }
+  
+  /* Collapsible sidebar by default */
+  .ant-layout-sider {
+    position: fixed !important;
+    height: 100vh;
+    z-index: 999;
+    width: 180px !important;
+  }
+  
+  /* Touch-optimized buttons */
+  .ant-btn {
+    min-height: 44px;
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+}
+
+/* Mobile Devices (below 768px) */
+@media (max-width: 767px) {
+  .ant-layout-content {
+    margin: 8px;
+    padding: 12px;
+  }
+  
+  .kanban-columns {
+    flex-direction: column;
+    padding: 8px;
+  }
+  
+  .kanban-column {
+    min-width: 100%;
+    max-height: 300px;
+  }
+  
+  .ant-layout-sider {
+    position: fixed !important;
+    height: 100vh;
+    z-index: 1000;
+  }
+  
+  /* Mobile-first button sizing */
+  .ant-btn {
+    min-height: 48px;
+    padding: 14px 24px;
+    font-size: 16px;
+  }
+}
+
+/* Table action buttons animation */
+.ant-table-tbody .ant-btn {
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.ant-table-tbody tr:hover .ant-btn {
+  opacity: 1;
+}
+
+.ant-table-tbody .ant-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Table empty state animation */
+.ant-empty {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card hover effects */
+.ant-card {
+  transition: all 0.3s;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Form improvements */
+.ant-form-item {
+  margin-bottom: 20px;
+}
+
+.ant-form-item-label {
+  font-weight: 500;
+}
+
+/* Button spacing */
+.ant-space > .ant-space-item > .ant-btn {
+  margin-right: 0;
+}
+
+/* Page headers */
+.page-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.page-header .ant-btn {
+  float: right;
+}
+
+/* Status tags styling */
+.ant-tag {
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+/* Modal improvements */
+.ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Login and register page centering */
+.login-container,
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-card,
+.register-card {
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Invoice table actions */
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Approval page cards */
+.approval-card {
+  margin-bottom: 16px;
+  border-left: 4px solid #1890ff;
+}
+
+.approval-card.urgent {
+  border-left-color: #ff4d4f;
+}
+
+/* Loading container */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* Error container */
+.error-container {
+  text-align: center;
+  padding: 48px;
+}
+
+.error-container .ant-result-icon {
+  color: #ff4d4f;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 64px 32px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.empty-state .anticon {
+  font-size: 64px;
+  color: rgba(0, 0, 0, 0.25);
+  margin-bottom: 16px;
+}
+
+/* Statistics cards */
+.stat-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.stat-card .stat-label {
+  color: rgba(0, 0, 0, 0.45);
+  margin-top: 8px;
+}
+
+/* Touch-Optimized Interface Elements */
+
+/* Minimum touch target sizes (44px per Apple HIG) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Enhanced form controls for tablets */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+  
+  .ant-input-number {
+    min-height: 44px;
+  }
+  
+  .ant-input-number-input {
+    height: 42px;
+    font-size: 16px;
+  }
+  
+  /* Larger checkbox and radio buttons */
+  .ant-checkbox-inner,
+  .ant-radio-inner {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .ant-checkbox,
+  .ant-radio-wrapper {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Enhanced switch component */
+  .ant-switch {
+    min-width: 50px;
+    height: 26px;
+  }
+}
+
+/* Table responsive enhancements */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Card-based table view for tablets */
+  .ant-table-wrapper.tablet-card-view .ant-table-thead {
+    display: none;
+  }
+  
+  .ant-table-wrapper.tablet-card-view .ant-table-tbody > tr {
+    display: block;
+    background: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  }
+  
+  .ant-table-wrapper.tablet-card-view .ant-table-tbody > tr > td {
+    display: block;
+    border: none;
+    padding: 8px 0;
+    text-align: left !important;
+  }
+  
+  .ant-table-wrapper.tablet-card-view .ant-table-tbody > tr > td:before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    color: #595959;
+    margin-right: 8px;
+  }
+}
+
+/* Modal and drawer optimizations for tablets */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ant-modal {
+    margin: 20px;
+    max-width: calc(100vw - 40px);
+  }
+  
+  .ant-modal-content {
+    border-radius: 12px;
+  }
+  
+  .ant-modal-header {
+    padding: 20px 24px 16px;
+  }
+  
+  .ant-modal-body {
+    padding: 20px 24px;
+  }
+  
+  .ant-modal-footer {
+    padding: 16px 24px 20px;
+  }
+  
+  /* Drawer improvements */
+  .ant-drawer-content {
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+/* Enhanced scrollbar for touch devices */
+@media (min-width: 768px) and (max-width: 1279px) {
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #d9d9d9;
+    border-radius: 6px;
+    border: 2px solid #f5f5f5;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #bfbfbf;
+  }
+}
+
+/* Notification and message positioning for tablets */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ant-notification {
+    margin-right: 20px;
+    margin-top: 20px;
+  }
+  
+  .ant-message {
+    top: 20px;
+  }
+}
+
+/* Spacing utilities for responsive design */
+.spacing-xs { margin: 8px; }
+.spacing-sm { margin: 12px; }
+.spacing-md { margin: 16px; }
+.spacing-lg { margin: 24px; }
+.spacing-xl { margin: 32px; }
+
+.padding-xs { padding: 8px; }
+.padding-sm { padding: 12px; }
+.padding-md { padding: 16px; }
+.padding-lg { padding: 24px; }
+.padding-xl { padding: 32px; }
+
+/* Responsive grid system */
+.responsive-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .responsive-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* Tablet-specific navigation optimizations */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ant-menu-item,
+  .ant-menu-submenu-title {
+    padding: 8px 16px !important;
+    margin: 2px 4px !important;
+    border-radius: 6px !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  .ant-menu-item-icon,
+  .anticon {
+    font-size: 16px !important;
+  }
+  
+  .ant-breadcrumb-link {
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .ant-breadcrumb-link:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+/* Enhanced table responsiveness for tablets */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .tablet-optimized-table .ant-table-tbody > tr > td {
+    white-space: normal !important;
+    word-wrap: break-word;
+    max-width: 200px;
+  }
+  
+  .tablet-optimized-table .ant-table-tbody > tr:hover {
+    background-color: #f0f7ff !important;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+  }
+}
+
+/* Card view optimizations for tablets */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ant-card {
+    transition: all 0.3s ease;
+  }
+  
+  .ant-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  }
+  
+  .ant-card-actions {
+    padding: 12px 16px !important;
+  }
+  
+  .ant-card-actions > li {
+    margin: 0 4px !important;
+  }
+}
+
+/* Drawer and modal tablet optimizations */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ant-drawer-body {
+    padding: 16px !important;
+  }
+  
+  .ant-drawer-header {
+    padding: 16px 20px !important;
+  }
+}
+
+/* Uniform form field heights in modal */
+.uniform-form-modal .ant-input,
+.uniform-form-modal .ant-select-selector,
+.uniform-form-modal .ant-picker,
+.uniform-form-modal .ant-input-number,
+.uniform-form-modal .ant-input-number-wrapper {
+  height: 32px !important;
+  line-height: 30px !important;
+}
+
+.uniform-form-modal .ant-input-number-input {
+  height: 30px !important;
+  line-height: 30px !important;
+}
+
+.uniform-form-modal .ant-picker-input > input {
+  height: 30px !important;
+  line-height: 30px !important;
+}
+
+.uniform-form-modal .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+  height: 32px !important;
+  padding: 0 11px !important;
+}
+
+.uniform-form-modal .ant-select-selection-search {
+  display: flex;
+  align-items: center;
+}
+
+.uniform-form-modal .ant-select-single .ant-select-selector .ant-select-selection-item,
+.uniform-form-modal .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+  line-height: 30px !important;
+}
+
+/* Ensure DatePicker has the same height */
+.uniform-form-modal .ant-picker-suffix {
+  display: flex;
+  align-items: center;
+  height: 30px;
+}
+
+/* Responsive adjustments for uniform form modal */
+@media (max-width: 768px) {
+  .uniform-form-modal .ant-input,
+  .uniform-form-modal .ant-select-selector,
+  .uniform-form-modal .ant-picker,
+  .uniform-form-modal .ant-input-number,
+  .uniform-form-modal .ant-input-number-wrapper {
+    height: 40px !important;
+    line-height: 38px !important;
+  }
+
+  .uniform-form-modal .ant-input-number-input {
+    height: 38px !important;
+    line-height: 38px !important;
+  }
+
+  .uniform-form-modal .ant-picker-input > input {
+    height: 38px !important;
+    line-height: 38px !important;
+  }
+
+  .uniform-form-modal .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+    height: 40px !important;
+  }
+
+  .uniform-form-modal .ant-select-single .ant-select-selector .ant-select-selection-item,
+  .uniform-form-modal .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+    line-height: 38px !important;
+  }
+
+  .uniform-form-modal .ant-picker-suffix {
+    height: 38px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header,
+  .page-header .ant-btn,
+  .table-actions {
+    display: none !important;
+  }
+  
+  .ant-layout-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* Accessibility improvements for touch devices */
+@media (min-width: 768px) and (max-width: 1279px) {
+  /* Focus indicators for touch navigation */
+  .ant-btn:focus,
+  .ant-input:focus,
+  .ant-select:focus {
+    outline: 2px solid #1677ff;
+    outline-offset: 2px;
+  }
+  
+  /* Larger tap targets for better accessibility */
+  .ant-pagination-item,
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    line-height: 42px !important;
+  }
+}
