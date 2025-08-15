@@ -21,7 +21,7 @@ export const userApi = {
       .from('users')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Failed to fetch user:', error);
@@ -41,11 +41,15 @@ export const userApi = {
       })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Failed to update user:', error);
       throw error;
+    }
+
+    if (!data) {
+      throw new Error('User not found');
     }
 
     return data;
