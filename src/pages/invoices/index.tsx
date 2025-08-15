@@ -54,6 +54,11 @@ import { invoiceApi, projectApi, contractorApi, payerApi, attachmentApi } from '
 import type { Invoice, Attachment } from '@/shared/types';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import 'dayjs/locale/ru';
+import locale from 'antd/es/date-picker/locale/ru_RU';
+
+// Установить русскую локаль для dayjs
+dayjs.locale('ru');
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -1298,6 +1303,7 @@ export function InvoicesPage() {
                       ]}
                     >
                       <DatePicker
+                        locale={locale}
                         style={{ 
                           width: '100%',
                           height: 48,
