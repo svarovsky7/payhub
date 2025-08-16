@@ -29,15 +29,15 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 1. Ensure public.users references auth.users
-PERFORM update_foreign_key('public.users', 'users_id_fkey', 'id', 'auth.users', 'id', 'CASCADE');
+SELECT update_foreign_key('public.users', 'users_id_fkey', 'id', 'auth.users', 'id', 'CASCADE');
 
 -- 2. Update all tables to reference auth.users directly
-PERFORM update_foreign_key('public.attachments', 'attachments_uploaded_by_fkey', 'uploaded_by', 'auth.users', 'id', 'SET NULL');
-PERFORM update_foreign_key('public.contractors', 'contractors_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
-PERFORM update_foreign_key('public.invoices', 'invoices_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
-PERFORM update_foreign_key('public.payers', 'payers_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
-PERFORM update_foreign_key('public.project_budgets', 'project_budgets_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
-PERFORM update_foreign_key('public.budget_history', 'budget_history_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
+SELECT update_foreign_key('public.attachments', 'attachments_uploaded_by_fkey', 'uploaded_by', 'auth.users', 'id', 'SET NULL');
+SELECT update_foreign_key('public.contractors', 'contractors_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
+SELECT update_foreign_key('public.invoices', 'invoices_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
+SELECT update_foreign_key('public.payers', 'payers_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
+SELECT update_foreign_key('public.project_budgets', 'project_budgets_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
+SELECT update_foreign_key('public.budget_history', 'budget_history_created_by_fkey', 'created_by', 'auth.users', 'id', 'SET NULL');
 
 -- 3. Create comprehensive user view
 DROP VIEW IF EXISTS public.users_full CASCADE;
