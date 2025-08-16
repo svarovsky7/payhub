@@ -27,6 +27,7 @@ import {
   HomeOutlined,
   RocketOutlined,
   ContactsOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '@/features/auth/model/auth-store';
 import { usePrefetchCommonData } from '@/features/data-prefetch';
@@ -85,6 +86,11 @@ const menuItems = [
     label: 'Канбан',
   },
   {
+    key: '/budgeting',
+    icon: <WalletOutlined />,
+    label: 'Бюджетирование',
+  },
+  {
     key: '/admin',
     icon: <SettingOutlined />,
     label: 'Администрирование',
@@ -102,6 +108,7 @@ const breadcrumbNameMap: Record<string, string> = {
   '/approvals/paid': 'Оплачено',
   '/approvals/rejected': 'Отказано',
   '/kanban': 'Канбан',
+  '/budgeting': 'Бюджетирование',
   '/admin': 'Администрирование',
   '/profile': 'Профиль',
 };

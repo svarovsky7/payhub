@@ -276,7 +276,6 @@ export const attachmentApi = {
       .insert({
         invoice_id: invoiceId,
         attachment_id: attachmentId,
-        document_type: 'invoice', // Default type
       });
 
     if (error) {

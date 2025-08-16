@@ -175,3 +175,47 @@ export interface SortParams {
 export interface FilterParams extends PaginationParams, SortParams {
   search?: string;
 }
+
+// Project Budget Interface
+export interface ProjectBudget {
+  id: number;
+  project_id: number;
+  allocated_amount: number;
+  spent_amount: number;
+  remaining_amount: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  
+  // Relations
+  project?: Project;
+}
+
+// Budget History Interface
+export interface BudgetHistory {
+  id: number;
+  project_budget_id: number;
+  action_type: 'allocation' | 'adjustment' | 'spent';
+  amount: number;
+  old_allocated: number | null;
+  new_allocated: number | null;
+  old_spent: number | null;
+  new_spent: number | null;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+// Budget Summary View Interface
+export interface BudgetSummary {
+  project_id: number;
+  project_name: string;
+  project_address: string | null;
+  allocated_amount: number;
+  spent_amount: number;
+  remaining_amount: number;
+  budget_created_at: string | null;
+  budget_updated_at: string | null;
+  pending_approvals: number;
+  pending_amount: number | null;
+}

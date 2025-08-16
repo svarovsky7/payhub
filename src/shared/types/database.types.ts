@@ -291,6 +291,77 @@ export interface Database {
           created_by?: string | null
         }
       }
+      project_budgets: {
+        Row: {
+          id: number
+          project_id: number
+          allocated_amount: number
+          spent_amount: number
+          remaining_amount: number
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          project_id: number
+          allocated_amount: number
+          spent_amount?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          project_id?: number
+          allocated_amount?: number
+          spent_amount?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      budget_history: {
+        Row: {
+          id: number
+          project_budget_id: number
+          action_type: string
+          amount: number
+          old_allocated: number | null
+          new_allocated: number | null
+          old_spent: number | null
+          new_spent: number | null
+          description: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          project_budget_id: number
+          action_type: string
+          amount: number
+          old_allocated?: number | null
+          new_allocated?: number | null
+          old_spent?: number | null
+          new_spent?: number | null
+          description?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          project_budget_id?: number
+          action_type?: string
+          amount?: number
+          old_allocated?: number | null
+          new_allocated?: number | null
+          old_spent?: number | null
+          new_spent?: number | null
+          description?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+      }
       responsible_persons: {
         Row: {
           id: number
@@ -418,7 +489,6 @@ export interface Database {
       approval_status: 'pending' | 'approved' | 'rejected'
       invoice_status: 'draft' | 'rukstroy_review' | 'director_review' | 'supply_review' | 'in_payment' | 'paid' | 'rejected'
       attachment_type: 'invoice_file' | 'supporting_document' | 'photo'
-      document_type: 'invoice' | 'other'
     }
     CompositeTypes: {
       [_ in never]: never

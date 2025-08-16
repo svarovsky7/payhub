@@ -8,8 +8,7 @@ import {
   Space, 
   message,
   Popconfirm,
-  Typography,
-  Tag
+  Typography
 } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -177,7 +176,8 @@ export function ProjectsManagement() {
           showQuickJumper: true,
           showTotal: (total) => `Всего: ${total}`,
         }}
-        scroll={{ x: 820 }}
+        scroll={{ x: 'max-content' }}
+        tableLayout="auto"
       />
 
       <Modal

@@ -4,6 +4,7 @@ export { InvoicesPage } from './invoices';
 export { KanbanPage } from './kanban';
 export { AdminPage } from './admin';
 export { ProfilePage } from './profile';
+export { BudgetingPage } from './budgeting';
 export {
   RukstroyApprovalPage,
   DirectorApprovalPage,

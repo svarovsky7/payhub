@@ -236,13 +236,6 @@ export function QuickViewModal({ invoice, visible, onClose }: QuickViewModalProp
                         </Text>
                       </div>
                     )}
-                    {invoice.contractor?.kpp && (
-                      <div>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          КПП: {invoice.contractor.kpp}
-                        </Text>
-                      </div>
-                    )}
                   </div>
                 </Descriptions.Item>
                 <Descriptions.Item label="Плательщик">

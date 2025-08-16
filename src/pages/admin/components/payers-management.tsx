@@ -103,48 +103,21 @@ export function PayersManagement() {
       title: 'Название',
       dataIndex: 'name',
       key: 'name',
-      width: 250,
+      width: 350,
     },
     {
       title: 'ИНН',
       dataIndex: 'inn',
       key: 'inn',
       width: 150,
+      render: (text) => text || '-',
     },
     {
-      title: 'КПП',
-      dataIndex: 'kpp',
-      key: 'kpp',
+      title: 'Дата создания',
+      dataIndex: 'created_at',
+      key: 'created_at',
       width: 150,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Адрес',
-      dataIndex: 'address',
-      key: 'address',
-      width: 300,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Банк',
-      dataIndex: 'bank_name',
-      key: 'bank_name',
-      width: 200,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Расчетный счет',
-      dataIndex: 'bank_account',
-      key: 'bank_account',
-      width: 200,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'БИК',
-      dataIndex: 'bank_bik',
-      key: 'bank_bik',
-      width: 120,
-      render: (text) => text || '-',
+      render: (date) => date ? new Date(date).toLocaleDateString('ru-RU') : '-',
     },
     {
       title: 'Действия',
@@ -196,7 +169,8 @@ export function PayersManagement() {
           showQuickJumper: true,
           showTotal: (total) => `Всего: ${total}`,
         }}
-        scroll={{ x: 1600 }}
+        scroll={{ x: 'max-content' }}
+        tableLayout="auto"
       />
 
       <Modal
@@ -223,65 +197,10 @@ export function PayersManagement() {
             name="inn"
             label="ИНН"
             rules={[
-              { required: true, message: 'Введите ИНН' },
               { pattern: /^\d{10}(\d{2})?$/, message: 'Неверный формат ИНН' }
             ]}
           >
             <Input maxLength={12} />
-          </Form.Item>
-
-          <Form.Item
-            name="kpp"
-            label="КПП"
-            rules={[
-              { pattern: /^\d{9}$/, message: 'КПП должен содержать 9 цифр' }
-            ]}
-          >
-            <Input maxLength={9} />
-          </Form.Item>
-
-          <Form.Item
-            name="address"
-            label="Юридический адрес"
-          >
-            <Input.TextArea rows={2} />
-          </Form.Item>
-
-          <Form.Item
-            name="bank_name"
-            label="Наименование банка"
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="bank_account"
-            label="Расчетный счет"
-            rules={[
-              { pattern: /^\d{20}$/, message: 'Расчетный счет должен содержать 20 цифр' }
-            ]}
-          >
-            <Input maxLength={20} />
-          </Form.Item>
-
-          <Form.Item
-            name="bank_bik"
-            label="БИК банка"
-            rules={[
-              { pattern: /^\d{9}$/, message: 'БИК должен содержать 9 цифр' }
-            ]}
-          >
-            <Input maxLength={9} />
-          </Form.Item>
-
-          <Form.Item
-            name="bank_corr_account"
-            label="Корр. счет"
-            rules={[
-              { pattern: /^\d{20}$/, message: 'Корр. счет должен содержать 20 цифр' }
-            ]}
-          >
-            <Input maxLength={20} />
           </Form.Item>
 
           <Form.Item>

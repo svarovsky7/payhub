@@ -51,7 +51,6 @@ export const contractorApi = {
       .insert({
         name: contractor.name,
         inn: contractor.inn,
-        kpp: contractor.kpp || null,
         created_by: contractor.created_by || null,
       })
       .select()

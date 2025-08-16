@@ -1,0 +1,57 @@
+/* Admin panel styles to prevent hover effects and jumping */
+
+/* Disable hover effects on tabs */
+.admin-panel .ant-tabs-tab {
+  transition: none !important;
+}
+
+.admin-panel .ant-tabs-tab:hover {
+  color: inherit !important;
+}
+
+.admin-panel .ant-tabs-tab-btn:hover {
+  color: inherit !important;
+}
+
+.admin-panel .ant-tabs-tab-btn:focus,
+.admin-panel .ant-tabs-tab-btn:active {
+  color: inherit !important;
+}
+
+/* Keep active tab styles */
+.admin-panel .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #1890ff !important;
+}
+
+/* Disable ink bar animation on hover */
+.admin-panel .ant-tabs-ink-bar {
+  transition: transform 0.3s !important;
+}
+
+/* Disable card hover effects */
+.admin-panel .ant-card {
+  transition: none !important;
+}
+
+.admin-panel .ant-card:hover {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02) !important;
+  border-color: #d9d9d9 !important;
+}
+
+/* Prevent table row hover jump */
+.admin-panel .ant-table-tbody > tr:hover > td {
+  background: #fafafa !important;
+}
+
+.admin-panel .ant-table-tbody > tr {
+  transition: none !important;
+}
+
+/* Prevent button hover jump */
+.admin-panel .ant-btn {
+  transition: none !important;
+}
+
+.admin-panel .ant-btn-text:hover {
+  background: rgba(0, 0, 0, 0.018) !important;
+}

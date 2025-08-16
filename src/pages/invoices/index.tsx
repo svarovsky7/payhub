@@ -24,19 +24,17 @@ import {
   Segmented,
   Progress,
 } from 'antd';
+import { InvoiceViewModal } from './components/invoice-view-modal';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   SendOutlined,
   FileTextOutlined,
-  SearchOutlined,
-  FilterOutlined,
   EyeOutlined,
   PaperClipOutlined,
   TableOutlined,
   AppstoreOutlined,
-  MoreOutlined,
   CalendarOutlined,
   UserOutlined,
   BankOutlined,
@@ -47,6 +45,7 @@ import {
   SaveOutlined,
   CloudUploadOutlined,
   InboxOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/model/auth-store';
@@ -105,8 +104,6 @@ export function InvoicesPage() {
   const [isPayerModalOpen, setIsPayerModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
-  const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [fileList, setFileList] = useState<Array<{
     uid: string;
@@ -123,6 +120,8 @@ export function InvoicesPage() {
   const [includeVat, setIncludeVat] = useState(true); // По умолчанию сумма с НДС
   const [dragActive, setDragActive] = useState(false);
   const [vatDisplay, setVatDisplay] = useState<string>('');
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -210,6 +209,19 @@ export function InvoicesPage() {
     onError: (error) => {
       console.error('Failed to submit invoice:', error);
       message.error('Не удалось отправить счет на согласование');
+    },
+  });
+
+  const rejectInvoiceMutation = useMutation({
+    mutationFn: (invoiceId: number) => invoiceApi.update(invoiceId, { status: 'rejected' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['rejected-invoices'] });
+      message.success('Счет отклонен');
+    },
+    onError: (error) => {
+      console.error('Failed to reject invoice:', error);
+      message.error('Не удалось отклонить счет');
     },
   });
 
@@ -487,8 +499,22 @@ export function InvoicesPage() {
     submitForApprovalMutation.mutate(invoiceId);
   };
 
+  const handleReject = (invoiceId: number) => {
+    rejectInvoiceMutation.mutate(invoiceId);
+  };
+
   const handleDelete = (invoiceId: number) => {
     deleteMutation.mutate(invoiceId);
+  };
+
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setSelectedInvoice(null);
+    setIsViewModalOpen(false);
   };
 
   const handleCreateContractor = async (values: { name: string; inn: string; address?: string }) => {
@@ -530,17 +556,8 @@ export function InvoicesPage() {
     return <Tag color={config.color}>{config.text}</Tag>;
   };
 
-  // Filter invoices based on search and status
-  const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = !searchText || 
-      invoice.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) ||
-      invoice.description?.toLowerCase().includes(searchText.toLowerCase()) ||
-      invoice.contractor?.name?.toLowerCase().includes(searchText.toLowerCase());
-    
-    const matchesStatus = !statusFilter || invoice.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // No filtering - show all invoices
+  const filteredInvoices = invoices;
 
 
   const columns: ColumnsType<Invoice> = [
@@ -549,7 +566,6 @@ export function InvoicesPage() {
       dataIndex: 'invoice_number',
       key: 'invoice_number',
       fixed: 'left',
-      width: 100,
       sorter: (a, b) => a.invoice_number.localeCompare(b.invoice_number),
       render: (text) => (
         <span style={{ 
@@ -565,7 +581,6 @@ export function InvoicesPage() {
       title: 'Дата',
       dataIndex: 'invoice_date',
       key: 'invoice_date',
-      width: 100,
       sorter: (a, b) => {
         const dateA = a.invoice_date ? new Date(a.invoice_date).getTime() : 0;
         const dateB = b.invoice_date ? new Date(b.invoice_date).getTime() : 0;
@@ -581,7 +596,6 @@ export function InvoicesPage() {
       title: 'Поставщик',
       dataIndex: ['contractor', 'name'],
       key: 'contractor',
-      width: 180,
       ellipsis: true,
       sorter: (a, b) => (a.contractor?.name || '').localeCompare(b.contractor?.name || ''),
       render: (text) => (
@@ -594,7 +608,6 @@ export function InvoicesPage() {
       title: 'Плательщик',
       dataIndex: ['payer', 'name'],
       key: 'payer',
-      width: 150,
       ellipsis: true,
       responsive: ['lg'],
       sorter: (a, b) => (a.payer?.name || '').localeCompare(b.payer?.name || ''),
@@ -608,7 +621,6 @@ export function InvoicesPage() {
       title: 'Проект',
       dataIndex: ['project', 'name'],
       key: 'project',
-      width: 150,
       ellipsis: true,
       responsive: ['xl'],
       sorter: (a, b) => (a.project?.name || '').localeCompare(b.project?.name || ''),
@@ -622,7 +634,6 @@ export function InvoicesPage() {
       title: 'Сумма',
       dataIndex: 'total_amount',
       key: 'total_amount',
-      width: 120,
       align: 'right',
       sorter: (a, b) => a.total_amount - b.total_amount,
       render: (amount) => (
@@ -642,7 +653,6 @@ export function InvoicesPage() {
       title: 'Статус',
       dataIndex: 'status',
       key: 'status',
-      width: 140,
       filters: [
         { text: 'Черновик', value: 'draft' },
         { text: 'На согласовании Рукстроя', value: 'rukstroy_review' },
@@ -659,7 +669,6 @@ export function InvoicesPage() {
       title: 'Описание',
       dataIndex: 'description',
       key: 'description',
-      width: 200,
       ellipsis: true,
       responsive: ['xxl'],
       render: (text) => (
@@ -671,7 +680,6 @@ export function InvoicesPage() {
     {
       title: 'Поставка',
       key: 'delivery',
-      width: 150,
       responsive: ['lg'],
       render: (_, record) => {
         if (!record.delivery_days) {
@@ -716,9 +724,8 @@ export function InvoicesPage() {
       title: 'Действия',
       key: 'actions',
       fixed: 'right',
-      width: isMobile ? 60 : isTablet ? 80 : 100,
       render: (_, record) => (
-        <Space size="small">
+        <Space size="small" style={{ display: 'flex', flexWrap: 'nowrap' }}>
           {record.status === 'draft' ? (
             <>
               <Button
@@ -746,6 +753,31 @@ export function InvoicesPage() {
                 }}
                 className="touch-target"
               />
+              <Popconfirm
+                title="Отклонить счет?"
+                description="Счет будет перемещен в статус 'Отказано'"
+                onConfirm={(e) => {
+                  if (e) e.stopPropagation();
+                  handleReject(record.id);
+                }}
+                onCancel={(e) => {
+                  if (e) e.stopPropagation();
+                }}
+                okText="Да"
+                cancelText="Нет"
+              >
+                <Button
+                  type="text"
+                  size={isMobile ? 'middle' : 'small'}
+                  icon={<StopOutlined />}
+                  onClick={(e) => e.stopPropagation()}
+                  className="touch-target"
+                  style={{ 
+                    color: '#ff4d4f',
+                    minHeight: isMobile ? 40 : 'auto'
+                  }}
+                />
+              </Popconfirm>
               {!isMobile && (
                 <Popconfirm
                   title="Удалить счет?"
@@ -769,16 +801,6 @@ export function InvoicesPage() {
                     style={{ minHeight: isMobile ? 40 : 'auto' }}
                   />
                 </Popconfirm>
-              )}
-              {isMobile && (
-                <Button
-                  type="text"
-                  size="middle"
-                  icon={<MoreOutlined />}
-                  onClick={(e) => e.stopPropagation()}
-                  className="touch-target"
-                  style={{ minHeight: 40 }}
-                />
               )}
             </>
           ) : (
@@ -837,6 +859,7 @@ export function InvoicesPage() {
               }
             }}
             hoverable
+            onClick={() => handleViewInvoice(invoice)}
             actions={[
               invoice.status === 'draft' ? (
                 <Space key="actions" size="small">
@@ -844,20 +867,53 @@ export function InvoicesPage() {
                     type="text"
                     size={isMobile ? 'large' : 'middle'}
                     icon={<EditOutlined />}
-                    onClick={() => handleEdit(invoice)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(invoice);
+                    }}
                     className="touch-target"
                   />
                   <Button
                     type="text"
                     size={isMobile ? 'large' : 'middle'}
                     icon={<SendOutlined />}
-                    onClick={() => handleSubmitForApproval(invoice.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSubmitForApproval(invoice.id);
+                    }}
                     style={{ color: '#52c41a' }}
                     className="touch-target"
                   />
                   <Popconfirm
+                    title="Отклонить счет?"
+                    description="Счет будет перемещен в статус 'Отказано'"
+                    onConfirm={(e) => {
+                      if (e) e.stopPropagation();
+                      handleReject(invoice.id);
+                    }}
+                    onCancel={(e) => {
+                      if (e) e.stopPropagation();
+                    }}
+                    okText="Да"
+                    cancelText="Нет"
+                  >
+                    <Button
+                      type="text"
+                      size={isMobile ? 'large' : 'middle'}
+                      icon={<StopOutlined />}
+                      style={{ color: '#ff4d4f' }}
+                      className="touch-target"
+                    />
+                  </Popconfirm>
+                  <Popconfirm
                     title="Удалить счет?"
-                    onConfirm={() => handleDelete(invoice.id)}
+                    onConfirm={(e) => {
+                      if (e) e.stopPropagation();
+                      handleDelete(invoice.id);
+                    }}
+                    onCancel={(e) => {
+                      if (e) e.stopPropagation();
+                    }}
                     okText="Да"
                     cancelText="Нет"
                   >
@@ -978,7 +1034,7 @@ export function InvoicesPage() {
           <div style={{ padding: '40px 0' }}>
             <FileTextOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
             <p style={{ marginTop: 16, color: '#8c8c8c' }}>
-              {searchText || statusFilter ? 'Ничего не найдено' : 'Нет счетов'}
+              Нет счетов
             </p>
           </div>
         ),
@@ -1046,75 +1102,6 @@ export function InvoicesPage() {
         </Col>
       </Row>
 
-      {/* Search and Filter Controls */}
-      <Card 
-        style={{ 
-          marginBottom: 20,
-          borderRadius: 12,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-        }}
-      >
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} md={10} lg={8}>
-            <Input
-              placeholder={isMobile ? "Поиск..." : "Поиск по номеру, описанию, поставщику..."}
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              allowClear
-              size={isMobile ? 'large' : 'middle'}
-              style={{ 
-                borderRadius: 8,
-                minHeight: isMobile ? 44 : 'auto'
-              }}
-              className="touch-target"
-            />
-          </Col>
-          <Col xs={24} md={8} lg={6}>
-            <Select
-              placeholder="Фильтр по статусу"
-              style={{ width: '100%' }}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              allowClear
-              size={isMobile ? 'large' : 'middle'}
-              suffixIcon={<FilterOutlined />}
-              className="touch-target"
-            >
-              <Option value="draft">Черновик</Option>
-              <Option value="rukstroy_review">На согласовании Рукстроя</Option>
-              <Option value="director_review">На согласовании Директора</Option>
-              <Option value="supply_review">На согласовании Снабжения</Option>
-              <Option value="in_payment">В оплате</Option>
-              <Option value="paid">Оплачено</Option>
-              <Option value="rejected">Отказано</Option>
-            </Select>
-          </Col>
-          <Col xs={24} md={6} lg={10}>
-            <div style={{ 
-              textAlign: 'right', 
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              gap: '8px'
-            }}>
-              {searchText || statusFilter ? (
-                <>
-                  <Tag color="blue">Фильтр активен</Tag>
-                  <span style={{ color: '#8c8c8c' }}>
-                    Найдено: <strong>{filteredInvoices.length}</strong> из {invoices.length}
-                  </span>
-                </>
-              ) : (
-                <span style={{ color: '#595959' }}>
-                  Всего счетов: <strong style={{ fontSize: '16px', color: '#1677ff' }}>{invoices.length}</strong>
-                </span>
-              )}
-            </div>
-          </Col>
-        </Row>
-      </Card>
 
       {viewMode === 'table' ? (
         <Card 
@@ -1135,6 +1122,10 @@ export function InvoicesPage() {
               spinning: isLoading,
               tip: 'Загрузка счетов...',
             }}
+            onRow={(record) => ({
+              onClick: () => handleViewInvoice(record),
+              style: { cursor: 'pointer' },
+            })}
             pagination={{
               pageSize: isMobile ? 10 : isTablet ? 20 : 30,
               showSizeChanger: !isMobile,
@@ -1152,13 +1143,14 @@ export function InvoicesPage() {
               size: isMobile ? 'default' : 'small',
               simple: isMobile
             }}
-            scroll={{ x: isMobile ? 800 : isTablet ? 1000 : 1200 }}
+            scroll={{ x: 'max-content' }}
+            tableLayout="auto"
             locale={{
               emptyText: (
                 <div style={{ padding: '40px 0' }}>
                   <FileTextOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
                   <p style={{ marginTop: 16, color: '#8c8c8c' }}>
-                    {searchText || statusFilter ? 'Ничего не найдено' : 'Нет счетов'}
+                    Нет счетов
                   </p>
                 </div>
               ),
@@ -2196,6 +2188,17 @@ export function InvoicesPage() {
           </div>
         )}
       </Modal>
+
+      {/* Invoice View Modal */}
+      <InvoiceViewModal
+        invoice={selectedInvoice}
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        onEdit={(invoice) => {
+          handleCloseViewModal();
+          handleEdit(invoice);
+        }}
+      />
     </div>
   );
 }

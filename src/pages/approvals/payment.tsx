@@ -60,7 +60,6 @@ export function PaymentPage() {
         .insert({
           invoice_id: id,
           attachment_id: attachment.id,
-          document_type: 'invoice',
         });
       
       if (linkError) throw linkError;
@@ -208,7 +207,8 @@ export function PaymentPage() {
             showQuickJumper: true,
             showTotal: (total) => `Всего: ${total} счетов`,
           }}
-          scroll={{ x: 1100 }}
+          scroll={{ x: 'max-content' }}
+          tableLayout="auto"
         />
       </Card>
 

@@ -457,7 +457,6 @@ export const invoiceApi = {
           .insert({
             invoice_id: id,
             attachment_id: attachment.id,
-            document_type: 'invoice',
           });
         
         // Add info about payment document to comment

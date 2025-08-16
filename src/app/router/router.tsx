@@ -13,6 +13,7 @@ import {
   PaymentPage,
   PaidPage,
   RejectedPage,
+  BudgetingPage,
 } from '@/pages';
 import { ProtectedRoute } from './protected-route';
 
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
         element: <KanbanPage />,
       },
       {
+        path: 'budgeting',
+        element: <BudgetingPage />,
+      },
+      {
         path: 'admin',
         element: <AdminPage />,
       },
@@ -86,5 +91,6 @@ export const router = createBrowserRouter([
 ], {
   future: {
     v7_relativeSplatPath: true,
+    v7_startTransition: true,
   },
 });

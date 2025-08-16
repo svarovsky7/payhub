@@ -1,5 +1,5 @@
 -- Database Schema SQL Export
--- Generated: 2025-08-16T10:55:01.507004
+-- Generated: 2025-08-16T11:52:02.885793
 -- Database: postgres
 -- Host: aws-0-eu-central-1.pooler.supabase.com
 
@@ -188,10 +188,12 @@ CREATE TABLE IF NOT EXISTS auth.saml_relay_states (
 COMMENT ON TABLE auth.saml_relay_states IS 'Auth: Contains SAML Relay State information for each Service Provider initiated login.';
 
 -- Table: auth.schema_migrations
+-- Description: Auth: Manages updates to the auth system.
 CREATE TABLE IF NOT EXISTS auth.schema_migrations (
     version character varying(255) NOT NULL,
     version character varying(255) NOT NULL
 );
+COMMENT ON TABLE auth.schema_migrations IS 'Auth: Manages updates to the auth system.';
 
 -- Table: auth.sessions
 -- Description: Auth: Stores session data associated to a user.
@@ -239,7 +241,7 @@ COMMENT ON TABLE auth.sso_providers IS 'Auth: Manages SSO identity provider info
 COMMENT ON COLUMN auth.sso_providers.resource_id IS 'Auth: Uniquely identifies a SSO provider according to a user-chosen resource ID (case insensitive), useful in infrastructure as code.';
 
 -- Table: auth.users
--- Description: Auth: Stores user login data within a secure schema.
+-- Description: Пользователи системы PayHub
 CREATE TABLE IF NOT EXISTS auth.users (
     instance_id uuid,
     instance_id uuid,
@@ -314,7 +316,7 @@ CREATE TABLE IF NOT EXISTS auth.users (
     CONSTRAINT users_phone_key UNIQUE (phone),
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );
-COMMENT ON TABLE auth.users IS 'Auth: Stores user login data within a secure schema.';
+COMMENT ON TABLE auth.users IS 'Пользователи системы PayHub';
 COMMENT ON COLUMN auth.users.email IS 'Флаг активности учетной записи';
 COMMENT ON COLUMN auth.users.invited_at IS 'ID проекта, к которому привязан пользователь';
 COMMENT ON COLUMN auth.users.confirmation_token IS 'Дата и время создания записи';
@@ -339,22 +341,37 @@ COMMENT ON TABLE public.attachments IS 'Файлы и документы';
 COMMENT ON COLUMN public.attachments.file_path IS 'Путь к файлу в хранилище';
 COMMENT ON COLUMN public.attachments.file_size IS 'Размер файла в байтах';
 
+-- Table: public.budget_history
+CREATE TABLE IF NOT EXISTS public.budget_history (
+    id integer(32) NOT NULL DEFAULT nextval('budget_history_id_seq'::regclass),
+    project_budget_id integer(32) NOT NULL,
+    action_type character varying(50) NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    old_allocated numeric(12,2),
+    new_allocated numeric(12,2),
+    old_spent numeric(12,2),
+    new_spent numeric(12,2),
+    description text,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT budget_history_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT budget_history_pkey PRIMARY KEY (id),
+    CONSTRAINT budget_history_project_budget_id_fkey FOREIGN KEY (project_budget_id) REFERENCES public.project_budgets(id)
+);
+
 -- Table: public.contractors
 -- Description: Подрядчики/поставщики материалов
 CREATE TABLE IF NOT EXISTS public.contractors (
     id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),
     name character varying(255) NOT NULL,
     inn character varying(12),
-    kpp character varying(9),
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
     CONSTRAINT contractors_pkey PRIMARY KEY (id)
 );
 COMMENT ON TABLE public.contractors IS 'Подрядчики/поставщики материалов';
 COMMENT ON COLUMN public.contractors.inn IS 'ИНН организации';
-COMMENT ON COLUMN public.contractors.kpp IS 'КПП организации';
 
 -- Table: public.invoice_documents
 -- Description: Связь счетов с прикрепленными документами
@@ -362,8 +379,6 @@ CREATE TABLE IF NOT EXISTS public.invoice_documents (
     id integer(32) NOT NULL DEFAULT nextval('invoice_documents_id_seq'::regclass),
     invoice_id integer(32) NOT NULL,
     attachment_id integer(32) NOT NULL,
-    document_type USER-DEFINED NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT invoice_documents_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES public.attachments(id),
     CONSTRAINT invoice_documents_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES public.invoices(id),
     CONSTRAINT invoice_documents_pkey PRIMARY KEY (id)
@@ -418,11 +433,26 @@ CREATE TABLE IF NOT EXISTS public.payers (
     inn character varying(12),
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT payers_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
     CONSTRAINT payers_pkey PRIMARY KEY (id)
 );
 COMMENT ON TABLE public.payers IS 'Организации-плательщики (наши юр.лица)';
+
+-- Table: public.project_budgets
+CREATE TABLE IF NOT EXISTS public.project_budgets (
+    id integer(32) NOT NULL DEFAULT nextval('project_budgets_id_seq'::regclass),
+    project_id integer(32) NOT NULL,
+    allocated_amount numeric(12,2) NOT NULL DEFAULT 0,
+    spent_amount numeric(12,2) NOT NULL DEFAULT 0,
+    remaining_amount numeric(12,2),
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT project_budgets_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT project_budgets_pkey PRIMARY KEY (id),
+    CONSTRAINT project_budgets_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id),
+    CONSTRAINT project_budgets_project_id_key UNIQUE (project_id)
+);
 
 -- Table: public.projects
 -- Description: Строительные проекты/объекты
@@ -491,7 +521,6 @@ CREATE TABLE IF NOT EXISTS realtime.messages (
 );
 
 -- Table: realtime.schema_migrations
--- Description: Auth: Manages updates to the auth system.
 CREATE TABLE IF NOT EXISTS realtime.schema_migrations (
     version bigint(64) NOT NULL,
     version bigint(64) NOT NULL,
@@ -499,7 +528,6 @@ CREATE TABLE IF NOT EXISTS realtime.schema_migrations (
     inserted_at timestamp without time zone,
     CONSTRAINT schema_migrations_pkey PRIMARY KEY (version)
 );
-COMMENT ON TABLE realtime.schema_migrations IS 'Auth: Manages updates to the auth system.';
 
 -- Table: realtime.subscription
 CREATE TABLE IF NOT EXISTS realtime.subscription (
@@ -620,8 +648,6 @@ CREATE TYPE auth.one_time_token_type AS ENUM ('confirmation_token', 'reauthentic
 
 CREATE TYPE public.attachment_type AS ENUM ('pdf', 'image', 'excel', 'word', 'other');
 
-CREATE TYPE public.document_type AS ENUM ('invoice', 'waybill', 'act', 'contract', 'other');
-
 CREATE TYPE public.invoice_status AS ENUM ('draft', 'rukstroy_review', 'director_review', 'supply_review', 'in_payment', 'paid', 'rejected');
 
 CREATE TYPE realtime.action AS ENUM ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'ERROR');
@@ -691,6 +717,24 @@ CREATE OR REPLACE VIEW extensions.pg_stat_statements_info AS
  SELECT dealloc,
     stats_reset
    FROM pg_stat_statements_info() pg_stat_statements_info(dealloc, stats_reset);
+
+-- View: public.budget_summary
+CREATE OR REPLACE VIEW public.budget_summary AS
+ SELECT p.id AS project_id,
+    p.name AS project_name,
+    p.address AS project_address,
+    COALESCE(pb.allocated_amount, (0)::numeric) AS allocated_amount,
+    COALESCE(pb.spent_amount, (0)::numeric) AS spent_amount,
+    COALESCE(pb.remaining_amount, (0)::numeric) AS remaining_amount,
+    pb.created_at AS budget_created_at,
+    pb.updated_at AS budget_updated_at,
+    count(DISTINCT i.id) FILTER (WHERE (i.status = 'director_review'::invoice_status)) AS pending_approvals,
+    sum(i.total_amount) FILTER (WHERE (i.status = 'director_review'::invoice_status)) AS pending_amount
+   FROM ((projects p
+     LEFT JOIN project_budgets pb ON ((p.id = pb.project_id)))
+     LEFT JOIN invoices i ON ((p.id = i.project_id)))
+  GROUP BY p.id, p.name, p.address, pb.allocated_amount, pb.spent_amount, pb.remaining_amount, pb.created_at, pb.updated_at
+  ORDER BY p.name;
 
 -- View: vault.decrypted_secrets
 CREATE OR REPLACE VIEW vault.decrypted_secrets AS
@@ -770,7 +814,7 @@ $function$
 
 
 -- Function: extensions.armor
-CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
+CREATE OR REPLACE FUNCTION extensions.armor(bytea)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -778,7 +822,7 @@ AS '$libdir/pgcrypto', $function$pg_armor$function$
 
 
 -- Function: extensions.armor
-CREATE OR REPLACE FUNCTION extensions.armor(bytea)
+CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -818,7 +862,7 @@ AS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$
 
 
 -- Function: extensions.digest
-CREATE OR REPLACE FUNCTION extensions.digest(text, text)
+CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -826,7 +870,7 @@ AS '$libdir/pgcrypto', $function$pg_digest$function$
 
 
 -- Function: extensions.digest
-CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.digest(text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1081,14 +1125,6 @@ AS '$libdir/pgcrypto', $function$pgp_key_id_w$function$
 
 
 -- Function: extensions.pgp_pub_decrypt
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
- RETURNS text
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
-
-
--- Function: extensions.pgp_pub_decrypt
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)
  RETURNS text
  LANGUAGE c
@@ -1104,8 +1140,16 @@ CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 
+-- Function: extensions.pgp_pub_decrypt
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
+ RETURNS text
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
+
+
 -- Function: extensions.pgp_pub_decrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1121,7 +1165,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 
 -- Function: extensions.pgp_pub_decrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1161,7 +1205,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$
 
 
 -- Function: extensions.pgp_sym_decrypt
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text, text)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1169,7 +1213,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_text$function$
 
 
 -- Function: extensions.pgp_sym_decrypt
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1193,7 +1237,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$
 
 
 -- Function: extensions.pgp_sym_encrypt
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1201,7 +1245,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
 
 
 -- Function: extensions.pgp_sym_encrypt
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1668,6 +1712,48 @@ BEGIN
         WHERE invoice_id = COALESCE(NEW.invoice_id, OLD.invoice_id)
     )
     WHERE id = COALESCE(NEW.invoice_id, OLD.invoice_id);
+    
+    RETURN NEW;
+END;
+$function$
+
+
+-- Function: public.update_project_budget_on_approval
+CREATE OR REPLACE FUNCTION public.update_project_budget_on_approval()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    -- Only proceed if status changed to 'director_review' and then approved (next status)
+    IF NEW.status = 'supply_review' AND OLD.status = 'director_review' THEN
+        -- Update the spent amount for the project
+        UPDATE public.project_budgets
+        SET 
+            spent_amount = spent_amount + NEW.total_amount,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE project_id = NEW.project_id;
+        
+        -- Insert history record
+        INSERT INTO public.budget_history (
+            project_budget_id,
+            action_type,
+            amount,
+            old_spent,
+            new_spent,
+            description,
+            created_by
+        )
+        SELECT 
+            pb.id,
+            'spent',
+            NEW.total_amount,
+            pb.spent_amount - NEW.total_amount,
+            pb.spent_amount,
+            'Invoice #' || NEW.invoice_number || ' approved by director',
+            NEW.created_by
+        FROM public.project_budgets pb
+        WHERE pb.project_id = NEW.project_id;
+    END IF;
     
     RETURN NEW;
 END;
@@ -2741,6 +2827,9 @@ $function$
 -- Trigger: on_auth_user_created on auth.users
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user()
 
+-- Trigger: update_budget_on_invoice_approval on public.invoices
+CREATE TRIGGER update_budget_on_invoice_approval AFTER UPDATE OF status ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_project_budget_on_approval()
+
 -- Trigger: update_users_updated_at on public.users
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 
@@ -2887,6 +2976,12 @@ CREATE INDEX users_is_anonymous_idx ON auth.users USING btree (is_anonymous);
 -- Index on auth.users
 CREATE UNIQUE INDEX users_phone_key ON auth.users USING btree (phone);
 
+-- Index on public.budget_history
+CREATE INDEX idx_budget_history_created_at ON public.budget_history USING btree (created_at DESC);
+
+-- Index on public.budget_history
+CREATE INDEX idx_budget_history_project_budget_id ON public.budget_history USING btree (project_budget_id);
+
 -- Index on public.contractors
 CREATE INDEX idx_contractors_inn ON public.contractors USING btree (inn);
 
@@ -2928,6 +3023,12 @@ CREATE UNIQUE INDEX unique_invoice_number_per_contractor ON public.invoices USIN
 
 -- Index on public.payers
 CREATE INDEX idx_payers_inn ON public.payers USING btree (inn);
+
+-- Index on public.project_budgets
+CREATE INDEX idx_project_budgets_project_id ON public.project_budgets USING btree (project_id);
+
+-- Index on public.project_budgets
+CREATE UNIQUE INDEX project_budgets_project_id_key ON public.project_budgets USING btree (project_id);
 
 -- Index on public.users
 CREATE INDEX idx_users_project_id ON public.users USING btree (project_id);

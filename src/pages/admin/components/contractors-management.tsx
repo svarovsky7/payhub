@@ -103,48 +103,21 @@ export function ContractorsManagement() {
       title: 'Название',
       dataIndex: 'name',
       key: 'name',
-      width: 250,
+      width: 300,
     },
     {
       title: 'ИНН',
       dataIndex: 'inn',
       key: 'inn',
       width: 150,
+      render: (text) => text || '-',
     },
     {
-      title: 'КПП',
-      dataIndex: 'kpp',
-      key: 'kpp',
+      title: 'Дата создания',
+      dataIndex: 'created_at',
+      key: 'created_at',
       width: 150,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Адрес',
-      dataIndex: 'address',
-      key: 'address',
-      width: 300,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Телефон',
-      dataIndex: 'phone',
-      key: 'phone',
-      width: 150,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      width: 200,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Контактное лицо',
-      dataIndex: 'contact_person',
-      key: 'contact_person',
-      width: 200,
-      render: (text) => text || '-',
+      render: (date) => date ? new Date(date).toLocaleDateString('ru-RU') : '-',
     },
     {
       title: 'Действия',
@@ -196,7 +169,8 @@ export function ContractorsManagement() {
           showQuickJumper: true,
           showTotal: (total) => `Всего: ${total}`,
         }}
-        scroll={{ x: 1500 }}
+        scroll={{ x: 'max-content' }}
+        tableLayout="auto"
       />
 
       <Modal
@@ -228,47 +202,6 @@ export function ContractorsManagement() {
             ]}
           >
             <Input maxLength={12} />
-          </Form.Item>
-
-          <Form.Item
-            name="kpp"
-            label="КПП"
-            rules={[
-              { pattern: /^\d{9}$/, message: 'КПП должен содержать 9 цифр' }
-            ]}
-          >
-            <Input maxLength={9} />
-          </Form.Item>
-
-          <Form.Item
-            name="address"
-            label="Адрес"
-          >
-            <Input.TextArea rows={2} />
-          </Form.Item>
-
-          <Form.Item
-            name="phone"
-            label="Телефон"
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { type: 'email', message: 'Неверный формат email' }
-            ]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="contact_person"
-            label="Контактное лицо"
-          >
-            <Input />
           </Form.Item>
 
           <Form.Item>

@@ -101,7 +101,7 @@ export function UsersManagement() {
       title: 'ФИО',
       dataIndex: 'full_name',
       key: 'full_name',
-      width: 200,
+      width: 250,
       render: (text) => (
         <Space>
           <UserOutlined />
@@ -113,28 +113,18 @@ export function UsersManagement() {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
-      width: 200,
+      width: 250,
     },
     {
-      title: 'Телефон',
-      dataIndex: 'phone',
-      key: 'phone',
-      width: 150,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Должность',
-      dataIndex: 'position',
-      key: 'position',
-      width: 150,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Отдел',
-      dataIndex: 'department',
-      key: 'department',
-      width: 150,
-      render: (text) => text || '-',
+      title: 'Активен',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      width: 100,
+      render: (isActive) => (
+        <Tag color={isActive ? 'green' : 'red'}>
+          {isActive ? 'Да' : 'Нет'}
+        </Tag>
+      ),
     },
     {
       title: 'Проект',
@@ -148,6 +138,13 @@ export function UsersManagement() {
           <span style={{ color: '#999' }}>Не назначен</span>
         );
       },
+    },
+    {
+      title: 'Дата создания',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 150,
+      render: (date) => date ? new Date(date).toLocaleDateString('ru-RU') : '-',
     },
     {
       title: 'Действия',
@@ -183,7 +180,8 @@ export function UsersManagement() {
           showQuickJumper: true,
           showTotal: (total) => `Всего: ${total}`,
         }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 'max-content' }}
+        tableLayout="auto"
       />
 
       <Modal
