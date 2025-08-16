@@ -74,7 +74,9 @@ export const budgetApi = {
         amount: allocatedAmount - oldAllocated,
         old_allocated: oldAllocated,
         new_allocated: allocatedAmount,
-        description: `Budget adjusted from ${oldAllocated} to ${allocatedAmount}`,
+        old_spent: null,
+        new_spent: null,
+        description: `Бюджет изменен с ${oldAllocated.toLocaleString('ru-RU')} ₽ на ${allocatedAmount.toLocaleString('ru-RU')} ₽`,
         created_by: userId,
       });
 
@@ -102,8 +104,11 @@ export const budgetApi = {
         project_budget_id: data.id,
         action_type: 'allocation',
         amount: allocatedAmount,
+        old_allocated: null,
         new_allocated: allocatedAmount,
-        description: `Initial budget allocation of ${allocatedAmount}`,
+        old_spent: null,
+        new_spent: null,
+        description: `Первоначальное выделение бюджета: ${allocatedAmount.toLocaleString('ru-RU')} ₽`,
         created_by: userId,
       });
 
@@ -129,7 +134,7 @@ export const budgetApi = {
   async getBudgetHistory(projectBudgetId: number): Promise<BudgetHistory[]> {
     const { data, error } = await supabase
       .from('budget_history')
-      .select('*')
+      .select('*, creator:users(id,full_name,email)')
       .eq('project_budget_id', projectBudgetId)
       .order('created_at', { ascending: false });
 
@@ -220,7 +225,7 @@ export const budgetApi = {
           new_allocated: 0,
           old_spent: budget.spent_amount,
           new_spent: 0,
-          description: 'Complete budget reset - all amounts cleared',
+          description: 'Полное обнуление бюджета - все суммы очищены',
           created_by: userId,
         });
       }
@@ -242,5 +247,33 @@ export const budgetApi = {
         throw resetError;
       }
     }
+  },
+
+  /**
+   * Clear budget history for a specific project budget
+   */
+  async clearBudgetHistory(projectBudgetId: number, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('budget_history')
+      .delete()
+      .eq('project_budget_id', projectBudgetId);
+
+    if (error) {
+      console.error('Failed to clear budget history:', error);
+      throw error;
+    }
+
+    // Add a record that history was cleared
+    await this.addBudgetHistory({
+      project_budget_id: projectBudgetId,
+      action_type: 'adjustment',
+      amount: 0,
+      old_allocated: 0,
+      new_allocated: 0,
+      old_spent: 0,
+      new_spent: 0,
+      description: 'История бюджета очищена администратором',
+      created_by: userId,
+    });
   },
 };

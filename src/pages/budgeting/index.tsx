@@ -32,6 +32,8 @@ import {
   RiseOutlined,
   BankOutlined,
   ClearOutlined,
+  DeleteOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { budgetApi } from '@/entities';
@@ -62,6 +64,7 @@ export function BudgetingPage() {
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [selectedProjectHistory, setSelectedProjectHistory] = useState<{
     projectName: string;
+    projectBudgetId: number;
     history: BudgetHistory[];
   } | null>(null);
 
@@ -158,13 +161,40 @@ export function BudgetingPage() {
     },
   });
 
+  // Clear budget history mutation
+  const clearHistoryMutation = useMutation({
+    mutationFn: async (projectBudgetId: number) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      return budgetApi.clearBudgetHistory(projectBudgetId, user.id);
+    },
+    onSuccess: async () => {
+      // Reload history after clearing
+      if (selectedProjectHistory) {
+        try {
+          const history = await budgetApi.getBudgetHistory(selectedProjectHistory.projectBudgetId);
+          setSelectedProjectHistory({
+            ...selectedProjectHistory,
+            history
+          });
+        } catch (error) {
+          console.error('Failed to reload history:', error);
+        }
+      }
+      message.success('История бюджета очищена');
+    },
+    onError: (error) => {
+      console.error('Failed to clear budget history:', error);
+      message.error('Ошибка при очистке истории');
+    },
+  });
+
   // Load budget history
   const loadProjectHistory = async (projectId: number, projectName: string) => {
     try {
       const budget = await budgetApi.getProjectBudget(projectId);
       if (budget) {
         const history = await budgetApi.getBudgetHistory(budget.id);
-        setSelectedProjectHistory({ projectName, history });
+        setSelectedProjectHistory({ projectName, projectBudgetId: budget.id, history });
         setHistoryModalVisible(true);
       } else {
         message.info('История бюджета пока недоступна');
@@ -249,6 +279,13 @@ export function BudgetingPage() {
   // Handle budget reset
   const handleResetBudgets = () => {
     resetBudgetsMutation.mutate();
+  };
+
+  // Handle clear history
+  const handleClearHistory = () => {
+    if (selectedProjectHistory) {
+      clearHistoryMutation.mutate(selectedProjectHistory.projectBudgetId);
+    }
   };
 
   // Table columns
@@ -705,7 +742,33 @@ export function BudgetingPage() {
           setHistoryModalVisible(false);
           setSelectedProjectHistory(null);
         }}
-        footer={null}
+        footer={
+          <Space>
+            <Popconfirm
+              title="Очистить всю историю?"
+              description="Все записи истории бюджета для этого проекта будут удалены. Это действие необратимо!"
+              onConfirm={handleClearHistory}
+              okText="Да, очистить"
+              cancelText="Отмена"
+              okButtonProps={{ danger: true }}
+              icon={<WarningOutlined style={{ color: 'red' }} />}
+            >
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                loading={clearHistoryMutation.isPending}
+              >
+                Очистить историю
+              </Button>
+            </Popconfirm>
+            <Button onClick={() => {
+              setHistoryModalVisible(false);
+              setSelectedProjectHistory(null);
+            }}>
+              Закрыть
+            </Button>
+          </Space>
+        }
         width={700}
       >
         {selectedProjectHistory?.history && selectedProjectHistory.history.length > 0 ? (
@@ -715,29 +778,43 @@ export function BudgetingPage() {
                      item.action_type === 'spent' ? 'red' : 'blue',
               children: (
                 <div>
-                  <Text strong>
-                    {item.action_type === 'allocation' && 'Выделение бюджета'}
-                    {item.action_type === 'adjustment' && 'Корректировка бюджета'}
-                    {item.action_type === 'spent' && 'Расход средств'}
-                  </Text>
-                  <br />
-                  <Text>
-                    Сумма: {new Intl.NumberFormat('ru-RU', {
-                      style: 'currency',
-                      currency: 'RUB',
-                      minimumFractionDigits: 0,
-                    }).format(Math.abs(item.amount))}
-                  </Text>
+                  <div style={{ marginBottom: 8 }}>
+                    <Text strong>
+                      {item.action_type === 'allocation' && 'Выделение бюджета'}
+                      {item.action_type === 'adjustment' && 'Корректировка бюджета'}
+                      {item.action_type === 'spent' && 'Расход средств'}
+                    </Text>
+                    {item.amount !== 0 && (
+                      <>
+                        <br />
+                        <Text>
+                          Сумма: {new Intl.NumberFormat('ru-RU', {
+                            style: 'currency',
+                            currency: 'RUB',
+                            minimumFractionDigits: 0,
+                          }).format(Math.abs(item.amount))}
+                        </Text>
+                      </>
+                    )}
+                  </div>
                   {item.description && (
-                    <>
-                      <br />
+                    <div style={{ marginBottom: 8 }}>
                       <Text type="secondary">{item.description}</Text>
-                    </>
+                    </div>
                   )}
-                  <br />
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {dayjs(item.created_at).format('DD MMMM YYYY, HH:mm')}
-                  </Text>
+                  <div>
+                    <Space size="middle">
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {dayjs(item.created_at).format('DD MMMM YYYY, HH:mm')}
+                      </Text>
+                      {item.creator && (
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          <UserOutlined style={{ marginRight: 4 }} />
+                          {item.creator.full_name || item.creator.email}
+                        </Text>
+                      )}
+                    </Space>
+                  </div>
                 </div>
               ),
             }))}

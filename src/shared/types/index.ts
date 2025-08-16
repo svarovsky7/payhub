@@ -204,6 +204,9 @@ export interface BudgetHistory {
   description: string | null;
   created_by: string | null;
   created_at: string;
+  
+  // Relations
+  creator?: User;
 }
 
 // Budget Summary View Interface
