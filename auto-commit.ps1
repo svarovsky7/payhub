@@ -1,96 +1,86 @@
-# PowerShell скрипт для автоматического коммита и пуша
-# Использование: .\auto-commit.ps1 -Message "описание изменений"
+# PowerShell script for automatic commit and push
+# Usage: .\auto-commit.ps1 -Message "change description"
 
 param(
     [string]$Message = "",
     [switch]$Watch = $false,
-    [int]$Interval = 300  # Интервал в секундах для режима наблюдения (по умолчанию 5 минут)
+    [int]$Interval = 300  # Interval in seconds for watch mode (default 5 minutes)
 )
-
-# Цвета для вывода
-function Write-ColorOutput($ForegroundColor) {
-    $fc = $host.UI.RawUI.ForegroundColor
-    $host.UI.RawUI.ForegroundColor = $ForegroundColor
-    if ($args) {
-        Write-Output $args
-    }
-    $host.UI.RawUI.ForegroundColor = $fc
-}
 
 function Commit-Changes {
     param([string]$CommitMessage)
     
-    Write-Host "🔍 Проверка изменений..." -ForegroundColor Yellow
+    Write-Host "Checking for changes..." -ForegroundColor Yellow
     
-    # Проверяем, есть ли изменения
+    # Check if there are changes
     $status = git status -s
     if (-not $status) {
-        Write-Host "✓ Нет изменений для коммита" -ForegroundColor Green
+        Write-Host "No changes to commit" -ForegroundColor Green
         return $false
     }
     
-    # Показываем статус
-    Write-Host "`nНайдены изменения:" -ForegroundColor Cyan
+    # Show status
+    Write-Host "`nFound changes:" -ForegroundColor Cyan
     git status -s
     
-    # Добавляем все изменения
-    Write-Host "`n📦 Добавление изменений..." -ForegroundColor Yellow
+    # Add all changes
+    Write-Host "`nAdding changes..." -ForegroundColor Yellow
     git add -A
     
-    # Формируем сообщение коммита
+    # Create commit message
     if ([string]::IsNullOrEmpty($CommitMessage)) {
         $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-        $CommitMessage = "chore: Автоматическое сохранение изменений $timestamp"
+        $CommitMessage = "chore: Auto-save changes $timestamp"
     }
     
-    # Добавляем подпись Claude
+    # Add Claude signature
     $fullMessage = @"
 $CommitMessage
 
-🤖 Generated with Claude Code
+Generated with Claude Code
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 "@
     
-    # Создаем коммит
-    Write-Host "`n💾 Создание коммита..." -ForegroundColor Yellow
+    # Create commit
+    Write-Host "`nCreating commit..." -ForegroundColor Yellow
     git commit -m $fullMessage
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Коммит создан успешно" -ForegroundColor Green
+        Write-Host "Commit created successfully" -ForegroundColor Green
         
-        # Пушим на GitHub
-        Write-Host "`n🚀 Отправка на GitHub..." -ForegroundColor Yellow
+        # Push to GitHub
+        Write-Host "`nPushing to GitHub..." -ForegroundColor Yellow
         git push origin master
         
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "✓ Изменения успешно отправлены на GitHub" -ForegroundColor Green
+            Write-Host "Changes successfully pushed to GitHub" -ForegroundColor Green
             return $true
         } else {
-            Write-Host "✗ Ошибка при отправке на GitHub" -ForegroundColor Red
+            Write-Host "Error pushing to GitHub" -ForegroundColor Red
             return $false
         }
     } else {
-        Write-Host "✗ Ошибка при создании коммита" -ForegroundColor Red
+        Write-Host "Error creating commit" -ForegroundColor Red
         return $false
     }
 }
 
-# Основная логика
+# Main logic
 if ($Watch) {
-    Write-Host "👁️ Режим наблюдения активирован" -ForegroundColor Magenta
-    Write-Host "Проверка изменений каждые $Interval секунд" -ForegroundColor Gray
-    Write-Host "Нажмите Ctrl+C для остановки" -ForegroundColor Gray
+    Write-Host "Watch mode activated" -ForegroundColor Magenta
+    Write-Host "Checking for changes every $Interval seconds" -ForegroundColor Gray
+    Write-Host "Press Ctrl+C to stop" -ForegroundColor Gray
     Write-Host ""
     
     while ($true) {
         $result = Commit-Changes -CommitMessage $Message
         if ($result) {
-            Write-Host "`n⏰ Следующая проверка через $Interval секунд..." -ForegroundColor Gray
+            Write-Host "`nNext check in $Interval seconds..." -ForegroundColor Gray
         }
         Start-Sleep -Seconds $Interval
     }
 } else {
-    # Однократное выполнение
+    # Single execution
     Commit-Changes -CommitMessage $Message
 }
