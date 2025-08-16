@@ -221,6 +221,7 @@ export function InvoicesPage() {
       queryClient.invalidateQueries({ queryKey: ['rukstroy-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['supply-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['payment-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['budget-summary'] });
       message.success('Счет отклонен');
     },
     onError: (error) => {
