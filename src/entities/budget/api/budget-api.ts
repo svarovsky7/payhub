@@ -226,20 +226,21 @@ export const budgetApi = {
       }
     }
 
-    // Reset all budgets to zero
-    const { error: resetError } = await supabase
-      .from('project_budgets')
-      .update({
-        allocated_amount: 0,
-        spent_amount: 0,
-        remaining_amount: 0,
-        updated_at: new Date().toISOString(),
-      })
-      .gt('id', 0); // Update all records
+    // Reset each budget individually (remaining_amount will be calculated automatically)
+    for (const budget of budgets) {
+      const { error: resetError } = await supabase
+        .from('project_budgets')
+        .update({
+          allocated_amount: 0,
+          spent_amount: 0,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', budget.id);
 
-    if (resetError) {
-      console.error('Failed to reset budgets:', resetError);
-      throw resetError;
+      if (resetError) {
+        console.error(`Failed to reset budget ${budget.id}:`, resetError);
+        throw resetError;
+      }
     }
   },
 };
