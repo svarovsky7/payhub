@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   Table,
@@ -29,7 +29,6 @@ import {
   WalletOutlined,
   FundOutlined,
   RiseOutlined,
-  FallOutlined,
   BankOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -55,6 +54,8 @@ export function BudgetingPage() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [totalBudget, setTotalBudget] = useState<number>(0);
+  const [additionalBudget, setAdditionalBudget] = useState<number>(0);
+  const [newAllocations, setNewAllocations] = useState<Map<number, number>>(new Map());
   const [allocations, setAllocations] = useState<Map<number, BudgetAllocation>>(new Map());
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [selectedProjectHistory, setSelectedProjectHistory] = useState<{
@@ -73,6 +74,7 @@ export function BudgetingPage() {
   useEffect(() => {
     if (budgetSummary.length > 0) {
       const initialAllocations = new Map<number, BudgetAllocation>();
+      const initialNewAllocations = new Map<number, number>();
       let total = 0;
       
       budgetSummary.forEach((project) => {
@@ -81,15 +83,18 @@ export function BudgetingPage() {
           allocatedAmount: project.allocated_amount,
           hasChanged: false,
         });
+        // Initialize new allocations with 0
+        initialNewAllocations.set(project.project_id, 0);
         total += project.allocated_amount;
       });
       
       setAllocations(initialAllocations);
+      setNewAllocations(initialNewAllocations);
       if (totalBudget === 0) {
         setTotalBudget(total);
       }
     }
-  }, [budgetSummary, totalBudget]);
+  }, [budgetSummary]);
 
   // Update budgets mutation
   const updateBudgetsMutation = useMutation({
@@ -101,12 +106,13 @@ export function BudgetingPage() {
       queryClient.invalidateQueries({ queryKey: ['budget-summary'] });
       message.success('Бюджеты успешно обновлены');
       
-      // Reset changed flags
-      const updatedAllocations = new Map(allocations);
-      updatedAllocations.forEach((allocation) => {
-        allocation.hasChanged = false;
+      // Reset additional budget and new allocations
+      setAdditionalBudget(0);
+      const resetNewAllocations = new Map<number, number>();
+      budgetSummary.forEach((project) => {
+        resetNewAllocations.set(project.project_id, 0);
       });
-      setAllocations(updatedAllocations);
+      setNewAllocations(resetNewAllocations);
     },
     onError: (error) => {
       console.error('Failed to update budgets:', error);
@@ -131,28 +137,34 @@ export function BudgetingPage() {
     }
   };
 
-  // Handle allocation change
-  const handleAllocationChange = (projectId: number, value: number | null) => {
-    const newAllocations = new Map(allocations);
-    const allocation = newAllocations.get(projectId);
-    
-    if (allocation) {
-      allocation.allocatedAmount = value || 0;
-      allocation.hasChanged = true;
-      setAllocations(newAllocations);
-    }
+  // Handle new allocation change
+  const handleNewAllocationChange = (projectId: number, value: number | null) => {
+    const updatedNewAllocations = new Map(newAllocations);
+    updatedNewAllocations.set(projectId, value || 0);
+    setNewAllocations(updatedNewAllocations);
   };
 
-  // Save changes
+  // Save changes - add new allocations to existing ones
   const handleSaveChanges = () => {
-    const changedBudgets = Array.from(allocations.values())
-      .filter(a => a.hasChanged)
-      .map(a => ({
-        projectId: a.projectId,
-        allocatedAmount: a.allocatedAmount,
-      }));
+    const changedBudgets: Array<{ projectId: number; allocatedAmount: number }> = [];
+    
+    // Check if there are any new allocations to save
+    let hasChanges = false;
+    newAllocations.forEach((newAmount, projectId) => {
+      if (newAmount > 0) {
+        hasChanges = true;
+        const currentAllocation = allocations.get(projectId);
+        if (currentAllocation) {
+          // Add new amount to existing allocation
+          changedBudgets.push({
+            projectId: projectId,
+            allocatedAmount: currentAllocation.allocatedAmount + newAmount,
+          });
+        }
+      }
+    });
 
-    if (changedBudgets.length === 0) {
+    if (!hasChanges) {
       message.info('Нет изменений для сохранения');
       return;
     }
@@ -165,31 +177,35 @@ export function BudgetingPage() {
     (sum, a) => sum + a.allocatedAmount,
     0
   );
+  const totalNewAllocations = Array.from(newAllocations.values()).reduce(
+    (sum, amount) => sum + amount,
+    0
+  );
   const totalSpent = budgetSummary.reduce((sum, p) => sum + p.spent_amount, 0);
   const totalRemaining = budgetSummary.reduce((sum, p) => sum + p.remaining_amount, 0);
   const totalPending = budgetSummary.reduce((sum, p) => sum + (p.pending_amount || 0), 0);
-  const unallocated = totalBudget - totalAllocated;
+  const unallocatedNew = additionalBudget - totalNewAllocations;
 
-  // Distribute unallocated budget equally
+  // Distribute unallocated new budget equally
   const handleDistributeEqually = () => {
-    if (unallocated <= 0) {
-      message.warning('Нет свободных средств для распределения');
+    if (unallocatedNew <= 0) {
+      message.warning('Нет новых средств для распределения');
       return;
     }
 
-    const projectCount = allocations.size;
+    const projectCount = newAllocations.size;
     if (projectCount === 0) return;
 
-    const amountPerProject = Math.floor(unallocated / projectCount);
-    const newAllocations = new Map(allocations);
+    const amountPerProject = Math.floor(unallocatedNew / projectCount);
+    const updatedNewAllocations = new Map(newAllocations);
     
-    newAllocations.forEach((allocation) => {
-      allocation.allocatedAmount += amountPerProject;
-      allocation.hasChanged = true;
+    updatedNewAllocations.forEach((_, projectId) => {
+      const currentNewAmount = updatedNewAllocations.get(projectId) || 0;
+      updatedNewAllocations.set(projectId, currentNewAmount + amountPerProject);
     });
     
-    setAllocations(newAllocations);
-    message.success('Средства распределены равномерно');
+    setNewAllocations(updatedNewAllocations);
+    message.success('Новые средства распределены равномерно');
   };
 
   // Table columns
@@ -214,23 +230,41 @@ export function BudgetingPage() {
       ),
     },
     {
-      title: 'Выделено',
+      title: 'Уже выделено',
       key: 'allocated',
-      width: 180,
+      width: 120,
       render: (_, record) => {
         const allocation = allocations.get(record.project_id);
         return (
+          <Text strong>
+            {new Intl.NumberFormat('ru-RU', {
+              style: 'currency',
+              currency: 'RUB',
+              minimumFractionDigits: 0,
+            }).format(allocation?.allocatedAmount || 0)}
+          </Text>
+        );
+      },
+    },
+    {
+      title: 'Добавить',
+      key: 'new_allocation',
+      width: 180,
+      render: (_, record) => {
+        const newAmount = newAllocations.get(record.project_id) || 0;
+        return (
           <Space>
             <InputNumber
-              value={allocation?.allocatedAmount || 0}
-              onChange={(value) => handleAllocationChange(record.project_id, value)}
+              value={newAmount}
+              onChange={(value) => handleNewAllocationChange(record.project_id, value)}
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
-              parser={(value) => value!.replace(/\s?/g, '')}
+              parser={(value) => Number(value!.replace(/\s?/g, ''))}
               min={0}
               style={{ width: 140 }}
               addonAfter="₽"
+              placeholder="0"
             />
-            {allocation?.hasChanged && (
+            {newAmount > 0 && (
               <Badge status="processing" />
             )}
           </Space>
@@ -362,7 +396,7 @@ export function BudgetingPage() {
               icon={<SaveOutlined />}
               onClick={handleSaveChanges}
               loading={updateBudgetsMutation.isPending}
-              disabled={!Array.from(allocations.values()).some(a => a.hasChanged)}
+              disabled={totalNewAllocations === 0}
             >
               Сохранить изменения
             </Button>
@@ -370,30 +404,51 @@ export function BudgetingPage() {
         </Col>
       </Row>
 
-      {/* Total Budget Input */}
-      <Card style={{ marginBottom: 24 }}>
-        <Row gutter={[24, 16]} align="middle">
-          <Col span={8}>
+      {/* Budget Cards */}
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={12}>
+          <Card>
             <Space direction="vertical" style={{ width: '100%' }}>
-              <Text strong>Общий бюджет</Text>
-              <InputNumber
+              <Text strong>Текущий общий бюджет</Text>
+              <Statistic
                 value={totalBudget}
-                onChange={(value) => setTotalBudget(value || 0)}
+                precision={0}
+                suffix="₽"
+                valueStyle={{ color: '#1890ff', fontSize: 28 }}
+                prefix={<BankOutlined />}
+              />
+              <Text type="secondary">Уже распределено по проектам</Text>
+            </Space>
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card style={{ borderColor: '#52c41a', borderWidth: 2 }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Text strong>Добавить новые средства</Text>
+              <InputNumber
+                value={additionalBudget}
+                onChange={(value) => setAdditionalBudget(value || 0)}
                 formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
-                parser={(value) => value!.replace(/\s?/g, '')}
+                parser={(value) => Number(value!.replace(/\s?/g, ''))}
                 min={0}
                 style={{ width: '100%' }}
                 size="large"
                 addonAfter="₽"
-                prefix={<BankOutlined />}
+                placeholder="Введите сумму для добавления"
               />
             </Space>
-          </Col>
-          <Col span={16}>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Statistics */}
+      <Card style={{ marginBottom: 24 }}>
+        <Row gutter={[24, 16]}>
+          <Col span={24}>
             <Row gutter={16}>
-              <Col span={6}>
+              <Col span={4}>
                 <Statistic
-                  title="Распределено"
+                  title="Всего выделено"
                   value={totalAllocated}
                   precision={0}
                   suffix="₽"
@@ -401,14 +456,23 @@ export function BudgetingPage() {
                   prefix={<FundOutlined />}
                 />
               </Col>
-              <Col span={6}>
+              <Col span={4}>
                 <Statistic
-                  title="Нераспределено"
-                  value={unallocated}
+                  title="Новые средства"
+                  value={additionalBudget}
                   precision={0}
                   suffix="₽"
-                  valueStyle={{ color: unallocated > 0 ? '#52c41a' : '#ff4d4f' }}
-                  prefix={unallocated > 0 ? <RiseOutlined /> : <FallOutlined />}
+                  valueStyle={{ color: '#52c41a' }}
+                  prefix={<RiseOutlined />}
+                />
+              </Col>
+              <Col span={4}>
+                <Statistic
+                  title="К распределению"
+                  value={unallocatedNew}
+                  precision={0}
+                  suffix="₽"
+                  valueStyle={{ color: unallocatedNew > 0 ? '#faad14' : '#52c41a' }}
                 />
               </Col>
               <Col span={6}>
@@ -433,7 +497,7 @@ export function BudgetingPage() {
           </Col>
         </Row>
         
-        {unallocated > 0 && (
+        {unallocatedNew > 0 && (
           <>
             <Divider />
             <Alert
@@ -442,7 +506,7 @@ export function BudgetingPage() {
                 style: 'currency',
                 currency: 'RUB',
                 minimumFractionDigits: 0,
-              }).format(unallocated)} нераспределенных средств`}
+              }).format(unallocatedNew)} новых нераспределенных средств`}
               type="info"
               showIcon
               action={
@@ -454,7 +518,7 @@ export function BudgetingPage() {
           </>
         )}
         
-        {unallocated < 0 && (
+        {unallocatedNew < 0 && (
           <>
             <Divider />
             <Alert
@@ -463,7 +527,7 @@ export function BudgetingPage() {
                 style: 'currency',
                 currency: 'RUB',
                 minimumFractionDigits: 0,
-              }).format(Math.abs(unallocated))} больше, чем доступно`}
+              }).format(Math.abs(unallocatedNew))} больше новых средств, чем добавлено`}
               type="error"
               showIcon
               icon={<WarningOutlined />}
@@ -517,6 +581,15 @@ export function BudgetingPage() {
                   </Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={2}>
+                  <Text strong style={{ color: '#52c41a' }}>
+                    {new Intl.NumberFormat('ru-RU', {
+                      style: 'currency',
+                      currency: 'RUB',
+                      minimumFractionDigits: 0,
+                    }).format(totalNewAllocations)}
+                  </Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={3}>
                   <Text strong style={{ color: '#ff4d4f' }}>
                     {new Intl.NumberFormat('ru-RU', {
                       style: 'currency',
@@ -525,7 +598,7 @@ export function BudgetingPage() {
                     }).format(totalSpent)}
                   </Text>
                 </Table.Summary.Cell>
-                <Table.Summary.Cell index={3}>
+                <Table.Summary.Cell index={4}>
                   <Text strong style={{ color: '#52c41a' }}>
                     {new Intl.NumberFormat('ru-RU', {
                       style: 'currency',
@@ -534,14 +607,14 @@ export function BudgetingPage() {
                     }).format(totalRemaining)}
                   </Text>
                 </Table.Summary.Cell>
-                <Table.Summary.Cell index={4}>
+                <Table.Summary.Cell index={5}>
                   <Progress
                     percent={Math.round((totalSpent / totalAllocated) * 100)}
                     size="small"
                     status={totalSpent > totalAllocated * 0.9 ? 'exception' : 'normal'}
                   />
                 </Table.Summary.Cell>
-                <Table.Summary.Cell index={5}>
+                <Table.Summary.Cell index={6}>
                   {totalPending > 0 && (
                     <Tag color="warning">
                       {new Intl.NumberFormat('ru-RU', {
@@ -552,7 +625,7 @@ export function BudgetingPage() {
                     </Tag>
                   )}
                 </Table.Summary.Cell>
-                <Table.Summary.Cell index={6} />
+                <Table.Summary.Cell index={7} />
               </Table.Summary.Row>
             </Table.Summary>
           )}
