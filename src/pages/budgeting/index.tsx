@@ -69,7 +69,10 @@ export function BudgetingPage() {
   const { data: budgetSummary = [], isLoading, error } = useQuery({
     queryKey: ['budget-summary'],
     queryFn: budgetApi.getBudgetSummary,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: false, // Disable automatic refetch
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    gcTime: 10 * 60 * 1000, // Keep cache for 10 minutes
   });
 
   // Initialize allocations when data loads
@@ -92,9 +95,7 @@ export function BudgetingPage() {
       
       setAllocations(initialAllocations);
       setNewAllocations(initialNewAllocations);
-      if (totalBudget === 0) {
-        setTotalBudget(total);
-      }
+      setTotalBudget(total);
     }
   }, [budgetSummary]);
 

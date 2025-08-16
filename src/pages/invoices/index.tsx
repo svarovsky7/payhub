@@ -143,8 +143,10 @@ export function InvoicesPage() {
   const { data: invoices = [], isLoading, error } = useQuery({
     queryKey: ['invoices'],
     queryFn: invoiceApi.getAll,
-    refetchInterval: 30000, // Refetch every 30 seconds
-    refetchOnWindowFocus: true, // Refetch when window regains focus
+    refetchInterval: false, // Disable automatic refetch
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep cache for 10 minutes
   });
 
 
@@ -152,16 +154,22 @@ export function InvoicesPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: projectApi.getAll,
+    staleTime: 10 * 60 * 1000, // Consider fresh for 10 minutes
+    gcTime: 30 * 60 * 1000, // Keep cache for 30 minutes
   });
 
   const { data: contractors = [] } = useQuery({
     queryKey: ['contractors'],
     queryFn: contractorApi.getAll,
+    staleTime: 10 * 60 * 1000, // Consider fresh for 10 minutes
+    gcTime: 30 * 60 * 1000, // Keep cache for 30 minutes
   });
 
   const { data: payers = [] } = useQuery({
     queryKey: ['payers'],
     queryFn: payerApi.getAll,
+    staleTime: 10 * 60 * 1000, // Consider fresh for 10 minutes
+    gcTime: 30 * 60 * 1000, // Keep cache for 30 minutes
   });
 
   // Mutations
