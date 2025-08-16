@@ -285,7 +285,7 @@ export const budgetApi = {
   /**
    * Clear budget history for a specific project budget
    */
-  async clearBudgetHistory(projectBudgetId: number, userId: string): Promise<void> {
+  async clearBudgetHistory(projectBudgetId: number): Promise<void> {
     const { error } = await supabase
       .from('budget_history')
       .delete()
@@ -296,17 +296,6 @@ export const budgetApi = {
       throw error;
     }
 
-    // Add a record that history was cleared
-    await this.addBudgetHistory({
-      project_budget_id: projectBudgetId,
-      action_type: 'adjustment',
-      amount: 0,
-      old_allocated: 0,
-      new_allocated: 0,
-      old_spent: 0,
-      new_spent: 0,
-      description: 'История бюджета очищена администратором',
-      created_by: userId,
-    });
+    // Don't add any record - completely clear all history
   },
 };

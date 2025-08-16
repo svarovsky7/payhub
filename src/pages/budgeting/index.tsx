@@ -34,6 +34,8 @@ import {
   ClearOutlined,
   DeleteOutlined,
   UserOutlined,
+  DownOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { budgetApi } from '@/entities';
@@ -67,6 +69,7 @@ export function BudgetingPage() {
     projectBudgetId: number;
     history: BudgetHistory[];
   } | null>(null);
+  const [expandedHistoryItems, setExpandedHistoryItems] = useState<Set<number>>(new Set());
 
   // Fetch budget summary
   const { data: budgetSummary = [], isLoading, error } = useQuery({
@@ -164,23 +167,17 @@ export function BudgetingPage() {
   // Clear budget history mutation
   const clearHistoryMutation = useMutation({
     mutationFn: async (projectBudgetId: number) => {
-      if (!user?.id) throw new Error('User not authenticated');
-      return budgetApi.clearBudgetHistory(projectBudgetId, user.id);
+      return budgetApi.clearBudgetHistory(projectBudgetId);
     },
-    onSuccess: async () => {
-      // Reload history after clearing
+    onSuccess: () => {
+      // Set empty history after clearing
       if (selectedProjectHistory) {
-        try {
-          const history = await budgetApi.getBudgetHistory(selectedProjectHistory.projectBudgetId);
-          setSelectedProjectHistory({
-            ...selectedProjectHistory,
-            history
-          });
-        } catch (error) {
-          console.error('Failed to reload history:', error);
-        }
+        setSelectedProjectHistory({
+          ...selectedProjectHistory,
+          history: []
+        });
       }
-      message.success('История бюджета очищена');
+      message.success('История бюджета полностью очищена');
     },
     onError: (error) => {
       console.error('Failed to clear budget history:', error);
@@ -194,8 +191,7 @@ export function BudgetingPage() {
       const budget = await budgetApi.getProjectBudget(projectId);
       if (budget) {
         const history = await budgetApi.getBudgetHistory(budget.id);
-        setSelectedProjectHistory({ projectName, projectBudgetId: budget.id, history });
-        setHistoryModalVisible(true);
+        openHistoryModal(projectName, budget.id, history);
       } else {
         message.info('История бюджета пока недоступна');
       }
@@ -286,6 +282,24 @@ export function BudgetingPage() {
     if (selectedProjectHistory) {
       clearHistoryMutation.mutate(selectedProjectHistory.projectBudgetId);
     }
+  };
+
+  // Toggle history item expansion
+  const toggleHistoryItemExpansion = (itemId: number) => {
+    const newExpanded = new Set(expandedHistoryItems);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedHistoryItems(newExpanded);
+  };
+
+  // Reset expanded items when opening new history
+  const openHistoryModal = (projectName: string, projectBudgetId: number, history: BudgetHistory[]) => {
+    setSelectedProjectHistory({ projectName, projectBudgetId, history });
+    setExpandedHistoryItems(new Set());
+    setHistoryModalVisible(true);
   };
 
   // Table columns
@@ -741,6 +755,7 @@ export function BudgetingPage() {
         onCancel={() => {
           setHistoryModalVisible(false);
           setSelectedProjectHistory(null);
+          setExpandedHistoryItems(new Set());
         }}
         footer={
           <Space>
@@ -764,6 +779,7 @@ export function BudgetingPage() {
             <Button onClick={() => {
               setHistoryModalVisible(false);
               setSelectedProjectHistory(null);
+              setExpandedHistoryItems(new Set());
             }}>
               Закрыть
             </Button>
@@ -771,57 +787,104 @@ export function BudgetingPage() {
         }
         width={700}
       >
-        {selectedProjectHistory?.history && selectedProjectHistory.history.length > 0 ? (
-          <Timeline
-            items={selectedProjectHistory.history.map((item) => ({
-              color: item.action_type === 'allocation' ? 'green' : 
-                     item.action_type === 'spent' ? 'red' : 'blue',
-              children: (
-                <div>
-                  <div style={{ marginBottom: 8 }}>
-                    <Text strong>
-                      {item.action_type === 'allocation' && 'Выделение бюджета'}
-                      {item.action_type === 'adjustment' && 'Корректировка бюджета'}
-                      {item.action_type === 'spent' && 'Расход средств'}
-                    </Text>
-                    {item.amount !== 0 && (
-                      <>
-                        <br />
-                        <Text>
-                          Сумма: {new Intl.NumberFormat('ru-RU', {
-                            style: 'currency',
-                            currency: 'RUB',
-                            minimumFractionDigits: 0,
-                          }).format(Math.abs(item.amount))}
-                        </Text>
-                      </>
-                    )}
-                  </div>
-                  {item.description && (
-                    <div style={{ marginBottom: 8 }}>
-                      <Text type="secondary">{item.description}</Text>
-                    </div>
-                  )}
-                  <div>
-                    <Space size="middle">
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        {dayjs(item.created_at).format('DD MMMM YYYY, HH:mm')}
-                      </Text>
-                      {item.creator && (
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          <UserOutlined style={{ marginRight: 4 }} />
-                          {item.creator.full_name || item.creator.email}
-                        </Text>
+        <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+          {selectedProjectHistory?.history && selectedProjectHistory.history.length > 0 ? (
+            <Timeline
+              items={selectedProjectHistory.history.map((item) => {
+                const isExpanded = expandedHistoryItems.has(item.id);
+                return {
+                  color: item.action_type === 'allocation' ? 'green' : 
+                         item.action_type === 'spent' ? 'red' : 'blue',
+                  children: (
+                    <div>
+                      {/* Compact header - always visible */}
+                      <div 
+                        style={{ 
+                          cursor: 'pointer',
+                          padding: '4px 0',
+                          borderRadius: '4px',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onClick={() => toggleHistoryItemExpansion(item.id)}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <Space>
+                          {isExpanded ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}
+                          <Text strong style={{ fontSize: 13 }}>
+                            {item.action_type === 'allocation' && 'Выделение бюджета'}
+                            {item.action_type === 'adjustment' && 'Корректировка бюджета'}
+                            {item.action_type === 'spent' && 'Расход средств'}
+                          </Text>
+                          {item.amount !== 0 && (
+                            <Text style={{ fontSize: 12, color: '#666' }}>
+                              {new Intl.NumberFormat('ru-RU', {
+                                style: 'currency',
+                                currency: 'RUB',
+                                minimumFractionDigits: 0,
+                              }).format(Math.abs(item.amount))}
+                            </Text>
+                          )}
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            {dayjs(item.created_at).format('DD.MM.YY HH:mm')}
+                          </Text>
+                        </Space>
+                      </div>
+                      
+                      {/* Expanded details */}
+                      {isExpanded && (
+                        <div style={{ marginTop: 12, marginLeft: 20, paddingLeft: 12, borderLeft: '2px solid #f0f0f0' }}>
+                          {item.amount !== 0 && (
+                            <div style={{ marginBottom: 8 }}>
+                              <Text>
+                                <strong>Сумма:</strong> {new Intl.NumberFormat('ru-RU', {
+                                  style: 'currency',
+                                  currency: 'RUB',
+                                  minimumFractionDigits: 0,
+                                }).format(Math.abs(item.amount))}
+                              </Text>
+                            </div>
+                          )}
+                          
+                          {item.description && (
+                            <div style={{ marginBottom: 8 }}>
+                              <Text>
+                                <strong>Описание:</strong>
+                              </Text>
+                              <br />
+                              <Text type="secondary">{item.description}</Text>
+                            </div>
+                          )}
+                          
+                          <div style={{ marginBottom: 8 }}>
+                            <Text>
+                              <strong>Дата:</strong> {dayjs(item.created_at).format('DD MMMM YYYY, HH:mm')}
+                            </Text>
+                          </div>
+                          
+                          {item.creator && (
+                            <div>
+                              <Text>
+                                <strong>Пользователь:</strong>
+                              </Text>
+                              <br />
+                              <Text type="secondary">
+                                <UserOutlined style={{ marginRight: 4 }} />
+                                {item.creator.full_name || item.creator.email}
+                              </Text>
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </Space>
-                  </div>
-                </div>
-              ),
-            }))}
-          />
-        ) : (
-          <Empty description="История изменений пока пуста" />
-        )}
+                    </div>
+                  ),
+                };
+              })}
+            />
+          ) : (
+            <Empty description="История изменений пока пуста" />
+          )}
+        </div>
       </Modal>
     </div>
   );
