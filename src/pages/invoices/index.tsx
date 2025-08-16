@@ -213,10 +213,14 @@ export function InvoicesPage() {
   });
 
   const rejectInvoiceMutation = useMutation({
-    mutationFn: (invoiceId: number) => invoiceApi.update(invoiceId, { status: 'rejected' }),
+    mutationFn: (invoiceId: number) => invoiceApi.updateStatus(invoiceId, 'rejected'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['rejected-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['director-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['rukstroy-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['supply-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-invoices'] });
       message.success('Счет отклонен');
     },
     onError: (error) => {
@@ -804,14 +808,43 @@ export function InvoicesPage() {
               )}
             </>
           ) : (
-            <Button
-              type="text"
-              size={isMobile ? 'middle' : 'small'}
-              icon={<FileTextOutlined />}
-              onClick={(e) => e.stopPropagation()}
-              className="touch-target"
-              style={{ minHeight: isMobile ? 40 : 'auto' }}
-            />
+            <Space size="small" style={{ display: 'flex', flexWrap: 'nowrap' }}>
+              <Button
+                type="text"
+                size={isMobile ? 'middle' : 'small'}
+                icon={<FileTextOutlined />}
+                onClick={(e) => e.stopPropagation()}
+                className="touch-target"
+                style={{ minHeight: isMobile ? 40 : 'auto' }}
+              />
+              {record.status !== 'paid' && (
+                <Popconfirm
+                  title="Отклонить счет?"
+                  description="Счет будет перемещен в статус 'Отказано'"
+                  onConfirm={(e) => {
+                    if (e) e.stopPropagation();
+                    handleReject(record.id);
+                  }}
+                  onCancel={(e) => {
+                    if (e) e.stopPropagation();
+                  }}
+                  okText="Да"
+                  cancelText="Нет"
+                >
+                  <Button
+                    type="text"
+                    size={isMobile ? 'middle' : 'small'}
+                    icon={<StopOutlined />}
+                    onClick={(e) => e.stopPropagation()}
+                    className="touch-target"
+                    style={{ 
+                      color: '#ff4d4f',
+                      minHeight: isMobile ? 40 : 'auto'
+                    }}
+                  />
+                </Popconfirm>
+              )}
+            </Space>
           )}
         </Space>
       ),
@@ -927,12 +960,37 @@ export function InvoicesPage() {
                   </Popconfirm>
                 </Space>
               ) : (
-                <Button
-                  type="text"
-                  size={isMobile ? 'large' : 'middle'}
-                  icon={<FileTextOutlined />}
-                  className="touch-target"
-                />
+                <Space key="actions" size="small">
+                  <Button
+                    type="text"
+                    size={isMobile ? 'large' : 'middle'}
+                    icon={<FileTextOutlined />}
+                    className="touch-target"
+                  />
+                  {invoice.status !== 'paid' && (
+                    <Popconfirm
+                      title="Отклонить счет?"
+                      description="Счет будет перемещен в статус 'Отказано'"
+                      onConfirm={(e) => {
+                        if (e) e.stopPropagation();
+                        handleReject(invoice.id);
+                      }}
+                      onCancel={(e) => {
+                        if (e) e.stopPropagation();
+                      }}
+                      okText="Да"
+                      cancelText="Нет"
+                    >
+                      <Button
+                        type="text"
+                        size={isMobile ? 'large' : 'middle'}
+                        icon={<StopOutlined />}
+                        style={{ color: '#ff4d4f' }}
+                        className="touch-target"
+                      />
+                    </Popconfirm>
+                  )}
+                </Space>
               )
             ]}
           >
