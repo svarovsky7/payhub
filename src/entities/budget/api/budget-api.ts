@@ -190,4 +190,56 @@ export const budgetApi = {
 
     return (data || []).reduce((sum, budget) => sum + budget.spent_amount, 0);
   },
+
+  /**
+   * Reset all budgets to zero (allocated, spent, remaining)
+   */
+  async resetAllBudgets(userId: string): Promise<void> {
+    // Get all project budgets first to create history records
+    const { data: budgets, error: fetchError } = await supabase
+      .from('project_budgets')
+      .select('id, project_id, allocated_amount, spent_amount');
+
+    if (fetchError) {
+      console.error('Failed to fetch budgets for reset:', fetchError);
+      throw fetchError;
+    }
+
+    if (!budgets || budgets.length === 0) {
+      return; // No budgets to reset
+    }
+
+    // Create history records for each budget before resetting
+    for (const budget of budgets) {
+      if (budget.allocated_amount > 0 || budget.spent_amount > 0) {
+        await this.addBudgetHistory({
+          project_budget_id: budget.id,
+          action_type: 'adjustment',
+          amount: -(budget.allocated_amount + budget.spent_amount),
+          old_allocated: budget.allocated_amount,
+          new_allocated: 0,
+          old_spent: budget.spent_amount,
+          new_spent: 0,
+          description: 'Complete budget reset - all amounts cleared',
+          created_by: userId,
+        });
+      }
+    }
+
+    // Reset all budgets to zero
+    const { error: resetError } = await supabase
+      .from('project_budgets')
+      .update({
+        allocated_amount: 0,
+        spent_amount: 0,
+        remaining_amount: 0,
+        updated_at: new Date().toISOString(),
+      })
+      .gt('id', 0); // Update all records
+
+    if (resetError) {
+      console.error('Failed to reset budgets:', resetError);
+      throw resetError;
+    }
+  },
 };

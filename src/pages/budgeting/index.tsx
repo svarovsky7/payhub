@@ -19,6 +19,7 @@ import {
   Empty,
   Tooltip,
   Badge,
+  Popconfirm,
 } from 'antd';
 import {
   SaveOutlined,
@@ -30,6 +31,7 @@ import {
   FundOutlined,
   RiseOutlined,
   BankOutlined,
+  ClearOutlined,
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { budgetApi } from '@/entities';
@@ -123,6 +125,38 @@ export function BudgetingPage() {
     },
   });
 
+  // Reset all budgets mutation
+  const resetBudgetsMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error('User not authenticated');
+      return budgetApi.resetAllBudgets(user.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budget-summary'] });
+      message.success('Все бюджеты обнулены');
+      
+      // Reset all local state
+      setTotalBudget(0);
+      setAdditionalBudget(0);
+      const resetAllocations = new Map<number, BudgetAllocation>();
+      const resetNewAllocations = new Map<number, number>();
+      budgetSummary.forEach((project) => {
+        resetAllocations.set(project.project_id, {
+          projectId: project.project_id,
+          allocatedAmount: 0,
+          hasChanged: false,
+        });
+        resetNewAllocations.set(project.project_id, 0);
+      });
+      setAllocations(resetAllocations);
+      setNewAllocations(resetNewAllocations);
+    },
+    onError: (error) => {
+      console.error('Failed to reset budgets:', error);
+      message.error('Ошибка при обнулении бюджетов');
+    },
+  });
+
   // Load budget history
   const loadProjectHistory = async (projectId: number, projectName: string) => {
     try {
@@ -209,6 +243,11 @@ export function BudgetingPage() {
     
     setNewAllocations(updatedNewAllocations);
     message.success('Новые средства распределены равномерно');
+  };
+
+  // Handle budget reset
+  const handleResetBudgets = () => {
+    resetBudgetsMutation.mutate();
   };
 
   // Table columns
@@ -394,6 +433,23 @@ export function BudgetingPage() {
             >
               Обновить
             </Button>
+            <Popconfirm
+              title="Обнулить все бюджеты?"
+              description="Будут удалены ВСЕ распределения, остатки и суммы потраченных средств по всем проектам. Это действие необратимо!"
+              onConfirm={handleResetBudgets}
+              okText="Да, обнулить"
+              cancelText="Отмена"
+              okButtonProps={{ danger: true }}
+              icon={<WarningOutlined style={{ color: 'red' }} />}
+            >
+              <Button
+                danger
+                icon={<ClearOutlined />}
+                loading={resetBudgetsMutation.isPending}
+              >
+                Обнулить все
+              </Button>
+            </Popconfirm>
             <Button
               type="primary"
               icon={<SaveOutlined />}
