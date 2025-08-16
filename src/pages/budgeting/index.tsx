@@ -106,6 +106,9 @@ export function BudgetingPage() {
       queryClient.invalidateQueries({ queryKey: ['budget-summary'] });
       message.success('Бюджеты успешно обновлены');
       
+      // Update total budget with new allocations
+      setTotalBudget(prev => prev + additionalBudget);
+      
       // Reset additional budget and new allocations
       setAdditionalBudget(0);
       const resetNewAllocations = new Map<number, number>();
