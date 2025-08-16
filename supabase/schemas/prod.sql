@@ -1,3 +1,4 @@
+
 -- Database Schema SQL Export
 -- Generated: 2025-08-16T11:52:02.885793
 -- Database: postgres
@@ -1610,18 +1611,30 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
  RETURNS trigger
  LANGUAGE plpgsql
  SECURITY DEFINER
-AS $function$
-BEGIN
-    INSERT INTO public.users (id, email, full_name, created_at, updated_at)
-    VALUES (
-        NEW.id,
-        NEW.email,
-        NEW.raw_user_meta_data->>'full_name',
-        NOW(),
-        NOW()
-    );
-    RETURN NEW;
-END;
+AS $function$
+
+BEGIN
+
+    INSERT INTO public.users (id, email, full_name, created_at, updated_at)
+
+    VALUES (
+
+        NEW.id,
+
+        NEW.email,
+
+        NEW.raw_user_meta_data->>'full_name',
+
+        NOW(),
+
+        NOW()
+
+    );
+
+    RETURN NEW;
+
+END;
+
 $function$
 
 
@@ -1629,25 +1642,44 @@ $function$
 CREATE OR REPLACE FUNCTION public.log_invoice_status_change()
  RETURNS trigger
  LANGUAGE plpgsql
-AS $function$
-BEGIN
-    IF OLD.status IS DISTINCT FROM NEW.status THEN
-        INSERT INTO invoice_status_history (
-            invoice_id,
-            old_status,
-            new_status,
-            changed_by,
-            comment
-        ) VALUES (
-            NEW.id,
-            OLD.status,
-            NEW.status,
-            NEW.created_by,
-            NEW.description
-        );
-    END IF;
-    RETURN NEW;
-END;
+AS $function$
+
+BEGIN
+
+    IF OLD.status IS DISTINCT FROM NEW.status THEN
+
+        INSERT INTO invoice_status_history (
+
+            invoice_id,
+
+            old_status,
+
+            new_status,
+
+            changed_by,
+
+            comment
+
+        ) VALUES (
+
+            NEW.id,
+
+            OLD.status,
+
+            NEW.status,
+
+            NEW.created_by,
+
+            NEW.description
+
+        );
+
+    END IF;
+
+    RETURN NEW;
+
+END;
+
 $function$
 
 
@@ -1693,28 +1725,50 @@ $function$
 CREATE OR REPLACE FUNCTION public.update_invoice_total()
  RETURNS trigger
  LANGUAGE plpgsql
-AS $function$
-BEGIN
-    UPDATE invoices
-    SET total_amount = (
-        SELECT COALESCE(SUM(total_price), 0)
-        FROM invoice_items
-        WHERE invoice_id = COALESCE(NEW.invoice_id, OLD.invoice_id)
-    ),
-    vat_amount = (
-        SELECT COALESCE(SUM(vat_amount), 0)
-        FROM invoice_items
-        WHERE invoice_id = COALESCE(NEW.invoice_id, OLD.invoice_id)
-    ),
-    without_vat = (
-        SELECT COALESCE(SUM(total_price - COALESCE(vat_amount, 0)), 0)
-        FROM invoice_items
-        WHERE invoice_id = COALESCE(NEW.invoice_id, OLD.invoice_id)
-    )
-    WHERE id = COALESCE(NEW.invoice_id, OLD.invoice_id);
-    
-    RETURN NEW;
-END;
+AS $function$
+
+BEGIN
+
+    UPDATE invoices
+
+    SET total_amount = (
+
+        SELECT COALESCE(SUM(total_price), 0)
+
+        FROM invoice_items
+
+        WHERE invoice_id = COALESCE(NEW.invoice_id, OLD.invoice_id)
+
+    ),
+
+    vat_amount = (
+
+        SELECT COALESCE(SUM(vat_amount), 0)
+
+        FROM invoice_items
+
+        WHERE invoice_id = COALESCE(NEW.invoice_id, OLD.invoice_id)
+
+    ),
+
+    without_vat = (
+
+        SELECT COALESCE(SUM(total_price - COALESCE(vat_amount, 0)), 0)
+
+        FROM invoice_items
+
+        WHERE invoice_id = COALESCE(NEW.invoice_id, OLD.invoice_id)
+
+    )
+
+    WHERE id = COALESCE(NEW.invoice_id, OLD.invoice_id);
+
+    
+
+    RETURN NEW;
+
+END;
+
 $function$
 
 
@@ -1722,41 +1776,76 @@ $function$
 CREATE OR REPLACE FUNCTION public.update_project_budget_on_approval()
  RETURNS trigger
  LANGUAGE plpgsql
-AS $function$
-BEGIN
-    -- Only proceed if status changed to 'director_review' and then approved (next status)
-    IF NEW.status = 'supply_review' AND OLD.status = 'director_review' THEN
-        -- Update the spent amount for the project
-        UPDATE public.project_budgets
-        SET 
-            spent_amount = spent_amount + NEW.total_amount,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE project_id = NEW.project_id;
-        
-        -- Insert history record
-        INSERT INTO public.budget_history (
-            project_budget_id,
-            action_type,
-            amount,
-            old_spent,
-            new_spent,
-            description,
-            created_by
-        )
-        SELECT 
-            pb.id,
-            'spent',
-            NEW.total_amount,
-            pb.spent_amount - NEW.total_amount,
-            pb.spent_amount,
-            'Invoice #' || NEW.invoice_number || ' approved by director',
-            NEW.created_by
-        FROM public.project_budgets pb
-        WHERE pb.project_id = NEW.project_id;
-    END IF;
-    
-    RETURN NEW;
-END;
+AS $function$
+
+BEGIN
+
+    -- Only proceed if status changed to 'director_review' and then approved (next status)
+
+    IF NEW.status = 'supply_review' AND OLD.status = 'director_review' THEN
+
+        -- Update the spent amount for the project
+
+        UPDATE public.project_budgets
+
+        SET 
+
+            spent_amount = spent_amount + NEW.total_amount,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE project_id = NEW.project_id;
+
+        
+
+        -- Insert history record
+
+        INSERT INTO public.budget_history (
+
+            project_budget_id,
+
+            action_type,
+
+            amount,
+
+            old_spent,
+
+            new_spent,
+
+            description,
+
+            created_by
+
+        )
+
+        SELECT 
+
+            pb.id,
+
+            'spent',
+
+            NEW.total_amount,
+
+            pb.spent_amount - NEW.total_amount,
+
+            pb.spent_amount,
+
+            'Invoice #' || NEW.invoice_number || ' approved by director',
+
+            NEW.created_by
+
+        FROM public.project_budgets pb
+
+        WHERE pb.project_id = NEW.project_id;
+
+    END IF;
+
+    
+
+    RETURN NEW;
+
+END;
+
 $function$
 
 
@@ -1764,11 +1853,16 @@ $function$
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
  RETURNS trigger
  LANGUAGE plpgsql
-AS $function$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
+AS $function$
+
+BEGIN
+
+    NEW.updated_at = now();
+
+    RETURN NEW;
+
+END;
+
 $function$
 
 
