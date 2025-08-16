@@ -296,7 +296,8 @@ export function ApprovalPage({
             showQuickJumper: true,
             showTotal: (total) => `Всего: ${total} счетов`,
           }}
-          scroll={{ x: 1100 }}
+          scroll={{ x: 'max-content' }}
+          tableLayout="auto"
         />
       </Card>
 

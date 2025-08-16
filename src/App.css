@@ -1,1 +1,4 @@
+/* Import global table auto-width styles */
+@import './shared/styles/table-auto-width.css';
+
 /* App.css is intentionally empty as all styles are in index.css and component-specific styles */

@@ -1,0 +1,42 @@
+/* Global table auto-width styles */
+/* Apply to all Ant Design tables in the application */
+
+/* Enable auto table layout for all tables */
+.ant-table-wrapper .ant-table {
+  table-layout: auto !important;
+}
+
+/* Prevent text wrapping in table headers */
+.ant-table-wrapper .ant-table-thead > tr > th {
+  white-space: nowrap;
+}
+
+/* Prevent text wrapping in table cells by default */
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  white-space: nowrap;
+}
+
+/* For cells with ellipsis, ensure proper overflow handling */
+.ant-table-wrapper .ant-table-cell-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+}
+
+/* Ensure horizontal scroll is smooth */
+.ant-table-wrapper .ant-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: Set minimum width for certain column types */
+.ant-table-wrapper .ant-table-selection-column {
+  min-width: 50px !important;
+}
+
+/* Actions column should have consistent width */
+.ant-table-wrapper th:last-child,
+.ant-table-wrapper td:last-child {
+  min-width: 100px;
+}

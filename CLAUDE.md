@@ -93,6 +93,7 @@ if (error) {
 - Use absolute imports with path aliases
 - Export public APIs through index.ts files
 - Include error handling in all Supabase queries
+- **Use auto-width for ALL tables**: Always set `tableLayout="auto"` and `scroll={{ x: 'max-content' }}` on Table components
 
 ### NEVER DO
 - Create files unless absolutely necessary
@@ -148,6 +149,13 @@ VITE_STORAGE_BUCKET=<storage_url>
 - Disabled hover effects on touch devices
 - Improved active states and focus indicators
 - Touch-optimized scrollbars
+
+### Table Display Guidelines
+- **ALWAYS use auto-width for tables**: Set `tableLayout="auto"` and `scroll={{ x: 'max-content' }}`
+- Tables automatically adjust column widths based on content
+- Global styles in `table-auto-width.css` handle text wrapping and overflow
+- No fixed column widths unless absolutely necessary
+- Actions column should be fixed to the right side
 
 ### Kanban Board Enhancements
 - Customizable card fields via settings modal
