@@ -132,18 +132,51 @@ export const budgetApi = {
    * Get budget history for a project
    */
   async getBudgetHistory(projectBudgetId: number): Promise<BudgetHistory[]> {
-    const { data, error } = await supabase
+    // Get budget history without user join first
+    const { data: historyData, error: historyError } = await supabase
       .from('budget_history')
-      .select('*, creator:users(id,full_name,email)')
+      .select('*')
       .eq('project_budget_id', projectBudgetId)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Failed to fetch budget history:', error);
-      throw error;
+    if (historyError) {
+      console.error('Failed to fetch budget history:', historyError);
+      throw historyError;
     }
 
-    return data || [];
+    if (!historyData || historyData.length === 0) {
+      return [];
+    }
+
+    // Get unique user IDs
+    const userIds = [...new Set(historyData
+      .map(item => item.created_by)
+      .filter(id => id !== null)
+    )];
+
+    // Get user data separately if there are user IDs
+    let usersMap = new Map();
+    if (userIds.length > 0) {
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      if (usersError) {
+        console.error('Failed to fetch users:', usersError);
+        // Continue without user data instead of throwing
+      } else if (usersData) {
+        usersMap = new Map(usersData.map(user => [user.id, user]));
+      }
+    }
+
+    // Combine history data with user data
+    const historyWithUsers = historyData.map(item => ({
+      ...item,
+      creator: item.created_by ? usersMap.get(item.created_by) : null
+    }));
+
+    return historyWithUsers;
   },
 
   /**
