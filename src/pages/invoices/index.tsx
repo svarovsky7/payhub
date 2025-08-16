@@ -1212,6 +1212,50 @@ export function InvoicesPage() {
         closeIcon={null}
       >
         <div className="modern-invoice-form">
+          <style>
+            {`
+              .modern-invoice-form .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+                height: 48px !important;
+                padding: 0 11px !important;
+                display: flex !important;
+                align-items: center !important;
+              }
+              
+              .modern-invoice-form .ant-select-selection-search {
+                display: flex !important;
+                align-items: center !important;
+              }
+              
+              .modern-invoice-form .ant-select-selection-item,
+              .modern-invoice-form .ant-select-selection-placeholder {
+                line-height: 48px !important;
+                display: flex !important;
+                align-items: center !important;
+              }
+              
+              .modern-invoice-form .ant-select-arrow {
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                right: 11px !important;
+              }
+              
+              .modern-invoice-form .ant-input-number {
+                height: 48px !important;
+              }
+              
+              .modern-invoice-form .ant-input-number-input {
+                height: 46px !important;
+              }
+              
+              .modern-invoice-form .ant-picker {
+                height: 48px !important;
+              }
+              
+              .modern-invoice-form .ant-picker-input > input {
+                height: 46px !important;
+              }
+            `}
+          </style>
           {/* Header */}
           <div style={{
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -1335,7 +1379,6 @@ export function InvoicesPage() {
                         showSearch
                         size="large"
                         style={{
-                          height: 48,
                           borderRadius: 10,
                           fontSize: 15
                         }}
@@ -1397,7 +1440,6 @@ export function InvoicesPage() {
                         showSearch
                         size="large"
                         style={{
-                          height: 48,
                           borderRadius: 10,
                           fontSize: 15
                         }}
@@ -1446,7 +1488,6 @@ export function InvoicesPage() {
                         showSearch
                         size="large"
                         style={{
-                          height: 48,
                           borderRadius: 10,
                           fontSize: 15
                         }}
