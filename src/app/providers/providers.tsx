@@ -6,6 +6,12 @@ import { QueryProvider } from './query-provider';
 import { useAuthStore } from '@/features/auth/model/auth-store';
 import { DeviceProvider } from '@/features/device-preferences';
 
+// Suppress Ant Design React 19 warning
+if (typeof global !== 'undefined') {
+  // @ts-expect-error - Global property for Ant Design compatibility
+  global.__ANTD_COMPATIBLE__ = true;
+}
+
 // Ant Design theme configuration
 const antdTheme = {
   token: {
@@ -37,7 +43,6 @@ export function AppProviders({ children }: AppProvidersProps) {
     
     // Refresh token every 30 minutes to prevent expiration
     const tokenRefreshInterval = setInterval(() => {
-      console.log('Refreshing auth token...');
       // Use refreshSession instead of initialize to avoid resetting loading state
       if (refreshSession) {
         refreshSession();
@@ -45,13 +50,16 @@ export function AppProviders({ children }: AppProvidersProps) {
     }, 30 * 60 * 1000); // 30 minutes
     
     // Also refresh on visibility change (when tab becomes active)
+    let visibilityTimeout: NodeJS.Timeout | null = null;
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('Tab became visible, refreshing session...');
-        // Use refreshSession instead of initialize to avoid resetting loading state
-        if (refreshSession) {
-          refreshSession();
+      if (!document.hidden && refreshSession) {
+        // Throttle visibility refresh to avoid excessive calls
+        if (visibilityTimeout) {
+          clearTimeout(visibilityTimeout);
         }
+        visibilityTimeout = setTimeout(() => {
+          refreshSession();
+        }, 1000);
       }
     };
     
@@ -59,6 +67,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     
     return () => {
       clearInterval(tokenRefreshInterval);
+      if (visibilityTimeout) {
+        clearTimeout(visibilityTimeout);
+      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [initialize, refreshSession]);
