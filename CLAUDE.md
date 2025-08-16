@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# ⚠️ CRITICAL RULE: COMMIT AND PUSH AFTER EVERY CHANGE
+**You MUST commit and push to GitHub after completing ANY code modification. Use `.\auto-commit.ps1 -Message "description"` or manual git commands.**
+
 # PayHub Project
 
 ## Overview
@@ -87,6 +90,7 @@ if (error) {
 ## Critical Guidelines
 
 ### MUST DO
+- **COMMIT AND PUSH AFTER EVERY CHANGE**: After completing any code modification, immediately commit and push to GitHub
 - Run `npm run lint` before committing
 - Use only `supabase/schemas/prod.sql` for database reference
 - Handle all TypeScript strict mode requirements
@@ -171,6 +175,40 @@ VITE_STORAGE_BUCKET=<storage_url>
 - Path aliases configured in both `tsconfig.app.json` and `vite.config.ts`
 - Build info cached in `node_modules/.tmp/`
 - Module resolution: bundler mode with ESNext modules
+
+## Git Workflow
+
+### Automatic Commits and Push
+**MANDATORY**: After completing ANY code changes, you MUST:
+1. Stage all changes: `git add -A`
+2. Create descriptive commit with Claude signature
+3. Push to GitHub immediately: `git push origin master`
+
+### Quick Commit Commands
+```bash
+# PowerShell (recommended)
+.\auto-commit.ps1 -Message "feat: description of changes"
+
+# Batch (Windows)
+auto-commit.bat "feat: description of changes"
+
+# Manual commit with signature
+git add -A && git commit -m "feat: description
+
+🤖 Generated with Claude Code
+
+Co-Authored-By: Claude <noreply@anthropic.com>" && git push origin master
+```
+
+### Commit Message Format
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `chore:` - Routine tasks, maintenance
+- `refactor:` - Code refactoring
+- `style:` - Formatting, missing semicolons, etc.
+- `docs:` - Documentation changes
+
+**ALWAYS include Claude signature in commits**
 
 ## Important Notes
 
