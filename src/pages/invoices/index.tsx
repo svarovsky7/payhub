@@ -1956,17 +1956,6 @@ export function InvoicesPage() {
             <Input placeholder="Введите ИНН" maxLength={12} autoComplete="off" />
           </Form.Item>
 
-          <Form.Item
-            name="kpp"
-            label="КПП"
-          >
-            <Input
-              placeholder="Введите КПП (необязательно)"
-              maxLength={9}
-              autoComplete="off"
-            />
-          </Form.Item>
-
           <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
               <Button onClick={() => {
