@@ -34,6 +34,9 @@ export interface User {
   created_at: string;
   updated_at: string;
   device_preference?: 'auto' | 'desktop' | 'tablet';
+  phone?: string | null;
+  position?: string | null;
+  department?: string | null;
 }
 
 // Project Interface

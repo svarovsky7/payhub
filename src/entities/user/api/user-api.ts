@@ -56,46 +56,32 @@ export const userApi = {
   },
 
   async assignProjects(userId: string, projectIds: number[]): Promise<void> {
-    // First, remove existing assignments
-    const { error: deleteError } = await supabase
-      .from('user_projects')
-      .delete()
-      .eq('user_id', userId);
+    // Update user's project_id (can only be assigned to one project)
+    const projectId = projectIds.length > 0 ? projectIds[0] : null;
+    
+    const { error } = await supabase
+      .from('users')
+      .update({ project_id: projectId })
+      .eq('id', userId);
 
-    if (deleteError) {
-      console.error('Failed to remove existing project assignments:', deleteError);
-      throw deleteError;
-    }
-
-    // Then add new assignments
-    if (projectIds.length > 0) {
-      const assignments = projectIds.map(projectId => ({
-        user_id: userId,
-        project_id: projectId,
-      }));
-
-      const { error: insertError } = await supabase
-        .from('user_projects')
-        .insert(assignments);
-
-      if (insertError) {
-        console.error('Failed to assign projects:', insertError);
-        throw insertError;
-      }
+    if (error) {
+      console.error('Failed to assign project:', error);
+      throw error;
     }
   },
 
   async getUserProjects(userId: string): Promise<number[]> {
     const { data, error } = await supabase
-      .from('user_projects')
+      .from('users')
       .select('project_id')
-      .eq('user_id', userId);
+      .eq('id', userId)
+      .single();
 
     if (error) {
-      console.error('Failed to fetch user projects:', error);
-      throw error;
+      console.error('Failed to fetch user project:', error);
+      return [];
     }
 
-    return data?.map(item => item.project_id) || [];
+    return data?.project_id ? [data.project_id] : [];
   },
 };

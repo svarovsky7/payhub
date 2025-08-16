@@ -9,17 +9,13 @@ import {
   message,
   Popconfirm,
   Typography,
-  Tag,
-  DatePicker,
-  Select,
-  InputNumber
+  Tag
 } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ColumnsType } from 'antd/es/table';
 import { projectApi } from '@/entities/project';
 import type { Project } from '@/shared/types';
-import dayjs from 'dayjs';
 
 const { Title } = Typography;
 
@@ -82,9 +78,8 @@ export function ProjectsManagement() {
   const handleEdit = (project: Project) => {
     setEditingProject(project);
     form.setFieldsValue({
-      ...project,
-      start_date: project.start_date ? dayjs(project.start_date) : null,
-      end_date: project.end_date ? dayjs(project.end_date) : null,
+      name: project.name,
+      address: project.address,
     });
     setIsModalOpen(true);
   };
@@ -101,52 +96,22 @@ export function ProjectsManagement() {
 
   const handleSubmit = (values: {
     name: string;
-    code?: string;
-    description?: string;
-    status?: string;
-    budget?: number;
-    start_date?: dayjs.Dayjs;
-    end_date?: dayjs.Dayjs;
+    address?: string;
   }) => {
-    const data = {
-      ...values,
-      start_date: values.start_date?.format('YYYY-MM-DD'),
-      end_date: values.end_date?.format('YYYY-MM-DD'),
-    };
-    
     if (editingProject) {
-      updateMutation.mutate({ id: editingProject.id, data });
+      updateMutation.mutate({ id: editingProject.id, data: values });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(values);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'green';
-      case 'on_hold': return 'orange';
-      case 'completed': return 'blue';
-      case 'cancelled': return 'red';
-      default: return 'default';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active': return 'Активный';
-      case 'on_hold': return 'Приостановлен';
-      case 'completed': return 'Завершен';
-      case 'cancelled': return 'Отменен';
-      default: return status;
-    }
-  };
 
   const columns: ColumnsType<Project> = [
     {
       title: 'Название',
       dataIndex: 'name',
       key: 'name',
-      width: 250,
+      width: 300,
       render: (text) => (
         <Space>
           <ProjectOutlined />
@@ -155,55 +120,12 @@ export function ProjectsManagement() {
       ),
     },
     {
-      title: 'Код',
-      dataIndex: 'code',
-      key: 'code',
-      width: 100,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Описание',
-      dataIndex: 'description',
-      key: 'description',
-      width: 300,
+      title: 'Адрес',
+      dataIndex: 'address',
+      key: 'address',
+      width: 400,
       ellipsis: true,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'Статус',
-      dataIndex: 'status',
-      key: 'status',
-      width: 150,
-      render: (status) => (
-        <Tag color={getStatusColor(status)}>
-          {getStatusText(status)}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Бюджет',
-      dataIndex: 'budget',
-      key: 'budget',
-      width: 150,
-      render: (amount) => amount ? new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
-        minimumFractionDigits: 0,
-      }).format(amount) : '-',
-    },
-    {
-      title: 'Дата начала',
-      dataIndex: 'start_date',
-      key: 'start_date',
-      width: 120,
-      render: (date) => date ? dayjs(date).format('DD.MM.YYYY') : '-',
-    },
-    {
-      title: 'Дата окончания',
-      dataIndex: 'end_date',
-      key: 'end_date',
-      width: 120,
-      render: (date) => date ? dayjs(date).format('DD.MM.YYYY') : '-',
+      render: (text) => text || <span style={{ color: '#999' }}>Не указан</span>,
     },
     {
       title: 'Действия',
@@ -255,7 +177,7 @@ export function ProjectsManagement() {
           showQuickJumper: true,
           showTotal: (total) => `Всего: ${total}`,
         }}
-        scroll={{ x: 1400 }}
+        scroll={{ x: 820 }}
       />
 
       <Modal
@@ -279,58 +201,10 @@ export function ProjectsManagement() {
           </Form.Item>
 
           <Form.Item
-            name="code"
-            label="Код проекта"
+            name="address"
+            label="Адрес"
           >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="Описание"
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
-
-          <Form.Item
-            name="status"
-            label="Статус"
-            initialValue="active"
-          >
-            <Select
-              options={[
-                { label: 'Активный', value: 'active' },
-                { label: 'Приостановлен', value: 'on_hold' },
-                { label: 'Завершен', value: 'completed' },
-                { label: 'Отменен', value: 'cancelled' },
-              ]}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="budget"
-            label="Бюджет"
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              formatter={value => `₽ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value) => value!.replace(/[₽\s,]/g, '')}
-              min={0}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="start_date"
-            label="Дата начала"
-          >
-            <DatePicker style={{ width: '100%' }} format="DD.MM.YYYY" />
-          </Form.Item>
-
-          <Form.Item
-            name="end_date"
-            label="Дата окончания"
-          >
-            <DatePicker style={{ width: '100%' }} format="DD.MM.YYYY" />
+            <Input.TextArea rows={2} placeholder="Введите адрес проекта" />
           </Form.Item>
 
           <Form.Item>

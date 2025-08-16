@@ -54,16 +54,24 @@ export function UsersManagement() {
 
   const handleEdit = async (user: User) => {
     setEditingUser(user);
-    const userProjects = await userApi.getUserProjects(user.id);
-    form.setFieldsValue({
-      full_name: user.full_name,
-      email: user.email,
-      phone: user.phone,
-      position: user.position,
-      department: user.department,
-      projects: userProjects,
-    });
-    setIsModalOpen(true);
+    try {
+      const userProjects = await userApi.getUserProjects(user.id);
+      form.setFieldsValue({
+        full_name: user.full_name,
+        email: user.email,
+        project: userProjects[0] || undefined,
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error('Failed to load user projects:', error);
+      // Still open modal even if projects fail to load
+      form.setFieldsValue({
+        full_name: user.full_name,
+        email: user.email,
+        project: undefined,
+      });
+      setIsModalOpen(true);
+    }
   };
 
   const handleCloseModal = () => {
@@ -75,10 +83,7 @@ export function UsersManagement() {
   const handleSubmit = async (values: {
     full_name: string;
     email: string;
-    phone?: string;
-    position?: string;
-    department?: string;
-    projects?: number[];
+    project?: number;
   }) => {
     if (!editingUser) return;
     
@@ -86,11 +91,8 @@ export function UsersManagement() {
       id: editingUser.id,
       data: {
         full_name: values.full_name,
-        phone: values.phone,
-        position: values.position,
-        department: values.department,
       },
-      projectIds: values.projects || [],
+      projectIds: values.project ? [values.project] : [],
     });
   };
 
@@ -135,18 +137,17 @@ export function UsersManagement() {
       render: (text) => text || '-',
     },
     {
-      title: 'Проекты',
-      key: 'projects',
+      title: 'Проект',
+      key: 'project',
       width: 200,
-      render: (_, record) => (
-        <Space size={[0, 8]} wrap>
-          {(record as User & { user_projects?: Array<{ project_id: number; projects?: { name: string } }> }).user_projects?.map((up) => (
-            <Tag key={up.project_id} color="blue">
-              {up.projects?.name}
-            </Tag>
-          )) || <span style={{ color: '#999' }}>Нет проектов</span>}
-        </Space>
-      ),
+      render: (_, record) => {
+        const project = projects.find(p => p.id === record.project_id);
+        return project ? (
+          <Tag color="blue">{project.name}</Tag>
+        ) : (
+          <span style={{ color: '#999' }}>Не назначен</span>
+        );
+      },
     },
     {
       title: 'Действия',
@@ -213,33 +214,12 @@ export function UsersManagement() {
           </Form.Item>
 
           <Form.Item
-            name="phone"
-            label="Телефон"
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="position"
-            label="Должность"
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="department"
-            label="Отдел"
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="projects"
-            label="Проекты"
+            name="project"
+            label="Проект"
           >
             <Select
-              mode="multiple"
-              placeholder="Выберите проекты"
+              placeholder="Выберите проект"
+              allowClear
               options={projects.map(p => ({ label: p.name, value: p.id }))}
             />
           </Form.Item>
