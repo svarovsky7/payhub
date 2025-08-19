@@ -19,15 +19,6 @@ npm run preview      # Preview production build
 npx tsc --noEmit    # Type checking only
 ```
 
-## Quick Commit
-
-```powershell
-.\auto-commit.ps1 -Message "feat: description"  # PowerShell (Windows)
-.\auto-commit.ps1 -Watch -Interval 300          # Watch mode - auto-commit every 5 min
-auto-commit.bat "feat: description"              # CMD (Windows)
-./auto-commit.sh "feat: description"             # Git Bash/Unix
-```
-
 ## Architecture
 
 ### Feature-Sliced Design (FSD)
@@ -132,9 +123,13 @@ VITE_STORAGE_BUCKET=<storage_url>
 - **React Router 7.8+** for routing
 - **Day.js**, **xlsx**, **@dnd-kit**, **@hello-pangea/dnd** utilities
 
+## TypeScript Configuration
+
+- **Strict mode**: All strict checks enabled
+- **Path aliases**: Configured in tsconfig.json and vite.config.ts
+- **No `any` type**: Use proper types or `unknown` when type is truly unknown
+
 ## Known Issues
 
-- ESLint config line 6: incorrect import from 'eslint/config' (should be '@eslint/js/configs')
 - No testing framework configured
-- Auth via Supabase with auto-refresh
-- Protected routes via `ProtectedRoute` component
+- Auth via Supabase with auto-refresh token management
