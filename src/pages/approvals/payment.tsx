@@ -26,13 +26,13 @@ import type { UploadFile } from 'antd';
 import dayjs from 'dayjs';
 import { invoiceApi, attachmentApi } from '@/entities';
 import { supabase } from '@/shared/api/supabase';
+import { InvoiceViewModal } from '@/pages/invoices/components/invoice-view-modal';
 
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
 
 export function PaymentPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [paymentFile, setPaymentFile] = useState<File | undefined>();
@@ -114,7 +114,6 @@ export function PaymentPage() {
 
   const handleView = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
-    setIsViewModalOpen(true);
   };
 
   const columns: ColumnsType<Invoice> = [
@@ -286,6 +285,19 @@ export function PaymentPage() {
                 setPaymentFile(undefined);
                 setFileList([]);
               }}
+              onPreview={(file) => {
+                // Если у файла есть URL, открываем его
+                if (file.url || file.originFileObj) {
+                  const url = file.url || URL.createObjectURL(file.originFileObj as Blob);
+                  window.open(url, '_blank');
+                }
+              }}
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false,
+                previewIcon: <EyeOutlined title="Просмотр файла" />,
+              }}
               maxCount={1}
               accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
             >
@@ -303,42 +315,12 @@ export function PaymentPage() {
         </Space>
       </Modal>
 
-      {/* View Modal */}
-      <Modal
-        title={`Счет № ${selectedInvoice?.invoice_number}`}
-        open={isViewModalOpen}
-        onCancel={() => setIsViewModalOpen(false)}
-        footer={null}
-        width={700}
-      >
-        {selectedInvoice && (
-          <Row gutter={[12, 12]}>
-            <Col span={12}>
-              <div style={{ color: '#666', fontSize: 12 }}>Номер счета</div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>{selectedInvoice.invoice_number}</div>
-            </Col>
-            <Col span={12}>
-              <div style={{ color: '#666', fontSize: 12 }}>Дата</div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>
-                {selectedInvoice.invoice_date ? dayjs(selectedInvoice.invoice_date).format('DD.MM.YYYY') : '-'}
-              </div>
-            </Col>
-            <Col span={12}>
-              <div style={{ color: '#666', fontSize: 12 }}>Поставщик</div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>{selectedInvoice.contractor?.name}</div>
-            </Col>
-            <Col span={12}>
-              <div style={{ color: '#666', fontSize: 12 }}>Сумма</div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>
-                {new Intl.NumberFormat('ru-RU', {
-                  style: 'currency',
-                  currency: 'RUB',
-                }).format(selectedInvoice.total_amount)}
-              </div>
-            </Col>
-          </Row>
-        )}
-      </Modal>
+      {/* Invoice View Modal */}
+      <InvoiceViewModal
+        invoice={selectedInvoice}
+        isOpen={!!selectedInvoice && !isPaymentModalOpen}
+        onClose={() => setSelectedInvoice(null)}
+      />
     </div>
   );
 }

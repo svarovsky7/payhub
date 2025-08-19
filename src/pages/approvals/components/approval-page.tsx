@@ -19,11 +19,14 @@ import {
   CloseOutlined,
   EyeOutlined,
   ExclamationCircleOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
+import { InvoiceActions } from '@/shared/components';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Invoice } from '@/shared/types';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import { InvoiceViewModal } from '@/pages/invoices/components/invoice-view-modal';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -50,7 +53,6 @@ export function ApprovalPage({
   showApprovalActions = true,
 }: ApprovalPageProps) {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const queryClient = useQueryClient();
@@ -73,16 +75,23 @@ export function ApprovalPage({
   // Mutations
   const approveMutation = useMutation({
     mutationFn: onApprove,
-    onSuccess: () => {
-      // Invalidate all approval pages to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ['rukstroy-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['director-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['supply-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['payment-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['paid-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['rejected-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    onSuccess: async () => {
+      // Show success message immediately
       message.success('Счет успешно согласован');
+      
+      // Small delay to ensure database has updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Invalidate all approval pages to ensure data consistency
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['rukstroy-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['director-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['supply-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['payment-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['paid-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['rejected-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['invoices'] }),
+      ]);
     },
     onError: (error) => {
       console.error('Failed to approve invoice:', error);
@@ -92,19 +101,26 @@ export function ApprovalPage({
 
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }: { id: number; reason?: string }) => onReject(id, reason),
-    onSuccess: () => {
-      // Invalidate all approval pages to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ['rukstroy-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['director-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['supply-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['payment-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['paid-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['rejected-invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    onSuccess: async () => {
+      // Show success message and close modal immediately
       message.success('Счет отклонен');
       setIsRejectModalOpen(false);
       setRejectReason('');
       setSelectedInvoice(null);
+      
+      // Small delay to ensure database has updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Invalidate all approval pages to ensure data consistency
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['rukstroy-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['director-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['supply-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['payment-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['paid-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['rejected-invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['invoices'] }),
+      ]);
     },
     onError: (error) => {
       console.error('Failed to reject invoice:', error);
@@ -129,7 +145,6 @@ export function ApprovalPage({
 
   const handleView = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
-    setIsViewModalOpen(true);
   };
 
   const getStatusTag = (status: string | null) => {
@@ -190,6 +205,21 @@ export function ApprovalPage({
       }).format(amount),
     },
     {
+      title: 'Сумма Рукстроя',
+      dataIndex: 'rukstroy_amount',
+      key: 'rukstroy_amount',
+      width: 120,
+      render: (amount) => {
+        if (!amount) {
+          return <span style={{ color: '#d9d9d9' }}>—</span>;
+        }
+        return new Intl.NumberFormat('ru-RU', {
+          style: 'currency',
+          currency: 'RUB',
+        }).format(amount);
+      },
+    },
+    {
       title: 'Статус',
       dataIndex: 'status',
       key: 'status',
@@ -215,42 +245,21 @@ export function ApprovalPage({
       width: 140,
       fixed: 'right',
       render: (_, record) => (
-        <Space size={4}>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleView(record)}
-            title="Просмотр"
-          />
-          {showApprovalActions && (
-            <>
-              <Popconfirm
-                title={`${approveText}?`}
-                description={`Вы уверены, что хотите ${approveText.toLowerCase()} этот счет?`}
-                onConfirm={() => handleApprove(record)}
-                okText="Да"
-                cancelText="Нет"
-              >
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<CheckOutlined />}
-                  style={{ color: '#52c41a' }}
-                  title={approveText}
-                />
-              </Popconfirm>
-              <Button
-                type="text"
-                size="small"
-                icon={<CloseOutlined />}
-                danger
-                onClick={() => handleReject(record)}
-                title={rejectText}
-              />
-            </>
-          )}
-        </Space>
+        <InvoiceActions
+          invoice={record}
+          onApprove={showApprovalActions ? handleApprove : undefined}
+          onEdit={undefined}
+          onDelete={undefined}
+          onReject={handleReject}
+          onView={handleView}
+          size="small"
+          showApprove={showApprovalActions}
+          showEdit={false}
+          showDelete={false}
+          showReject={true}
+          showView={true}
+          showSubmit={false}
+        />
       ),
     },
   ];
@@ -301,99 +310,12 @@ export function ApprovalPage({
         />
       </Card>
 
-      {/* View Invoice Modal */}
-      <Modal
-        title={`Счет № ${selectedInvoice?.invoice_number}`}
-        open={isViewModalOpen}
-        onCancel={() => setIsViewModalOpen(false)}
-        footer={[
-          <Button key="close" onClick={() => setIsViewModalOpen(false)}>
-            Закрыть
-          </Button>,
-          showApprovalActions && (
-            <Space key="actions">
-              <Popconfirm
-                title={`${approveText}?`}
-                onConfirm={() => {
-                  handleApprove(selectedInvoice!);
-                  setIsViewModalOpen(false);
-                }}
-                okText="Да"
-                cancelText="Нет"
-              >
-                <Button type="primary" icon={<CheckOutlined />}>
-                  {approveText}
-                </Button>
-              </Popconfirm>
-              <Button
-                danger
-                icon={<CloseOutlined />}
-                onClick={() => {
-                  setIsViewModalOpen(false);
-                  handleReject(selectedInvoice!);
-                }}
-              >
-                {rejectText}
-              </Button>
-            </Space>
-          ),
-        ].filter(Boolean)}
-        width={700}
-      >
-        {selectedInvoice && (
-          <div>
-            <Row gutter={[12, 12]}>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Номер счета</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{selectedInvoice.invoice_number}</div>
-              </Col>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Дата</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>
-                  {selectedInvoice.invoice_date ? dayjs(selectedInvoice.invoice_date).format('DD.MM.YYYY') : '-'}
-                </div>
-              </Col>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Поставщик</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{selectedInvoice.contractor?.name}</div>
-              </Col>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Плательщик</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{selectedInvoice.payer?.name}</div>
-              </Col>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Проект</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{selectedInvoice.project?.name}</div>
-              </Col>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Сумма</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>
-                  {new Intl.NumberFormat('ru-RU', {
-                    style: 'currency',
-                    currency: 'RUB',
-                  }).format(selectedInvoice.total_amount)}
-                </div>
-              </Col>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Статус</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{getStatusTag(selectedInvoice.status)}</div>
-              </Col>
-              <Col span={12}>
-                <div style={{ color: '#666', fontSize: 12 }}>Дата создания</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>
-                  {dayjs(selectedInvoice.created_at).format('DD.MM.YYYY HH:mm')}
-                </div>
-              </Col>
-              <Col span={24}>
-                <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>Описание</div>
-                <div style={{ padding: 8, background: '#f5f5f5', borderRadius: 4, fontSize: 14 }}>
-                  {selectedInvoice.description || 'Описание не указано'}
-                </div>
-              </Col>
-            </Row>
-          </div>
-        )}
-      </Modal>
+      {/* Invoice View Modal */}
+      <InvoiceViewModal
+        invoice={selectedInvoice}
+        isOpen={!!selectedInvoice && !isRejectModalOpen}
+        onClose={() => setSelectedInvoice(null)}
+      />
 
       {/* Reject Invoice Modal */}
       <Modal

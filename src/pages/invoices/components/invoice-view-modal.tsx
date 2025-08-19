@@ -1,4 +1,5 @@
-import { Modal, Tag, Space, Typography, Divider, Button, Row, Col, Card } from 'antd';
+import { useState } from 'react';
+import { Modal, Tag, Space, Typography, Divider, Button, Row, Col, Card, List, Tooltip } from 'antd';
 import { 
   FileTextOutlined, 
   BankOutlined,
@@ -10,9 +11,14 @@ import {
   CloseCircleOutlined,
   SyncOutlined,
   FilePdfOutlined,
-  FileImageOutlined
+  FileImageOutlined,
+  PaperClipOutlined,
+  EyeOutlined,
+  DownloadOutlined
 } from '@ant-design/icons';
-import type { Invoice } from '@/shared/types';
+import type { Invoice, Attachment } from '@/shared/types';
+import { attachmentApi } from '@/entities';
+import { FilePreviewModal } from '@/shared/components';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
@@ -26,7 +32,18 @@ interface InvoiceViewModalProps {
 }
 
 export function InvoiceViewModal({ invoice, isOpen, onClose, onEdit }: InvoiceViewModalProps) {
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; mimeType?: string } | null>(null);
+  
   if (!invoice) return null;
+
+  const handlePreviewFile = (attachment: Attachment) => {
+    const fileUrl = attachmentApi.getPublicUrl(attachment.file_path);
+    setPreviewFile({
+      url: fileUrl,
+      name: attachment.file_name,
+      mimeType: attachment.mime_type
+    });
+  };
 
   const getStatusConfig = (status: string | null) => {
     const configs = {
@@ -48,6 +65,7 @@ export function InvoiceViewModal({ invoice, isOpen, onClose, onEdit }: InvoiceVi
   const amountWithoutVat = invoice.total_amount - vatAmount;
 
   return (
+    <>
     <Modal
       title={null}
       open={isOpen}
@@ -262,24 +280,96 @@ export function InvoiceViewModal({ invoice, isOpen, onClose, onEdit }: InvoiceVi
             <Divider style={{ margin: '20px 0' }} />
             <div>
               <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
-                Приложенные файлы
+                Приложенные файлы ({invoice.attachments.length})
               </Text>
-              <Row gutter={[8, 8]}>
-                {invoice.attachments.map((attachment) => (
-                  <Col key={attachment.id}>
-                    <Button 
-                      icon={attachment.mime_type?.includes('pdf') ? <FilePdfOutlined /> : <FileImageOutlined />}
-                      size="small"
+              <List
+                size="small"
+                dataSource={invoice.attachments}
+                renderItem={(attachment) => {
+                  const fileUrl = attachmentApi.getPublicUrl(attachment.file_path);
+                  const isPdf = attachment.mime_type?.includes('pdf');
+                  const isImage = attachment.mime_type?.startsWith('image');
+                  
+                  return (
+                    <List.Item
+                      key={attachment.id}
+                      style={{
+                        background: '#fafafa',
+                        borderRadius: 8,
+                        padding: '8px 12px',
+                        marginBottom: 8,
+                        border: '1px solid #f0f0f0'
+                      }}
+                      actions={[
+                        <Tooltip title="Просмотр файла" key="view">
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<EyeOutlined />}
+                            onClick={() => handlePreviewFile(attachment)}
+                          />
+                        </Tooltip>,
+                        <Tooltip title="Скачать файл" key="download">
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<DownloadOutlined />}
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = fileUrl;
+                              link.download = attachment.file_name;
+                              link.click();
+                            }}
+                          />
+                        </Tooltip>
+                      ]}
                     >
-                      {attachment.file_name}
-                    </Button>
-                  </Col>
-                ))}
-              </Row>
+                      <List.Item.Meta
+                        avatar={
+                          isPdf ? (
+                            <FilePdfOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+                          ) : isImage ? (
+                            <FileImageOutlined style={{ fontSize: 24, color: '#52c41a' }} />
+                          ) : (
+                            <PaperClipOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                          )
+                        }
+                        title={
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 14 }}>{attachment.file_name}</span>
+                            {attachment.file_size && (
+                              <Tag color="default" style={{ fontSize: 11 }}>
+                                {(attachment.file_size / 1024 / 1024).toFixed(2)} МБ
+                              </Tag>
+                            )}
+                          </div>
+                        }
+                        description={
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            Загружен: {dayjs(attachment.uploaded_at).format('DD.MM.YYYY HH:mm')}
+                          </Text>
+                        }
+                      />
+                    </List.Item>
+                  );
+                }}
+              />
             </div>
           </>
         )}
       </div>
     </Modal>
+
+      {/* File Preview Modal */}
+      {previewFile && (
+        <FilePreviewModal
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          mimeType={previewFile.mimeType}
+        />
+      )}
+    </>
   );
 }

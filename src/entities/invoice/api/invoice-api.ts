@@ -1,11 +1,11 @@
 import { supabase } from '@/shared/api/supabase';
 import type { Invoice, InvoiceStatus } from '@/shared/types';
 
-// Select query with status field included
-const INVOICE_LIST_SELECT = 'id,invoice_number,invoice_date,total_amount,description,status,delivery_days,delivery_date,created_at,updated_at,contractor_id,payer_id,project_id,created_by,contractor:contractors(id,name),payer:payers(id,name),project:projects(id,name),creator:users(id,full_name)';
+// Select query with status field included - simplified without responsible_person for now
+const INVOICE_LIST_SELECT = 'id,invoice_number,invoice_date,total_amount,rukstroy_amount,description,status,delivery_days,delivery_date,created_at,updated_at,contractor_id,payer_id,project_id,created_by,responsible_person_id,contractor:contractors(id,name,inn),payer:payers(id,name,inn),project:projects(id,name,address),creator:users(id,full_name),invoice_documents(attachment_id,attachments(*))';
 
-// Full select query for detailed views
-const INVOICE_DETAIL_SELECT = '*,contractor:contractors(*),payer:payers(*),project:projects(*),creator:users(*)';
+// Full select query for detailed views  
+const INVOICE_DETAIL_SELECT = '*,contractor:contractors(*),payer:payers(*),project:projects(*),creator:users(*),invoice_documents(attachment_id,attachments(*))';
 
 export const invoiceApi = {
   /**
@@ -27,6 +27,7 @@ export const invoiceApi = {
     return (data || []).map(invoice => ({
       ...invoice,
       status: invoice.status || ('draft' as InvoiceStatus),
+      rukstroy_amount: invoice.rukstroy_amount || null,
       delivery_date: invoice.delivery_date || null,
       delivery_days: invoice.delivery_days || null,
       without_vat: invoice.without_vat || null,
@@ -36,6 +37,7 @@ export const invoiceApi = {
       payer: Array.isArray(invoice.payer) ? invoice.payer[0] : invoice.payer,
       project: Array.isArray(invoice.project) ? invoice.project[0] : invoice.project,
       creator: Array.isArray(invoice.creator) ? invoice.creator[0] : invoice.creator,
+      attachments: invoice.invoice_documents?.map((doc: any) => doc.attachments).filter(Boolean) || [],
     })) as unknown as Invoice[];
   },
 
@@ -58,6 +60,7 @@ export const invoiceApi = {
     return (data || []).map(invoice => ({
       ...invoice,
       status: invoice.status || (status as InvoiceStatus),
+      rukstroy_amount: invoice.rukstroy_amount || null,
       delivery_date: invoice.delivery_date || null,
       delivery_days: invoice.delivery_days || null,
       without_vat: invoice.without_vat || null,
@@ -67,6 +70,7 @@ export const invoiceApi = {
       payer: Array.isArray(invoice.payer) ? invoice.payer[0] : invoice.payer,
       project: Array.isArray(invoice.project) ? invoice.project[0] : invoice.project,
       creator: Array.isArray(invoice.creator) ? invoice.creator[0] : invoice.creator,
+      attachments: invoice.invoice_documents?.map((doc: any) => doc.attachments).filter(Boolean) || [],
     })) as unknown as Invoice[];
   },
 
@@ -85,9 +89,26 @@ export const invoiceApi = {
       throw error;
     }
 
-    // Add default status if not present
-    if (data && !data.status) {
-      data.status = 'draft';
+    // Add default status if not present and process attachments
+    if (data) {
+      if (!data.status) {
+        data.status = 'draft';
+      }
+      // Process attachments
+      data.attachments = data.invoice_documents?.map((doc: any) => doc.attachments).filter(Boolean) || [];
+      
+      // Load responsible_person separately if ID exists
+      if (data.responsible_person_id) {
+        const { data: responsiblePerson } = await supabase
+          .from('users')
+          .select('id,full_name,position')
+          .eq('id', data.responsible_person_id)
+          .single();
+        
+        if (responsiblePerson) {
+          data.responsible_person = responsiblePerson;
+        }
+      }
     }
 
     return data as Invoice;
@@ -97,8 +118,8 @@ export const invoiceApi = {
    * Create a new invoice
    */
   async create(invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at' | 'contractor' | 'payer' | 'project' | 'creator' | 'responsible_person'>): Promise<Invoice> {
-    // Create invoice without status for now (status will be added to table later)
-    const invoiceWithoutStatus = {
+    // Create invoice with status
+    const invoiceData = {
       invoice_number: invoice.invoice_number,
       invoice_date: invoice.invoice_date,
       contractor_id: invoice.contractor_id,
@@ -111,11 +132,15 @@ export const invoiceApi = {
       without_vat: invoice.without_vat,
       is_important: invoice.is_important,
       responsible_person_id: invoice.responsible_person_id,
+      status: invoice.status || 'draft',
+      vat_amount: invoice.vat_amount || 0,
+      rukstroy_amount: invoice.rukstroy_amount || null,
+      created_by: invoice.created_by || null,
     };
     
     const { data, error } = await supabase
       .from('invoices')
-      .insert(invoiceWithoutStatus)
+      .insert(invoiceData)
       .select(INVOICE_LIST_SELECT)
       .single();
 
@@ -144,14 +169,10 @@ export const invoiceApi = {
    * Update an invoice
    */
   async update(id: number, updates: Partial<Omit<Invoice, 'id' | 'created_at' | 'updated_at' | 'contractor' | 'payer' | 'project' | 'creator' | 'responsible_person'>>): Promise<Invoice> {
-    // Remove status from updates for now (status will be handled separately)
-    const { status, ...updatesWithoutStatus } = updates;
-    void status; // Explicitly ignore unused variable
-    
     const { data, error } = await supabase
       .from('invoices')
       .update({
-        ...updatesWithoutStatus,
+        ...updates,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -166,7 +187,7 @@ export const invoiceApi = {
     // Ensure all fields are present and fix relationships
     return {
       ...data,
-      status: data.status || status || 'draft',
+      status: data.status || 'draft',
       delivery_date: data.delivery_date || null,
       delivery_days: data.delivery_days || null,
       without_vat: data.without_vat || null,
@@ -218,6 +239,7 @@ export const invoiceApi = {
     return {
       ...data,
       status: data.status || 'rukstroy_review',
+      rukstroy_amount: data.rukstroy_amount || null,
       delivery_date: data.delivery_date || null,
       delivery_days: data.delivery_days || null,
       without_vat: data.without_vat || null,
@@ -233,19 +255,27 @@ export const invoiceApi = {
   /**
    * Approve invoice and move to next stage
    */
-  async approve(id: number, currentStatus: InvoiceStatus): Promise<Invoice> {
+  async approve(id: number, currentStatus: InvoiceStatus, rukstroyAmount?: number): Promise<Invoice> {
     const nextStatus = this.getNextStatus(currentStatus);
     if (!nextStatus) {
       throw new Error('Cannot approve invoice in current status');
     }
 
+    // Prepare update data
+    const updateData: any = {
+      status: nextStatus,
+      updated_at: new Date().toISOString(),
+    };
+
+    // If approving from Rukstroy, add rukstroy_amount
+    if (currentStatus === 'rukstroy_review' && rukstroyAmount !== undefined) {
+      updateData.rukstroy_amount = rukstroyAmount;
+    }
+
     // Update invoice status to next stage
     const { data, error } = await supabase
       .from('invoices')
-      .update({ 
-        status: nextStatus,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

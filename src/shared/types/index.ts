@@ -66,6 +66,7 @@ export interface Invoice {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  rukstroy_amount: number | null;
   
   // Relations
   contractor?: Contractor;

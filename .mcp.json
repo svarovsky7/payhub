@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c","npx","-y","@supabase/mcp-server-supabase@latest","--project-ref","rydbtsreeggvoblspqxw","--read-only"],
+      "env": { "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}" }
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c","npx","-y","@upstash/context7-mcp@latest"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c","npx","-y","@playwright/mcp@latest"]
+    },
+    "fetch": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c","npx","-y","@lmcc-dev/mult-fetch-mcp-server"]
+    }
+  }
+}

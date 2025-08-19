@@ -39,34 +39,53 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   // Initialize auth on app startup
   useEffect(() => {
-    initialize();
+    let mounted = true;
+    let tokenRefreshInterval: NodeJS.Timeout | null = null;
+    let visibilityTimeout: NodeJS.Timeout | null = null;
+    let lastRefreshTime = Date.now();
+    const MIN_REFRESH_INTERVAL = 60 * 1000; // Minimum 1 minute between refreshes
+
+    // Initialize auth
+    if (mounted) {
+      initialize();
+    }
     
     // Refresh token every 30 minutes to prevent expiration
-    const tokenRefreshInterval = setInterval(() => {
-      // Use refreshSession instead of initialize to avoid resetting loading state
-      if (refreshSession) {
+    tokenRefreshInterval = setInterval(() => {
+      if (mounted && refreshSession) {
+        lastRefreshTime = Date.now();
         refreshSession();
       }
     }, 30 * 60 * 1000); // 30 minutes
     
     // Also refresh on visibility change (when tab becomes active)
-    let visibilityTimeout: NodeJS.Timeout | null = null;
     const handleVisibilityChange = () => {
-      if (!document.hidden && refreshSession) {
-        // Throttle visibility refresh to avoid excessive calls
-        if (visibilityTimeout) {
-          clearTimeout(visibilityTimeout);
+      if (!document.hidden && mounted && refreshSession) {
+        const timeSinceLastRefresh = Date.now() - lastRefreshTime;
+        
+        // Only refresh if enough time has passed since last refresh
+        if (timeSinceLastRefresh >= MIN_REFRESH_INTERVAL) {
+          // Throttle visibility refresh to avoid excessive calls
+          if (visibilityTimeout) {
+            clearTimeout(visibilityTimeout);
+          }
+          visibilityTimeout = setTimeout(() => {
+            if (mounted) {
+              lastRefreshTime = Date.now();
+              refreshSession();
+            }
+          }, 1000);
         }
-        visibilityTimeout = setTimeout(() => {
-          refreshSession();
-        }, 1000);
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
-      clearInterval(tokenRefreshInterval);
+      mounted = false;
+      if (tokenRefreshInterval) {
+        clearInterval(tokenRefreshInterval);
+      }
       if (visibilityTimeout) {
         clearTimeout(visibilityTimeout);
       }

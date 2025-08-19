@@ -19,13 +19,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         options: {
           data: {
             full_name: fullName,
-          }
+          },
+          emailRedirectTo: undefined, // Disable email redirect for local dev
         }
       });
 
       if (authError) {
         console.error('Registration error:', authError);
-        throw authError;
+        // If email confirmation error, try to sign in directly (for local dev)
+        if (authError.message?.includes('email') || authError.message?.includes('confirmation')) {
+          console.log('Email confirmation error, attempting direct sign in...');
+          // Try to sign in immediately
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          
+          if (!signInError && signInData.user) {
+            // Success - user was created and we can sign in
+            authData.user = signInData.user;
+            authData.session = signInData.session;
+          } else {
+            throw authError;
+          }
+        } else {
+          throw authError;
+        }
       }
 
       if (!authData.user) {

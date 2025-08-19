@@ -17,9 +17,10 @@ const queryClient = new QueryClient({
         // Retry only once for other errors
         return failureCount < 1;
       },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
       refetchOnMount: false, // Don't refetch if data exists in cache
-      refetchOnReconnect: 'always',
+      refetchOnReconnect: false, // Disable automatic refetch on reconnect
       networkMode: 'offlineFirst', // Use cache first
     },
     mutations: {

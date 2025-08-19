@@ -1,2 +1,3 @@
-// Shared utility functions will be exported here
-// Example: export { formatCurrency } from './utils';
+// Shared utility functions
+export { CleanupManager, useCleanupManager } from './cleanup-manager';
+export { setupViteErrorHandler } from './vite-error-handler';

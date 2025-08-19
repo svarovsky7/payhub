@@ -25,6 +25,7 @@ import {
   Progress,
 } from 'antd';
 import { InvoiceViewModal } from './components/invoice-view-modal';
+import { InvoiceActions, FilePreviewModal } from '@/shared/components';
 import {
   PlusOutlined,
   EditOutlined,
@@ -115,7 +116,7 @@ export function InvoicesPage() {
   }>>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>([]);
-  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type?: string } | null>(null);
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; mimeType?: string } | null>(null);
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
   const [includeVat, setIncludeVat] = useState(true); // По умолчанию сумма с НДС
   const [dragActive, setDragActive] = useState(false);
@@ -516,8 +517,8 @@ export function InvoicesPage() {
     rejectInvoiceMutation.mutate(invoiceId);
   };
 
-  const handleDelete = (invoiceId: number) => {
-    deleteMutation.mutate(invoiceId);
+  const handleDelete = (invoice: Invoice) => {
+    deleteMutation.mutate(invoice.id);
   };
 
   const handleViewInvoice = (invoice: Invoice) => {
@@ -663,6 +664,31 @@ export function InvoicesPage() {
       ),
     },
     {
+      title: 'Сумма Рукстроя',
+      dataIndex: 'rukstroy_amount',
+      key: 'rukstroy_amount',
+      align: 'right',
+      responsive: ['lg'],
+      sorter: (a, b) => (a.rukstroy_amount || 0) - (b.rukstroy_amount || 0),
+      render: (amount) => {
+        if (!amount) {
+          return <span style={{ color: '#d9d9d9' }}>—</span>;
+        }
+        return (
+          <span style={{
+            fontWeight: 600,
+            fontSize: '13px',
+            color: '#1890ff'
+          }}>
+            {new Intl.NumberFormat('ru-RU', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(amount)} ₽
+          </span>
+        );
+      },
+    },
+    {
       title: 'Статус',
       dataIndex: 'status',
       key: 'status',
@@ -738,124 +764,21 @@ export function InvoicesPage() {
       key: 'actions',
       fixed: 'right',
       render: (_, record) => (
-        <Space size="small" style={{ display: 'flex', flexWrap: 'nowrap' }}>
-          {record.status === 'draft' ? (
-            <>
-              <Button
-                type="text"
-                size={isMobile ? 'middle' : 'small'}
-                icon={<EditOutlined />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEdit(record);
-                }}
-                className="touch-target"
-                style={{ minHeight: isMobile ? 40 : 'auto' }}
-              />
-              <Button
-                type="text"
-                size={isMobile ? 'middle' : 'small'}
-                icon={<SendOutlined />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSubmitForApproval(record.id);
-                }}
-                style={{ 
-                  color: '#52c41a',
-                  minHeight: isMobile ? 40 : 'auto'
-                }}
-                className="touch-target"
-              />
-              <Popconfirm
-                title="Отклонить счет?"
-                description="Счет будет перемещен в статус 'Отказано'"
-                onConfirm={(e) => {
-                  if (e) e.stopPropagation();
-                  handleReject(record.id);
-                }}
-                onCancel={(e) => {
-                  if (e) e.stopPropagation();
-                }}
-                okText="Да"
-                cancelText="Нет"
-              >
-                <Button
-                  type="text"
-                  size={isMobile ? 'middle' : 'small'}
-                  icon={<StopOutlined />}
-                  onClick={(e) => e.stopPropagation()}
-                  className="touch-target"
-                  style={{ 
-                    color: '#ff4d4f',
-                    minHeight: isMobile ? 40 : 'auto'
-                  }}
-                />
-              </Popconfirm>
-              {!isMobile && (
-                <Popconfirm
-                  title="Удалить счет?"
-                  onConfirm={(e) => {
-                    if (e) e.stopPropagation();
-                    handleDelete(record.id);
-                  }}
-                  onCancel={(e) => {
-                    if (e) e.stopPropagation();
-                  }}
-                  okText="Да"
-                  cancelText="Нет"
-                >
-                  <Button
-                    type="text"
-                    size={isMobile ? 'middle' : 'small'}
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={(e) => e.stopPropagation()}
-                    className="touch-target"
-                    style={{ minHeight: isMobile ? 40 : 'auto' }}
-                  />
-                </Popconfirm>
-              )}
-            </>
-          ) : (
-            <Space size="small" style={{ display: 'flex', flexWrap: 'nowrap' }}>
-              <Button
-                type="text"
-                size={isMobile ? 'middle' : 'small'}
-                icon={<FileTextOutlined />}
-                onClick={(e) => e.stopPropagation()}
-                className="touch-target"
-                style={{ minHeight: isMobile ? 40 : 'auto' }}
-              />
-              {record.status !== 'paid' && (
-                <Popconfirm
-                  title="Отклонить счет?"
-                  description="Счет будет перемещен в статус 'Отказано'"
-                  onConfirm={(e) => {
-                    if (e) e.stopPropagation();
-                    handleReject(record.id);
-                  }}
-                  onCancel={(e) => {
-                    if (e) e.stopPropagation();
-                  }}
-                  okText="Да"
-                  cancelText="Нет"
-                >
-                  <Button
-                    type="text"
-                    size={isMobile ? 'middle' : 'small'}
-                    icon={<StopOutlined />}
-                    onClick={(e) => e.stopPropagation()}
-                    className="touch-target"
-                    style={{ 
-                      color: '#ff4d4f',
-                      minHeight: isMobile ? 40 : 'auto'
-                    }}
-                  />
-                </Popconfirm>
-              )}
-            </Space>
-          )}
-        </Space>
+        <InvoiceActions
+          invoice={record}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onReject={(invoice) => handleReject(invoice.id)}
+          onSubmitForApproval={(invoice) => handleSubmitForApproval(invoice.id)}
+          onView={handleViewInvoice}
+          isMobile={isMobile}
+          showApprove={false}
+          showEdit={record.status === 'draft'}
+          showDelete={(record.status === 'draft' || record.status === 'rejected') && !isMobile}
+          showReject={record.status !== 'paid' && record.status !== 'rejected'}
+          showView={record.status !== 'draft'}
+          showSubmit={record.status === 'draft'}
+        />
       ),
     },
   ];
@@ -903,104 +826,23 @@ export function InvoicesPage() {
             hoverable
             onClick={() => handleViewInvoice(invoice)}
             actions={[
-              invoice.status === 'draft' ? (
-                <Space key="actions" size="small">
-                  <Button
-                    type="text"
-                    size={isMobile ? 'large' : 'middle'}
-                    icon={<EditOutlined />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(invoice);
-                    }}
-                    className="touch-target"
-                  />
-                  <Button
-                    type="text"
-                    size={isMobile ? 'large' : 'middle'}
-                    icon={<SendOutlined />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSubmitForApproval(invoice.id);
-                    }}
-                    style={{ color: '#52c41a' }}
-                    className="touch-target"
-                  />
-                  <Popconfirm
-                    title="Отклонить счет?"
-                    description="Счет будет перемещен в статус 'Отказано'"
-                    onConfirm={(e) => {
-                      if (e) e.stopPropagation();
-                      handleReject(invoice.id);
-                    }}
-                    onCancel={(e) => {
-                      if (e) e.stopPropagation();
-                    }}
-                    okText="Да"
-                    cancelText="Нет"
-                  >
-                    <Button
-                      type="text"
-                      size={isMobile ? 'large' : 'middle'}
-                      icon={<StopOutlined />}
-                      style={{ color: '#ff4d4f' }}
-                      className="touch-target"
-                    />
-                  </Popconfirm>
-                  <Popconfirm
-                    title="Удалить счет?"
-                    onConfirm={(e) => {
-                      if (e) e.stopPropagation();
-                      handleDelete(invoice.id);
-                    }}
-                    onCancel={(e) => {
-                      if (e) e.stopPropagation();
-                    }}
-                    okText="Да"
-                    cancelText="Нет"
-                  >
-                    <Button
-                      type="text"
-                      size={isMobile ? 'large' : 'middle'}
-                      danger
-                      icon={<DeleteOutlined />}
-                      className="touch-target"
-                    />
-                  </Popconfirm>
-                </Space>
-              ) : (
-                <Space key="actions" size="small">
-                  <Button
-                    type="text"
-                    size={isMobile ? 'large' : 'middle'}
-                    icon={<FileTextOutlined />}
-                    className="touch-target"
-                  />
-                  {invoice.status !== 'paid' && (
-                    <Popconfirm
-                      title="Отклонить счет?"
-                      description="Счет будет перемещен в статус 'Отказано'"
-                      onConfirm={(e) => {
-                        if (e) e.stopPropagation();
-                        handleReject(invoice.id);
-                      }}
-                      onCancel={(e) => {
-                        if (e) e.stopPropagation();
-                      }}
-                      okText="Да"
-                      cancelText="Нет"
-                    >
-                      <Button
-                        type="text"
-                        size={isMobile ? 'large' : 'middle'}
-                        icon={<StopOutlined />}
-                        style={{ color: '#ff4d4f' }}
-                        className="touch-target"
-                      />
-                    </Popconfirm>
-                  )}
-                </Space>
-              )
+              <InvoiceActions
+                key="actions"
+                invoice={invoice}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onReject={(inv) => handleReject(inv.id)}
+                onSubmitForApproval={(inv) => handleSubmitForApproval(inv.id)}
+                onView={handleViewInvoice}
+                size={isMobile ? 'large' : 'middle'}
+                isMobile={isMobile}
+                showApprove={false}
+                showEdit={invoice.status === 'draft'}
+                showDelete={invoice.status === 'draft' || invoice.status === 'rejected'}
+                showReject={invoice.status !== 'paid' && invoice.status !== 'rejected'}
+                showView={invoice.status !== 'draft'}
+                showSubmit={invoice.status === 'draft'}
+              />
             ]}
           >
             <div style={{ marginBottom: 12 }}>
@@ -1896,9 +1738,14 @@ export function InvoicesPage() {
                                 icon={<EyeOutlined />}
                                 onClick={() => {
                                   if (file.url) {
-                                    window.open(file.url, '_blank');
+                                    setPreviewFile({
+                                      url: file.url,
+                                      name: file.name,
+                                      mimeType: file.type
+                                    });
                                   }
                                 }}
+                                title="Просмотр файла"
                               />
                             ),
                             <Button
@@ -1912,6 +1759,7 @@ export function InvoicesPage() {
                                   setUploadedAttachments(prev => prev.filter(a => a.id !== file.attachmentId));
                                 }
                               }}
+                              title="Удалить файл"
                             />
                           ].filter(Boolean)}
                         >
@@ -2266,6 +2114,17 @@ export function InvoicesPage() {
           handleEdit(invoice);
         }}
       />
+
+      {/* File Preview Modal */}
+      {previewFile && (
+        <FilePreviewModal
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          mimeType={previewFile.mimeType}
+        />
+      )}
     </div>
   );
 }

@@ -106,6 +106,7 @@ export function RegisterPage() {
             <Input
               prefix={<MailOutlined />}
               placeholder="Enter your email"
+              autoComplete="off"
             />
           </Form.Item>
 
@@ -120,6 +121,7 @@ export function RegisterPage() {
             <Input
               prefix={<UserOutlined />}
               placeholder="Введите ваше ФИО"
+              autoComplete="off"
             />
           </Form.Item>
 
@@ -134,6 +136,7 @@ export function RegisterPage() {
             <Input.Password
               prefix={<LockOutlined />}
               placeholder="Enter your password"
+              autoComplete="new-password"
             />
           </Form.Item>
 
@@ -156,6 +159,7 @@ export function RegisterPage() {
             <Input.Password
               prefix={<LockOutlined />}
               placeholder="Повторите пароль"
+              autoComplete="new-password"
             />
           </Form.Item>
 

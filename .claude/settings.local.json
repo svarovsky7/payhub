@@ -44,9 +44,30 @@
       "Bash(git add:*)",
       "Bash(gh:*)",
       "Bash(powershell:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(dir C:UserssvarovskyWebstormProjectspayhub)",
+      "Bash(npx @anthropic-ai/claude-code mcp:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_close",
+      "Bash(git config:*)"
     ],
     "deny": [],
-    "defaultMode": "acceptEdits"
-  }
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\mnt\\c\\Users\\svarovsky\\WebstormProjects"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "supabase",
+    "context7",
+    "playwright",
+    "fetch"
+  ]
 }

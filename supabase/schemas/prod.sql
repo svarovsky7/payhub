@@ -1,5 +1,5 @@
 -- Database Schema SQL Export
--- Generated: 2025-08-16T13:13:16.657452
+-- Generated: 2025-08-17T22:33:30.251350
 -- Database: postgres
 -- Host: aws-0-eu-central-1.pooler.supabase.com
 
@@ -241,7 +241,7 @@ COMMENT ON TABLE auth.sso_providers IS 'Auth: Manages SSO identity provider info
 COMMENT ON COLUMN auth.sso_providers.resource_id IS 'Auth: Uniquely identifies a SSO provider according to a user-chosen resource ID (case insensitive), useful in infrastructure as code.';
 
 -- Table: auth.users
--- Description: Пользователи системы PayHub
+-- Description: User profiles linked to auth.users - extends auth with app-specific fields
 CREATE TABLE IF NOT EXISTS auth.users (
     instance_id uuid,
     instance_id uuid,
@@ -316,7 +316,8 @@ CREATE TABLE IF NOT EXISTS auth.users (
     CONSTRAINT users_phone_key UNIQUE (phone),
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );
-COMMENT ON TABLE auth.users IS 'Пользователи системы PayHub';
+COMMENT ON TABLE auth.users IS 'User profiles linked to auth.users - extends auth with app-specific fields';
+COMMENT ON COLUMN auth.users.instance_id IS 'UUID matching auth.users.id - ensures 1:1 relationship';
 COMMENT ON COLUMN auth.users.email IS 'Флаг активности учетной записи';
 COMMENT ON COLUMN auth.users.invited_at IS 'ID проекта, к которому привязан пользователь';
 COMMENT ON COLUMN auth.users.confirmation_token IS 'Дата и время создания записи';
@@ -354,7 +355,7 @@ CREATE TABLE IF NOT EXISTS public.budget_history (
     description text,
     created_by uuid,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT budget_history_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT budget_history_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
     CONSTRAINT budget_history_pkey PRIMARY KEY (id),
     CONSTRAINT budget_history_project_budget_id_fkey FOREIGN KEY (project_budget_id) REFERENCES public.project_budgets(id)
 );
@@ -406,6 +407,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
+    rukstroy_amount numeric(15,2) DEFAULT NULL::numeric,
     CONSTRAINT invoices_contractor_id_fkey FOREIGN KEY (contractor_id) REFERENCES public.contractors(id),
     CONSTRAINT invoices_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
     CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES public.payers(id),
@@ -424,6 +426,7 @@ COMMENT ON COLUMN public.invoices.vat_amount IS 'Сумма НДС';
 COMMENT ON COLUMN public.invoices.without_vat IS 'Сумма без НДС';
 COMMENT ON COLUMN public.invoices.delivery_days IS 'Срок поставки в днях';
 COMMENT ON COLUMN public.invoices.is_important IS 'Флаг срочности/важности';
+COMMENT ON COLUMN public.invoices.rukstroy_amount IS 'Сумма, подтвержденная Рукстроем при согласовании';
 
 -- Table: public.payers
 -- Description: Организации-плательщики (наши юр.лица)
@@ -448,7 +451,7 @@ CREATE TABLE IF NOT EXISTS public.project_budgets (
     created_by uuid,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT project_budgets_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT project_budgets_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
     CONSTRAINT project_budgets_pkey PRIMARY KEY (id),
     CONSTRAINT project_budgets_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id),
     CONSTRAINT project_budgets_project_id_key UNIQUE (project_id)
@@ -495,10 +498,12 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT users_email_key UNIQUE (email),
+    CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),
     CONSTRAINT users_pkey PRIMARY KEY (id),
     CONSTRAINT users_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.projects(id)
 );
 COMMENT ON TABLE public.users IS 'Auth: Stores user login data within a secure schema.';
+COMMENT ON COLUMN public.users.id IS 'UUID matching auth.users.id - ensures 1:1 relationship';
 COMMENT ON COLUMN public.users.is_active IS 'Флаг активности учетной записи';
 COMMENT ON COLUMN public.users.project_id IS 'ID проекта, к которому привязан пользователь';
 COMMENT ON COLUMN public.users.created_at IS 'Дата и время создания записи';
@@ -736,6 +741,26 @@ CREATE OR REPLACE VIEW public.budget_summary AS
   GROUP BY p.id, p.name, p.address, pb.allocated_amount, pb.spent_amount, pb.created_at, pb.updated_at
   ORDER BY p.name;
 
+-- View: public.users_full
+CREATE OR REPLACE VIEW public.users_full AS
+ SELECT u.id,
+    u.email,
+    u.full_name,
+    u.is_active,
+    u.project_id,
+    u.created_at,
+    u.updated_at,
+    au.email AS auth_email,
+    au.phone AS auth_phone,
+    au.created_at AS auth_created_at,
+    au.last_sign_in_at,
+    au.email_confirmed_at,
+    p.name AS project_name,
+    p.address AS project_address
+   FROM ((users u
+     JOIN auth.users au ON ((u.id = au.id)))
+     LEFT JOIN projects p ON ((u.project_id = p.id)));
+
 -- View: vault.decrypted_secrets
 CREATE OR REPLACE VIEW vault.decrypted_secrets AS
  SELECT id,
@@ -814,7 +839,7 @@ $function$
 
 
 -- Function: extensions.armor
-CREATE OR REPLACE FUNCTION extensions.armor(bytea)
+CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -822,7 +847,7 @@ AS '$libdir/pgcrypto', $function$pg_armor$function$
 
 
 -- Function: extensions.armor
-CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
+CREATE OR REPLACE FUNCTION extensions.armor(bytea)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -862,7 +887,7 @@ AS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$
 
 
 -- Function: extensions.digest
-CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.digest(text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -870,7 +895,7 @@ AS '$libdir/pgcrypto', $function$pg_digest$function$
 
 
 -- Function: extensions.digest
-CREATE OR REPLACE FUNCTION extensions.digest(text, text)
+CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -910,19 +935,19 @@ AS '$libdir/pgcrypto', $function$pg_random_uuid$function$
 
 
 -- Function: extensions.gen_salt
-CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
- RETURNS text
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
-
-
--- Function: extensions.gen_salt
 CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
  RETURNS text
  LANGUAGE c
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
+
+
+-- Function: extensions.gen_salt
+CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
+ RETURNS text
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
 
 
 -- Function: extensions.grant_pg_cron_access
@@ -1133,14 +1158,6 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 
 -- Function: extensions.pgp_pub_decrypt
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)
- RETURNS text
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
-
-
--- Function: extensions.pgp_pub_decrypt
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
  RETURNS text
  LANGUAGE c
@@ -1148,8 +1165,16 @@ CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 
+-- Function: extensions.pgp_pub_decrypt
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)
+ RETURNS text
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
+
+
 -- Function: extensions.pgp_pub_decrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1165,7 +1190,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 
 -- Function: extensions.pgp_pub_decrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1189,7 +1214,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
 
 
 -- Function: extensions.pgp_pub_encrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1197,7 +1222,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$
 
 
 -- Function: extensions.pgp_pub_encrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1237,14 +1262,6 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$
 
 
 -- Function: extensions.pgp_sym_encrypt
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)
- RETURNS bytea
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
-
-
--- Function: extensions.pgp_sym_encrypt
 CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)
  RETURNS bytea
  LANGUAGE c
@@ -1252,8 +1269,16 @@ CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)
 AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
 
 
+-- Function: extensions.pgp_sym_encrypt
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)
+ RETURNS bytea
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
+
+
 -- Function: extensions.pgp_sym_encrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1261,7 +1286,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$
 
 
 -- Function: extensions.pgp_sym_encrypt_bytea
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1612,15 +1637,36 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
  SECURITY DEFINER
 AS $function$
 BEGIN
-    INSERT INTO public.users (id, email, full_name, created_at, updated_at)
-    VALUES (
-        NEW.id,
-        NEW.email,
-        NEW.raw_user_meta_data->>'full_name',
-        NOW(),
-        NOW()
-    );
-    RETURN NEW;
+  INSERT INTO public.users (id, email, full_name, is_active, created_at, updated_at)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    true,
+    NOW(),
+    NOW()
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    updated_at = NOW();
+  RETURN NEW;
+END;
+$function$
+
+
+-- Function: public.handle_user_update
+CREATE OR REPLACE FUNCTION public.handle_user_update()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+BEGIN
+  UPDATE public.users 
+  SET 
+    email = NEW.email,
+    updated_at = NOW()
+  WHERE id = NEW.id;
+  RETURN NEW;
 END;
 $function$
 
@@ -2861,6 +2907,9 @@ $function$
 
 -- Trigger: on_auth_user_created on auth.users
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user()
+
+-- Trigger: on_auth_user_updated on auth.users
+CREATE TRIGGER on_auth_user_updated AFTER UPDATE ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_user_update()
 
 -- Trigger: update_budget_on_invoice_approval on public.invoices
 CREATE TRIGGER update_budget_on_invoice_approval AFTER UPDATE OF status ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_project_budget_on_approval()
