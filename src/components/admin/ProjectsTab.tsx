@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Table, Space, Button, Modal, Form, Input, Switch, message } from 'antd'
+import { Table, Space, Button, Modal, Form, Input, Switch, message, Popconfirm } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { supabase, type Project } from '../../lib/supabase'
@@ -78,6 +78,75 @@ export const ProjectsTab = () => {
     } catch (error: any) {
       console.error('[ProjectsTab.handleSubmit] Error:', error)
       message.error(error.message || 'Ошибка сохранения проекта')
+    }
+  }
+
+  const handleDeleteWithPopconfirm = async (id: number) => {
+    console.log('[ProjectsTab.handleDeleteWithPopconfirm] Starting deletion for project:', id)
+
+    if (!id) {
+      console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error: Project ID is undefined or null')
+      message.error('Ошибка: ID проекта не определен')
+      return
+    }
+
+    try {
+      // Сначала проверим, есть ли связи с пользователями
+      console.log('[ProjectsTab.handleDeleteWithPopconfirm] Checking user associations for project:', id)
+      const { data: associations, error: checkError } = await supabase
+        .from('user_projects')
+        .select('*')
+        .eq('project_id', id)
+
+      console.log('[ProjectsTab.handleDeleteWithPopconfirm] Found associations:', associations)
+
+      if (checkError) {
+        console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error checking associations:', checkError)
+      }
+
+      // Удаляем все связи пользователей с этим проектом
+      if (associations && associations.length > 0) {
+        console.log('[ProjectsTab.handleDeleteWithPopconfirm] Removing user associations for project:', id)
+        const { data: deleteData, error: userProjectsError } = await supabase
+          .from('user_projects')
+          .delete()
+          .eq('project_id', id)
+          .select()
+
+        console.log('[ProjectsTab.handleDeleteWithPopconfirm] Deleted associations:', deleteData)
+
+        if (userProjectsError) {
+          console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error removing user associations:', userProjectsError)
+          throw userProjectsError
+        }
+      }
+
+      // Теперь удаляем сам проект
+      console.log('[ProjectsTab.handleDeleteWithPopconfirm] Removing project:', id)
+      const { data: deletedProject, error: projectError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id)
+        .select()
+
+      console.log('[ProjectsTab.handleDeleteWithPopconfirm] Deleted project result:', deletedProject)
+
+      if (projectError) {
+        console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error removing project:', projectError)
+        throw projectError
+      }
+
+      if (!deletedProject || deletedProject.length === 0) {
+        console.log('[ProjectsTab.handleDeleteWithPopconfirm] Warning: No project was deleted')
+        throw new Error('Проект не был удален. Возможно, у вас нет прав на удаление.')
+      }
+
+      console.log('[ProjectsTab.handleDeleteWithPopconfirm] Project successfully deleted, reloading projects list')
+      message.success('Проект удален')
+      await loadProjects()
+    } catch (error: any) {
+      console.error('[ProjectsTab.handleDeleteWithPopconfirm] Full error object:', error)
+      message.error(error.message || 'Ошибка удаления проекта')
     }
   }
 
@@ -227,16 +296,30 @@ export const ProjectsTab = () => {
             size="small"
             onClick={() => handleEdit(record)}
           />
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            danger
-            onClick={() => {
-              console.log('[ProjectsTab.Button.onClick] Delete button clicked for record:', record)
-              console.log('[ProjectsTab.Button.onClick] Project ID:', record.id)
-              handleDelete(record.id)
+          <Popconfirm
+            title="Удалить проект?"
+            description="Это действие нельзя отменить. Все пользователи будут отвязаны от этого проекта."
+            onConfirm={() => {
+              console.log('[ProjectsTab.Popconfirm.onConfirm] User confirmed deletion for project:', record.id)
+              handleDeleteWithPopconfirm(record.id)
             }}
-          />
+            onCancel={() => {
+              console.log('[ProjectsTab.Popconfirm.onCancel] User cancelled deletion for project:', record.id)
+            }}
+            okText="Удалить"
+            cancelText="Отмена"
+            okButtonProps={{ danger: true }}
+          >
+            <Button
+              icon={<DeleteOutlined />}
+              size="small"
+              danger
+              onClick={() => {
+                console.log('[ProjectsTab.Button.onClick] Delete button clicked for record:', record)
+                console.log('[ProjectsTab.Button.onClick] Project ID:', record.id)
+              }}
+            />
+          </Popconfirm>
         </Space>
       )
     }
