@@ -1,0 +1,494 @@
+[
+  {
+    "table": "public.contractor_types",
+    "summary": "Dictionary of contractor categories used to classify payments and obligations.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('contractor_types_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate primary key."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Short machine code of contractor type."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Human friendly type name."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional operator facing description."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp (default now())."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Audit timestamp updated by trigger before UPDATE."
+      }
+    ]
+  },
+  {
+    "table": "public.contractors",
+    "summary": "Registered contractors with type, tax id and authoring user.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('contractors_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate primary key."
+      },
+      {
+        "name": "type_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.contractor_types.id",
+        "note": "FK to contractor_types.id that classifies the contractor."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Full legal name or personal name."
+      },
+      {
+        "name": "inn",
+        "type": "varchar(12)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Russian tax id (12 digits for sole proprietors/legal entities)."
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "auth.users.id of the user who created the record."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed by update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.invoices",
+    "summary": "Outbound invoices tracked by PayHub with amount, status and owner.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "uuid_generate_v4()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Invoice UUID."
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "auth.users.id that owns the invoice."
+      },
+      {
+        "name": "invoice_number",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "External reference or invoice number."
+      },
+      {
+        "name": "amount",
+        "type": "numeric(10,2)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Total amount in settlement currency."
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "nullable": false,
+        "default": "'draft'::text",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Workflow status label."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional narrative description."
+      },
+      {
+        "name": "due_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Payment due date."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ]
+  },
+  {
+    "table": "public.projects",
+    "summary": "Projects that group invoices and contractors for reporting.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('projects_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate primary key."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional unique project code."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Project name."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Project description for internal teams."
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "default": "true",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Activity flag, defaults to true."
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "auth.users.id that created the project."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ]
+  },
+  {
+    "table": "public.roles",
+    "summary": "Access roles managed inside PayHub.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('roles_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Role primary key."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Unique role code."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Display name of the role."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional usage notes."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ]
+  },
+  {
+    "table": "public.user_profiles",
+    "summary": "User profile mirror for Supabase auth users.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "Primary key and FK to auth.users.id."
+      },
+      {
+        "name": "email",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "User email."
+      },
+      {
+        "name": "full_name",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Display name for UI."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ]
+  },
+  {
+    "table": "public.user_projects",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('user_projects_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ]
+  }
+]

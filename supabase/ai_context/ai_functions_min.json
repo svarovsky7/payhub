@@ -1,0 +1,12 @@
+[
+  {
+    "function": "public.handle_new_user()",
+    "returns": "trigger",
+    "summary": "Provision user_profiles row when a Supabase auth user is created."
+  },
+  {
+    "function": "public.update_updated_at_column()",
+    "returns": "trigger",
+    "summary": "BEFORE UPDATE trigger that stamps NEW.updated_at with now()."
+  }
+]

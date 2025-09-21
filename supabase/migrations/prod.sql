@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-21T08:11:20.830649
+-- Generated: 2025-09-21T08:20:23.071877
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -109,6 +109,18 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     CONSTRAINT user_profiles_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS public.user_projects (
+    id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),
+    user_id uuid NOT NULL,
+    project_id integer(32) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT user_projects_pkey PRIMARY KEY (id),
+    CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
+    CONSTRAINT user_projects_unique UNIQUE (project_id),
+    CONSTRAINT user_projects_unique UNIQUE (user_id),
+    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)
+);
+
 
 -- FUNCTIONS
 -- ============================================
@@ -209,4 +221,13 @@ CREATE UNIQUE INDEX roles_code_key ON public.roles USING btree (code)
 ;
 
 CREATE UNIQUE INDEX user_profiles_email_key ON public.user_profiles USING btree (email)
+;
+
+CREATE INDEX idx_user_projects_project_id ON public.user_projects USING btree (project_id)
+;
+
+CREATE INDEX idx_user_projects_user_id ON public.user_projects USING btree (user_id)
+;
+
+CREATE UNIQUE INDEX user_projects_unique ON public.user_projects USING btree (user_id, project_id)
 ;

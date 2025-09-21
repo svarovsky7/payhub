@@ -1,0 +1,940 @@
+[
+  {
+    "table": "public.contractor_types",
+    "summary": "Dictionary of contractor categories used to classify payments and obligations.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('contractor_types_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate primary key."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Short machine code of contractor type."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Human friendly type name."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional operator facing description."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp (default now())."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Audit timestamp updated by trigger before UPDATE."
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "contractor_types_code_key",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_18391_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18391_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18391_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "contractor_types_code_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX contractor_types_code_key ON public.contractor_types USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "idx_contractor_types_code",
+        "unique": false,
+        "definition": "CREATE INDEX idx_contractor_types_code ON public.contractor_types USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_contractor_types_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.contractors",
+    "summary": "Registered contractors with type, tax id and authoring user.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('contractors_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate primary key."
+      },
+      {
+        "name": "type_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.contractor_types.id",
+        "note": "FK to contractor_types.id that classifies the contractor."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Full legal name or personal name."
+      },
+      {
+        "name": "inn",
+        "type": "varchar(12)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Russian tax id (12 digits for sole proprietors/legal entities)."
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "auth.users.id of the user who created the record."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed by update_updated_at_column()."
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "created_by",
+        "references": "auth.users.id",
+        "description": "Authoring Supabase user."
+      },
+      {
+        "column": "type_id",
+        "references": "public.contractor_types.id",
+        "description": "Contractor category reference."
+      }
+    ],
+    "unique_constraints": [
+      {
+        "name": "contractors_inn_key",
+        "columns": [
+          "inn"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_18404_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18404_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18404_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "contractors_inn_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX contractors_inn_key ON public.contractors USING btree (inn)",
+        "columns": [
+          "inn"
+        ]
+      },
+      {
+        "name": "idx_contractors_inn",
+        "unique": false,
+        "definition": "CREATE INDEX idx_contractors_inn ON public.contractors USING btree (inn)",
+        "columns": [
+          "inn"
+        ]
+      },
+      {
+        "name": "idx_contractors_type_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)",
+        "columns": [
+          "type_id"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_contractors_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.invoices",
+    "summary": "Outbound invoices tracked by PayHub with amount, status and owner.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "uuid_generate_v4()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Invoice UUID."
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "auth.users.id that owns the invoice."
+      },
+      {
+        "name": "invoice_number",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "External reference or invoice number."
+      },
+      {
+        "name": "amount",
+        "type": "numeric(10,2)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Total amount in settlement currency."
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "nullable": false,
+        "default": "'draft'::text",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Workflow status label."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional narrative description."
+      },
+      {
+        "name": "due_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Payment due date."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "user_id",
+        "references": "auth.users.id",
+        "description": "Invoice owner."
+      }
+    ],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "2200_18252_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18252_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18252_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18252_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18252_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "invoices_amount_check",
+        "definition": null
+      },
+      {
+        "name": "invoices_status_check",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_invoices_created_at",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_created_at ON public.invoices USING btree (created_at DESC)",
+        "columns": [
+          "created_at DESC"
+        ]
+      },
+      {
+        "name": "idx_invoices_status",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_status ON public.invoices USING btree (status)",
+        "columns": [
+          "status"
+        ]
+      },
+      {
+        "name": "idx_invoices_user_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)",
+        "columns": [
+          "user_id"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_invoices_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.projects",
+    "summary": "Projects that group invoices and contractors for reporting.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('projects_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate primary key."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional unique project code."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Project name."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Project description for internal teams."
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "default": "true",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Activity flag, defaults to true."
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "auth.users.id that created the project."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "created_by",
+        "references": "auth.users.id",
+        "description": "User that registered the project."
+      }
+    ],
+    "unique_constraints": [
+      {
+        "name": "projects_code_key",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_18372_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18372_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_projects_code",
+        "unique": false,
+        "definition": "CREATE INDEX idx_projects_code ON public.projects USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "idx_projects_is_active",
+        "unique": false,
+        "definition": "CREATE INDEX idx_projects_is_active ON public.projects USING btree (is_active)",
+        "columns": [
+          "is_active"
+        ]
+      },
+      {
+        "name": "projects_code_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX projects_code_key ON public.projects USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_projects_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.roles",
+    "summary": "Access roles managed inside PayHub.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('roles_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Role primary key."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Unique role code."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Display name of the role."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional usage notes."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "roles_code_key",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_18359_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18359_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18359_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_roles_code",
+        "unique": false,
+        "definition": "CREATE INDEX idx_roles_code ON public.roles USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "roles_code_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX roles_code_key ON public.roles USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_roles_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.user_profiles",
+    "summary": "User profile mirror for Supabase auth users.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "Primary key and FK to auth.users.id."
+      },
+      {
+        "name": "email",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "User email."
+      },
+      {
+        "name": "full_name",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Display name for UI."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "id",
+        "references": "auth.users.id",
+        "description": "Profile mirrors Supabase auth user."
+      }
+    ],
+    "unique_constraints": [
+      {
+        "name": "user_profiles_email_key",
+        "columns": [
+          "email"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_18236_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18236_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18236_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "user_profiles_email_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX user_profiles_email_key ON public.user_profiles USING btree (email)",
+        "columns": [
+          "email"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_user_profiles_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.user_projects",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('user_projects_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "user_projects_unique",
+        "columns": [
+          "project_id"
+        ]
+      },
+      {
+        "name": "user_projects_unique",
+        "columns": [
+          "user_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_18517_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18517_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18517_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_user_projects_project_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_user_projects_project_id ON public.user_projects USING btree (project_id)",
+        "columns": [
+          "project_id"
+        ]
+      },
+      {
+        "name": "idx_user_projects_user_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_user_projects_user_id ON public.user_projects USING btree (user_id)",
+        "columns": [
+          "user_id"
+        ]
+      },
+      {
+        "name": "user_projects_unique",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX user_projects_unique ON public.user_projects USING btree (user_id, project_id)",
+        "columns": [
+          "user_id",
+          "project_id"
+        ]
+      }
+    ],
+    "triggers": []
+  }
+]

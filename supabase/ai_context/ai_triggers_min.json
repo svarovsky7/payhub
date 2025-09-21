@@ -1,0 +1,68 @@
+[
+  {
+    "table": "public.contractor_types",
+    "trigger": "update_contractor_types_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.contractors",
+    "trigger": "update_contractors_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.invoices",
+    "trigger": "update_invoices_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.projects",
+    "trigger": "update_projects_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.roles",
+    "trigger": "update_roles_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.user_profiles",
+    "trigger": "update_user_profiles_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  }
+]

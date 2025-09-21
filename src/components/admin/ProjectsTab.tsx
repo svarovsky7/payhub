@@ -85,23 +85,41 @@ export const ProjectsTab = () => {
     console.log('[ProjectsTab.handleDelete] Deleting project:', id)
     Modal.confirm({
       title: 'Удалить проект?',
-      content: 'Это действие нельзя отменить',
+      content: 'Это действие нельзя отменить. Все пользователи будут отвязаны от этого проекта.',
       okText: 'Удалить',
       cancelText: 'Отмена',
       okType: 'danger',
       onOk: async () => {
         try {
-          const { error } = await supabase
+          // Сначала удаляем все связи пользователей с этим проектом
+          console.log('[ProjectsTab.handleDelete] Removing user associations for project:', id)
+          const { error: userProjectsError } = await supabase
+            .from('user_projects')
+            .delete()
+            .eq('project_id', id)
+
+          if (userProjectsError) {
+            console.error('[ProjectsTab.handleDelete] Error removing user associations:', userProjectsError)
+            throw userProjectsError
+          }
+
+          // Теперь удаляем сам проект
+          console.log('[ProjectsTab.handleDelete] Removing project:', id)
+          const { error: projectError } = await supabase
             .from('projects')
             .delete()
             .eq('id', id)
 
-          if (error) throw error
+          if (projectError) {
+            console.error('[ProjectsTab.handleDelete] Error removing project:', projectError)
+            throw projectError
+          }
+
           message.success('Проект удален')
           loadProjects()
-        } catch (error) {
+        } catch (error: any) {
           console.error('[ProjectsTab.handleDelete] Error:', error)
-          message.error('Ошибка удаления проекта')
+          message.error(error.message || 'Ошибка удаления проекта')
         }
       }
     })

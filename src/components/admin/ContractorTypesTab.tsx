@@ -82,12 +82,27 @@ export const ContractorTypesTab = () => {
     console.log('[ContractorTypesTab.handleDelete] Deleting type:', id)
     Modal.confirm({
       title: 'Удалить тип контрагента?',
-      content: 'Это действие нельзя отменить. Все контрагенты этого типа также будут затронуты.',
+      content: 'Это действие нельзя отменить. Для удаления типа не должно быть контрагентов с этим типом.',
       okText: 'Удалить',
       cancelText: 'Отмена',
       okType: 'danger',
       onOk: async () => {
         try {
+          // Проверяем, есть ли контрагенты с этим типом
+          const { data: contractors, error: checkError } = await supabase
+            .from('contractors')
+            .select('id')
+            .eq('type_id', id)
+            .limit(1)
+
+          if (checkError) throw checkError
+
+          if (contractors && contractors.length > 0) {
+            message.error('Невозможно удалить тип контрагента, так как существуют контрагенты с этим типом')
+            return
+          }
+
+          // Удаляем тип контрагента
           const { error } = await supabase
             .from('contractor_types')
             .delete()
@@ -96,9 +111,9 @@ export const ContractorTypesTab = () => {
           if (error) throw error
           message.success('Тип контрагента удален')
           loadContractorTypes()
-        } catch (error) {
+        } catch (error: any) {
           console.error('[ContractorTypesTab.handleDelete] Error:', error)
-          message.error('Ошибка удаления типа контрагента')
+          message.error(error.message || 'Ошибка удаления типа контрагента')
         }
       }
     })

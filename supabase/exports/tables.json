@@ -764,5 +764,119 @@
       }
     ],
     "sql": "CREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.user_projects": {
+    "schema": "public",
+    "name": "user_projects",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('user_projects_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18517_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18517_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18517_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_projects_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_projects_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_projects_unique",
+        "type": "UNIQUE",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_projects_unique",
+        "type": "UNIQUE",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_projects_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.user_projects (\n    id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),\n    user_id uuid NOT NULL,\n    project_id integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_projects_pkey PRIMARY KEY (id),\n    CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_unique UNIQUE (project_id),\n    CONSTRAINT user_projects_unique UNIQUE (user_id),\n    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);"
   }
 }

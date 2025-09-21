@@ -1,0 +1,26 @@
+[
+  {
+    "function": "public.handle_new_user()",
+    "returns": "trigger",
+    "summary": "Provision user_profiles row when a Supabase auth user is created.",
+    "details": "Inserts email and full_name (from raw_user_meta_data) into public.user_profiles and returns NEW.",
+    "tables_touched": [
+      "public.user_profiles"
+    ],
+    "side_effects": [
+      "INSERT"
+    ],
+    "source": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  INSERT INTO public.user_profiles (id, email, full_name)\n  VALUES (\n    NEW.id,\n    NEW.email,\n    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email)\n  );\n  RETURN NEW;\nEND;\n$function$"
+  },
+  {
+    "function": "public.update_updated_at_column()",
+    "returns": "trigger",
+    "summary": "BEFORE UPDATE trigger that stamps NEW.updated_at with now().",
+    "details": "Mutates the NEW record to keep updated_at current; reused across catalog tables.",
+    "tables_touched": [],
+    "side_effects": [
+      "MUTATE NEW"
+    ],
+    "source": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n$function$"
+  }
+]
