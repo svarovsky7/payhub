@@ -5,13 +5,14 @@ import type { UploadFile, UploadProps } from 'antd/es/upload/interface'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
-import type { Contractor, Project, InvoiceType, InvoiceStatus } from '../../lib/supabase'
+import type { Contractor, Project, InvoiceType, InvoiceStatus, Invoice } from '../../lib/supabase'
 
 // Принудительно активируем русскую локаль для dayjs
 dayjs.locale('ru')
 
 interface InvoiceFormModalProps {
   isVisible: boolean
+  editingInvoice?: Invoice | null
   onClose: () => void
   onSubmit: (values: any, files: UploadFile[]) => void
   form: any
@@ -39,6 +40,7 @@ interface InvoiceFormModalProps {
 
 export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   isVisible,
+  editingInvoice,
   onClose,
   onSubmit,
   form,
@@ -159,7 +161,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   return (
     <>
       <Modal
-        title="Создать счёт"
+        title={editingInvoice ? "Редактировать счёт" : "Создать счёт"}
         open={isVisible}
         onCancel={onClose}
         footer={null}
@@ -267,6 +269,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
             </Form.Item>
           </Col>
         </Row>
+
 
         <Row gutter={16}>
           <Col span={8}>
@@ -392,7 +395,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           <Space>
             <Button onClick={onClose}>Отмена</Button>
             <Button type="primary" htmlType="submit">
-              Создать
+              {editingInvoice ? 'Сохранить' : 'Создать'}
             </Button>
           </Space>
         </Form.Item>

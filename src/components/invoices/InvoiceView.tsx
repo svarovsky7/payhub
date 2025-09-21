@@ -8,11 +8,10 @@ import {
   Divider,
   Typography,
   FloatButton,
-  Tabs,
   Modal,
   message
 } from 'antd'
-import { SaveOutlined, CloseOutlined, EditOutlined, ArrowLeftOutlined, DollarOutlined } from '@ant-design/icons'
+import { SaveOutlined, CloseOutlined, ArrowLeftOutlined, DollarOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus, Payment, PaymentType, PaymentStatus } from '../../lib/supabase'
@@ -84,8 +83,8 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null)
   const [editingPaymentFiles, setEditingPaymentFiles] = useState<any[]>([])
 
-  // Получаем активную вкладку из URL, по умолчанию 'main'
-  const activeTab = searchParams.get('tab') || 'main'
+  // Теперь всегда показываем только вкладку с файлами
+  const activeTab = 'attachments'
 
   // VAT calculation states
   const [amountWithVat, setAmountWithVat] = useState<number>(invoice.amount_with_vat || 0)
@@ -410,50 +409,13 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
             </Button>
             <Divider type="vertical" />
             <Title level={4} style={{ margin: 0 }}>
-              Счет № {invoice.invoice_number} от {invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString('ru-RU') : '-'}
+              Файлы счёта № {invoice.invoice_number} ({attachments.length})
             </Title>
           </Space>
         }
-        extra={
-          !isEditing && (
-            <Button
-              icon={<EditOutlined />}
-              onClick={() => setIsEditing(true)}
-            >
-              Редактировать
-            </Button>
-          )
-        }
       >
-        <Tabs
-          activeKey={activeTab}
-          onChange={(key) => {
-            // Обновляем URL с новой вкладкой
-            setSearchParams({ tab: key })
-          }}
-          items={[
-            {
-              key: 'main',
-              label: 'Основная информация',
-              children: mainInfoTab
-            },
-            {
-              key: 'payments',
-              label: (
-                <Space>
-                  <DollarOutlined />
-                  Платежи ({payments.length})
-                </Space>
-              ),
-              children: paymentsTab
-            },
-            {
-              key: 'attachments',
-              label: `Прикрепленные файлы (${attachments.length})`,
-              children: attachmentsTab
-            }
-          ]}
-        />
+        {/* Показываем только содержимое вкладки с файлами без самих вкладок */}
+        {attachmentsTab}
       </Card>
 
       {/* Плавающие кнопки при наличии изменений */}

@@ -18,7 +18,7 @@ npm run preview   # Preview production build locally
 ## Architecture
 
 ### Technology Stack
-- **React 19.1** - UI framework
+- **React 19.1** - UI framework with React 19 compatibility patch for Ant Design
 - **TypeScript 5.8** - Type safety with strict mode
 - **Vite 7.1** - Build tool and dev server
 - **ESLint 9** - Code quality
@@ -31,7 +31,7 @@ npm run preview   # Preview production build locally
 ```
 src/
 ├── components/
-│   ├── admin/              # Admin panel tabs
+│   ├── admin/                      # Admin panel tabs
 │   │   ├── UsersTab.tsx
 │   │   ├── RolesTab.tsx
 │   │   ├── ProjectsTab.tsx
@@ -39,24 +39,40 @@ src/
 │   │   ├── ContractorTypesTab.tsx
 │   │   ├── InvoiceTypesTab.tsx
 │   │   └── InvoiceStatusesTab.tsx
-│   ├── invoices/           # Invoice components
-│   │   ├── InvoiceFormModal.tsx    # Create invoice modal
-│   │   └── InvoiceView.tsx         # View/edit invoice with tabs
-│   ├── Layout.tsx          # Main app layout with navigation
-│   └── ProtectedRoute.tsx  # Authentication guard
+│   ├── invoices/                   # Invoice components
+│   │   ├── InvoiceFormModal.tsx    # Create/edit invoice modal
+│   │   ├── InvoiceView.tsx         # View invoice with tabs
+│   │   ├── InvoiceMainTab.tsx      # Main invoice info tab
+│   │   ├── InvoicePaymentsTab.tsx  # Payments management tab
+│   │   ├── InvoiceAttachmentsTab.tsx # File attachments tab
+│   │   ├── PaymentFormModal.tsx    # Payment creation/edit modal
+│   │   ├── QuickPaymentDrawer.tsx  # Quick payment entry drawer
+│   │   └── InvoiceTableColumns.tsx # Table column definitions
+│   ├── Layout.tsx                  # Main app layout with navigation
+│   └── ProtectedRoute.tsx          # Authentication guard
 ├── contexts/
-│   └── AuthContext.tsx     # Authentication state management
+│   └── AuthContext.tsx             # Authentication state management
+├── hooks/                          # Custom React hooks
+│   ├── useInvoiceManagement.ts     # Invoice CRUD operations
+│   ├── usePaymentManagement.ts     # Payment CRUD operations
+│   └── useInvoiceForm.ts           # Invoice form logic
+├── services/                       # Business logic services
+│   ├── invoiceOperations.ts        # Invoice service functions
+│   └── paymentOperations.ts        # Payment service functions
 ├── lib/
-│   └── supabase.ts         # Supabase client configuration
+│   └── supabase.ts                 # Supabase client and type definitions
 ├── pages/
-│   ├── AuthPage.tsx        # Login/registration
-│   ├── InvoicesPage.tsx    # Invoice management
-│   └── AdminPage.tsx       # Admin dashboard with tabs
+│   ├── AuthPage.tsx                # Login/registration
+│   ├── InvoicesPage.tsx            # Invoice management
+│   └── AdminPage.tsx               # Admin dashboard with tabs
 ├── utils/
-│   ├── invoiceHelpers.ts   # Invoice calculations and date utilities
-│   └── storageDebug.ts     # Storage debugging utilities
-├── App.tsx                 # Main routing configuration
-└── main.tsx               # Application entry point
+│   ├── invoiceHelpers.ts           # Invoice calculations and date utilities
+│   ├── invoiceFilters.ts           # Invoice filtering logic
+│   ├── vatCalculator.ts            # VAT calculation utilities
+│   └── storageDebug.ts             # Storage debugging utilities
+├── styles/                         # CSS styles
+├── App.tsx                         # Main routing configuration
+└── main.tsx                       # Application entry point
 ```
 
 ### Routing Structure
@@ -116,9 +132,12 @@ PostgreSQL database via Supabase with the following core tables:
 
 ### Main Tables
 - **user_profiles** - User information linked to auth.users
-- **invoices** - Invoice records with status tracking
+- **invoices** - Invoice records with status tracking and payment details
 - **invoice_types** - Invoice type categories
 - **invoice_statuses** - Invoice status definitions (default: draft)
+- **payments** - Payment records linked to invoices
+- **payment_types** - Payment type categories
+- **payment_statuses** - Payment status definitions
 - **projects** - Project management
 - **contractors** - Contractor records with INN validation
 - **contractor_types** - Contractor categories
@@ -126,6 +145,7 @@ PostgreSQL database via Supabase with the following core tables:
 - **user_projects** - Many-to-many relationship between users and projects
 - **attachments** - File storage metadata
 - **invoice_attachments** - Many-to-many relationship between invoices and attachments
+- **invoice_payments** - Link between invoices and payments with allocation amounts
 
 ### Database Features
 - Auto-updating `updated_at` timestamps via triggers
@@ -133,6 +153,7 @@ PostgreSQL database via Supabase with the following core tables:
 - Unique constraints on codes, emails, and INN
 - Indexes on frequently queried columns
 - Foreign key relationships maintained
+- Cascade deletion for related records
 
 Database schema is in `supabase/migrations/prod.sql`
 
@@ -180,6 +201,16 @@ When developing and debugging functionality, always add detailed logging to the 
 
 ## Key Integration Patterns
 
+### Custom Hooks Architecture
+- **useInvoiceManagement** - Handles all invoice CRUD operations
+- **usePaymentManagement** - Manages payment operations for invoices
+- **useInvoiceForm** - Form logic for invoice creation and editing
+
+### Service Layer
+- **invoiceOperations.ts** - Core invoice business logic
+- **paymentOperations.ts** - Payment processing logic
+- Separation of concerns between hooks (React state) and services (business logic)
+
 ### File Upload and Storage
 - Files are stored in Supabase Storage bucket `attachments`
 - Storage path pattern: `invoices/{invoice_id}/{timestamp}_{filename}`
@@ -190,10 +221,11 @@ When developing and debugging functionality, always add detailed logging to the 
 ### Invoice Management
 - Invoice creation modal: `InvoiceFormModal`
 - Invoice view/edit: `InvoiceView` with tabbed interface
-- Tabs include "Основная информация" and "Прикрепленные файлы"
+- Tabs: "Основная информация", "Платежи", "Прикрепленные файлы"
 - Tab routing persists in URL via query parameters
 - VAT calculations: automatic based on amount and rate
 - Delivery date calculations: supports working/calendar days
+- Payment tracking with multiple payment support per invoice
 
 ### UI/UX Patterns
 - Floating action buttons for save/cancel operations
@@ -201,6 +233,8 @@ When developing and debugging functionality, always add detailed logging to the 
 - Russian localization throughout the interface
 - Ant Design message component for notifications
 - App.useApp() hook for React 19 modal compatibility
+- Drawer components for quick actions (payments)
+- Inline expandable tables for related data
 
 ## Getting Started
 

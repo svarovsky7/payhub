@@ -1,23 +1,19 @@
-# Repository Guidelines
+﻿# Repository Guidelines
 
-## Project Structure & Module Organization
-PayHub is a Vite + React + TypeScript app. `src/` holds all client code; features live in scoped folders (e.g., `src/pages/InvoicesPage.tsx`). `src/main.tsx` just wires providers and must stay slim. Shared assets go in `src/assets/`; static files that ship verbatim live in `public/`. Supabase SQL and metadata sit in `supabase/`. Keep experiments out of `dist/`, which is generated. Place new tests alongside components as `Component.test.tsx` once Vitest lands.
+## Структура проекта и организация модулей
+PayHub построен на Vite + React + TypeScript. Основной код хранится в `src/`; страницы располагаются по схеме `src/pages/InvoicesPage.tsx`, а переиспользуемые модули — в тематических подпапках (`src/components/`, `src/hooks/`). Провайдеры подключаются в `src/main.tsx`, держите файл минимальным. Общие ассеты лежат в `src/assets/`, статический контент публикуется через `public/`. SQL-скрипты и метаданные Supabase находятся в `supabase/`; избегайте ручных миграций вне этой папки.
 
-## Build, Test, and Development Commands
-- `npm install` syncs dependencies after lockfile changes.
-- `npm run dev` launches Vite on `http://localhost:5173` for live reload.
-- `npm run build` runs `tsc -b` then emits production assets to `dist/`.
-- `npm run preview` serves the built bundle for smoke checks.
-- `npm run lint` executes ESLint across `.ts/.tsx`; fix or justify warnings before PR.
+## Сборка, тесты и разработка
+`npm run dev` запускает Vite на `http://localhost:5173` для локальной разработки. `npm run build` вызывает `tsc -b` и собирает продакшн-пакет в `dist/`. `npm run preview` проверяет собранный бандл, `npm run lint` прогоняет ESLint по `.ts/.tsx`. После обновления зависимостей не забудьте `npm install`.
 
-## Coding Style & Naming Conventions
-Use function components with PascalCase filenames (`PaymentPanel.tsx`), hooks/utilities in camelCase (`useInvoices.ts`). Stick to 2-space indentation, single quotes, and trailing commas. Order imports: external packages, absolute aliases, then relatives. Keep styles near components in `.css` files and namespace selectors (`ph-dashboard__header`).  All user-facing copy must stay in Russian (ru-RU); do not introduce other locales without explicit approval.
+## Стиль кода и соглашения об именовании
+Используйте функциональные компоненты с PascalCase (`PaymentPanel.tsx`), для хуков и утилит — camelCase (`useInvoices.ts`). Отступ — 2 пробела, строки со строковыми литералами в одинарных кавычках и с завершающими запятыми. Импорты: внешние пакеты, затем абсолютные алиасы, затем относительные пути. ESLint-конфигурация считается источником истины; исправляйте или обосновывайте предупреждения до коммита.
 
-## Testing Guidelines
-Vitest plus React Testing Library are the planned stack; do not add alternative frameworks. Follow `Component.test.tsx` naming. Until tests exist, document manual verification in PRs (flows, edge cases). Target ?80% coverage for core flows once the suite is configured.
+## Руководство по тестированию
+Целевая связка — Vitest + React Testing Library. Размещайте тесты рядом с компонентами в формате `Component.test.tsx`. До появления автотестов фиксируйте ручные проверки в описании PR. Для ключевых потоков стремитесь к покрытию ≥80%.
 
-## Security & Configuration Tips
-Store environment secrets in `.env`. Supabase credentials live under `VITE_` prefixes�never log them. Keep `supabase/ai_context` files authoritative for schema info; avoid ad-hoc SQL outside migrations.
+## Коммиты и pull request'ы
+Используйте Conventional Commits (`feat:`, `fix:`, `chore:`) и группируйте изменения логически. В PR добавляйте краткое описание, ссылку на задачу и результаты ручного тестирования; при изменении UI прикладывайте скриншоты. Отмечайте риски деплоя и последующие действия, чтобы команда могла планировать работу.
 
-## Commit & Pull Request Guidelines
-Adopt Conventional Commits (`feat:`, `fix:`, `chore:`). Keep commits focused and buildable. PRs need a clear summary, linked ticket, manual test notes, and UI captures when visuals change. Surface deployment risks and follow-up tasks so the roadmap stays transparent.
+## Безопасность и конфигурация
+Секреты храните в `.env` под префиксами `VITE_`; не логируйте Supabase-ключи. Обновления схемы выполняйте через файлы в `supabase/ai_context`, избегая разрозненных SQL-запросов в коде.
