@@ -513,6 +513,146 @@
     ],
     "sql": "-- Связь между счетами и прикрепленными файлами\nCREATE TABLE IF NOT EXISTS public.invoice_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_attachments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_attachments IS 'Связь между счетами и прикрепленными файлами';"
   },
+  "public.invoice_payments": {
+    "schema": "public",
+    "name": "invoice_payments",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "invoice_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "payment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "allocated_amount",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 15,
+        "numeric_scale": 2,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_19891_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19891_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19891_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19891_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoice_payments_invoice_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "invoice_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoice_payments_invoice_id_payment_id_key",
+        "type": "UNIQUE",
+        "column": "invoice_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoice_payments_invoice_id_payment_id_key",
+        "type": "UNIQUE",
+        "column": "payment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoice_payments_payment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoice_payments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "positive_allocated_amount",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.invoice_payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_id uuid NOT NULL,\n    allocated_amount numeric(15,2) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT invoice_payments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)\n);"
+  },
   "public.invoice_statuses": {
     "schema": "public",
     "name": "invoice_statuses",
@@ -1074,6 +1214,576 @@
       }
     ],
     "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key and external identifier of the invoice.';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who owns or issued the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number visible to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer facing note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor (public.contractors.id) acting as payer.';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor (public.contractors.id) acting as supplier.';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Associated project (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice amount (percent).';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice total amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Delivery day interpretation: working or calendar.';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Invoice workflow status (public.invoice_statuses.id).';"
+  },
+  "public.payment_attachments": {
+    "schema": "public",
+    "name": "payment_attachments",
+    "comment": "Связь между платежами и прикрепленными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "payment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "ID платежа"
+      },
+      {
+        "name": "attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "ID прикрепленного файла"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_19998_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19998_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19998_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_attachments_attachment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_attachments_payment_id_attachment_id_key",
+        "type": "UNIQUE",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_attachments_payment_id_attachment_id_key",
+        "type": "UNIQUE",
+        "column": "payment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_attachments_payment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_attachments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Связь между платежами и прикрепленными файлами\nCREATE TABLE IF NOT EXISTS public.payment_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_attachments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.payment_attachments IS 'Связь между платежами и прикрепленными файлами';\nCOMMENT ON COLUMN public.payment_attachments.payment_id IS 'ID платежа';\nCOMMENT ON COLUMN public.payment_attachments.attachment_id IS 'ID прикрепленного файла';"
+  },
+  "public.payment_statuses": {
+    "schema": "public",
+    "name": "payment_statuses",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('payment_statuses_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "color",
+        "data_type": "character varying",
+        "max_length": 20,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_19825_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19825_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19825_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_statuses_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_statuses_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.payment_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('payment_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    sort_order integer(32),\n    color character varying(20),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_statuses_code_key UNIQUE (code),\n    CONSTRAINT payment_statuses_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.payment_types": {
+    "schema": "public",
+    "name": "payment_types",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('payment_types_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_19838_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19838_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19838_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_types_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_types_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.payment_types (\n    id integer(32) NOT NULL DEFAULT nextval('payment_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_types_code_key UNIQUE (code),\n    CONSTRAINT payment_types_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.payments": {
+    "schema": "public",
+    "name": "payments",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "invoice_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "payment_number",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('payment_number_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "payment_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "CURRENT_DATE",
+        "comment": null
+      },
+      {
+        "name": "amount",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 15,
+        "numeric_scale": 2,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "payment_type_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "status_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "1",
+        "comment": null
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_19851_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19851_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19851_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19851_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_19851_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payments_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payments_invoice_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "invoice_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payments_payment_number_key",
+        "type": "UNIQUE",
+        "column": "payment_number",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payments_payment_type_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payment_type_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payments_status_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "status_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "positive_amount",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),\n    payment_date date NOT NULL DEFAULT CURRENT_DATE,\n    amount numeric(15,2) NOT NULL,\n    description text,\n    payment_type_id integer(32),\n    status_id integer(32) DEFAULT 1,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),\n    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),\n    CONSTRAINT payments_pkey PRIMARY KEY (id),\n    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);"
   },
   "public.projects": {
     "schema": "public",

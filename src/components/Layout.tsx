@@ -23,6 +23,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation()
   const { user, signOut } = useAuth()
 
+  const userFullName = (user?.user_metadata?.full_name ?? user?.user_metadata?.fullName ?? "").toString().trim()
+  const userEmail = (user?.email ?? "").toString().trim()
+  const userDisplayName = userFullName && userEmail ? `${userFullName} (${userEmail})` : userFullName || userEmail
+
   const handleLogout = async () => {
     console.log('[MainLayout.handleLogout] Logging out')
     try {
@@ -111,7 +115,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Avatar icon={<UserOutlined />} />
-              <span>{user?.email}</span>
+              <span>{userDisplayName}</span>
             </div>
           </Dropdown>
         </Header>

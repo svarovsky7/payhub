@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Table, Space, Button, Modal, Form, Input, Select, message } from 'antd'
+import { Table, Space, Button, Modal, Form, Input, Select, message, App } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { supabase, type Contractor, type ContractorType } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
 export const ContractorsTab = () => {
+  const { message: messageApi, modal } = App.useApp()
   const [contractors, setContractors] = useState<Contractor[]>([])
   const [contractorTypes, setContractorTypes] = useState<ContractorType[]>([])
   const [loading, setLoading] = useState(false)
@@ -34,7 +35,7 @@ export const ContractorsTab = () => {
       setContractors(data || [])
     } catch (error) {
       console.error('[ContractorsTab.loadContractors] Error:', error)
-      message.error('Ошибка загрузки контрагентов')
+      messageApi.error('Ошибка загрузки контрагентов')
     } finally {
       setLoading(false)
     }
@@ -72,6 +73,32 @@ export const ContractorsTab = () => {
   const handleSubmit = async (values: any) => {
     console.log('[ContractorsTab.handleSubmit] Submitting:', values)
     try {
+      // Проверяем, существует ли контрагент с таким ИНН
+      if (values.inn) {
+        const { data: existingContractors, error: checkError } = await supabase
+          .from('contractors')
+          .select('id, name')
+          .eq('inn', values.inn)
+          .neq('id', editingContractor?.id || 0)
+
+        console.log('[ContractorsTab.handleSubmit] Check INN result:', { existingContractors, checkError })
+
+        if (!checkError && existingContractors && existingContractors.length > 0) {
+          const existingContractor = existingContractors[0]
+          console.log('[ContractorsTab.handleSubmit] INN already exists:', existingContractor)
+          messageApi.error(`Контрагент с ИНН ${values.inn} уже существует: ${existingContractor.name}`, 5)
+
+          // Также показываем ошибку под полем ИНН
+          form.setFields([
+            {
+              name: 'inn',
+              errors: [`ИНН уже используется компанией "${existingContractor.name}"`],
+            },
+          ])
+          return
+        }
+      }
+
       if (editingContractor) {
         const { error } = await supabase
           .from('contractors')
@@ -79,27 +106,27 @@ export const ContractorsTab = () => {
           .eq('id', editingContractor.id)
 
         if (error) throw error
-        message.success('Контрагент обновлен')
+        messageApi.success('Контрагент обновлен')
       } else {
         const { error } = await supabase
           .from('contractors')
           .insert([{ ...values, created_by: user?.id }])
 
         if (error) throw error
-        message.success('Контрагент создан')
+        messageApi.success('Контрагент создан')
       }
 
       setIsModalVisible(false)
       loadContractors()
     } catch (error: any) {
       console.error('[ContractorsTab.handleSubmit] Error:', error)
-      message.error(error.message || 'Ошибка сохранения контрагента')
+      messageApi.error(error.message || 'Ошибка сохранения контрагента')
     }
   }
 
   const handleDelete = async (id: number) => {
     console.log('[ContractorsTab.handleDelete] Deleting contractor:', id)
-    Modal.confirm({
+    modal.confirm({
       title: 'Удалить контрагента?',
       content: 'Это действие нельзя отменить',
       okText: 'Удалить',
@@ -113,11 +140,11 @@ export const ContractorsTab = () => {
             .eq('id', id)
 
           if (error) throw error
-          message.success('Контрагент удален')
+          messageApi.success('Контрагент удален')
           loadContractors()
         } catch (error) {
           console.error('[ContractorsTab.handleDelete] Error:', error)
-          message.error('Ошибка удаления контрагента')
+          messageApi.error('Ошибка удаления контрагента')
         }
       }
     })
@@ -125,9 +152,25 @@ export const ContractorsTab = () => {
 
   const handlePrefixClick = (prefix: string) => {
     const currentName = (form.getFieldValue('name') as string | undefined) || ''
-    const withoutExistingPrefix = currentName.replace(/^(ООО|ИП|АО)\s+/i, '').trim()
-    const nextValue = withoutExistingPrefix ? `${prefix} ${withoutExistingPrefix}` : prefix
+    // Удаляем существующий префикс и кавычки
+    const withoutExistingPrefix = currentName
+      .replace(/^(ООО|ИП|АО)\s+/i, '')
+      .replace(/[«»"]/g, '')
+      .trim()
+
+    let nextValue: string
+    if (prefix === 'ООО' || prefix === 'АО') {
+      // Для ООО и АО добавляем кавычки-ёлочки
+      nextValue = withoutExistingPrefix ? `${prefix} «${withoutExistingPrefix}»` : prefix
+    } else {
+      // Для ИП не добавляем кавычки
+      nextValue = withoutExistingPrefix ? `${prefix} ${withoutExistingPrefix}` : prefix
+    }
+
     form.setFieldsValue({ name: nextValue })
+
+    // Триггерим обновление значения формы для валидации
+    form.validateFields(['name'])
   }
 
   const getTypeName = (typeId: number) => {
@@ -219,25 +262,31 @@ export const ContractorsTab = () => {
           onFinish={handleSubmit}
         >
           <Form.Item
-            name="name"
             label="Название компании"
             rules={[{ required: true, message: 'Укажите название компании' }]}
           >
-            <Space direction="vertical" size={8} style={{ width: '100%' }}>
-              <Input />
-              <Space size={8} wrap>
-                {['ООО', 'ИП', 'АО'].map((prefix) => (
-                  <Button
-                    key={prefix}
-                    type="button"
-                    size="small"
-                    onClick={() => handlePrefixClick(prefix)}
-                  >
-                    {prefix}
-                  </Button>
-                ))}
-              </Space>
-            </Space>
+            <div>
+              <Form.Item
+                name="name"
+                noStyle
+              >
+                <Input placeholder="Введите название компании" />
+              </Form.Item>
+              <div style={{ marginTop: 8 }}>
+                <Space size={8} wrap>
+                  {['ООО', 'ИП', 'АО'].map((prefix) => (
+                    <Button
+                      key={prefix}
+                      size="small"
+                      onClick={() => handlePrefixClick(prefix)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {prefix}
+                    </Button>
+                  ))}
+                </Space>
+              </div>
+            </div>
           </Form.Item>
 
 
@@ -261,8 +310,21 @@ export const ContractorsTab = () => {
             rules={[
               { pattern: /^\d{10}$|^\d{12}$/, message: 'ИНН должен содержать 10 или 12 цифр' }
             ]}
+            validateTrigger="onBlur"
           >
-            <Input placeholder="10 или 12 цифр" maxLength={12} />
+            <Input
+              placeholder="10 или 12 цифр"
+              maxLength={12}
+              onChange={() => {
+                // Очищаем ошибку при изменении значения
+                form.setFields([
+                  {
+                    name: 'inn',
+                    errors: [],
+                  },
+                ])
+              }}
+            />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

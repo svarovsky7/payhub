@@ -128,3 +128,49 @@ export type InvoiceAttachment = {
   created_at: string
   attachment?: Attachment
 }
+
+export type PaymentStatus = {
+  id: number
+  code: string
+  name: string
+  description?: string
+  sort_order?: number
+  color?: string
+  created_at: string
+  updated_at: string
+}
+
+export type PaymentType = {
+  id: number
+  code: string
+  name: string
+  description?: string
+  created_at: string
+  updated_at: string
+}
+
+export type Payment = {
+  id: string
+  invoice_id: string
+  payment_number: number
+  payment_date: string
+  amount: number
+  description?: string
+  payment_type_id?: number
+  status_id: number
+  created_by?: string
+  created_at: string
+  updated_at: string
+  // Связанные объекты
+  payment_type?: PaymentType
+  payment_status?: PaymentStatus
+}
+
+export type InvoicePayment = {
+  id: string
+  invoice_id: string
+  payment_id: string
+  allocated_amount: number
+  created_at: string
+  payment?: Payment
+}

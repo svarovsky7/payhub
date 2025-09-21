@@ -1,12 +1,25 @@
 import fs from "fs"
 import path from "path"
 import crypto from "crypto"
+import { TextDecoder } from "util"
 
 const root = process.cwd()
 const exportsDir = path.join(root, "supabase", "exports")
 const aiDir = path.join(root, "supabase", "ai_context")
 
-const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, "utf8"))
+const utf8Decoder = new TextDecoder("utf-8")
+const cp866Decoder = new TextDecoder("ibm866")
+
+const readTextWithFallback = (filePath) => {
+  const buffer = fs.readFileSync(filePath)
+  let text = utf8Decoder.decode(buffer)
+  if (text.includes('�')) {
+    text = cp866Decoder.decode(buffer)
+  }
+  return text
+}
+
+const readJson = (filePath) => JSON.parse(readTextWithFallback(filePath))
 
 const tables = readJson(path.join(exportsDir, "tables.json"))
 const indexes = readJson(path.join(exportsDir, "indexes.json"))
@@ -180,6 +193,24 @@ const fkOverrides = {
 }
 
 const functionSummaries = {
+  "public.calculate_vat_amounts": {
+    summary: "Trigger helper that recalculates vat_amount and amount_without_vat before persisting invoices.",
+    details: "Runs as BEFORE INSERT/UPDATE trigger on public.invoices to derive vat_amount and amount_without_vat based on amount_with_vat and vat_rate.",
+    tablesTouched: ["public.invoices"],
+    sideEffects: ["SET NEW.vat_amount", "SET NEW.amount_without_vat"],
+  },
+  "public.delete_contractor_type": {
+    summary: "Safely deletes a contractor type if no contractors depend on it.",
+    details: "Counts rows in public.contractors referencing the type and returns JSON describing the result or blocking deletion.",
+    tablesTouched: ["public.contractors", "public.contractor_types"],
+    sideEffects: ["DELETE"],
+  },
+  "public.delete_project": {
+    summary: "Removes a project and cleans up user assignments in one call.",
+    details: "Deletes rows from public.user_projects for the project, then deletes the project itself; returns boolean indicating success.",
+    tablesTouched: ["public.user_projects", "public.projects"],
+    sideEffects: ["DELETE"],
+  },
   "public.handle_new_user": {
     summary: "Provision user_profiles row when a Supabase auth user is created.",
     details: "Inserts email and full_name (from raw_user_meta_data) into public.user_profiles and returns NEW.",
@@ -190,11 +221,11 @@ const functionSummaries = {
     summary: "BEFORE UPDATE trigger that stamps NEW.updated_at with now().",
     details: "Mutates the NEW record to keep updated_at current; reused across catalog tables.",
     tablesTouched: [],
-    sideEffects: ["MUTATE NEW"],
+    sideEffects: ["SET NEW.updated_at"],
   },
 }
 
-const formatType = (column) => {
+﻿const formatType = (column) => {
   const { data_type: dataType, max_length: maxLength, numeric_precision: precision, numeric_scale: scale } = column
   switch ((dataType || "").toLowerCase()) {
     case "character varying":
@@ -307,6 +338,7 @@ const buildColumn = (tableId, column, pkColumns) => {
   }
 }
 
+
 const tablesMin = []
 const tablesFull = []
 
@@ -409,7 +441,7 @@ for (const [tableId, overrides] of Object.entries(fkOverrides)) {
   }
 }
 
-const sqlExamples = `-- Seed invoice workflow statuses
+const sqlExamples = `-- Catalog seed data
 INSERT INTO public.invoice_statuses (code, name, description, sort_order)
 VALUES
   ('draft', 'Draft', 'New invoice waiting for details', 10),
@@ -417,40 +449,49 @@ VALUES
   ('paid', 'Paid', 'Payment received and reconciled', 30)
 ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description, sort_order = EXCLUDED.sort_order;
 
--- Seed invoice types
 INSERT INTO public.invoice_types (code, name, description)
 VALUES
   ('services', 'Services', 'Time & materials or professional services'),
   ('subscription', 'Subscription', 'Recurring SaaS or retainer billing')
 ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description;
 
--- Maintain contractor catalog
 INSERT INTO public.contractor_types (code, name, description)
 VALUES ('freelancer', 'Freelancer', 'Individual contractor')
 ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
 
--- Register payer and supplier contractors (updated_at is set by trigger)
+-- Core actors
 INSERT INTO public.contractors (type_id, name, inn, created_by)
 VALUES
   ((SELECT id FROM public.contractor_types WHERE code = 'freelancer'), 'Sole Proprietor John Doe', '123456789012', '00000000-0000-0000-0000-000000000001'),
   ((SELECT id FROM public.contractor_types WHERE code = 'freelancer'), 'PayHub Delivery LLC', '774512345678', '00000000-0000-0000-0000-000000000001')
 ON CONFLICT (inn) DO NOTHING;
 
--- Create a project shell for upcoming invoices
 INSERT INTO public.projects (code, name, description, created_by)
 VALUES ('PAY-001', 'PayHub rollout', 'Internal payment hub rollout', '00000000-0000-0000-0000-000000000001')
 ON CONFLICT (code) DO UPDATE SET updated_at = now();
 
--- Backfill a user profile (normally handle_new_user trigger does this)
 INSERT INTO public.user_profiles (id, email, full_name)
 VALUES ('00000000-0000-0000-0000-000000000002', 'user@example.com', 'Jane Operator')
 ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name;
 
--- Issue an invoice with VAT breakdown and workflow foreign keys
+-- Attach a supporting document
+INSERT INTO public.attachments (id, original_name, storage_path, size_bytes, mime_type, created_by)
+VALUES (
+  gen_random_uuid(),
+  'contract.pdf',
+  'invoices/contracts/contract.pdf',
+  524288,
+  'application/pdf',
+  '00000000-0000-0000-0000-000000000001'
+)
+ON CONFLICT (storage_path) DO NOTHING;
+
+-- Invoice write path (calculate_vat_amounts trigger populates VAT fields)
 INSERT INTO public.invoices (
   user_id,
   invoice_number,
   description,
+  invoice_date,
   due_date,
   payer_id,
   supplier_id,
@@ -459,16 +500,14 @@ INSERT INTO public.invoices (
   status_id,
   amount_with_vat,
   vat_rate,
-  vat_amount,
-  amount_without_vat,
   delivery_days,
-  delivery_days_type,
-  preliminary_delivery_date
+  delivery_days_type
 )
 VALUES (
   '00000000-0000-0000-0000-000000000002',
   'INV-2025-0001',
   'Milestone payment for PAY-001',
+  '2025-09-15',
   '2025-09-30',
   (SELECT id FROM public.contractors WHERE inn = '123456789012'),
   (SELECT id FROM public.contractors WHERE inn = '774512345678'),
@@ -477,30 +516,35 @@ VALUES (
   (SELECT id FROM public.invoice_statuses WHERE code = 'pending'),
   180000.00,
   20,
-  30000.00,
-  150000.00,
   5,
-  'working',
-  '2025-10-07'
-);
+  'working'
+)
+RETURNING id AS invoice_id;
 
--- Mark invoice as paid via status catalog
+-- Link invoice to the uploaded document
+INSERT INTO public.invoice_attachments (invoice_id, attachment_id)
+VALUES (
+  (SELECT id FROM public.invoices WHERE invoice_number = 'INV-2025-0001'),
+  (SELECT id FROM public.attachments WHERE storage_path = 'invoices/contracts/contract.pdf')
+)
+ON CONFLICT (invoice_id, attachment_id) DO NOTHING;
+
+-- Trigger demo: adjust totals, updated_at maintained automatically
 UPDATE public.invoices
-SET status_id = (SELECT id FROM public.invoice_statuses WHERE code = 'paid')
+SET amount_with_vat = 240000.00, vat_rate = 20
 WHERE invoice_number = 'INV-2025-0001';
 
--- Map the issuing user to the project for access control
-INSERT INTO public.user_projects (user_id, project_id)
-VALUES (
-  '00000000-0000-0000-0000-000000000002',
-  (SELECT id FROM public.projects WHERE code = 'PAY-001')
-)
-ON CONFLICT (user_id, project_id) DO NOTHING;
+-- Use catalog function to attempt safe deletion (returns JSON message)
+SELECT public.delete_contractor_type(type_id_param => (SELECT id FROM public.contractor_types WHERE code = 'freelancer'));
 
--- Analytics query: recent invoices with status, type, payer and supplier
+-- Clean up a project along with user bindings
+SELECT public.delete_project(project_id_param => (SELECT id FROM public.projects WHERE code = 'PAY-001'));
+
+-- Analytical join with status, type and counterparties
 SELECT i.invoice_number,
        i.invoice_date,
        i.amount_with_vat,
+       i.vat_amount,
        s.code   AS status_code,
        t.code   AS invoice_type_code,
        payer.name    AS payer_name,
@@ -513,7 +557,7 @@ LEFT JOIN public.contractors supplier ON supplier.id = i.supplier_id
 ORDER BY i.created_at DESC
 LIMIT 20;
 
--- Showcase trigger-managed timestamp on contractor update
+-- Updated_at audit trigger showcase on contractors
 UPDATE public.contractors
 SET name = 'PayHub Delivery & Logistics LLC'
 WHERE inn = '774512345678';

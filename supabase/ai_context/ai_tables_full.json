@@ -518,6 +518,130 @@
     "triggers": []
   },
   {
+    "table": "public.invoice_payments",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "allocated_amount",
+        "type": "numeric(15,2)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "invoice_payments_invoice_id_payment_id_key",
+        "columns": [
+          "invoice_id"
+        ]
+      },
+      {
+        "name": "invoice_payments_invoice_id_payment_id_key",
+        "columns": [
+          "payment_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_19891_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19891_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19891_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19891_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "positive_allocated_amount",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_invoice_payments_invoice_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoice_payments_invoice_id ON public.invoice_payments USING btree (invoice_id)",
+        "columns": [
+          "invoice_id"
+        ]
+      },
+      {
+        "name": "idx_invoice_payments_payment_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoice_payments_payment_id ON public.invoice_payments USING btree (payment_id)",
+        "columns": [
+          "payment_id"
+        ]
+      },
+      {
+        "name": "invoice_payments_invoice_id_payment_id_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX invoice_payments_invoice_id_payment_id_key ON public.invoice_payments USING btree (invoice_id, payment_id)",
+        "columns": [
+          "invoice_id",
+          "payment_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
     "table": "public.invoice_statuses",
     "summary": "Invoice workflow statuses used to drive document state transitions.",
     "columns": [
@@ -1140,6 +1264,568 @@
       },
       {
         "name": "update_invoices_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.payment_attachments",
+    "summary": "Связь между платежами и прикрепленными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "ID платежа"
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "ID прикрепленного файла"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "payment_attachments_payment_id_attachment_id_key",
+        "columns": [
+          "attachment_id"
+        ]
+      },
+      {
+        "name": "payment_attachments_payment_id_attachment_id_key",
+        "columns": [
+          "payment_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_19998_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19998_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19998_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_payment_attachments_attachment_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payment_attachments_attachment_id ON public.payment_attachments USING btree (attachment_id)",
+        "columns": [
+          "attachment_id"
+        ]
+      },
+      {
+        "name": "idx_payment_attachments_payment_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payment_attachments_payment_id ON public.payment_attachments USING btree (payment_id)",
+        "columns": [
+          "payment_id"
+        ]
+      },
+      {
+        "name": "payment_attachments_payment_id_attachment_id_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX payment_attachments_payment_id_attachment_id_key ON public.payment_attachments USING btree (payment_id, attachment_id)",
+        "columns": [
+          "payment_id",
+          "attachment_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "public.payment_statuses",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('payment_statuses_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "color",
+        "type": "varchar(20)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "payment_statuses_code_key",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_19825_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19825_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19825_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "payment_statuses_code_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX payment_statuses_code_key ON public.payment_statuses USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_payment_statuses_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.payment_types",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('payment_types_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "payment_types_code_key",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_19838_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19838_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19838_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "payment_types_code_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX payment_types_code_key ON public.payment_types USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_payment_types_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.payments",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_number",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('payment_number_seq'::regclass)",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_date",
+        "type": "date",
+        "nullable": false,
+        "default": "CURRENT_DATE",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "amount",
+        "type": "numeric(15,2)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_type_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": true,
+        "default": "1",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "payments_payment_number_key",
+        "columns": [
+          "payment_number"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_19851_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19851_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19851_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19851_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19851_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "positive_amount",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_payments_created_by",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payments_created_by ON public.payments USING btree (created_by)",
+        "columns": [
+          "created_by"
+        ]
+      },
+      {
+        "name": "idx_payments_invoice_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payments_invoice_id ON public.payments USING btree (invoice_id)",
+        "columns": [
+          "invoice_id"
+        ]
+      },
+      {
+        "name": "idx_payments_payment_date",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payments_payment_date ON public.payments USING btree (payment_date)",
+        "columns": [
+          "payment_date"
+        ]
+      },
+      {
+        "name": "idx_payments_status_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payments_status_id ON public.payments USING btree (status_id)",
+        "columns": [
+          "status_id"
+        ]
+      },
+      {
+        "name": "payments_payment_number_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX payments_payment_number_key ON public.payments USING btree (payment_number)",
+        "columns": [
+          "payment_number"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_payments_updated_at",
         "timing": "BEFORE",
         "events": [
           "UPDATE"

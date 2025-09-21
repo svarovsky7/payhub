@@ -1,6 +1,6 @@
 import { Form, Modal, Input, InputNumber, Select, DatePicker, Radio, Row, Col, Space, Button, Upload, message } from 'antd'
 import { useState, useEffect } from 'react'
-import { UploadOutlined } from '@ant-design/icons'
+import { UploadOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
@@ -64,6 +64,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   parseAmount,
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null)
 
   useEffect(() => {
     if (!isVisible) {
@@ -82,9 +83,50 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }
   }, [isVisible, currentInvoiceDate, currentVatRate, currentDeliveryDays, currentDeliveryDaysType, form])
 
+  const handlePreview = async (file: UploadFile) => {
+    if (!file.originFileObj && !file.url) {
+      message.error('Файл недоступен для просмотра')
+      return
+    }
+
+    let previewUrl: string = ''
+
+    if (file.url) {
+      previewUrl = file.url
+    } else if (file.originFileObj) {
+      // Создаем URL для локального файла
+      previewUrl = URL.createObjectURL(file.originFileObj as File)
+    }
+
+    // Проверяем тип файла
+    const fileType = file.type || file.originFileObj?.type || ''
+    const fileName = file.name || 'Файл'
+
+    // Если это изображение или PDF, показываем в модальном окне
+    if (fileType.startsWith('image/')) {
+      setPreviewFile({ url: previewUrl, name: fileName, type: 'image' })
+    } else if (fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+      setPreviewFile({ url: previewUrl, name: fileName, type: 'pdf' })
+    } else {
+      // Для других типов файлов открываем в новом окне
+      const newWindow = window.open(previewUrl, '_blank')
+      if (!newWindow) {
+        message.error('Не удалось открыть файл. Проверьте настройки блокировки всплывающих окон.')
+      }
+    }
+  }
+
   const uploadProps: UploadProps = {
     multiple: true,
     fileList,
+    showUploadList: {
+      showPreviewIcon: true,
+      showRemoveIcon: true,
+      showDownloadIcon: false,
+      previewIcon: <EyeOutlined />,
+      removeIcon: <DeleteOutlined />,
+    },
+    onPreview: handlePreview,
     beforeUpload: (file) => {
       const isLt10Mb = file.size / 1024 / 1024 < 10
       if (!isLt10Mb) {
@@ -115,13 +157,14 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   }
 
   return (
-    <Modal
-      title="Создать счёт"
-      open={isVisible}
-      onCancel={onClose}
-      footer={null}
-      width={800}
-    >
+    <>
+      <Modal
+        title="Создать счёт"
+        open={isVisible}
+        onCancel={onClose}
+        footer={null}
+        width={800}
+      >
       <Form
         form={form}
         layout="vertical"
@@ -339,20 +382,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           <Input.TextArea rows={3} />
         </Form.Item>
 
-        <Form.Item
-          name="status_id"
-          label="Статус"
-          rules={[{ required: true, message: 'Выберите статус счёта' }]}
-        >
-          <Select
-            placeholder="Выберите статус"
-            options={invoiceStatuses.map((status) => ({
-              value: status.id,
-              label: status.name,
-            }))}
-          />
-        </Form.Item>
-
         <Form.Item label="Прикреплённые файлы">
           <Upload {...uploadProps}>
             <Button icon={<UploadOutlined />}>Выбрать файлы</Button>
@@ -369,5 +398,50 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         </Form.Item>
       </Form>
     </Modal>
+
+    {/* Модальное окно для предпросмотра файлов */}
+    <Modal
+      open={!!previewFile}
+      title={previewFile?.name}
+      footer={null}
+      onCancel={() => {
+        // Очищаем URL объекта при закрытии для освобождения памяти
+        if (previewFile?.url.startsWith('blob:')) {
+          URL.revokeObjectURL(previewFile.url)
+        }
+        setPreviewFile(null)
+      }}
+      width={900}
+      centered
+      styles={{ body: { padding: 0 } }}
+    >
+      {previewFile && (
+        <>
+          {previewFile.type === 'image' ? (
+            <img
+              src={previewFile.url}
+              alt={previewFile.name}
+              style={{
+                width: '100%',
+                maxHeight: '70vh',
+                objectFit: 'contain',
+                padding: '20px'
+              }}
+            />
+          ) : previewFile.type === 'pdf' ? (
+            <iframe
+              src={previewFile.url}
+              title={previewFile.name}
+              style={{
+                width: '100%',
+                height: '70vh',
+                border: 'none'
+              }}
+            />
+          ) : null}
+        </>
+      )}
+    </Modal>
+    </>
   )
 }

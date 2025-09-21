@@ -25,7 +25,7 @@ npm run preview   # Preview production build locally
 - **Ant Design 5** - UI components (localized to Russian)
 - **Supabase** - Backend, authentication, and PostgreSQL database
 - **React Router 7** - Client-side routing
-- **Day.js** - Date manipulation library
+- **Day.js** - Date manipulation library (with Russian locale)
 
 ### Project Structure
 ```
@@ -40,7 +40,8 @@ src/
 │   │   ├── InvoiceTypesTab.tsx
 │   │   └── InvoiceStatusesTab.tsx
 │   ├── invoices/           # Invoice components
-│   │   └── InvoiceFormModal.tsx
+│   │   ├── InvoiceFormModal.tsx    # Create invoice modal
+│   │   └── InvoiceView.tsx         # View/edit invoice with tabs
 │   ├── Layout.tsx          # Main app layout with navigation
 │   └── ProtectedRoute.tsx  # Authentication guard
 ├── contexts/
@@ -52,7 +53,8 @@ src/
 │   ├── InvoicesPage.tsx    # Invoice management
 │   └── AdminPage.tsx       # Admin dashboard with tabs
 ├── utils/
-│   └── invoiceHelpers.ts   # Invoice utility functions
+│   ├── invoiceHelpers.ts   # Invoice calculations and date utilities
+│   └── storageDebug.ts     # Storage debugging utilities
 ├── App.tsx                 # Main routing configuration
 └── main.tsx               # Application entry point
 ```
@@ -116,12 +118,14 @@ PostgreSQL database via Supabase with the following core tables:
 - **user_profiles** - User information linked to auth.users
 - **invoices** - Invoice records with status tracking
 - **invoice_types** - Invoice type categories
-- **invoice_statuses** - Invoice status definitions
+- **invoice_statuses** - Invoice status definitions (default: draft)
 - **projects** - Project management
-- **contractors** - Contractor records
+- **contractors** - Contractor records with INN validation
 - **contractor_types** - Contractor categories
 - **roles** - User roles
 - **user_projects** - Many-to-many relationship between users and projects
+- **attachments** - File storage metadata
+- **invoice_attachments** - Many-to-many relationship between invoices and attachments
 
 ### Database Features
 - Auto-updating `updated_at` timestamps via triggers
@@ -173,6 +177,30 @@ When developing and debugging functionality, always add detailed logging to the 
    console.log('[InvoiceCreate.handleSubmit] Submitting form:', values);
    console.error('[InvoiceCreate.handleSubmit] Invoice creation error:', error);
    ```
+
+## Key Integration Patterns
+
+### File Upload and Storage
+- Files are stored in Supabase Storage bucket `attachments`
+- Storage path pattern: `invoices/{invoice_id}/{timestamp}_{filename}`
+- File metadata tracked in `attachments` table
+- Many-to-many relationship via `invoice_attachments` table
+- Cascade deletion: invoice deletion removes all linked files
+
+### Invoice Management
+- Invoice creation modal: `InvoiceFormModal`
+- Invoice view/edit: `InvoiceView` with tabbed interface
+- Tabs include "Основная информация" and "Прикрепленные файлы"
+- Tab routing persists in URL via query parameters
+- VAT calculations: automatic based on amount and rate
+- Delivery date calculations: supports working/calendar days
+
+### UI/UX Patterns
+- Floating action buttons for save/cancel operations
+- Modal windows for file preview (images and PDFs)
+- Russian localization throughout the interface
+- Ant Design message component for notifications
+- App.useApp() hook for React 19 modal compatibility
 
 ## Getting Started
 

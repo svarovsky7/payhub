@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Card,
   Form,
@@ -17,14 +18,19 @@ import {
   Tabs,
   Table,
   Empty,
+  Modal,
   message
 } from 'antd'
-import { SaveOutlined, CloseOutlined, EditOutlined, ArrowLeftOutlined, FileOutlined, DownloadOutlined } from '@ant-design/icons'
+import { SaveOutlined, CloseOutlined, EditOutlined, ArrowLeftOutlined, FileOutlined, DownloadOutlined, EyeOutlined, DeleteOutlined, PlusOutlined, DollarOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import { supabase } from '../../lib/supabase'
-import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus } from '../../lib/supabase'
+import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus, Payment, PaymentType, PaymentStatus } from '../../lib/supabase'
 import { formatAmount, calculateDeliveryDate } from '../../utils/invoiceHelpers'
+import { PaymentFormModal } from './PaymentFormModal'
+import { useAuth } from '../../contexts/AuthContext'
+import type { ColumnsType } from 'antd/es/table'
+import { Tag, App } from 'antd'
 
 const { Title } = Typography
 
@@ -58,12 +64,28 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
   onUpdate,
   onClose
 }) => {
+  const { message: messageApi, modal } = App.useApp()
+  const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [form] = Form.useForm()
+  const [paymentForm] = Form.useForm()
   const [isEditing, setIsEditing] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [loading, setLoading] = useState(false)
   const [attachments, setAttachments] = useState<AttachmentData[]>([])
   const [loadingAttachments, setLoadingAttachments] = useState(false)
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null)
+
+  // Payment states
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [paymentTypes, setPaymentTypes] = useState<PaymentType[]>([])
+  const [paymentStatuses, setPaymentStatuses] = useState<PaymentStatus[]>([])
+  const [loadingPayments, setLoadingPayments] = useState(false)
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false)
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null)
+
+  // Получаем активную вкладку из URL, по умолчанию 'main'
+  const activeTab = searchParams.get('tab') || 'main'
 
   // VAT calculation states
   const [amountWithVat, setAmountWithVat] = useState<number>(invoice.amount_with_vat || 0)
@@ -99,8 +121,10 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
       description: invoice.description
     })
 
-    // Загружаем прикрепленные файлы
+    // Загружаем прикрепленные файлы и платежи
     loadAttachments()
+    loadPayments()
+    loadPaymentReferences()
   }, [invoice, form])
 
   useEffect(() => {
@@ -206,6 +230,44 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
     }
   }
 
+  const handlePreview = async (attachment: AttachmentData) => {
+    try {
+      console.log('[InvoiceView.handlePreview] Previewing file:', attachment)
+
+      const { data, error } = await supabase.storage
+        .from('attachments')
+        .download(attachment.storage_path)
+
+      if (error) {
+        console.error('[InvoiceView.handlePreview] Error:', error)
+        message.error('Ошибка загрузки файла для просмотра')
+        return
+      }
+
+      // Создаем URL для предпросмотра
+      const url = URL.createObjectURL(data)
+      const mimeType = attachment.mime_type || ''
+      const fileName = attachment.original_name || 'Файл'
+
+      // Определяем тип файла для предпросмотра
+      if (mimeType.startsWith('image/')) {
+        setPreviewFile({ url, name: fileName, type: 'image' })
+      } else if (mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+        setPreviewFile({ url, name: fileName, type: 'pdf' })
+      } else {
+        // Для других типов файлов открываем в новом окне
+        const newWindow = window.open(url, '_blank')
+        if (!newWindow) {
+          message.error('Не удалось открыть файл. Проверьте настройки блокировки всплывающих окон.')
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 100)
+      }
+    } catch (error) {
+      console.error('[InvoiceView.handlePreview] Error:', error)
+      message.error('Ошибка при открытии файла')
+    }
+  }
+
   const handleDownload = async (attachment: AttachmentData) => {
     try {
       console.log('[InvoiceView.handleDownload] Downloading file:', attachment)
@@ -237,6 +299,55 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
     }
   }
 
+  const handleDeleteAttachment = async (attachment: AttachmentData) => {
+    try {
+      console.log('[InvoiceView.handleDeleteAttachment] Deleting file:', attachment)
+
+      // Сначала удаляем файл из Storage
+      const { error: storageError } = await supabase.storage
+        .from('attachments')
+        .remove([attachment.storage_path])
+
+      if (storageError) {
+        console.error('[InvoiceView.handleDeleteAttachment] Storage deletion error:', storageError)
+        // Продолжаем даже если не удалось удалить файл из Storage
+      }
+
+      // Удаляем связь из invoice_attachments
+      const { error: linkError } = await supabase
+        .from('invoice_attachments')
+        .delete()
+        .eq('invoice_id', invoice.id)
+        .eq('attachment_id', attachment.id)
+
+      if (linkError) {
+        console.error('[InvoiceView.handleDeleteAttachment] Link deletion error:', linkError)
+        throw linkError
+      }
+
+      // Удаляем запись из attachments
+      const { error: attachmentError } = await supabase
+        .from('attachments')
+        .delete()
+        .eq('id', attachment.id)
+
+      if (attachmentError) {
+        console.error('[InvoiceView.handleDeleteAttachment] Attachment deletion error:', attachmentError)
+        throw attachmentError
+      }
+
+      message.success('Файл успешно удалён')
+
+      // Обновляем список файлов
+      await loadAttachments()
+
+      console.log('[InvoiceView.handleDeleteAttachment] File deleted successfully')
+    } catch (error) {
+      console.error('[InvoiceView.handleDeleteAttachment] Error:', error)
+      message.error('Ошибка удаления файла')
+    }
+  }
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B'
     const k = 1024
@@ -244,6 +355,258 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
   }
+
+  // Payment functions
+  const loadPayments = async () => {
+    try {
+      setLoadingPayments(true)
+      console.log('[InvoiceView.loadPayments] Loading payments for invoice:', invoice.id)
+
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          payment_type:payment_types(id, name),
+          payment_status:payment_statuses(id, code, name, color)
+        `)
+        .eq('invoice_id', invoice.id)
+        .order('payment_date', { ascending: false })
+
+      if (error) {
+        console.error('[InvoiceView.loadPayments] Error:', error)
+        messageApi.error('Ошибка загрузки платежей')
+        return
+      }
+
+      console.log('[InvoiceView.loadPayments] Loaded payments:', data?.length || 0)
+      setPayments(data || [])
+    } catch (error) {
+      console.error('[InvoiceView.loadPayments] Error:', error)
+      messageApi.error('Ошибка загрузки платежей')
+    } finally {
+      setLoadingPayments(false)
+    }
+  }
+
+  const loadPaymentReferences = async () => {
+    try {
+      // Загружаем типы платежей
+      const { data: typesData, error: typesError } = await supabase
+        .from('payment_types')
+        .select('*')
+        .order('name')
+
+      if (typesError) {
+        console.error('[InvoiceView.loadPaymentReferences] Types error:', typesError)
+      } else {
+        setPaymentTypes(typesData || [])
+      }
+
+      // Загружаем статусы платежей
+      const { data: statusesData, error: statusesError } = await supabase
+        .from('payment_statuses')
+        .select('*')
+        .order('sort_order')
+
+      if (statusesError) {
+        console.error('[InvoiceView.loadPaymentReferences] Statuses error:', statusesError)
+      } else {
+        setPaymentStatuses(statusesData || [])
+      }
+    } catch (error) {
+      console.error('[InvoiceView.loadPaymentReferences] Error:', error)
+    }
+  }
+
+  const handleCreatePayment = () => {
+    console.log('[InvoiceView.handleCreatePayment] Opening payment modal for new payment')
+    setEditingPayment(null)
+    paymentForm.resetFields()
+    setIsPaymentModalVisible(true)
+  }
+
+  const handleEditPayment = (payment: Payment) => {
+    console.log('[InvoiceView.handleEditPayment] Opening payment modal for editing:', payment.id)
+    setEditingPayment(payment)
+    paymentForm.setFieldsValue({
+      payment_date: dayjs(payment.payment_date),
+      amount: payment.amount,
+      payment_type_id: payment.payment_type_id,
+      status_id: payment.status_id,
+      description: payment.description
+    })
+    setIsPaymentModalVisible(true)
+  }
+
+  const handlePaymentSubmit = async (values: any, files: any[]) => {
+    console.log('[InvoiceView.handlePaymentSubmit] Submitting payment:', { values, filesCount: files?.length, editMode: !!editingPayment })
+    try {
+      const paymentData = {
+        payment_date: values.payment_date.format('YYYY-MM-DD'),
+        amount: values.amount,
+        payment_type_id: values.payment_type_id,
+        status_id: values.status_id,
+        description: values.description
+      }
+
+      let paymentId: string
+
+      if (editingPayment) {
+        // Обновляем существующий платёж
+        const { data, error } = await supabase
+          .from('payments')
+          .update(paymentData)
+          .eq('id', editingPayment.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        console.log('[InvoiceView.handlePaymentSubmit] Payment updated:', data.id)
+        paymentId = data.id
+
+        // Обновляем сумму в таблице связи
+        const { error: linkError } = await supabase
+          .from('invoice_payments')
+          .update({ allocated_amount: values.amount })
+          .eq('payment_id', editingPayment.id)
+          .eq('invoice_id', invoice.id)
+
+        if (linkError) {
+          console.error('[InvoiceView.handlePaymentSubmit] Link update error:', linkError)
+        }
+      } else {
+        // Создаём новый платёж
+        const { data, error } = await supabase
+          .from('payments')
+          .insert([{
+            ...paymentData,
+            invoice_id: invoice.id,
+            created_by: user?.id
+          }])
+          .select()
+          .single()
+
+        if (error) throw error
+        console.log('[InvoiceView.handlePaymentSubmit] Payment created:', data.id)
+        paymentId = data.id
+
+        // Создаём связь между счетом и платежом только для нового платежа
+        const { error: linkError } = await supabase
+          .from('invoice_payments')
+          .insert([{
+            invoice_id: invoice.id,
+            payment_id: paymentId,
+            allocated_amount: values.amount
+          }])
+
+        if (linkError) {
+          console.error('[InvoiceView.handlePaymentSubmit] Link error:', linkError)
+        }
+      }
+
+      // Загрузка файлов, если они есть (для новых и редактируемых платежей)
+      if (files && files.length > 0 && paymentId) {
+        console.log('[InvoiceView.handlePaymentSubmit] Uploading files for payment:', paymentId)
+
+        for (const file of files) {
+          try {
+            // Генерируем уникальное имя файла
+            const timestamp = Date.now()
+            const fileName = `${timestamp}_${file.name}`
+            const filePath = `payments/${paymentId}/${fileName}`
+
+            console.log('[InvoiceView.handlePaymentSubmit] Uploading file:', filePath)
+
+            // Загружаем файл в Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('attachments')
+              .upload(filePath, file as any)
+
+            if (uploadError) {
+              console.error('[InvoiceView.handlePaymentSubmit] Upload error:', uploadError)
+              messageApi.error(`Ошибка загрузки файла ${file.name}`)
+              continue
+            }
+
+            // Создаём запись в таблице attachments
+            const { data: attachmentData, error: attachmentError } = await supabase
+              .from('attachments')
+              .insert([{
+                original_name: file.name,
+                storage_path: filePath,
+                size_bytes: file.size,
+                mime_type: file.type || 'application/octet-stream',
+                created_by: user?.id
+              }])
+              .select()
+              .single()
+
+            if (attachmentError) {
+              console.error('[InvoiceView.handlePaymentSubmit] Attachment error:', attachmentError)
+              continue
+            }
+
+            // Создаём связь между платежом и файлом
+            const { error: linkError } = await supabase
+              .from('payment_attachments')
+              .insert([{
+                payment_id: paymentId,
+                attachment_id: attachmentData.id
+              }])
+
+            if (linkError) {
+              console.error('[InvoiceView.handlePaymentSubmit] Link error:', linkError)
+            }
+
+            console.log('[InvoiceView.handlePaymentSubmit] File uploaded successfully:', file.name)
+          } catch (fileError) {
+            console.error('[InvoiceView.handlePaymentSubmit] File processing error:', fileError)
+            messageApi.error(`Ошибка обработки файла ${file.name}`)
+          }
+        }
+      }
+
+      messageApi.success(editingPayment ? 'Платёж обновлён успешно' : 'Платёж добавлен успешно')
+      setIsPaymentModalVisible(false)
+      setEditingPayment(null)
+      loadPayments()
+    } catch (error: any) {
+      console.error('[InvoiceView.handlePaymentSubmit] Error:', error)
+      messageApi.error(error.message || 'Ошибка создания платежа')
+    }
+  }
+
+  const handleDeletePayment = async (paymentId: string) => {
+    console.log('[InvoiceView.handleDeletePayment] Deleting payment:', paymentId)
+
+    modal.confirm({
+      title: 'Удалить платёж?',
+      content: 'Это действие нельзя отменить',
+      okText: 'Удалить',
+      cancelText: 'Отмена',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          const { error } = await supabase
+            .from('payments')
+            .delete()
+            .eq('id', paymentId)
+
+          if (error) throw error
+
+          messageApi.success('Платёж удалён')
+          await loadPayments()
+        } catch (error: any) {
+          console.error('[InvoiceView.handleDeletePayment] Error:', error)
+          messageApi.error(error.message || 'Ошибка удаления платежа')
+        }
+      }
+    })
+  }
+
+  // Расчёт суммы всех платежей и остатка
+  const totalPaid = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
+  const remainingAmount = (invoice.amount_with_vat || 0) - totalPaid
 
   const handleCancel = () => {
     // Сброс формы к исходным значениям
@@ -524,6 +887,121 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
     </Form>
   )
 
+  const paymentsColumns: ColumnsType<Payment> = [
+    {
+      title: '№',
+      dataIndex: 'payment_number',
+      key: 'payment_number',
+      width: 80
+    },
+    {
+      title: 'Дата',
+      dataIndex: 'payment_date',
+      key: 'payment_date',
+      width: 100,
+      render: (date: string) => new Date(date).toLocaleDateString('ru-RU')
+    },
+    {
+      title: 'Сумма',
+      dataIndex: 'amount',
+      key: 'amount',
+      width: 150,
+      render: (amount: number) => `${formatAmount(amount)} ₽`
+    },
+    {
+      title: 'Тип',
+      dataIndex: 'payment_type',
+      key: 'payment_type',
+      render: (type: PaymentType | undefined) => type?.name || '-'
+    },
+    {
+      title: 'Статус',
+      key: 'status',
+      width: 120,
+      render: (_: any, record: Payment) => {
+        const status = record.payment_status
+        if (!status) return '-'
+        return <Tag color={status.color || 'default'}>{status.name}</Tag>
+      }
+    },
+    {
+      title: 'Описание',
+      dataIndex: 'description',
+      key: 'description'
+    },
+    {
+      title: 'Действия',
+      key: 'actions',
+      width: 120,
+      render: (_: any, record: Payment) => (
+        <Space size="small">
+          <Button
+            icon={<EditOutlined />}
+            size="small"
+            onClick={() => handleEditPayment(record)}
+            title="Редактировать"
+          />
+          <Button
+            icon={<DeleteOutlined />}
+            size="small"
+            danger
+            onClick={() => handleDeletePayment(record.id)}
+            title="Удалить"
+          />
+        </Space>
+      )
+    }
+  ]
+
+  const paymentsTab = (
+    <div>
+      <div style={{
+        marginBottom: 16,
+        padding: '16px',
+        backgroundColor: '#fafafa',
+        borderRadius: '4px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div>
+          <div style={{ fontSize: '16px', fontWeight: 500 }}>
+            Сумма счёта: <span style={{ color: '#1890ff' }}>{formatAmount(invoice.amount_with_vat || 0)} ₽</span>
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 500, marginTop: '8px' }}>
+            Оплачено: <span style={{ color: '#52c41a' }}>{formatAmount(totalPaid)} ₽</span>
+          </div>
+          <div style={{ fontSize: '16px', fontWeight: 500, marginTop: '8px' }}>
+            Остаток: <span style={{ color: remainingAmount > 0 ? '#ff4d4f' : '#52c41a' }}>
+              {formatAmount(Math.abs(remainingAmount))} ₽
+            </span>
+            {remainingAmount < 0 && ' (переплата)'}
+          </div>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleCreatePayment}
+        >
+          Добавить платёж
+        </Button>
+      </div>
+
+      {loadingPayments ? (
+        <div style={{ textAlign: 'center', padding: '40px' }}>Загрузка платежей...</div>
+      ) : payments.length > 0 ? (
+        <Table
+          columns={paymentsColumns}
+          dataSource={payments}
+          rowKey="id"
+          pagination={false}
+        />
+      ) : (
+        <Empty description="Нет платежей" />
+      )}
+    </div>
+  )
+
   const attachmentsTab = (
     <div>
       {loadingAttachments ? (
@@ -567,15 +1045,38 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
             {
               title: 'Действия',
               key: 'actions',
-              width: 100,
+              width: 180,
               render: (_, record) => (
-                <Button
-                  icon={<DownloadOutlined />}
-                  onClick={() => handleDownload(record)}
-                  size="small"
-                >
-                  Скачать
-                </Button>
+                <Space>
+                  <Button
+                    icon={<EyeOutlined />}
+                    onClick={() => handlePreview(record)}
+                    size="small"
+                    title="Просмотр"
+                  />
+                  <Button
+                    icon={<DownloadOutlined />}
+                    onClick={() => handleDownload(record)}
+                    size="small"
+                    title="Скачать"
+                  />
+                  <Button
+                    icon={<DeleteOutlined />}
+                    onClick={() => {
+                      Modal.confirm({
+                        title: 'Удалить файл?',
+                        content: `Вы уверены, что хотите удалить файл "${record.original_name}"?`,
+                        okText: 'Удалить',
+                        cancelText: 'Отмена',
+                        okButtonProps: { danger: true },
+                        onOk: () => handleDeleteAttachment(record)
+                      })
+                    }}
+                    size="small"
+                    danger
+                    title="Удалить"
+                  />
+                </Space>
               )
             }
           ]}
@@ -617,12 +1118,26 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
         }
       >
         <Tabs
-          defaultActiveKey="main"
+          activeKey={activeTab}
+          onChange={(key) => {
+            // Обновляем URL с новой вкладкой
+            setSearchParams({ tab: key })
+          }}
           items={[
             {
               key: 'main',
               label: 'Основная информация',
               children: mainInfoTab
+            },
+            {
+              key: 'payments',
+              label: (
+                <Space>
+                  <DollarOutlined />
+                  Платежи ({payments.length})
+                </Space>
+              ),
+              children: paymentsTab
             },
             {
               key: 'attachments',
@@ -653,6 +1168,66 @@ export const InvoiceView: React.FC<InvoiceViewProps> = ({
           />
         </FloatButton.Group>
       )}
+
+    {/* Модальное окно для предпросмотра файлов */}
+    <Modal
+      open={!!previewFile}
+      title={previewFile?.name}
+      footer={null}
+      onCancel={() => {
+        // Очищаем URL объекта при закрытии для освобождения памяти
+        if (previewFile?.url.startsWith('blob:')) {
+          URL.revokeObjectURL(previewFile.url)
+        }
+        setPreviewFile(null)
+      }}
+      width={900}
+      centered
+      styles={{ body: { padding: 0 } }}
+    >
+      {previewFile && (
+        <>
+          {previewFile.type === 'image' ? (
+            <img
+              src={previewFile.url}
+              alt={previewFile.name}
+              style={{
+                width: '100%',
+                maxHeight: '70vh',
+                objectFit: 'contain',
+                padding: '20px'
+              }}
+            />
+          ) : previewFile.type === 'pdf' ? (
+            <iframe
+              src={previewFile.url}
+              title={previewFile.name}
+              style={{
+                width: '100%',
+                height: '70vh',
+                border: 'none'
+              }}
+            />
+          ) : null}
+        </>
+      )}
+    </Modal>
+
+    {/* Модальное окно для добавления/редактирования платежа */}
+    <PaymentFormModal
+      isVisible={isPaymentModalVisible}
+      onClose={() => {
+        setIsPaymentModalVisible(false)
+        setEditingPayment(null)
+      }}
+      onSubmit={handlePaymentSubmit}
+      form={paymentForm}
+      paymentTypes={paymentTypes}
+      paymentStatuses={paymentStatuses}
+      invoiceAmount={invoice.amount_with_vat || 0}
+      remainingAmount={remainingAmount}
+      editMode={!!editingPayment}
+    />
     </>
   )
 }

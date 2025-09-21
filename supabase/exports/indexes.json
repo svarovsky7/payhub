@@ -71,6 +71,30 @@
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX invoice_attachments_invoice_id_attachment_id_key ON public.invoice_attachments USING btree (invoice_id, attachment_id)"
   },
+  "public.invoice_payments.idx_invoice_payments_invoice_id": {
+    "schema": "public",
+    "name": "idx_invoice_payments_invoice_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoice_payments_invoice_id ON public.invoice_payments USING btree (invoice_id)"
+  },
+  "public.invoice_payments.idx_invoice_payments_payment_id": {
+    "schema": "public",
+    "name": "idx_invoice_payments_payment_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoice_payments_payment_id ON public.invoice_payments USING btree (payment_id)"
+  },
+  "public.invoice_payments.invoice_payments_invoice_id_payment_id_key": {
+    "schema": "public",
+    "name": "invoice_payments_invoice_id_payment_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX invoice_payments_invoice_id_payment_id_key ON public.invoice_payments USING btree (invoice_id, payment_id)"
+  },
   "public.invoice_statuses.idx_invoice_statuses_code": {
     "schema": "public",
     "name": "idx_invoice_statuses_code",
@@ -174,6 +198,86 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)"
+  },
+  "public.payment_attachments.idx_payment_attachments_attachment_id": {
+    "schema": "public",
+    "name": "idx_payment_attachments_attachment_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payment_attachments_attachment_id ON public.payment_attachments USING btree (attachment_id)"
+  },
+  "public.payment_attachments.idx_payment_attachments_payment_id": {
+    "schema": "public",
+    "name": "idx_payment_attachments_payment_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payment_attachments_payment_id ON public.payment_attachments USING btree (payment_id)"
+  },
+  "public.payment_attachments.payment_attachments_payment_id_attachment_id_key": {
+    "schema": "public",
+    "name": "payment_attachments_payment_id_attachment_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX payment_attachments_payment_id_attachment_id_key ON public.payment_attachments USING btree (payment_id, attachment_id)"
+  },
+  "public.payment_statuses.payment_statuses_code_key": {
+    "schema": "public",
+    "name": "payment_statuses_code_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX payment_statuses_code_key ON public.payment_statuses USING btree (code)"
+  },
+  "public.payment_types.payment_types_code_key": {
+    "schema": "public",
+    "name": "payment_types_code_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX payment_types_code_key ON public.payment_types USING btree (code)"
+  },
+  "public.payments.idx_payments_created_by": {
+    "schema": "public",
+    "name": "idx_payments_created_by",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payments_created_by ON public.payments USING btree (created_by)"
+  },
+  "public.payments.idx_payments_invoice_id": {
+    "schema": "public",
+    "name": "idx_payments_invoice_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payments_invoice_id ON public.payments USING btree (invoice_id)"
+  },
+  "public.payments.idx_payments_payment_date": {
+    "schema": "public",
+    "name": "idx_payments_payment_date",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payments_payment_date ON public.payments USING btree (payment_date)"
+  },
+  "public.payments.idx_payments_status_id": {
+    "schema": "public",
+    "name": "idx_payments_status_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payments_status_id ON public.payments USING btree (status_id)"
+  },
+  "public.payments.payments_payment_number_key": {
+    "schema": "public",
+    "name": "payments_payment_number_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX payments_payment_number_key ON public.payments USING btree (payment_number)"
   },
   "public.projects.idx_projects_code": {
     "schema": "public",

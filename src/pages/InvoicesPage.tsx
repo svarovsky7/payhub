@@ -173,6 +173,14 @@ export const InvoicesPage = () => {
     console.log('[InvoicesPage.handleSubmit] Files to upload:', files.length)
 
     try {
+      // Находим ID статуса "Черновик" (draft)
+      const draftStatus = invoiceStatuses.find(status => status.code === 'draft')
+      if (!draftStatus) {
+        console.error('[InvoicesPage.handleSubmit] Draft status not found in statuses:', invoiceStatuses)
+        message.error('Не найден статус "Черновик"')
+        return
+      }
+
       const invoiceData = {
         user_id: user?.id,
         invoice_number: values.invoice_number || 'б/н',
@@ -188,7 +196,7 @@ export const InvoicesPage = () => {
         delivery_days: deliveryDays,
         delivery_days_type: deliveryDaysType,
         preliminary_delivery_date: preliminaryDeliveryDate ? preliminaryDeliveryDate.format('YYYY-MM-DD') : null,
-        status_id: values.status_id,
+        status_id: draftStatus.id,  // Используем статус "Черновик" по умолчанию
         description: values.description,
       }
 
@@ -660,17 +668,6 @@ export const InvoicesPage = () => {
         render: (amount: number | null) => (amount ? `${formatAmount(amount)} ₽` : '-'),
         sorter: (a, b) => (a.amount_with_vat ?? 0) - (b.amount_with_vat ?? 0),
         sortDirections: ['ascend', 'descend'],
-      },
-      {
-        title: 'НДС',
-        dataIndex: 'vat_rate',
-        key: 'vat_rate',
-        width: 60,
-        render: (rate: number | null) => `${rate || 0}%`,
-        sorter: (a, b) => (a.vat_rate ?? 0) - (b.vat_rate ?? 0),
-        sortDirections: ['ascend', 'descend'],
-        filters: vatRateFilters,
-        onFilter: (value, record) => (record.vat_rate ?? 0) === Number(value),
       },
       {
         title: 'Статус',

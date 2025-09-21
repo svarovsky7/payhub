@@ -78,6 +78,39 @@
     "description": "Keeps updated_at synchronized via update_updated_at_column()."
   },
   {
+    "table": "public.payment_statuses",
+    "trigger": "update_payment_statuses_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.payment_types",
+    "trigger": "update_payment_types_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.payments",
+    "trigger": "update_payments_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
     "table": "public.projects",
     "trigger": "update_projects_updated_at",
     "function": "update_updated_at_column",

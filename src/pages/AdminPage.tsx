@@ -8,7 +8,8 @@ import {
   TeamOutlined,
   SolutionOutlined,
   FileTextOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  DollarOutlined
 } from '@ant-design/icons'
 import { UsersTab } from '../components/admin/UsersTab'
 import { ProjectsTab } from '../components/admin/ProjectsTab'
@@ -16,7 +17,8 @@ import { RolesTab } from '../components/admin/RolesTab'
 import { ContractorsTab } from '../components/admin/ContractorsTab'
 import { ContractorTypesTab } from '../components/admin/ContractorTypesTab'
 import { InvoiceTypesTab } from '../components/admin/InvoiceTypesTab'
-import { InvoiceStatusesTab } from '../components/admin/InvoiceStatusesTab'
+import { StatusesTab } from '../components/admin/StatusesTab'
+import { PaymentTypesTab } from '../components/admin/PaymentTypesTab'
 
 const tabMapping: { [key: string]: string } = {
   '/admin': 'users',
@@ -26,7 +28,8 @@ const tabMapping: { [key: string]: string } = {
   '/admin/contractors': 'contractors',
   '/admin/contractor-types': 'contractor-types',
   '/admin/invoice-types': 'invoice-types',
-  '/admin/invoice-statuses': 'invoice-statuses'
+  '/admin/statuses': 'statuses',
+  '/admin/payment-types': 'payment-types'
 }
 
 const pathMapping: { [key: string]: string } = {
@@ -36,7 +39,8 @@ const pathMapping: { [key: string]: string } = {
   'contractors': '/admin/contractors',
   'contractor-types': '/admin/contractor-types',
   'invoice-types': '/admin/invoice-types',
-  'invoice-statuses': '/admin/invoice-statuses'
+  'statuses': '/admin/statuses',
+  'payment-types': '/admin/payment-types'
 }
 
 export const AdminPage = () => {
@@ -100,10 +104,16 @@ export const AdminPage = () => {
       children: <InvoiceTypesTab />
     },
     {
-      key: 'invoice-statuses',
-      label: 'Статусы счетов',
+      key: 'statuses',
+      label: 'Статусы',
       icon: <CheckCircleOutlined />,
-      children: <InvoiceStatusesTab />
+      children: <StatusesTab />
+    },
+    {
+      key: 'payment-types',
+      label: 'Типы платежей',
+      icon: <DollarOutlined />,
+      children: <PaymentTypesTab />
     }
   ]
 

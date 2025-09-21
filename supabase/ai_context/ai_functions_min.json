@@ -2,17 +2,17 @@
   {
     "function": "public.calculate_vat_amounts()",
     "returns": "trigger",
-    "summary": null
+    "summary": "Trigger helper that recalculates vat_amount and amount_without_vat before persisting invoices."
   },
   {
     "function": "public.delete_contractor_type(type_id_param integer)",
     "returns": "json",
-    "summary": null
+    "summary": "Safely deletes a contractor type if no contractors depend on it."
   },
   {
     "function": "public.delete_project(project_id_param integer)",
     "returns": "boolean",
-    "summary": null
+    "summary": "Removes a project and cleans up user assignments in one call."
   },
   {
     "function": "public.handle_new_user()",

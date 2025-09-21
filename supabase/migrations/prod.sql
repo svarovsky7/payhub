@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-21T12:23:49.992054
+-- Generated: 2025-09-21T15:10:00.425916
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -87,6 +87,19 @@ CREATE TABLE IF NOT EXISTS public.invoice_attachments (
 );
 
 COMMENT ON TABLE public.invoice_attachments IS 'Связь между счетами и прикрепленными файлами';
+
+CREATE TABLE IF NOT EXISTS public.invoice_payments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    invoice_id uuid NOT NULL,
+    payment_id uuid NOT NULL,
+    allocated_amount numeric(15,2) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT invoice_payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
+    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (invoice_id),
+    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (payment_id),
+    CONSTRAINT invoice_payments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),
+    CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)
+);
 
 -- Reference of invoice workflow statuses used throughout PayHub.
 CREATE TABLE IF NOT EXISTS public.invoice_statuses (
@@ -184,6 +197,67 @@ COMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery 
 COMMENT ON COLUMN public.invoices.delivery_days_type IS 'Delivery day interpretation: working or calendar.';
 COMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';
 COMMENT ON COLUMN public.invoices.status_id IS 'Invoice workflow status (public.invoice_statuses.id).';
+
+-- Связь между платежами и прикрепленными файлами
+CREATE TABLE IF NOT EXISTS public.payment_attachments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    payment_id uuid NOT NULL,
+    attachment_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT payment_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
+    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (attachment_id),
+    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (payment_id),
+    CONSTRAINT payment_attachments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),
+    CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.payment_attachments IS 'Связь между платежами и прикрепленными файлами';
+COMMENT ON COLUMN public.payment_attachments.payment_id IS 'ID платежа';
+COMMENT ON COLUMN public.payment_attachments.attachment_id IS 'ID прикрепленного файла';
+
+CREATE TABLE IF NOT EXISTS public.payment_statuses (
+    id integer(32) NOT NULL DEFAULT nextval('payment_statuses_id_seq'::regclass),
+    code character varying(50) NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    sort_order integer(32),
+    color character varying(20),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT payment_statuses_code_key UNIQUE (code),
+    CONSTRAINT payment_statuses_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.payment_types (
+    id integer(32) NOT NULL DEFAULT nextval('payment_types_id_seq'::regclass),
+    code character varying(50) NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT payment_types_code_key UNIQUE (code),
+    CONSTRAINT payment_types_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.payments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    invoice_id uuid NOT NULL,
+    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),
+    payment_date date NOT NULL DEFAULT CURRENT_DATE,
+    amount numeric(15,2) NOT NULL,
+    description text,
+    payment_type_id integer(32),
+    status_id integer(32) DEFAULT 1,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
+    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),
+    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),
+    CONSTRAINT payments_pkey PRIMARY KEY (id),
+    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)
+);
 
 -- Projects that group invoices and contractors for reporting.
 CREATE TABLE IF NOT EXISTS public.projects (
@@ -380,8 +454,8 @@ CREATE OR REPLACE FUNCTION public.update_updated_at_column()
  LANGUAGE plpgsql
 AS $function$
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
 $function$
 
@@ -410,6 +484,15 @@ CREATE TRIGGER calculate_vat_on_invoice BEFORE INSERT OR UPDATE ON public.invoic
 ;
 
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER update_payment_statuses_updated_at BEFORE UPDATE ON public.payment_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER update_payment_types_updated_at BEFORE UPDATE ON public.payment_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
@@ -452,6 +535,15 @@ CREATE INDEX idx_invoice_attachments_invoice_id ON public.invoice_attachments US
 CREATE UNIQUE INDEX invoice_attachments_invoice_id_attachment_id_key ON public.invoice_attachments USING btree (invoice_id, attachment_id)
 ;
 
+CREATE INDEX idx_invoice_payments_invoice_id ON public.invoice_payments USING btree (invoice_id)
+;
+
+CREATE INDEX idx_invoice_payments_payment_id ON public.invoice_payments USING btree (payment_id)
+;
+
+CREATE UNIQUE INDEX invoice_payments_invoice_id_payment_id_key ON public.invoice_payments USING btree (invoice_id, payment_id)
+;
+
 CREATE INDEX idx_invoice_statuses_code ON public.invoice_statuses USING btree (code)
 ;
 
@@ -489,6 +581,36 @@ CREATE INDEX idx_invoices_supplier_id ON public.invoices USING btree (supplier_i
 ;
 
 CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)
+;
+
+CREATE INDEX idx_payment_attachments_attachment_id ON public.payment_attachments USING btree (attachment_id)
+;
+
+CREATE INDEX idx_payment_attachments_payment_id ON public.payment_attachments USING btree (payment_id)
+;
+
+CREATE UNIQUE INDEX payment_attachments_payment_id_attachment_id_key ON public.payment_attachments USING btree (payment_id, attachment_id)
+;
+
+CREATE UNIQUE INDEX payment_statuses_code_key ON public.payment_statuses USING btree (code)
+;
+
+CREATE UNIQUE INDEX payment_types_code_key ON public.payment_types USING btree (code)
+;
+
+CREATE INDEX idx_payments_created_by ON public.payments USING btree (created_by)
+;
+
+CREATE INDEX idx_payments_invoice_id ON public.payments USING btree (invoice_id)
+;
+
+CREATE INDEX idx_payments_payment_date ON public.payments USING btree (payment_date)
+;
+
+CREATE INDEX idx_payments_status_id ON public.payments USING btree (status_id)
+;
+
+CREATE UNIQUE INDEX payments_payment_number_key ON public.payments USING btree (payment_number)
 ;
 
 CREATE INDEX idx_projects_code ON public.projects USING btree (code)
