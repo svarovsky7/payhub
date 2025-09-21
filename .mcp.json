@@ -1,0 +1,55 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@upstash/context7-mcp@latest",
+        "--api-key",
+        "ctx7sk-05e85106-d0d8-4788-9183-711e7339d81f"
+      ],
+      "env": {}
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@latest"
+      ],
+      "env": {}
+    },
+    "supabase-postgrest": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@supabase/mcp-server-postgrest@latest",
+        "--apiUrl",
+        "http://31.128.51.210:8001/rest/v1",
+        "--apiKey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlhdCI6MTc1NjUwMjI3MywibmJmIjoxNzU2NTAyMjEzLCJleHAiOjIwNzE4NjIyNzN9.XOic1OKlhWSysSWshCKbWEZAOTZD6v-XISlQC6BFpSQ",
+        "--schema",
+        "public"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,768 @@
+{
+  "public.contractor_types": {
+    "schema": "public",
+    "name": "contractor_types",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('contractor_types_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18391_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18391_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18391_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractor_types_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractor_types_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.contractor_types (\n    id integer(32) NOT NULL DEFAULT nextval('contractor_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractor_types_code_key UNIQUE (code),\n    CONSTRAINT contractor_types_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.contractors": {
+    "schema": "public",
+    "name": "contractors",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('contractors_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "type_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "inn",
+        "data_type": "character varying",
+        "max_length": 12,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18404_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18404_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18404_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractors_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractors_inn_key",
+        "type": "UNIQUE",
+        "column": "inn",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractors_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractors_type_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "type_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    inn character varying(12),\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id),\n    CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)\n);"
+  },
+  "public.invoices": {
+    "schema": "public",
+    "name": "invoices",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "uuid_generate_v4()",
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "invoice_number",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "amount",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 10,
+        "numeric_scale": 2,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "'draft'::text",
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "due_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18252_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18252_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18252_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18252_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18252_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoices_amount_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoices_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoices_status_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoices_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    amount numeric(10,2) NOT NULL,\n    status text NOT NULL DEFAULT 'draft'::text,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);"
+  },
+  "public.projects": {
+    "schema": "public",
+    "name": "projects",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('projects_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "is_active",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "true",
+        "comment": null
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18372_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18372_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "projects_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "projects_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "projects_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.projects (\n    id integer(32) NOT NULL DEFAULT nextval('projects_id_seq'::regclass),\n    code character varying(50),\n    name character varying(255) NOT NULL,\n    description text,\n    is_active boolean DEFAULT true,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT projects_code_key UNIQUE (code),\n    CONSTRAINT projects_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT projects_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.roles": {
+    "schema": "public",
+    "name": "roles",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('roles_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18359_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18359_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18359_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "roles_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "roles_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.user_profiles": {
+    "schema": "public",
+    "name": "user_profiles",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "full_name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18236_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18236_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18236_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_profiles_email_key",
+        "type": "UNIQUE",
+        "column": "email",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_profiles_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_profiles_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id)\n);"
+  }
+}
