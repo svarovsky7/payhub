@@ -1,39 +1,35 @@
 -- Database Schema Export
--- Generated: 2025-09-21T09:47:51.346359
+-- Generated: 2025-09-21T12:23:49.992054
 -- Database: postgres
 -- Host: 31.128.51.210
 
 -- ============================================
 
--- EXTENSIONS
--- ============================================
-
-CREATE EXTENSION IF NOT EXISTS pg_graphql;
-CREATE EXTENSION IF NOT EXISTS pg_net;
-CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE EXTENSION IF NOT EXISTS pgjwt;
-CREATE EXTENSION IF NOT EXISTS plpgsql;
-CREATE EXTENSION IF NOT EXISTS supabase_vault;
-CREATE EXTENSION IF NOT EXISTS uuid-ossp;
-
--- SCHEMAS
--- ============================================
-
-CREATE SCHEMA IF NOT EXISTS _realtime;
-CREATE SCHEMA IF NOT EXISTS auth;
-CREATE SCHEMA IF NOT EXISTS extensions;
-CREATE SCHEMA IF NOT EXISTS graphql;
-CREATE SCHEMA IF NOT EXISTS graphql_public;
-CREATE SCHEMA IF NOT EXISTS net;
-CREATE SCHEMA IF NOT EXISTS realtime;
-CREATE SCHEMA IF NOT EXISTS storage;
-CREATE SCHEMA IF NOT EXISTS supabase_functions;
-CREATE SCHEMA IF NOT EXISTS vault;
-
 -- TABLES
 -- ============================================
 
+-- Хранение информации о загруженных файлах
+CREATE TABLE IF NOT EXISTS public.attachments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    original_name character varying(255) NOT NULL,
+    storage_path character varying(500) NOT NULL,
+    size_bytes integer(32) NOT NULL,
+    mime_type character varying(100) NOT NULL,
+    created_by uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT attachments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT attachments_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.attachments IS 'Хранение информации о загруженных файлах';
+COMMENT ON COLUMN public.attachments.original_name IS 'Оригинальное имя файла';
+COMMENT ON COLUMN public.attachments.storage_path IS 'Путь к файлу в Supabase Storage';
+COMMENT ON COLUMN public.attachments.size_bytes IS 'Размер файла в байтах';
+COMMENT ON COLUMN public.attachments.mime_type IS 'MIME тип файла';
+COMMENT ON COLUMN public.attachments.created_by IS 'Пользователь, загрузивший файл';
+
+-- Reference of contractor categories used across contractor records.
 CREATE TABLE IF NOT EXISTS public.contractor_types (
     id integer(32) NOT NULL DEFAULT nextval('contractor_types_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -45,6 +41,15 @@ CREATE TABLE IF NOT EXISTS public.contractor_types (
     CONSTRAINT contractor_types_pkey PRIMARY KEY (id)
 );
 
+COMMENT ON TABLE public.contractor_types IS 'Reference of contractor categories used across contractor records.';
+COMMENT ON COLUMN public.contractor_types.id IS 'Surrogate primary key for contractor type.';
+COMMENT ON COLUMN public.contractor_types.code IS 'Unique short code of contractor type used in integrations.';
+COMMENT ON COLUMN public.contractor_types.name IS 'Human readable contractor type name.';
+COMMENT ON COLUMN public.contractor_types.description IS 'Optional description that clarifies how the contractor type is used.';
+COMMENT ON COLUMN public.contractor_types.created_at IS 'Timestamp of when the contractor type record was created.';
+COMMENT ON COLUMN public.contractor_types.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+
+-- Registry of contractors linked to invoices and projects.
 CREATE TABLE IF NOT EXISTS public.contractors (
     id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),
     type_id integer(32) NOT NULL,
@@ -59,6 +64,55 @@ CREATE TABLE IF NOT EXISTS public.contractors (
     CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)
 );
 
+COMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects.';
+COMMENT ON COLUMN public.contractors.id IS 'Surrogate primary key for contractor.';
+COMMENT ON COLUMN public.contractors.type_id IS 'Foreign key to public.contractor_types.id indicating contractor category.';
+COMMENT ON COLUMN public.contractors.name IS 'Official contractor name stored for invoicing.';
+COMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN) of the contractor.';
+COMMENT ON COLUMN public.contractors.created_by IS 'Identifier of the Supabase auth user that created the contractor.';
+COMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor record was created.';
+COMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+
+-- Связь между счетами и прикрепленными файлами
+CREATE TABLE IF NOT EXISTS public.invoice_attachments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    invoice_id uuid NOT NULL,
+    attachment_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT invoice_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
+    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (attachment_id),
+    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (invoice_id),
+    CONSTRAINT invoice_attachments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
+    CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.invoice_attachments IS 'Связь между счетами и прикрепленными файлами';
+
+-- Reference of invoice workflow statuses used throughout PayHub.
+CREATE TABLE IF NOT EXISTS public.invoice_statuses (
+    id integer(32) NOT NULL DEFAULT nextval('invoice_statuses_id_seq'::regclass),
+    code character varying(50) NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    sort_order integer(32),
+    color character varying(20),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT invoice_statuses_code_key UNIQUE (code),
+    CONSTRAINT invoice_statuses_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.invoice_statuses IS 'Reference of invoice workflow statuses used throughout PayHub.';
+COMMENT ON COLUMN public.invoice_statuses.id IS 'Surrogate primary key for invoice status.';
+COMMENT ON COLUMN public.invoice_statuses.code IS 'Unique code used to reference the status in APIs and UI.';
+COMMENT ON COLUMN public.invoice_statuses.name IS 'Human readable status label.';
+COMMENT ON COLUMN public.invoice_statuses.description IS 'Optional description explaining when to use the status.';
+COMMENT ON COLUMN public.invoice_statuses.sort_order IS 'Ordering weight for displaying statuses.';
+COMMENT ON COLUMN public.invoice_statuses.color IS 'Optional color token or hex value for UI badges.';
+COMMENT ON COLUMN public.invoice_statuses.created_at IS 'Timestamp when the invoice status was created.';
+COMMENT ON COLUMN public.invoice_statuses.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+
+-- Reference of invoice classification types (e.g. services, materials).
 CREATE TABLE IF NOT EXISTS public.invoice_types (
     id integer(32) NOT NULL DEFAULT nextval('invoice_types_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -70,6 +124,15 @@ CREATE TABLE IF NOT EXISTS public.invoice_types (
     CONSTRAINT invoice_types_pkey PRIMARY KEY (id)
 );
 
+COMMENT ON TABLE public.invoice_types IS 'Reference of invoice classification types (e.g. services, materials).';
+COMMENT ON COLUMN public.invoice_types.id IS 'Surrogate primary key for invoice type.';
+COMMENT ON COLUMN public.invoice_types.code IS 'Unique code representing the invoice type.';
+COMMENT ON COLUMN public.invoice_types.name IS 'Human readable invoice type name.';
+COMMENT ON COLUMN public.invoice_types.description IS 'Optional description of what the invoice type represents.';
+COMMENT ON COLUMN public.invoice_types.created_at IS 'Timestamp when the invoice type record was created.';
+COMMENT ON COLUMN public.invoice_types.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+
+-- Outbound invoices issued from PayHub.
 CREATE TABLE IF NOT EXISTS public.invoices (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     user_id uuid NOT NULL,
@@ -89,25 +152,40 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     amount_without_vat numeric(15,2),
     delivery_days integer(32),
     delivery_days_type character varying(20) DEFAULT 'working'::character varying,
+    preliminary_delivery_date date,
+    status_id integer(32) NOT NULL,
     CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
     CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),
     CONSTRAINT invoices_pkey PRIMARY KEY (id),
     CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
+    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),
     CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),
     CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)
 );
-COMMENT ON COLUMN public.invoices.invoice_date IS 'Дата счета';
-COMMENT ON COLUMN public.invoices.payer_id IS 'ID плательщика (контрагент с типом payer)';
-COMMENT ON COLUMN public.invoices.supplier_id IS 'ID поставщика (контрагент с типом supplier)';
-COMMENT ON COLUMN public.invoices.project_id IS 'ID проекта';
-COMMENT ON COLUMN public.invoices.invoice_type_id IS 'ID типа счета';
-COMMENT ON COLUMN public.invoices.amount_with_vat IS 'Сумма счета с НДС';
-COMMENT ON COLUMN public.invoices.vat_rate IS 'Ставка НДС (%)';
-COMMENT ON COLUMN public.invoices.vat_amount IS 'Сумма НДС';
-COMMENT ON COLUMN public.invoices.amount_without_vat IS 'Сумма без НДС';
-COMMENT ON COLUMN public.invoices.delivery_days IS 'Количество дней поставки после оплаты';
-COMMENT ON COLUMN public.invoices.delivery_days_type IS 'Тип дней поставки (working - рабочие, calendar - календарные)';
 
+COMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';
+COMMENT ON COLUMN public.invoices.id IS 'Primary key and external identifier of the invoice.';
+COMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who owns or issued the invoice.';
+COMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number visible to customers.';
+COMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer facing note.';
+COMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';
+COMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created.';
+COMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+COMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';
+COMMENT ON COLUMN public.invoices.payer_id IS 'Contractor (public.contractors.id) acting as payer.';
+COMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor (public.contractors.id) acting as supplier.';
+COMMENT ON COLUMN public.invoices.project_id IS 'Associated project (public.projects.id).';
+COMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';
+COMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';
+COMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice amount (percent).';
+COMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';
+COMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice total amount excluding VAT.';
+COMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery after payment.';
+COMMENT ON COLUMN public.invoices.delivery_days_type IS 'Delivery day interpretation: working or calendar.';
+COMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';
+COMMENT ON COLUMN public.invoices.status_id IS 'Invoice workflow status (public.invoice_statuses.id).';
+
+-- Projects that group invoices and contractors for reporting.
 CREATE TABLE IF NOT EXISTS public.projects (
     id integer(32) NOT NULL DEFAULT nextval('projects_id_seq'::regclass),
     code character varying(50),
@@ -122,6 +200,17 @@ CREATE TABLE IF NOT EXISTS public.projects (
     CONSTRAINT projects_pkey PRIMARY KEY (id)
 );
 
+COMMENT ON TABLE public.projects IS 'Projects that group invoices and contractors for reporting.';
+COMMENT ON COLUMN public.projects.id IS 'Surrogate primary key for project.';
+COMMENT ON COLUMN public.projects.code IS 'Optional unique project code for integrations and search.';
+COMMENT ON COLUMN public.projects.name IS 'Project display name.';
+COMMENT ON COLUMN public.projects.description IS 'Optional project description for internal users.';
+COMMENT ON COLUMN public.projects.is_active IS 'Flag that marks whether the project is active.';
+COMMENT ON COLUMN public.projects.created_by IS 'Supabase auth user who created the project.';
+COMMENT ON COLUMN public.projects.created_at IS 'Timestamp when the project record was created.';
+COMMENT ON COLUMN public.projects.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+
+-- Roles that define access levels inside PayHub.
 CREATE TABLE IF NOT EXISTS public.roles (
     id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -133,6 +222,15 @@ CREATE TABLE IF NOT EXISTS public.roles (
     CONSTRAINT roles_pkey PRIMARY KEY (id)
 );
 
+COMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';
+COMMENT ON COLUMN public.roles.id IS 'Primary key for role.';
+COMMENT ON COLUMN public.roles.code IS 'Unique machine readable code of the role.';
+COMMENT ON COLUMN public.roles.name IS 'Human readable role name.';
+COMMENT ON COLUMN public.roles.description IS 'Optional description of permissions or intended usage.';
+COMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role was created.';
+COMMENT ON COLUMN public.roles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+
+-- Mirror of Supabase auth user profiles stored in public schema.
 CREATE TABLE IF NOT EXISTS public.user_profiles (
     id uuid NOT NULL,
     email text NOT NULL,
@@ -144,6 +242,14 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     CONSTRAINT user_profiles_pkey PRIMARY KEY (id)
 );
 
+COMMENT ON TABLE public.user_profiles IS 'Mirror of Supabase auth user profiles stored in public schema.';
+COMMENT ON COLUMN public.user_profiles.id IS 'Primary key and foreign key to auth.users.id.';
+COMMENT ON COLUMN public.user_profiles.email IS 'Primary email address associated with the user profile.';
+COMMENT ON COLUMN public.user_profiles.full_name IS 'Display name of the user shown in UI.';
+COMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was recorded.';
+COMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';
+
+-- Mapping table assigning users to projects for access control.
 CREATE TABLE IF NOT EXISTS public.user_projects (
     id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),
     user_id uuid NOT NULL,
@@ -155,6 +261,12 @@ CREATE TABLE IF NOT EXISTS public.user_projects (
     CONSTRAINT user_projects_user_project_unique UNIQUE (project_id),
     CONSTRAINT user_projects_user_project_unique UNIQUE (user_id)
 );
+
+COMMENT ON TABLE public.user_projects IS 'Mapping table assigning users to projects for access control.';
+COMMENT ON COLUMN public.user_projects.id IS 'Surrogate primary key for user-project relation.';
+COMMENT ON COLUMN public.user_projects.user_id IS 'Supabase auth user granted access to the project.';
+COMMENT ON COLUMN public.user_projects.project_id IS 'Project (public.projects.id) assigned to the user.';
+COMMENT ON COLUMN public.user_projects.created_at IS 'Timestamp when the user-project link was created.';
 
 
 -- FUNCTIONS
@@ -279,10 +391,16 @@ $function$
 -- TRIGGERS
 -- ============================================
 
+CREATE TRIGGER update_attachments_updated_at BEFORE UPDATE ON public.attachments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
 CREATE TRIGGER update_contractor_types_updated_at BEFORE UPDATE ON public.contractor_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_contractors_updated_at BEFORE UPDATE ON public.contractors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER update_invoice_statuses_updated_at BEFORE UPDATE ON public.invoice_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
@@ -307,6 +425,9 @@ CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON public.user_prof
 -- INDEXES
 -- ============================================
 
+CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)
+;
+
 CREATE UNIQUE INDEX contractor_types_code_key ON public.contractor_types USING btree (code)
 ;
 
@@ -320,6 +441,24 @@ CREATE INDEX idx_contractors_inn ON public.contractors USING btree (inn)
 ;
 
 CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)
+;
+
+CREATE INDEX idx_invoice_attachments_attachment_id ON public.invoice_attachments USING btree (attachment_id)
+;
+
+CREATE INDEX idx_invoice_attachments_invoice_id ON public.invoice_attachments USING btree (invoice_id)
+;
+
+CREATE UNIQUE INDEX invoice_attachments_invoice_id_attachment_id_key ON public.invoice_attachments USING btree (invoice_id, attachment_id)
+;
+
+CREATE INDEX idx_invoice_statuses_code ON public.invoice_statuses USING btree (code)
+;
+
+CREATE INDEX idx_invoice_statuses_sort_order ON public.invoice_statuses USING btree (sort_order)
+;
+
+CREATE UNIQUE INDEX invoice_statuses_code_key ON public.invoice_statuses USING btree (code)
 ;
 
 CREATE INDEX idx_invoice_types_code ON public.invoice_types USING btree (code)
@@ -341,6 +480,9 @@ CREATE INDEX idx_invoices_payer_id ON public.invoices USING btree (payer_id)
 ;
 
 CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)
+;
+
+CREATE INDEX idx_invoices_status_id ON public.invoices USING btree (status_id)
 ;
 
 CREATE INDEX idx_invoices_supplier_id ON public.invoices USING btree (supplier_id)

@@ -25,32 +25,42 @@ npm run preview   # Preview production build locally
 - **Ant Design 5** - UI components (localized to Russian)
 - **Supabase** - Backend, authentication, and PostgreSQL database
 - **React Router 7** - Client-side routing
+- **Day.js** - Date manipulation library
 
 ### Project Structure
 ```
 src/
 ├── components/
-│   ├── admin/         # Admin panel tabs (UsersTab, RolesTab, etc.)
-│   ├── Layout.tsx     # Main app layout with navigation
+│   ├── admin/              # Admin panel tabs
+│   │   ├── UsersTab.tsx
+│   │   ├── RolesTab.tsx
+│   │   ├── ProjectsTab.tsx
+│   │   ├── ContractorsTab.tsx
+│   │   ├── ContractorTypesTab.tsx
+│   │   ├── InvoiceTypesTab.tsx
+│   │   └── InvoiceStatusesTab.tsx
+│   ├── invoices/           # Invoice components
+│   │   └── InvoiceFormModal.tsx
+│   ├── Layout.tsx          # Main app layout with navigation
 │   └── ProtectedRoute.tsx  # Authentication guard
 ├── contexts/
-│   └── AuthContext.tsx  # Authentication state management
+│   └── AuthContext.tsx     # Authentication state management
 ├── lib/
-│   └── supabase.ts     # Supabase client configuration
+│   └── supabase.ts         # Supabase client configuration
 ├── pages/
-│   ├── AuthPage.tsx    # Login/registration
-│   ├── InvoicesPage.tsx # Invoice management
-│   └── AdminPage.tsx   # Admin dashboard with tabs
-├── App.tsx            # Main routing configuration
-└── main.tsx          # Application entry point
+│   ├── AuthPage.tsx        # Login/registration
+│   ├── InvoicesPage.tsx    # Invoice management
+│   └── AdminPage.tsx       # Admin dashboard with tabs
+├── utils/
+│   └── invoiceHelpers.ts   # Invoice utility functions
+├── App.tsx                 # Main routing configuration
+└── main.tsx               # Application entry point
 ```
 
 ### Routing Structure
 - `/login` - Authentication page
 - `/invoices` - Invoice management
-- `/dashboard` - Analytics dashboard (placeholder)
-- `/settings` - Application settings (placeholder)
-- `/admin/*` - Admin panel with nested routes
+- `/admin/*` - Admin panel with nested routes (users, roles, projects, contractors, etc.)
 - `/` - Redirects to login
 
 ## Important Development Rules
@@ -85,7 +95,7 @@ Configured with strict type checking in `tsconfig.app.json`:
 - Session management handled by AuthContext
 - Authentication required for all routes except `/login`
 
-**Database Schema Reference Files**
+## Database Schema Reference Files
 
 For all database-related queries (table structures, indexes, triggers, functions, enums, SQL examples), use **only** the following files in `supabase/ai_context`:
 - `ai_tables_min.json` / `ai_tables_full.json` - Table definitions with columns, constraints, indexes
@@ -98,20 +108,19 @@ For all database-related queries (table structures, indexes, triggers, functions
 
 **Important**: Never invent fields, functions, or triggers not present in these files. If information is insufficient, request an update to these files rather than making assumptions.
 
-
-
-
 ## Database Schema
 
 PostgreSQL database via Supabase with the following core tables:
 
 ### Main Tables
-- **user_profiles** - User information linked to auth.users (id, email, full_name)
-- **invoices** - Invoice records (id, user_id, invoice_number, amount, status, description, due_date)
-- **projects** - Project management (id, code, name, description, is_active, created_by)
-- **contractors** - Contractor records (id, type_id, name, inn, created_by)
-- **contractor_types** - Contractor categories (id, code, name, description)
-- **roles** - User roles (id, code, name, description)
+- **user_profiles** - User information linked to auth.users
+- **invoices** - Invoice records with status tracking
+- **invoice_types** - Invoice type categories
+- **invoice_statuses** - Invoice status definitions
+- **projects** - Project management
+- **contractors** - Contractor records
+- **contractor_types** - Contractor categories
+- **roles** - User roles
 - **user_projects** - Many-to-many relationship between users and projects
 
 ### Database Features
@@ -130,12 +139,11 @@ Required in `.env` file:
 VITE_SUPABASE_URL=http://31.128.51.210:8001
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_STORAGE_BUCKET=http://31.128.51.210:8001/storage/v1
-
 ```
 
 ## Console Logging
 
-**IMPORTANT**: When developing and debugging functionality, always add detailed logging to the browser console:
+When developing and debugging functionality, always add detailed logging to the browser console:
 
 1. **Log main actions**:
    - Start and completion of CRUD operations
@@ -147,8 +155,7 @@ VITE_STORAGE_BUCKET=http://31.128.51.210:8001/storage/v1
    ```javascript
    console.log('[ComponentName.methodName] Action description:', {
      parameter1: value1,
-     parameter2: value2,
-     // detailed debugging information
+     parameter2: value2
    });
    ```
 
@@ -162,17 +169,10 @@ VITE_STORAGE_BUCKET=http://31.128.51.210:8001/storage/v1
 
 4. **Logging examples**:
    ```javascript
-   // In hooks
    console.log('[useCreateInvoice] Creating invoice:', data);
-
-   // In components
    console.log('[InvoiceCreate.handleSubmit] Submitting form:', values);
-
-   // For errors
    console.error('[InvoiceCreate.handleSubmit] Invoice creation error:', error);
    ```
-
-This simplifies debugging and helps quickly identify issues in production environments.
 
 ## Getting Started
 

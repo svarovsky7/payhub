@@ -45,7 +45,7 @@
         "@supabase/mcp-server-postgrest@latest",
         "--apiUrl",
         "http://31.128.51.210:8001/rest/v1",
-        "--apiKey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlhdCI6MTc1NjUwMjI3MywibmJmIjoxNzU2NTAyMjEzLCJleHAiOjIwNzE4NjIyNzN9.XOic1OKlhWSysSWshCKbWEZAOTZD6v-XISlQC6BFpSQ",
+        "--apiKey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlhdCI6MTc1ODQyNzQzNCwibmJmIjoxNzU4NDI3Mzc0LCJleHAiOjIwNzM3ODc0MzR9.N80dpZTFLMX9DQOqeKdTcwwa4pc8ZMNXTyFwCKeQ__4",
         "--schema",
         "public"
       ],

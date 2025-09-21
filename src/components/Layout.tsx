@@ -5,9 +5,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  DashboardOutlined,
-  SettingOutlined,
-  ControlOutlined
+  ControlOutlined,
 } from '@ant-design/icons'
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -39,59 +37,46 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     {
       key: 'profile',
       icon: <UserOutlined />,
-      label: 'Профиль'
+      label: 'Профиль',
     },
     {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Настройки'
-    },
-    {
-      type: 'divider'
+      type: 'divider' as const,
     },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: 'Выход',
-      onClick: handleLogout
-    }
+      label: 'Выйти',
+      onClick: handleLogout,
+    },
   ]
 
   const menuItems = [
     {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Дашборд'
-    },
-    {
       key: '/invoices',
       icon: <FileTextOutlined />,
-      label: 'Счета'
+      label: 'Счета',
     },
     {
       key: '/admin',
       icon: <ControlOutlined />,
-      label: 'Администрирование'
+      label: 'Администрирование',
     },
-    {
-      key: '/settings',
-      icon: <SettingOutlined />,
-      label: 'Настройки'
-    }
   ]
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div style={{
-          height: 64,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: collapsed ? '18px' : '24px',
-          fontWeight: 'bold'
-        }}>
+        <div
+          style={{
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: collapsed ? '18px' : '24px',
+            fontWeight: 'bold',
+          }}
+        >
           {collapsed ? 'PH' : 'PayHub'}
         </div>
         <Menu
@@ -100,30 +85,28 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={({ key }) => {
-            if (key === 'logout') return; // logout handled separately
+            if (key === 'logout') return
             console.log('[MainLayout.Menu] Navigating to:', key)
             navigate(key)
           }}
         />
       </Sider>
       <Layout>
-        <Header style={{
-          padding: 0,
-          background: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingRight: 24
-        }}>
+        <Header
+          style={{
+            padding: 0,
+            background: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingRight: 24,
+          }}
+        >
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: '16px',
-              width: 64,
-              height: 64,
-            }}
+            style={{ fontSize: '16px', width: 64, height: 64 }}
           />
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -132,13 +115,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
           </Dropdown>
         </Header>
-        <Content style={{
-          margin: '24px 16px',
-          padding: 24,
-          minHeight: 280,
-          background: '#fff',
-          borderRadius: 8
-        }}>
+        <Content
+          style={{
+            margin: '24px 16px',
+            padding: 24,
+            minHeight: 280,
+            background: '#fff',
+            borderRadius: 8,
+          }}
+        >
           {children}
         </Content>
       </Layout>

@@ -21,6 +21,41 @@
     "description": "Invoice owner."
   },
   {
+    "from_table": "public.invoices",
+    "from_column": "payer_id",
+    "to_table": "public.contractors",
+    "to_column": "id",
+    "description": "Payer contractor linked to the invoice."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "supplier_id",
+    "to_table": "public.contractors",
+    "to_column": "id",
+    "description": "Supplier contractor linked to the invoice."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "project_id",
+    "to_table": "public.projects",
+    "to_column": "id",
+    "description": "Project that groups the invoice."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "invoice_type_id",
+    "to_table": "public.invoice_types",
+    "to_column": "id",
+    "description": "Invoice type catalog reference."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "status_id",
+    "to_table": "public.invoice_statuses",
+    "to_column": "id",
+    "description": "Workflow status from invoice_statuses."
+  },
+  {
     "from_table": "public.projects",
     "from_column": "created_by",
     "to_table": "auth.users",
@@ -33,5 +68,19 @@
     "to_table": "auth.users",
     "to_column": "id",
     "description": "Profile mirrors Supabase auth user."
+  },
+  {
+    "from_table": "public.user_projects",
+    "from_column": "user_id",
+    "to_table": "auth.users",
+    "to_column": "id",
+    "description": "User receiving project access."
+  },
+  {
+    "from_table": "public.user_projects",
+    "from_column": "project_id",
+    "to_table": "public.projects",
+    "to_column": "id",
+    "description": "Project assigned to the user."
   }
 ]

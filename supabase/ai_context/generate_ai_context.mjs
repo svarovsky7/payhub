@@ -18,10 +18,13 @@ const enums = fs.existsSync(enumsPath) ? readJson(enumsPath) : {}
 const tableSummaries = {
   "public.contractor_types": "Dictionary of contractor categories used to classify payments and obligations.",
   "public.contractors": "Registered contractors with type, tax id and authoring user.",
-  "public.invoices": "Outbound invoices tracked by PayHub with amount, status and owner.",
+  "public.invoice_statuses": "Invoice workflow statuses used to drive document state transitions.",
+  "public.invoice_types": "Catalog of invoice types (services, materials, subscriptions, etc.).",
+  "public.invoices": "Outbound invoices tracked by PayHub with monetary breakdown and workflow links.",
   "public.projects": "Projects that group invoices and contractors for reporting.",
   "public.roles": "Access roles managed inside PayHub.",
   "public.user_profiles": "User profile mirror for Supabase auth users.",
+  "public.user_projects": "Mapping table granting users access to projects.",
 }
 
 const columnNotes = {
@@ -46,12 +49,23 @@ const columnNotes = {
     id: "Invoice UUID.",
     user_id: "auth.users.id that owns the invoice.",
     invoice_number: "External reference or invoice number.",
-    amount: "Total amount in settlement currency.",
-    status: "Workflow status label.",
     description: "Optional narrative description.",
     due_date: "Payment due date.",
     created_at: "Creation timestamp.",
     updated_at: "Auto refreshed timestamp.",
+    invoice_date: "Calendar date printed on the invoice.",
+    payer_id: "Contractor acting as payer.",
+    supplier_id: "Contractor acting as supplier.",
+    project_id: "Associated project for reporting.",
+    invoice_type_id: "Reference to invoice_types.",
+    amount_with_vat: "Invoice total including VAT.",
+    vat_rate: "VAT rate applied (percent).",
+    vat_amount: "VAT amount derived from totals.",
+    amount_without_vat: "Invoice total excluding VAT.",
+    delivery_days: "Number of days for delivery after payment.",
+    delivery_days_type: "Delivery day interpretation (working/calendar).",
+    preliminary_delivery_date: "Projected delivery date computed from payment terms.",
+    status_id: "Reference to invoice_statuses.",
   },
   "public.projects": {
     id: "Surrogate primary key.",
@@ -78,6 +92,30 @@ const columnNotes = {
     created_at: "Creation timestamp.",
     updated_at: "Auto refreshed timestamp.",
   },
+  "public.invoice_statuses": {
+    id: "Surrogate status id.",
+    code: "Unique status code for UI/API.",
+    name: "Status label.",
+    description: "Optional status guidance.",
+    sort_order: "Ordering for UI sequences.",
+    color: "Optional badge color token.",
+    created_at: "Creation timestamp.",
+    updated_at: "Auto refreshed timestamp.",
+  },
+  "public.invoice_types": {
+    id: "Surrogate type id.",
+    code: "Unique type code.",
+    name: "Type label.",
+    description: "Optional details.",
+    created_at: "Creation timestamp.",
+    updated_at: "Auto refreshed timestamp.",
+  },
+  "public.user_projects": {
+    id: "Relation surrogate key.",
+    user_id: "Supabase user assigned to the project.",
+    project_id: "Project being granted to the user.",
+    created_at: "Creation timestamp.",
+  },
 }
 
 const fkOverrides = {
@@ -96,6 +134,26 @@ const fkOverrides = {
       reference: "auth.users.id",
       description: "Invoice owner.",
     },
+    payer_id: {
+      reference: "public.contractors.id",
+      description: "Payer contractor linked to the invoice.",
+    },
+    supplier_id: {
+      reference: "public.contractors.id",
+      description: "Supplier contractor linked to the invoice.",
+    },
+    project_id: {
+      reference: "public.projects.id",
+      description: "Project that groups the invoice.",
+    },
+    invoice_type_id: {
+      reference: "public.invoice_types.id",
+      description: "Invoice type catalog reference.",
+    },
+    status_id: {
+      reference: "public.invoice_statuses.id",
+      description: "Workflow status from invoice_statuses.",
+    },
   },
   "public.projects": {
     created_by: {
@@ -107,6 +165,16 @@ const fkOverrides = {
     id: {
       reference: "auth.users.id",
       description: "Profile mirrors Supabase auth user.",
+    },
+  },
+  "public.user_projects": {
+    user_id: {
+      reference: "auth.users.id",
+      description: "User receiving project access.",
+    },
+    project_id: {
+      reference: "public.projects.id",
+      description: "Project assigned to the user.",
     },
   },
 }
@@ -143,6 +211,8 @@ const formatType = (column) => {
       return "text"
     case "boolean":
       return "boolean"
+    case "date":
+      return "date"
     default:
       return dataType
   }
@@ -233,7 +303,7 @@ const buildColumn = (tableId, column, pkColumns) => {
     is_primary: pkColumns.includes(column.name),
     is_foreign: Boolean(fkOverride),
     references: fkOverride ? fkOverride.reference : null,
-    note: columnNotes[tableId]?.[column.name] || null,
+    note: columnNotes[tableId]?.[column.name] ?? column.comment ?? null,
   }
 }
 
@@ -242,7 +312,7 @@ const tablesFull = []
 
 for (const tableDef of Object.values(tables)) {
   const tableId = `${tableDef.schema}.${tableDef.name}`
-  const summary = tableSummaries[tableId] || null
+  const summary = tableSummaries[tableId] || tableDef.comment || null
   const pkColumns = collectPrimaryKeys(tableDef)
   const columns = tableDef.columns.map((column) => buildColumn(tableId, column, pkColumns))
 
@@ -339,19 +409,32 @@ for (const [tableId, overrides] of Object.entries(fkOverrides)) {
   }
 }
 
-const sqlExamples = `-- Maintain contractor catalog
+const sqlExamples = `-- Seed invoice workflow statuses
+INSERT INTO public.invoice_statuses (code, name, description, sort_order)
+VALUES
+  ('draft', 'Draft', 'New invoice waiting for details', 10),
+  ('pending', 'Pending Payment', 'Issued to customer, awaiting funds', 20),
+  ('paid', 'Paid', 'Payment received and reconciled', 30)
+ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description, sort_order = EXCLUDED.sort_order;
+
+-- Seed invoice types
+INSERT INTO public.invoice_types (code, name, description)
+VALUES
+  ('services', 'Services', 'Time & materials or professional services'),
+  ('subscription', 'Subscription', 'Recurring SaaS or retainer billing')
+ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description;
+
+-- Maintain contractor catalog
 INSERT INTO public.contractor_types (code, name, description)
 VALUES ('freelancer', 'Freelancer', 'Individual contractor')
 ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
 
--- Register a contractor (updated_at is set by trigger)
+-- Register payer and supplier contractors (updated_at is set by trigger)
 INSERT INTO public.contractors (type_id, name, inn, created_by)
-VALUES (
-  (SELECT id FROM public.contractor_types WHERE code = 'freelancer'),
-  'Sole Proprietor John Doe',
-  '123456789012',
-  '00000000-0000-0000-0000-000000000001'
-);
+VALUES
+  ((SELECT id FROM public.contractor_types WHERE code = 'freelancer'), 'Sole Proprietor John Doe', '123456789012', '00000000-0000-0000-0000-000000000001'),
+  ((SELECT id FROM public.contractor_types WHERE code = 'freelancer'), 'PayHub Delivery LLC', '774512345678', '00000000-0000-0000-0000-000000000001')
+ON CONFLICT (inn) DO NOTHING;
 
 -- Create a project shell for upcoming invoices
 INSERT INTO public.projects (code, name, description, created_by)
@@ -363,44 +446,77 @@ INSERT INTO public.user_profiles (id, email, full_name)
 VALUES ('00000000-0000-0000-0000-000000000002', 'user@example.com', 'Jane Operator')
 ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name;
 
--- Issue an invoice to a user
-INSERT INTO public.invoices (user_id, invoice_number, amount, status, description, due_date)
+-- Issue an invoice with VAT breakdown and workflow foreign keys
+INSERT INTO public.invoices (
+  user_id,
+  invoice_number,
+  description,
+  due_date,
+  payer_id,
+  supplier_id,
+  project_id,
+  invoice_type_id,
+  status_id,
+  amount_with_vat,
+  vat_rate,
+  vat_amount,
+  amount_without_vat,
+  delivery_days,
+  delivery_days_type,
+  preliminary_delivery_date
+)
 VALUES (
   '00000000-0000-0000-0000-000000000002',
   'INV-2025-0001',
-  180000.00,
-  'pending',
   'Milestone payment for PAY-001',
-  '2025-09-30'
+  '2025-09-30',
+  (SELECT id FROM public.contractors WHERE inn = '123456789012'),
+  (SELECT id FROM public.contractors WHERE inn = '774512345678'),
+  (SELECT id FROM public.projects WHERE code = 'PAY-001'),
+  (SELECT id FROM public.invoice_types WHERE code = 'services'),
+  (SELECT id FROM public.invoice_statuses WHERE code = 'pending'),
+  180000.00,
+  20,
+  30000.00,
+  150000.00,
+  5,
+  'working',
+  '2025-10-07'
 );
 
--- Mark invoice paid (updated_at is refreshed by trigger)
+-- Mark invoice as paid via status catalog
 UPDATE public.invoices
-SET status = 'paid'
+SET status_id = (SELECT id FROM public.invoice_statuses WHERE code = 'paid')
 WHERE invoice_number = 'INV-2025-0001';
 
--- List most recent invoices for dashboards
-SELECT i.invoice_number, i.amount, i.status, i.due_date, up.full_name
+-- Map the issuing user to the project for access control
+INSERT INTO public.user_projects (user_id, project_id)
+VALUES (
+  '00000000-0000-0000-0000-000000000002',
+  (SELECT id FROM public.projects WHERE code = 'PAY-001')
+)
+ON CONFLICT (user_id, project_id) DO NOTHING;
+
+-- Analytics query: recent invoices with status, type, payer and supplier
+SELECT i.invoice_number,
+       i.invoice_date,
+       i.amount_with_vat,
+       s.code   AS status_code,
+       t.code   AS invoice_type_code,
+       payer.name    AS payer_name,
+       supplier.name AS supplier_name
 FROM public.invoices i
-JOIN public.user_profiles up ON up.id = i.user_id
+JOIN public.invoice_statuses s ON s.id = i.status_id
+LEFT JOIN public.invoice_types t ON t.id = i.invoice_type_id
+LEFT JOIN public.contractors payer ON payer.id = i.payer_id
+LEFT JOIN public.contractors supplier ON supplier.id = i.supplier_id
 ORDER BY i.created_at DESC
 LIMIT 20;
 
--- Introduce a new internal role
-INSERT INTO public.roles (code, name, description)
-VALUES ('accountant', 'Accountant', 'Can manage invoices and reconciliation')
-ON CONFLICT (code) DO UPDATE SET updated_at = now();
-
--- Rename a contractor to show trigger-managed timestamps
+-- Showcase trigger-managed timestamp on contractor update
 UPDATE public.contractors
-SET name = 'PayHub Delivery LLC'
-WHERE inn = '123456789012';
-
--- Combine contractors with their type for audit
-SELECT c.id, c.name, ct.code AS contractor_type, c.updated_at
-FROM public.contractors c
-JOIN public.contractor_types ct ON ct.id = c.type_id
-ORDER BY c.updated_at DESC;
+SET name = 'PayHub Delivery & Logistics LLC'
+WHERE inn = '774512345678';
 `
 
 const manifestSources = [

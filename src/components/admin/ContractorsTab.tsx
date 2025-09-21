@@ -123,6 +123,13 @@ export const ContractorsTab = () => {
     })
   }
 
+  const handlePrefixClick = (prefix: string) => {
+    const currentName = (form.getFieldValue('name') as string | undefined) || ''
+    const withoutExistingPrefix = currentName.replace(/^(ООО|ИП|АО)\s+/i, '').trim()
+    const nextValue = withoutExistingPrefix ? `${prefix} ${withoutExistingPrefix}` : prefix
+    form.setFieldsValue({ name: nextValue })
+  }
+
   const getTypeName = (typeId: number) => {
     const type = contractorTypes.find(t => t.id === typeId)
     return type?.name || 'Неизвестный'
@@ -213,11 +220,26 @@ export const ContractorsTab = () => {
         >
           <Form.Item
             name="name"
-            label="Название"
-            rules={[{ required: true, message: 'Введите название контрагента' }]}
+            label="Название компании"
+            rules={[{ required: true, message: 'Укажите название компании' }]}
           >
-            <Input />
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Input />
+              <Space size={8} wrap>
+                {['ООО', 'ИП', 'АО'].map((prefix) => (
+                  <Button
+                    key={prefix}
+                    type="button"
+                    size="small"
+                    onClick={() => handlePrefixClick(prefix)}
+                  >
+                    {prefix}
+                  </Button>
+                ))}
+              </Space>
+            </Space>
           </Form.Item>
+
 
           <Form.Item
             name="type_id"

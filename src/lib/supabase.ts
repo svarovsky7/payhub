@@ -68,6 +68,17 @@ export type InvoiceType = {
   updated_at: string
 }
 
+export type InvoiceStatus = {
+  id: number
+  code: string
+  name: string
+  description?: string
+  sort_order?: number
+  color?: string
+  created_at: string
+  updated_at: string
+}
+
 export type Invoice = {
   id: string
   user_id: string
@@ -85,7 +96,8 @@ export type Invoice = {
   delivery_days?: number
   delivery_days_type?: 'working' | 'calendar'
   preliminary_delivery_date?: string
-  status: 'draft' | 'sent' | 'paid' | 'cancelled'
+  status?: string // оставляем для совместимости
+  status_id?: number
   description?: string
   due_date?: string // оставляем для совместимости, но не используем
   created_at: string
@@ -95,4 +107,24 @@ export type Invoice = {
   supplier?: Contractor
   project?: Project
   invoice_type?: InvoiceType
+  invoice_status?: InvoiceStatus
+}
+
+export type Attachment = {
+  id: string
+  original_name: string
+  storage_path: string
+  size_bytes: number
+  mime_type: string
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export type InvoiceAttachment = {
+  id: string
+  invoice_id: string
+  attachment_id: string
+  created_at: string
+  attachment?: Attachment
 }

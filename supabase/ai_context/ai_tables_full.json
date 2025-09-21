@@ -1,5 +1,144 @@
 [
   {
+    "table": "public.attachments",
+    "summary": "Хранение информации о загруженных файлах",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "original_name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Оригинальное имя файла"
+      },
+      {
+        "name": "storage_path",
+        "type": "varchar(500)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Путь к файлу в Supabase Storage"
+      },
+      {
+        "name": "size_bytes",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Размер файла в байтах"
+      },
+      {
+        "name": "mime_type",
+        "type": "varchar(100)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "MIME тип файла"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Пользователь, загрузивший файл"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "2200_19364_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19364_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19364_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19364_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19364_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19364_6_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_attachments_created_by",
+        "unique": false,
+        "definition": "CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)",
+        "columns": [
+          "created_by"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_attachments_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
     "table": "public.contractor_types",
     "summary": "Dictionary of contractor categories used to classify payments and obligations.",
     "columns": [
@@ -273,22 +412,22 @@
     ]
   },
   {
-    "table": "public.invoice_types",
-    "summary": null,
+    "table": "public.invoice_attachments",
+    "summary": "Связь между счетами и прикрепленными файлами",
     "columns": [
       {
         "name": "id",
-        "type": "integer",
+        "type": "uuid",
         "nullable": false,
-        "default": "nextval('invoice_types_id_seq'::regclass)",
+        "default": "gen_random_uuid()",
         "is_primary": true,
         "is_foreign": false,
         "references": null,
         "note": null
       },
       {
-        "name": "code",
-        "type": "varchar(50)",
+        "name": "invoice_id",
+        "type": "uuid",
         "nullable": false,
         "default": null,
         "is_primary": false,
@@ -297,19 +436,9 @@
         "note": null
       },
       {
-        "name": "name",
-        "type": "varchar(255)",
+        "name": "attachment_id",
+        "type": "uuid",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true,
         "default": null,
         "is_primary": false,
         "is_foreign": false,
@@ -325,6 +454,142 @@
         "is_foreign": false,
         "references": null,
         "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "invoice_attachments_invoice_id_attachment_id_key",
+        "columns": [
+          "attachment_id"
+        ]
+      },
+      {
+        "name": "invoice_attachments_invoice_id_attachment_id_key",
+        "columns": [
+          "invoice_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_19379_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19379_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19379_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_invoice_attachments_attachment_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoice_attachments_attachment_id ON public.invoice_attachments USING btree (attachment_id)",
+        "columns": [
+          "attachment_id"
+        ]
+      },
+      {
+        "name": "idx_invoice_attachments_invoice_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoice_attachments_invoice_id ON public.invoice_attachments USING btree (invoice_id)",
+        "columns": [
+          "invoice_id"
+        ]
+      },
+      {
+        "name": "invoice_attachments_invoice_id_attachment_id_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX invoice_attachments_invoice_id_attachment_id_key ON public.invoice_attachments USING btree (invoice_id, attachment_id)",
+        "columns": [
+          "invoice_id",
+          "attachment_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "public.invoice_statuses",
+    "summary": "Invoice workflow statuses used to drive document state transitions.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('invoice_statuses_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate status id."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Unique status code for UI/API."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Status label."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional status guidance."
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Ordering for UI sequences."
+      },
+      {
+        "name": "color",
+        "type": "varchar(20)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional badge color token."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
       },
       {
         "name": "updated_at",
@@ -334,7 +599,137 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Auto refreshed timestamp."
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "invoice_statuses_code_key",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_19183_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19183_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_19183_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_invoice_statuses_code",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoice_statuses_code ON public.invoice_statuses USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "idx_invoice_statuses_sort_order",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoice_statuses_sort_order ON public.invoice_statuses USING btree (sort_order)",
+        "columns": [
+          "sort_order"
+        ]
+      },
+      {
+        "name": "invoice_statuses_code_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX invoice_statuses_code_key ON public.invoice_statuses USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_invoice_statuses_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.invoice_types",
+    "summary": "Catalog of invoice types (services, materials, subscriptions, etc.).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('invoice_types_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": "Surrogate type id."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Unique type code."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Type label."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Optional details."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Creation timestamp."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Auto refreshed timestamp."
       }
     ],
     "primary_key": [
@@ -396,7 +791,7 @@
   },
   {
     "table": "public.invoices",
-    "summary": "Outbound invoices tracked by PayHub with amount, status and owner.",
+    "summary": "Outbound invoices tracked by PayHub with monetary breakdown and workflow links.",
     "columns": [
       {
         "name": "id",
@@ -476,7 +871,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Calendar date printed on the invoice."
       },
       {
         "name": "payer_id",
@@ -484,9 +879,9 @@
         "nullable": true,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "is_foreign": true,
+        "references": "public.contractors.id",
+        "note": "Contractor acting as payer."
       },
       {
         "name": "supplier_id",
@@ -494,9 +889,9 @@
         "nullable": true,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "is_foreign": true,
+        "references": "public.contractors.id",
+        "note": "Contractor acting as supplier."
       },
       {
         "name": "project_id",
@@ -504,9 +899,9 @@
         "nullable": true,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "is_foreign": true,
+        "references": "public.projects.id",
+        "note": "Associated project for reporting."
       },
       {
         "name": "invoice_type_id",
@@ -514,9 +909,9 @@
         "nullable": true,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "is_foreign": true,
+        "references": "public.invoice_types.id",
+        "note": "Reference to invoice_types."
       },
       {
         "name": "amount_with_vat",
@@ -526,7 +921,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Invoice total including VAT."
       },
       {
         "name": "vat_rate",
@@ -536,7 +931,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "VAT rate applied (percent)."
       },
       {
         "name": "vat_amount",
@@ -546,7 +941,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "VAT amount derived from totals."
       },
       {
         "name": "amount_without_vat",
@@ -556,7 +951,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Invoice total excluding VAT."
       },
       {
         "name": "delivery_days",
@@ -566,7 +961,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Number of days for delivery after payment."
       },
       {
         "name": "delivery_days_type",
@@ -576,13 +971,58 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Delivery day interpretation (working/calendar)."
+      },
+      {
+        "name": "preliminary_delivery_date",
+        "type": "date",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Projected delivery date computed from payment terms."
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.invoice_statuses.id",
+        "note": "Reference to invoice_statuses."
       }
     ],
     "primary_key": [
       "id"
     ],
     "foreign_keys": [
+      {
+        "column": "invoice_type_id",
+        "references": "public.invoice_types.id",
+        "description": "Invoice type catalog reference."
+      },
+      {
+        "column": "payer_id",
+        "references": "public.contractors.id",
+        "description": "Payer contractor linked to the invoice."
+      },
+      {
+        "column": "project_id",
+        "references": "public.projects.id",
+        "description": "Project that groups the invoice."
+      },
+      {
+        "column": "status_id",
+        "references": "public.invoice_statuses.id",
+        "description": "Workflow status from invoice_statuses."
+      },
+      {
+        "column": "supplier_id",
+        "references": "public.contractors.id",
+        "description": "Supplier contractor linked to the invoice."
+      },
       {
         "column": "user_id",
         "references": "auth.users.id",
@@ -597,6 +1037,10 @@
       },
       {
         "name": "2200_18252_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18252_22_not_null",
         "definition": null
       },
       {
@@ -655,6 +1099,14 @@
         "definition": "CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)",
         "columns": [
           "project_id"
+        ]
+      },
+      {
+        "name": "idx_invoices_status_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_status_id ON public.invoices USING btree (status_id)",
+        "columns": [
+          "status_id"
         ]
       },
       {
@@ -1084,7 +1536,7 @@
   },
   {
     "table": "public.user_projects",
-    "summary": null,
+    "summary": "Mapping table granting users access to projects.",
     "columns": [
       {
         "name": "id",
@@ -1094,7 +1546,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Relation surrogate key."
       },
       {
         "name": "user_id",
@@ -1102,9 +1554,9 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": "Supabase user assigned to the project."
       },
       {
         "name": "project_id",
@@ -1112,9 +1564,9 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "is_foreign": true,
+        "references": "public.projects.id",
+        "note": "Project being granted to the user."
       },
       {
         "name": "created_at",
@@ -1124,13 +1576,24 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Creation timestamp."
       }
     ],
     "primary_key": [
       "id"
     ],
-    "foreign_keys": [],
+    "foreign_keys": [
+      {
+        "column": "project_id",
+        "references": "public.projects.id",
+        "description": "Project assigned to the user."
+      },
+      {
+        "column": "user_id",
+        "references": "auth.users.id",
+        "description": "User receiving project access."
+      }
+    ],
     "unique_constraints": [
       {
         "name": "user_projects_user_project_unique",

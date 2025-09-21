@@ -1,4 +1,12 @@
 {
+  "public.attachments.idx_attachments_created_by": {
+    "schema": "public",
+    "name": "idx_attachments_created_by",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)"
+  },
   "public.contractor_types.contractor_types_code_key": {
     "schema": "public",
     "name": "contractor_types_code_key",
@@ -38,6 +46,54 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)"
+  },
+  "public.invoice_attachments.idx_invoice_attachments_attachment_id": {
+    "schema": "public",
+    "name": "idx_invoice_attachments_attachment_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoice_attachments_attachment_id ON public.invoice_attachments USING btree (attachment_id)"
+  },
+  "public.invoice_attachments.idx_invoice_attachments_invoice_id": {
+    "schema": "public",
+    "name": "idx_invoice_attachments_invoice_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoice_attachments_invoice_id ON public.invoice_attachments USING btree (invoice_id)"
+  },
+  "public.invoice_attachments.invoice_attachments_invoice_id_attachment_id_key": {
+    "schema": "public",
+    "name": "invoice_attachments_invoice_id_attachment_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX invoice_attachments_invoice_id_attachment_id_key ON public.invoice_attachments USING btree (invoice_id, attachment_id)"
+  },
+  "public.invoice_statuses.idx_invoice_statuses_code": {
+    "schema": "public",
+    "name": "idx_invoice_statuses_code",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoice_statuses_code ON public.invoice_statuses USING btree (code)"
+  },
+  "public.invoice_statuses.idx_invoice_statuses_sort_order": {
+    "schema": "public",
+    "name": "idx_invoice_statuses_sort_order",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoice_statuses_sort_order ON public.invoice_statuses USING btree (sort_order)"
+  },
+  "public.invoice_statuses.invoice_statuses_code_key": {
+    "schema": "public",
+    "name": "invoice_statuses_code_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX invoice_statuses_code_key ON public.invoice_statuses USING btree (code)"
   },
   "public.invoice_types.idx_invoice_types_code": {
     "schema": "public",
@@ -94,6 +150,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)"
+  },
+  "public.invoices.idx_invoices_status_id": {
+    "schema": "public",
+    "name": "idx_invoices_status_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_status_id ON public.invoices USING btree (status_id)"
   },
   "public.invoices.idx_invoices_supplier_id": {
     "schema": "public",
