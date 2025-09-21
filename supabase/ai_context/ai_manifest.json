@@ -1,11 +1,11 @@
 {
-  "generated_at": "2025-09-21T05:21:24.139Z",
+  "generated_at": "2025-09-21T05:34:25.516Z",
   "source_hashes": {
     "supabase/exports/tables.json": "3f2fafe5c899ae5300b51d76a190b7c3e506bef1c9a9093d649186bbf4cc9851",
     "supabase/exports/indexes.json": "4dfe5ecb622e1090fdde4609d32a43537f624f998cd508e6e8e9b51aa94a9bed",
     "supabase/exports/triggers.json": "fd8af0a712b06bddbe6ba14ec0b0df0c0045b62ebfa2b7e8dd70180c44588e6e",
     "supabase/exports/functions.json": "d427b1b33996057cd834865a9ad5ce3fac991fe397ffac179dcc35b1ccd86975",
     "supabase/exports/enums.json": null,
-    "supabase/migrations/prod.sql": "9107518cf4b014e585f3b1854425a832b2b6f0f377b51eaadafd007500f3cf21"
+    "supabase/migrations/prod.sql": "8c34d49d8fd6d510983f280eeabb3ea32143d04ccf8ff94e4fd21b35a97cc68c"
   }
 }

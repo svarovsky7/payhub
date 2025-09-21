@@ -82,47 +82,113 @@ export const ProjectsTab = () => {
   }
 
   const handleDelete = async (id: number) => {
-    console.log('[ProjectsTab.handleDelete] Deleting project:', id)
+    console.log('[ProjectsTab.handleDelete] Starting delete process for project:', id)
+
+    // Добавляем проверку, что id существует
+    if (!id) {
+      console.error('[ProjectsTab.handleDelete] Error: Project ID is undefined or null')
+      message.error('Ошибка: ID проекта не определен')
+      return
+    }
+
+    console.log('[ProjectsTab.handleDelete] Creating confirmation modal')
+
     Modal.confirm({
       title: 'Удалить проект?',
       content: 'Это действие нельзя отменить. Все пользователи будут отвязаны от этого проекта.',
       okText: 'Удалить',
       cancelText: 'Отмена',
       okType: 'danger',
+      onCancel: () => {
+        console.log('[ProjectsTab.handleDelete.onCancel] User cancelled deletion of project:', id)
+      },
       onOk: async () => {
+        console.log('[ProjectsTab.handleDelete.onOk] User confirmed deletion of project:', id)
         try {
-          // Сначала удаляем все связи пользователей с этим проектом
-          console.log('[ProjectsTab.handleDelete] Removing user associations for project:', id)
-          const { error: userProjectsError } = await supabase
+          // Сначала проверим, есть ли связи с пользователями
+          console.log('[ProjectsTab.handleDelete] Checking user associations for project:', id)
+          const { data: associations, error: checkError } = await supabase
             .from('user_projects')
-            .delete()
+            .select('*')
             .eq('project_id', id)
 
-          if (userProjectsError) {
-            console.error('[ProjectsTab.handleDelete] Error removing user associations:', userProjectsError)
-            throw userProjectsError
+          console.log('[ProjectsTab.handleDelete] Found associations:', associations)
+
+          if (checkError) {
+            console.error('[ProjectsTab.handleDelete] Error checking associations:', checkError)
+          }
+
+          // Удаляем все связи пользователей с этим проектом
+          if (associations && associations.length > 0) {
+            console.log('[ProjectsTab.handleDelete] Removing user associations for project:', id)
+            const { data: deleteData, error: userProjectsError } = await supabase
+              .from('user_projects')
+              .delete()
+              .eq('project_id', id)
+              .select()
+
+            console.log('[ProjectsTab.handleDelete] Deleted associations:', deleteData)
+
+            if (userProjectsError) {
+              console.error('[ProjectsTab.handleDelete] Error removing user associations:', userProjectsError)
+              throw userProjectsError
+            }
           }
 
           // Теперь удаляем сам проект
           console.log('[ProjectsTab.handleDelete] Removing project:', id)
-          const { error: projectError } = await supabase
+          const { data: deletedProject, error: projectError } = await supabase
             .from('projects')
             .delete()
             .eq('id', id)
+            .select()
+
+          console.log('[ProjectsTab.handleDelete] Deleted project result:', deletedProject)
 
           if (projectError) {
             console.error('[ProjectsTab.handleDelete] Error removing project:', projectError)
             throw projectError
           }
 
+          if (!deletedProject || deletedProject.length === 0) {
+            console.log('[ProjectsTab.handleDelete] Warning: No project was deleted')
+            throw new Error('Проект не был удален. Возможно, у вас нет прав на удаление.')
+          }
+
+          console.log('[ProjectsTab.handleDelete] Project successfully deleted, reloading projects list')
           message.success('Проект удален')
-          loadProjects()
+          await loadProjects()
         } catch (error: any) {
-          console.error('[ProjectsTab.handleDelete] Error:', error)
+          console.error('[ProjectsTab.handleDelete] Full error object:', error)
+
+          // Если обычное удаление не сработало, пробуем через RPC функцию
+          console.log('[ProjectsTab.handleDelete] Trying RPC function delete')
+          try {
+            const { data: rpcResult, error: rpcError } = await supabase
+              .rpc('delete_project', { project_id_param: id })
+
+            if (rpcError) {
+              console.error('[ProjectsTab.handleDelete] RPC error:', rpcError)
+              throw rpcError
+            }
+
+            console.log('[ProjectsTab.handleDelete] RPC result:', rpcResult)
+
+            if (rpcResult) {
+              message.success('Проект удален через RPC')
+              loadProjects()
+              return
+            }
+          } catch (rpcErr) {
+            console.error('[ProjectsTab.handleDelete] RPC also failed:', rpcErr)
+          }
+
           message.error(error.message || 'Ошибка удаления проекта')
         }
       }
     })
+
+    console.log('[ProjectsTab.handleDelete] Modal.confirm called, waiting for user action')
   }
 
   const columns: ColumnsType<Project> = [
@@ -165,7 +231,11 @@ export const ProjectsTab = () => {
             icon={<DeleteOutlined />}
             size="small"
             danger
-            onClick={() => handleDelete(record.id)}
+            onClick={() => {
+              console.log('[ProjectsTab.Button.onClick] Delete button clicked for record:', record)
+              console.log('[ProjectsTab.Button.onClick] Project ID:', record.id)
+              handleDelete(record.id)
+            }}
           />
         </Space>
       )
