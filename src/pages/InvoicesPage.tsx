@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Table, Button, Space, Tag, Form, message, App } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -14,10 +15,12 @@ import { debugStorageAccess, testFileOperations } from '../utils/storageDebug'
 
 export const InvoicesPage = () => {
   const { modal } = App.useApp()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
+  const [loadingInvoice, setLoadingInvoice] = useState(false)
   const [payers, setPayers] = useState<Contractor[]>([])
   const [suppliers, setSuppliers] = useState<Contractor[]>([])
   const [projects, setProjects] = useState<Project[]>([])
@@ -40,6 +43,27 @@ export const InvoicesPage = () => {
       loadReferences()
     }
   }, [user?.id])
+
+  // Проверяем, есть ли в URL параметр invoice_id при загрузке
+  useEffect(() => {
+    const invoiceId = searchParams.get('invoice_id')
+
+    if (invoiceId && !selectedInvoice) {
+      if (invoices.length > 0) {
+        console.log('[InvoicesPage] Loading invoice from URL:', invoiceId)
+        const invoice = invoices.find(inv => inv.id === invoiceId)
+        if (invoice) {
+          setSelectedInvoice(invoice)
+        } else {
+          // Если счет не найден в загруженном списке, загружаем его отдельно
+          loadSingleInvoice(invoiceId)
+        }
+      } else if (user?.id) {
+        // Если счета еще не загружены, но есть пользователь, загружаем конкретный счет
+        loadSingleInvoice(invoiceId)
+      }
+    }
+  }, [searchParams, invoices, user?.id])
 
   useEffect(() => {
     calculateVat()
@@ -117,6 +141,45 @@ export const InvoicesPage = () => {
     } catch (error) {
       console.error('[InvoicesPage.loadReferences] Error:', error)
       message.error('РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё СЃРїСЂР°РІРѕС‡РЅС‹С… РґР°РЅРЅС‹С…')
+    }
+  }
+
+  const loadSingleInvoice = async (invoiceId: string) => {
+    try {
+      setLoadingInvoice(true)
+      console.log('[InvoicesPage.loadSingleInvoice] Loading invoice:', invoiceId)
+
+      const { data, error } = await supabase
+        .from('invoices')
+        .select(`
+          *,
+          payer:contractors!invoices_payer_id_fkey(*),
+          supplier:contractors!invoices_supplier_id_fkey(*),
+          project:projects(*),
+          invoice_type:invoice_types(*),
+          invoice_status:invoice_statuses(*)
+        `)
+        .eq('id', invoiceId)
+        .single()
+
+      if (error) {
+        console.error('[InvoicesPage.loadSingleInvoice] Error:', error)
+        message.error('Ошибка загрузки счета')
+        // Если счет не найден, очищаем URL
+        setSearchParams({})
+        return
+      }
+
+      if (data) {
+        console.log('[InvoicesPage.loadSingleInvoice] Invoice loaded')
+        setSelectedInvoice(data as Invoice)
+      }
+    } catch (error) {
+      console.error('[InvoicesPage.loadSingleInvoice] Error:', error)
+      message.error('Ошибка загрузки счета')
+      setSearchParams({})
+    } finally {
+      setLoadingInvoice(false)
     }
   }
 
@@ -702,7 +765,10 @@ export const InvoicesPage = () => {
             <Button
               icon={<EyeOutlined />}
               size="small"
-              onClick={() => setSelectedInvoice(record)}
+              onClick={() => {
+                setSelectedInvoice(record)
+                setSearchParams({ invoice_id: record.id, tab: 'main' })
+              }}
             />
             <Button icon={<EditOutlined />} size="small" />
             <Button
@@ -720,6 +786,11 @@ export const InvoicesPage = () => {
     ]
   }, [invoices, invoiceStatuses, invoiceTypes, payers, projects, suppliers])
 
+  // Показываем загрузку, если загружается счет из URL
+  if (loadingInvoice) {
+    return <div style={{ textAlign: 'center', padding: '50px' }}>Загрузка счета...</div>
+  }
+
   // Если выбран счет для просмотра, показываем его вместо таблицы
   if (selectedInvoice) {
     return (
@@ -731,7 +802,10 @@ export const InvoicesPage = () => {
         invoiceTypes={invoiceTypes}
         invoiceStatuses={invoiceStatuses}
         onUpdate={handleUpdate}
-        onClose={() => setSelectedInvoice(null)}
+        onClose={() => {
+          setSelectedInvoice(null)
+          setSearchParams({})
+        }}
       />
     )
   }

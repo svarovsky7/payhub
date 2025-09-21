@@ -16,6 +16,7 @@ interface PaymentFormModalProps {
   invoiceAmount: number
   remainingAmount: number
   editMode?: boolean
+  existingFiles?: UploadFile[]
 }
 
 export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
@@ -27,7 +28,8 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
   paymentStatuses,
   invoiceAmount,
   remainingAmount,
-  editMode = false
+  editMode = false,
+  existingFiles = []
 }) => {
   const { message: messageApi } = App.useApp()
   const [fileList, setFileList] = useState<UploadFile[]>([])
@@ -41,6 +43,15 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
         amount: remainingAmount > 0 ? remainingAmount : 0
       }
 
+      // Устанавливаем тип платежа по умолчанию - Банковский перевод
+      if (paymentTypes.length > 0) {
+        // Ищем тип с кодом 'bank_transfer' или берём первый тип
+        const bankTransferType = paymentTypes.find(t => t.code === 'bank_transfer')
+        if (bankTransferType) {
+          defaultValues.payment_type_id = bankTransferType.id
+        }
+      }
+
       // Устанавливаем статус по умолчанию, если есть статусы
       if (paymentStatuses.length > 0) {
         // Ищем статус с кодом 'pending' или берём первый статус
@@ -52,12 +63,18 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
       form.setFieldsValue(defaultValues)
     }
 
-    // Очищаем список файлов при открытии (для обоих режимов)
+    // Устанавливаем файлы при открытии
     if (isVisible) {
-      setFileList([])
+      if (editMode && existingFiles.length > 0) {
+        // В режиме редактирования устанавливаем существующие файлы
+        setFileList(existingFiles)
+      } else {
+        // В режиме создания очищаем список
+        setFileList([])
+      }
       setPreviewFile(null)
     }
-  }, [isVisible, remainingAmount, paymentStatuses, form, editMode])
+  }, [isVisible, remainingAmount, paymentTypes, paymentStatuses, form, editMode, existingFiles])
 
   const handleSubmit = (values: any) => {
     console.log('[PaymentFormModal.handleSubmit] Submitting with files:', fileList.length)
@@ -65,6 +82,7 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
   }
 
   const handlePreview = async (file: UploadFile) => {
+    // Проверяем, есть ли у файла originFileObj (новый файл) или url (существующий файл)
     if (!file.originFileObj && !file.url) {
       messageApi.error('Файл недоступен для просмотра')
       return
@@ -72,15 +90,32 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
 
     // Для изображений создаём URL для предпросмотра
     if (file.type?.startsWith('image/')) {
-      const url = file.url || URL.createObjectURL(file.originFileObj as Blob)
-      setPreviewFile({
-        url,
-        name: file.name,
-        type: file.type || 'image'
-      })
+      let url = ''
+      if (file.url) {
+        // Для существующих файлов используем URL
+        url = file.url
+      } else if (file.originFileObj) {
+        // Для новых файлов создаём blob URL
+        url = URL.createObjectURL(file.originFileObj as Blob)
+      }
+
+      if (url) {
+        setPreviewFile({
+          url,
+          name: file.name,
+          type: file.type || 'image'
+        })
+      }
     } else if (file.type === 'application/pdf') {
-      const url = file.url || URL.createObjectURL(file.originFileObj as Blob)
-      window.open(url, '_blank')
+      let url = ''
+      if (file.url) {
+        // Для существующих файлов открываем URL
+        window.open(file.url, '_blank')
+      } else if (file.originFileObj) {
+        // Для новых файлов создаём blob URL
+        url = URL.createObjectURL(file.originFileObj as Blob)
+        window.open(url, '_blank')
+      }
     } else {
       messageApi.info('Предпросмотр доступен только для изображений и PDF файлов')
     }
@@ -123,6 +158,10 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
     onRemove: (file: UploadFile) => {
       console.log('[PaymentFormModal.onRemove] Removing file:', file.name)
       setFileList((prev) => prev.filter(f => f.uid !== file.uid))
+    },
+    // Исключаем показ превью в тултипе
+    previewFile: async () => {
+      return ''
     }
   }
 
@@ -245,21 +284,21 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
       </Form>
 
       {/* Модальное окно предпросмотра изображения */}
-      {previewFile && previewFile.type?.startsWith('image') && (
-        <Modal
-          open={!!previewFile}
-          title={previewFile.name}
-          footer={null}
-          onCancel={() => setPreviewFile(null)}
-          width={800}
-        >
+      <Modal
+        open={!!previewFile && previewFile.type?.startsWith('image')}
+        title={previewFile?.name}
+        footer={null}
+        onCancel={() => setPreviewFile(null)}
+        width={800}
+      >
+        {previewFile && (
           <img
             alt={previewFile.name}
             style={{ width: '100%' }}
             src={previewFile.url}
           />
-        </Modal>
-      )}
+        )}
+      </Modal>
     </Modal>
   )
 }
