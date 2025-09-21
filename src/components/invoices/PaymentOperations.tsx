@@ -94,7 +94,7 @@ export const submitPayment = async ({
   }
 }
 
-export const uploadPaymentFiles = async (
+const uploadPaymentFiles = async (
   files: any[],
   paymentId: string,
   userId?: string,

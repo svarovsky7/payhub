@@ -36,7 +36,7 @@ export const parseAmount = (value: string | undefined): number => {
 }
 
 // Функция для добавления рабочих дней к дате
-export const addWorkingDays = (startDate: Dayjs, days: number): Dayjs => {
+const addWorkingDays = (startDate: Dayjs, days: number): Dayjs => {
   let date = startDate
   let workingDaysAdded = 0
 

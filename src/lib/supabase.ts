@@ -13,13 +13,6 @@ export type UserProfile = {
   updated_at: string
 }
 
-export type UserProject = {
-  id: number
-  user_id: string
-  project_id: number
-  created_at: string
-}
-
 export type Role = {
   id: number
   code: string
@@ -110,25 +103,6 @@ export type Invoice = {
   invoice_status?: InvoiceStatus
 }
 
-export type Attachment = {
-  id: string
-  original_name: string
-  storage_path: string
-  size_bytes: number
-  mime_type: string
-  created_by: string
-  created_at: string
-  updated_at: string
-}
-
-export type InvoiceAttachment = {
-  id: string
-  invoice_id: string
-  attachment_id: string
-  created_at: string
-  attachment?: Attachment
-}
-
 export type PaymentStatus = {
   id: number
   code: string
@@ -166,11 +140,3 @@ export type Payment = {
   payment_status?: PaymentStatus
 }
 
-export type InvoicePayment = {
-  id: string
-  invoice_id: string
-  payment_id: string
-  allocated_amount: number
-  created_at: string
-  payment?: Payment
-}
