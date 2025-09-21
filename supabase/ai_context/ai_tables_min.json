@@ -142,6 +142,72 @@
     ]
   },
   {
+    "table": "public.invoice_types",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('invoice_types_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ]
+  },
+  {
     "table": "public.invoices",
     "summary": "Outbound invoices tracked by PayHub with amount, status and owner.",
     "columns": [
@@ -174,26 +240,6 @@
         "is_foreign": false,
         "references": null,
         "note": "External reference or invoice number."
-      },
-      {
-        "name": "amount",
-        "type": "numeric(10,2)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Total amount in settlement currency."
-      },
-      {
-        "name": "status",
-        "type": "text",
-        "nullable": false,
-        "default": "'draft'::text",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Workflow status label."
       },
       {
         "name": "description",
@@ -234,6 +280,116 @@
         "is_foreign": false,
         "references": null,
         "note": "Auto refreshed timestamp."
+      },
+      {
+        "name": "invoice_date",
+        "type": "date",
+        "nullable": false,
+        "default": "CURRENT_DATE",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payer_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "supplier_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "invoice_type_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "amount_with_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "vat_rate",
+        "type": "numeric(5,2)",
+        "nullable": true,
+        "default": "20",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "vat_amount",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "amount_without_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "delivery_days",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "delivery_days_type",
+        "type": "varchar(20)",
+        "nullable": true,
+        "default": "'working'::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
       }
     ]
   },

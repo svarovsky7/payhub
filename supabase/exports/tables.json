@@ -245,6 +245,116 @@
     ],
     "sql": "CREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    inn character varying(12),\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id),\n    CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)\n);"
   },
+  "public.invoice_types": {
+    "schema": "public",
+    "name": "invoice_types",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('invoice_types_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_18911_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18911_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18911_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoice_types_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoice_types_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.invoice_types (\n    id integer(32) NOT NULL DEFAULT nextval('invoice_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_types_code_key UNIQUE (code),\n    CONSTRAINT invoice_types_pkey PRIMARY KEY (id)\n);"
+  },
   "public.invoices": {
     "schema": "public",
     "name": "invoices",
@@ -278,26 +388,6 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
-      },
-      {
-        "name": "amount",
-        "data_type": "numeric",
-        "max_length": null,
-        "numeric_precision": 10,
-        "numeric_scale": 2,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": null
-      },
-      {
-        "name": "status",
-        "data_type": "text",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "NO",
-        "default": "'draft'::text",
         "comment": null
       },
       {
@@ -339,9 +429,127 @@
         "is_nullable": "YES",
         "default": "now()",
         "comment": null
+      },
+      {
+        "name": "invoice_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "CURRENT_DATE",
+        "comment": "Дата счета"
+      },
+      {
+        "name": "payer_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "ID плательщика (контрагент с типом payer)"
+      },
+      {
+        "name": "supplier_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "ID поставщика (контрагент с типом supplier)"
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "ID проекта"
+      },
+      {
+        "name": "invoice_type_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "ID типа счета"
+      },
+      {
+        "name": "amount_with_vat",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 15,
+        "numeric_scale": 2,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Сумма счета с НДС"
+      },
+      {
+        "name": "vat_rate",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 5,
+        "numeric_scale": 2,
+        "is_nullable": "YES",
+        "default": "20",
+        "comment": "Ставка НДС (%)"
+      },
+      {
+        "name": "vat_amount",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 15,
+        "numeric_scale": 2,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Сумма НДС"
+      },
+      {
+        "name": "amount_without_vat",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 15,
+        "numeric_scale": 2,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Сумма без НДС"
+      },
+      {
+        "name": "delivery_days",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Количество дней поставки после оплаты"
+      },
+      {
+        "name": "delivery_days_type",
+        "data_type": "character varying",
+        "max_length": 20,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "'working'::character varying",
+        "comment": "Тип дней поставки (working - рабочие, calendar - календарные)"
       }
     ],
     "constraints": [
+      {
+        "name": "2200_18252_10_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
       {
         "name": "2200_18252_1_not_null",
         "type": "CHECK",
@@ -367,7 +575,7 @@
         "foreign_column": null
       },
       {
-        "name": "2200_18252_4_not_null",
+        "name": "invoices_delivery_days_type_check",
         "type": "CHECK",
         "column": null,
         "foreign_table_schema": null,
@@ -375,17 +583,17 @@
         "foreign_column": null
       },
       {
-        "name": "2200_18252_5_not_null",
-        "type": "CHECK",
-        "column": null,
+        "name": "invoices_invoice_type_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "invoice_type_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
       },
       {
-        "name": "invoices_amount_check",
-        "type": "CHECK",
-        "column": null,
+        "name": "invoices_payer_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payer_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
@@ -399,9 +607,17 @@
         "foreign_column": null
       },
       {
-        "name": "invoices_status_check",
-        "type": "CHECK",
-        "column": null,
+        "name": "invoices_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoices_supplier_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "supplier_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
@@ -413,9 +629,17 @@
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
+      },
+      {
+        "name": "invoices_vat_rate_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
       }
     ],
-    "sql": "CREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    amount numeric(10,2) NOT NULL,\n    status text NOT NULL DEFAULT 'draft'::text,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);"
+    "sql": "CREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Дата счета';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'ID плательщика (контрагент с типом payer)';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'ID поставщика (контрагент с типом supplier)';\nCOMMENT ON COLUMN public.invoices.project_id IS 'ID проекта';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'ID типа счета';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Сумма счета с НДС';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'Ставка НДС (%)';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'Сумма НДС';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Сумма без НДС';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Количество дней поставки после оплаты';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Тип дней поставки (working - рабочие, calendar - календарные)';"
   },
   "public.projects": {
     "schema": "public",
@@ -853,7 +1077,15 @@
         "foreign_column": null
       },
       {
-        "name": "user_projects_unique",
+        "name": "user_projects_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "user_projects_user_project_unique",
         "type": "UNIQUE",
         "column": "project_id",
         "foreign_table_schema": null,
@@ -861,22 +1093,14 @@
         "foreign_column": null
       },
       {
-        "name": "user_projects_unique",
+        "name": "user_projects_user_project_unique",
         "type": "UNIQUE",
-        "column": "user_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "user_projects_user_id_fkey",
-        "type": "FOREIGN KEY",
         "column": "user_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
       }
     ],
-    "sql": "CREATE TABLE IF NOT EXISTS public.user_projects (\n    id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),\n    user_id uuid NOT NULL,\n    project_id integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_projects_pkey PRIMARY KEY (id),\n    CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_unique UNIQUE (project_id),\n    CONSTRAINT user_projects_unique UNIQUE (user_id),\n    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);"
+    "sql": "CREATE TABLE IF NOT EXISTS public.user_projects (\n    id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),\n    user_id uuid NOT NULL,\n    project_id integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_projects_pkey PRIMARY KEY (id),\n    CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (project_id),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (user_id)\n);"
   }
 }

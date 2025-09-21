@@ -273,6 +273,128 @@
     ]
   },
   {
+    "table": "public.invoice_types",
+    "summary": null,
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": "nextval('invoice_types_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "invoice_types_code_key",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_18911_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18911_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_18911_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_invoice_types_code",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoice_types_code ON public.invoice_types USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      },
+      {
+        "name": "invoice_types_code_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX invoice_types_code_key ON public.invoice_types USING btree (code)",
+        "columns": [
+          "code"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_invoice_types_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "update_updated_at_column",
+        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+      }
+    ]
+  },
+  {
     "table": "public.invoices",
     "summary": "Outbound invoices tracked by PayHub with amount, status and owner.",
     "columns": [
@@ -305,26 +427,6 @@
         "is_foreign": false,
         "references": null,
         "note": "External reference or invoice number."
-      },
-      {
-        "name": "amount",
-        "type": "numeric(10,2)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Total amount in settlement currency."
-      },
-      {
-        "name": "status",
-        "type": "text",
-        "nullable": false,
-        "default": "'draft'::text",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Workflow status label."
       },
       {
         "name": "description",
@@ -365,6 +467,116 @@
         "is_foreign": false,
         "references": null,
         "note": "Auto refreshed timestamp."
+      },
+      {
+        "name": "invoice_date",
+        "type": "date",
+        "nullable": false,
+        "default": "CURRENT_DATE",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payer_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "supplier_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "invoice_type_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "amount_with_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "vat_rate",
+        "type": "numeric(5,2)",
+        "nullable": true,
+        "default": "20",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "vat_amount",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "amount_without_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "delivery_days",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "delivery_days_type",
+        "type": "varchar(20)",
+        "nullable": true,
+        "default": "'working'::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
       }
     ],
     "primary_key": [
@@ -380,6 +592,10 @@
     "unique_constraints": [],
     "check_constraints": [
       {
+        "name": "2200_18252_10_not_null",
+        "definition": null
+      },
+      {
         "name": "2200_18252_1_not_null",
         "definition": null
       },
@@ -392,19 +608,11 @@
         "definition": null
       },
       {
-        "name": "2200_18252_4_not_null",
+        "name": "invoices_delivery_days_type_check",
         "definition": null
       },
       {
-        "name": "2200_18252_5_not_null",
-        "definition": null
-      },
-      {
-        "name": "invoices_amount_check",
-        "definition": null
-      },
-      {
-        "name": "invoices_status_check",
+        "name": "invoices_vat_rate_check",
         "definition": null
       }
     ],
@@ -418,11 +626,43 @@
         ]
       },
       {
-        "name": "idx_invoices_status",
+        "name": "idx_invoices_invoice_date",
         "unique": false,
-        "definition": "CREATE INDEX idx_invoices_status ON public.invoices USING btree (status)",
+        "definition": "CREATE INDEX idx_invoices_invoice_date ON public.invoices USING btree (invoice_date)",
         "columns": [
-          "status"
+          "invoice_date"
+        ]
+      },
+      {
+        "name": "idx_invoices_invoice_type_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoice_type_id)",
+        "columns": [
+          "invoice_type_id"
+        ]
+      },
+      {
+        "name": "idx_invoices_payer_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_payer_id ON public.invoices USING btree (payer_id)",
+        "columns": [
+          "payer_id"
+        ]
+      },
+      {
+        "name": "idx_invoices_project_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)",
+        "columns": [
+          "project_id"
+        ]
+      },
+      {
+        "name": "idx_invoices_supplier_id",
+        "unique": false,
+        "definition": "CREATE INDEX idx_invoices_supplier_id ON public.invoices USING btree (supplier_id)",
+        "columns": [
+          "supplier_id"
         ]
       },
       {
@@ -435,6 +675,17 @@
       }
     ],
     "triggers": [
+      {
+        "name": "calculate_vat_on_invoice",
+        "timing": "BEFORE",
+        "events": [
+          "INSERT",
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "calculate_vat_amounts",
+        "description": null
+      },
       {
         "name": "update_invoices_updated_at",
         "timing": "BEFORE",
@@ -882,13 +1133,13 @@
     "foreign_keys": [],
     "unique_constraints": [
       {
-        "name": "user_projects_unique",
+        "name": "user_projects_user_project_unique",
         "columns": [
           "project_id"
         ]
       },
       {
-        "name": "user_projects_unique",
+        "name": "user_projects_user_project_unique",
         "columns": [
           "user_id"
         ]
@@ -926,9 +1177,9 @@
         ]
       },
       {
-        "name": "user_projects_unique",
+        "name": "user_projects_user_project_unique",
         "unique": true,
-        "definition": "CREATE UNIQUE INDEX user_projects_unique ON public.user_projects USING btree (user_id, project_id)",
+        "definition": "CREATE UNIQUE INDEX user_projects_user_project_unique ON public.user_projects USING btree (user_id, project_id)",
         "columns": [
           "user_id",
           "project_id"

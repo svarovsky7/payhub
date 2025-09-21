@@ -1,5 +1,32 @@
 [
   {
+    "function": "public.calculate_vat_amounts()",
+    "returns": "trigger",
+    "summary": null,
+    "details": null,
+    "tables_touched": [],
+    "side_effects": [],
+    "source": "CREATE OR REPLACE FUNCTION public.calculate_vat_amounts()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- Если указана сумма с НДС, вычисляем НДС и сумму без НДС\n    IF NEW.amount_with_vat IS NOT NULL THEN\n        IF NEW.vat_rate = 0 THEN\n            NEW.vat_amount = 0;\n            NEW.amount_without_vat = NEW.amount_with_vat;\n        ELSE\n            NEW.vat_amount = ROUND(NEW.amount_with_vat * NEW.vat_rate / (100 + NEW.vat_rate), 2);\n            NEW.amount_without_vat = NEW.amount_with_vat - NEW.vat_amount;\n        END IF;\n    END IF;\n\n    RETURN NEW;\nEND;\n$function$"
+  },
+  {
+    "function": "public.delete_contractor_type(type_id_param integer)",
+    "returns": "json",
+    "summary": null,
+    "details": null,
+    "tables_touched": [],
+    "side_effects": [],
+    "source": "CREATE OR REPLACE FUNCTION public.delete_contractor_type(type_id_param integer)\n RETURNS json\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n  contractor_count INTEGER;\n  result JSON;\nBEGIN\n  -- Проверяем есть ли контрагенты с этим типом\n  SELECT COUNT(*) INTO contractor_count\n  FROM public.contractors\n  WHERE type_id = type_id_param;\n\n  IF contractor_count > 0 THEN\n    result := json_build_object(\n      'success', false,\n      'error', 'Невозможно удалить тип, так как существуют контрагенты с этим типом',\n      'contractor_count', contractor_count\n    );\n    RETURN result;\n  END IF;\n\n  -- Удаляем тип контрагента\n  DELETE FROM public.contractor_types WHERE id = type_id_param;\n\n  IF FOUND THEN\n    result := json_build_object(\n      'success', true,\n      'message', 'Тип контрагента успешно удален'\n    );\n  ELSE\n    result := json_build_object(\n      'success', false,\n      'error', 'Тип контрагента не найден'\n    );\n  END IF;\n\n  RETURN result;\nEND;\n$function$"
+  },
+  {
+    "function": "public.delete_project(project_id_param integer)",
+    "returns": "boolean",
+    "summary": null,
+    "details": null,
+    "tables_touched": [],
+    "side_effects": [],
+    "source": "CREATE OR REPLACE FUNCTION public.delete_project(project_id_param integer)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  -- Удаляем все связи с пользователями\n  DELETE FROM public.user_projects WHERE project_id = project_id_param;\n\n  -- Удаляем сам проект\n  DELETE FROM public.projects WHERE id = project_id_param;\n\n  -- Возвращаем true если удаление прошло успешно\n  RETURN FOUND;\nEND;\n$function$"
+  },
+  {
     "function": "public.handle_new_user()",
     "returns": "trigger",
     "summary": "Provision user_profiles row when a Supabase auth user is created.",

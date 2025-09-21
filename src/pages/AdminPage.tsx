@@ -6,13 +6,15 @@ import {
   ProjectOutlined,
   SafetyOutlined,
   TeamOutlined,
-  SolutionOutlined
+  SolutionOutlined,
+  FileTextOutlined
 } from '@ant-design/icons'
 import { UsersTab } from '../components/admin/UsersTab'
 import { ProjectsTab } from '../components/admin/ProjectsTab'
 import { RolesTab } from '../components/admin/RolesTab'
 import { ContractorsTab } from '../components/admin/ContractorsTab'
 import { ContractorTypesTab } from '../components/admin/ContractorTypesTab'
+import { InvoiceTypesTab } from '../components/admin/InvoiceTypesTab'
 
 const tabMapping: { [key: string]: string } = {
   '/admin': 'users',
@@ -20,7 +22,8 @@ const tabMapping: { [key: string]: string } = {
   '/admin/projects': 'projects',
   '/admin/roles': 'roles',
   '/admin/contractors': 'contractors',
-  '/admin/contractor-types': 'contractor-types'
+  '/admin/contractor-types': 'contractor-types',
+  '/admin/invoice-types': 'invoice-types'
 }
 
 const pathMapping: { [key: string]: string } = {
@@ -28,7 +31,8 @@ const pathMapping: { [key: string]: string } = {
   'projects': '/admin/projects',
   'roles': '/admin/roles',
   'contractors': '/admin/contractors',
-  'contractor-types': '/admin/contractor-types'
+  'contractor-types': '/admin/contractor-types',
+  'invoice-types': '/admin/invoice-types'
 }
 
 export const AdminPage = () => {
@@ -84,6 +88,12 @@ export const AdminPage = () => {
       label: 'Типы контрагентов',
       icon: <SolutionOutlined />,
       children: <ContractorTypesTab />
+    },
+    {
+      key: 'invoice-types',
+      label: 'Типы счетов',
+      icon: <FileTextOutlined />,
+      children: <InvoiceTypesTab />
     }
   ]
 

@@ -22,6 +22,29 @@
     "description": "Keeps updated_at synchronized via update_updated_at_column()."
   },
   {
+    "table": "public.invoice_types",
+    "trigger": "update_invoice_types_updated_at",
+    "function": "update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+  },
+  {
+    "table": "public.invoices",
+    "trigger": "calculate_vat_on_invoice",
+    "function": "calculate_vat_amounts",
+    "timing": "BEFORE",
+    "events": [
+      "INSERT",
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": null
+  },
+  {
     "table": "public.invoices",
     "trigger": "update_invoices_updated_at",
     "function": "update_updated_at_column",

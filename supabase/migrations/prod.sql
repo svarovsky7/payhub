@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-21T08:28:23.689316
+-- Generated: 2025-09-21T09:47:51.346359
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -59,19 +59,54 @@ CREATE TABLE IF NOT EXISTS public.contractors (
     CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)
 );
 
+CREATE TABLE IF NOT EXISTS public.invoice_types (
+    id integer(32) NOT NULL DEFAULT nextval('invoice_types_id_seq'::regclass),
+    code character varying(50) NOT NULL,
+    name character varying(255) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT invoice_types_code_key UNIQUE (code),
+    CONSTRAINT invoice_types_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS public.invoices (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     user_id uuid NOT NULL,
     invoice_number text NOT NULL,
-    amount numeric(10,2) NOT NULL,
-    status text NOT NULL DEFAULT 'draft'::text,
     description text,
     due_date date,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
+    invoice_date date NOT NULL DEFAULT CURRENT_DATE,
+    payer_id integer(32),
+    supplier_id integer(32),
+    project_id integer(32),
+    invoice_type_id integer(32),
+    amount_with_vat numeric(15,2),
+    vat_rate numeric(5,2) DEFAULT 20,
+    vat_amount numeric(15,2),
+    amount_without_vat numeric(15,2),
+    delivery_days integer(32),
+    delivery_days_type character varying(20) DEFAULT 'working'::character varying,
+    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
+    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),
     CONSTRAINT invoices_pkey PRIMARY KEY (id),
+    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
+    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),
     CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)
 );
+COMMENT ON COLUMN public.invoices.invoice_date IS 'Дата счета';
+COMMENT ON COLUMN public.invoices.payer_id IS 'ID плательщика (контрагент с типом payer)';
+COMMENT ON COLUMN public.invoices.supplier_id IS 'ID поставщика (контрагент с типом supplier)';
+COMMENT ON COLUMN public.invoices.project_id IS 'ID проекта';
+COMMENT ON COLUMN public.invoices.invoice_type_id IS 'ID типа счета';
+COMMENT ON COLUMN public.invoices.amount_with_vat IS 'Сумма счета с НДС';
+COMMENT ON COLUMN public.invoices.vat_rate IS 'Ставка НДС (%)';
+COMMENT ON COLUMN public.invoices.vat_amount IS 'Сумма НДС';
+COMMENT ON COLUMN public.invoices.amount_without_vat IS 'Сумма без НДС';
+COMMENT ON COLUMN public.invoices.delivery_days IS 'Количество дней поставки после оплаты';
+COMMENT ON COLUMN public.invoices.delivery_days_type IS 'Тип дней поставки (working - рабочие, calendar - календарные)';
 
 CREATE TABLE IF NOT EXISTS public.projects (
     id integer(32) NOT NULL DEFAULT nextval('projects_id_seq'::regclass),
@@ -116,14 +151,99 @@ CREATE TABLE IF NOT EXISTS public.user_projects (
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT user_projects_pkey PRIMARY KEY (id),
     CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
-    CONSTRAINT user_projects_unique UNIQUE (project_id),
-    CONSTRAINT user_projects_unique UNIQUE (user_id),
-    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)
+    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None),
+    CONSTRAINT user_projects_user_project_unique UNIQUE (project_id),
+    CONSTRAINT user_projects_user_project_unique UNIQUE (user_id)
 );
 
 
 -- FUNCTIONS
 -- ============================================
+
+CREATE OR REPLACE FUNCTION public.calculate_vat_amounts()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    -- Если указана сумма с НДС, вычисляем НДС и сумму без НДС
+    IF NEW.amount_with_vat IS NOT NULL THEN
+        IF NEW.vat_rate = 0 THEN
+            NEW.vat_amount = 0;
+            NEW.amount_without_vat = NEW.amount_with_vat;
+        ELSE
+            NEW.vat_amount = ROUND(NEW.amount_with_vat * NEW.vat_rate / (100 + NEW.vat_rate), 2);
+            NEW.amount_without_vat = NEW.amount_with_vat - NEW.vat_amount;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.delete_contractor_type(type_id_param integer)
+ RETURNS json
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+DECLARE
+  contractor_count INTEGER;
+  result JSON;
+BEGIN
+  -- Проверяем есть ли контрагенты с этим типом
+  SELECT COUNT(*) INTO contractor_count
+  FROM public.contractors
+  WHERE type_id = type_id_param;
+
+  IF contractor_count > 0 THEN
+    result := json_build_object(
+      'success', false,
+      'error', 'Невозможно удалить тип, так как существуют контрагенты с этим типом',
+      'contractor_count', contractor_count
+    );
+    RETURN result;
+  END IF;
+
+  -- Удаляем тип контрагента
+  DELETE FROM public.contractor_types WHERE id = type_id_param;
+
+  IF FOUND THEN
+    result := json_build_object(
+      'success', true,
+      'message', 'Тип контрагента успешно удален'
+    );
+  ELSE
+    result := json_build_object(
+      'success', false,
+      'error', 'Тип контрагента не найден'
+    );
+  END IF;
+
+  RETURN result;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.delete_project(project_id_param integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+BEGIN
+  -- Удаляем все связи с пользователями
+  DELETE FROM public.user_projects WHERE project_id = project_id_param;
+
+  -- Удаляем сам проект
+  DELETE FROM public.projects WHERE id = project_id_param;
+
+  -- Возвращаем true если удаление прошло успешно
+  RETURN FOUND;
+END;
+$function$
+
+;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
  RETURNS trigger
@@ -165,6 +285,12 @@ CREATE TRIGGER update_contractor_types_updated_at BEFORE UPDATE ON public.contra
 CREATE TRIGGER update_contractors_updated_at BEFORE UPDATE ON public.contractors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER calculate_vat_on_invoice BEFORE INSERT OR UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION calculate_vat_amounts()
+;
+
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -196,10 +322,28 @@ CREATE INDEX idx_contractors_inn ON public.contractors USING btree (inn)
 CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)
 ;
 
+CREATE INDEX idx_invoice_types_code ON public.invoice_types USING btree (code)
+;
+
+CREATE UNIQUE INDEX invoice_types_code_key ON public.invoice_types USING btree (code)
+;
+
 CREATE INDEX idx_invoices_created_at ON public.invoices USING btree (created_at DESC)
 ;
 
-CREATE INDEX idx_invoices_status ON public.invoices USING btree (status)
+CREATE INDEX idx_invoices_invoice_date ON public.invoices USING btree (invoice_date)
+;
+
+CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoice_type_id)
+;
+
+CREATE INDEX idx_invoices_payer_id ON public.invoices USING btree (payer_id)
+;
+
+CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)
+;
+
+CREATE INDEX idx_invoices_supplier_id ON public.invoices USING btree (supplier_id)
 ;
 
 CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)
@@ -229,5 +373,5 @@ CREATE INDEX idx_user_projects_project_id ON public.user_projects USING btree (p
 CREATE INDEX idx_user_projects_user_id ON public.user_projects USING btree (user_id)
 ;
 
-CREATE UNIQUE INDEX user_projects_unique ON public.user_projects USING btree (user_id, project_id)
+CREATE UNIQUE INDEX user_projects_user_project_unique ON public.user_projects USING btree (user_id, project_id)
 ;

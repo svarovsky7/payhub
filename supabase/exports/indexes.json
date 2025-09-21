@@ -39,6 +39,22 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)"
   },
+  "public.invoice_types.idx_invoice_types_code": {
+    "schema": "public",
+    "name": "idx_invoice_types_code",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoice_types_code ON public.invoice_types USING btree (code)"
+  },
+  "public.invoice_types.invoice_types_code_key": {
+    "schema": "public",
+    "name": "invoice_types_code_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX invoice_types_code_key ON public.invoice_types USING btree (code)"
+  },
   "public.invoices.idx_invoices_created_at": {
     "schema": "public",
     "name": "idx_invoices_created_at",
@@ -47,13 +63,45 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_created_at ON public.invoices USING btree (created_at DESC)"
   },
-  "public.invoices.idx_invoices_status": {
+  "public.invoices.idx_invoices_invoice_date": {
     "schema": "public",
-    "name": "idx_invoices_status",
+    "name": "idx_invoices_invoice_date",
     "table_name": null,
     "is_unique": false,
     "is_primary": false,
-    "sql": "CREATE INDEX idx_invoices_status ON public.invoices USING btree (status)"
+    "sql": "CREATE INDEX idx_invoices_invoice_date ON public.invoices USING btree (invoice_date)"
+  },
+  "public.invoices.idx_invoices_invoice_type_id": {
+    "schema": "public",
+    "name": "idx_invoices_invoice_type_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoice_type_id)"
+  },
+  "public.invoices.idx_invoices_payer_id": {
+    "schema": "public",
+    "name": "idx_invoices_payer_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_payer_id ON public.invoices USING btree (payer_id)"
+  },
+  "public.invoices.idx_invoices_project_id": {
+    "schema": "public",
+    "name": "idx_invoices_project_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)"
+  },
+  "public.invoices.idx_invoices_supplier_id": {
+    "schema": "public",
+    "name": "idx_invoices_supplier_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_supplier_id ON public.invoices USING btree (supplier_id)"
   },
   "public.invoices.idx_invoices_user_id": {
     "schema": "public",
@@ -127,12 +175,12 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_user_projects_user_id ON public.user_projects USING btree (user_id)"
   },
-  "public.user_projects.user_projects_unique": {
+  "public.user_projects.user_projects_user_project_unique": {
     "schema": "public",
-    "name": "user_projects_unique",
+    "name": "user_projects_user_project_unique",
     "table_name": null,
     "is_unique": false,
     "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX user_projects_unique ON public.user_projects USING btree (user_id, project_id)"
+    "sql": "CREATE UNIQUE INDEX user_projects_user_project_unique ON public.user_projects USING btree (user_id, project_id)"
   }
 }

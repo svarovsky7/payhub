@@ -1,5 +1,20 @@
 [
   {
+    "function": "public.calculate_vat_amounts()",
+    "returns": "trigger",
+    "summary": null
+  },
+  {
+    "function": "public.delete_contractor_type(type_id_param integer)",
+    "returns": "json",
+    "summary": null
+  },
+  {
+    "function": "public.delete_project(project_id_param integer)",
+    "returns": "boolean",
+    "summary": null
+  },
+  {
     "function": "public.handle_new_user()",
     "returns": "trigger",
     "summary": "Provision user_profiles row when a Supabase auth user is created."
