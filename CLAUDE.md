@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PayHub - An invoice management and payment processing React application built with Vite and TypeScript. The application uses Supabase for backend services and authentication, with Ant Design components for the UI.
+PayHub - Invoice management and payment processing React application built with Vite, TypeScript, and Supabase. The application features Russian localization and uses Ant Design components for the UI.
 
 ## Development Commands
 
@@ -13,233 +13,175 @@ npm run dev       # Start development server on http://localhost:5173
 npm run build     # TypeScript check + production build
 npm run lint      # Run ESLint
 npm run preview   # Preview production build locally
+node scripts/generate-ai-context.cjs  # Regenerate database AI context files
 ```
 
 ## Architecture
 
 ### Technology Stack
-- **React 19.1** - UI framework with React 19 compatibility patch for Ant Design
-- **TypeScript 5.8** - Type safety with strict mode
-- **Vite 7.1** - Build tool and dev server
-- **ESLint 9** - Code quality
-- **Ant Design 5** - UI components (localized to Russian)
-- **Supabase** - Backend, authentication, and PostgreSQL database
-- **React Router 7** - Client-side routing
-- **Day.js** - Date manipulation library (with Russian locale)
+- **React 19.1** with React 19 compatibility patch for Ant Design
+- **TypeScript 5.8** with strict type checking
+- **Vite 7.1** build tool and dev server
+- **Ant Design 5** UI components (Russian localized)
+- **Supabase** backend services and PostgreSQL database
+- **React Router 7** client-side routing
+- **Day.js** date manipulation (Russian locale)
+- **@dnd-kit** drag-and-drop functionality
 
-### Project Structure
-```
-src/
-├── components/
-│   ├── admin/                      # Admin panel tabs
-│   │   ├── UsersTab.tsx
-│   │   ├── RolesTab.tsx
-│   │   ├── ProjectsTab.tsx
-│   │   ├── ContractorsTab.tsx
-│   │   ├── ContractorTypesTab.tsx
-│   │   ├── InvoiceTypesTab.tsx
-│   │   └── InvoiceStatusesTab.tsx
-│   ├── invoices/                   # Invoice components
-│   │   ├── InvoiceFormModal.tsx    # Create/edit invoice modal
-│   │   ├── InvoiceView.tsx         # View invoice with tabs
-│   │   ├── InvoiceMainTab.tsx      # Main invoice info tab
-│   │   ├── InvoicePaymentsTab.tsx  # Payments management tab
-│   │   ├── InvoiceAttachmentsTab.tsx # File attachments tab
-│   │   ├── PaymentFormModal.tsx    # Payment creation/edit modal
-│   │   ├── QuickPaymentDrawer.tsx  # Quick payment entry drawer
-│   │   └── InvoiceTableColumns.tsx # Table column definitions
-│   ├── Layout.tsx                  # Main app layout with navigation
-│   └── ProtectedRoute.tsx          # Authentication guard
-├── contexts/
-│   └── AuthContext.tsx             # Authentication state management
-├── hooks/                          # Custom React hooks
-│   ├── useInvoiceManagement.ts     # Invoice CRUD operations
-│   ├── usePaymentManagement.ts     # Payment CRUD operations
-│   └── useInvoiceForm.ts           # Invoice form logic
-├── services/                       # Business logic services
-│   ├── invoiceOperations.ts        # Invoice service functions
-│   └── paymentOperations.ts        # Payment service functions
-├── lib/
-│   └── supabase.ts                 # Supabase client and type definitions
-├── pages/
-│   ├── AuthPage.tsx                # Login/registration
-│   ├── InvoicesPage.tsx            # Invoice management
-│   └── AdminPage.tsx               # Admin dashboard with tabs
-├── utils/
-│   ├── invoiceHelpers.ts           # Invoice calculations and date utilities
-│   ├── invoiceFilters.ts           # Invoice filtering logic
-│   ├── vatCalculator.ts            # VAT calculation utilities
-│   └── storageDebug.ts             # Storage debugging utilities
-├── styles/                         # CSS styles
-├── App.tsx                         # Main routing configuration
-└── main.tsx                       # Application entry point
-```
+### Core Application Structure
+
+#### Hooks Layer (`src/hooks/`)
+- `useInvoiceManagement.ts` - Invoice CRUD operations with optimistic updates
+- `usePaymentManagement.ts` - Payment operations for invoices
+- `useApprovalManagement.ts` - Approval workflow management
+- `useInvoiceForm.ts` - Form state management for invoice creation/editing
+
+#### Services Layer (`src/services/`)
+- `invoiceOperations.ts` - Invoice business logic and calculations
+- `paymentOperations.ts` - Payment processing and allocation
+- `approvalOperations.ts` - Approval workflow orchestration
+- `invoiceStatusCalculator.ts` - Invoice status computation based on payments
+
+#### Component Organization
+- `components/admin/` - Admin panel tabs (users, roles, projects, contractors, approval routes)
+- `components/invoices/` - Invoice management components with tabbed interface
+- `pages/` - Route-level components (AuthPage, InvoicesPage, ApprovalsPage, AdminPage)
+- `contexts/AuthContext.tsx` - Authentication state management
 
 ### Routing Structure
-- `/login` - Authentication page
+- `/login` - Authentication
 - `/invoices` - Invoice management
-- `/admin/*` - Admin panel with nested routes (users, roles, projects, contractors, etc.)
+- `/approvals` - Approval workflows
+- `/admin/*` - Admin panel with nested routes
 - `/` - Redirects to login
 
-## Important Development Rules
+## Database Architecture
 
-### Code Organization
-- **Maximum 600 lines per file** - Split larger files into smaller modules
-- **No Row Level Security (RLS)** - Handle security in application layer, not database
-- **Business logic in code** - Functions and triggers should be implemented in application code
-- **Database functions only when necessary** - Create Supabase functions/triggers only with strong justification
+### Schema Reference Files
+All database queries must reference the auto-generated context files in `supabase/ai_context/`:
+- `ai_tables_min.json` / `ai_tables_full.json` - Table structures
+- `ai_relations.json` - Foreign key relationships
+- `ai_functions_min.json` / `ai_functions_full.json` - Database functions
+- `ai_triggers_min.json` - Triggers
+- `ai_enums_min.json` - Enum types
+- `ai_examples.sql` - SQL query patterns
+- `ai_manifest.json` - Schema metadata
 
-### Database Approach
-- Use direct queries without RLS policies
-- Implement access control in the application layer
-- Keep database schema simple and straightforward
-- Avoid complex database-level logic
+**Never invent database fields or functions not present in these files.**
+
+### Core Tables
+- **user_profiles** - User information (UUID, linked to auth.users)
+- **invoices** - Invoice records with status tracking
+- **payments** - Payment records
+- **invoice_payments** - Payment allocation to invoices
+- **projects** - Project grouping for invoices
+- **contractors** - Contractor records with INN validation
+- **approval_routes** - Approval workflows per invoice type
+- **workflow_stages** - Approval route stages with drag-and-drop ordering
+- **payment_approvals** - Active approval instances
+- **approval_steps** - Approval action history
+- **attachments** / **invoice_attachments** - File storage metadata
+
+### Database Design Principles
+- No Row Level Security (RLS) - security handled in application layer
+- Auto-updating `updated_at` timestamps via triggers
+- Cascade deletion for related records
 - All timestamps use `timestamp with time zone`
-- `updated_at` columns are managed via database triggers
+- UUID for user-related tables, serial IDs for others
 
-### TypeScript Configuration
-Configured with strict type checking in `tsconfig.app.json`:
+## TypeScript Configuration
+
+Strict mode enabled in `tsconfig.app.json`:
 - Target: ES2022
-- Strict mode enabled
+- Module: ESNext with bundler resolution
+- JSX: react-jsx
 - No unused locals/parameters
 - No unchecked side effects in imports
-- Module resolution: bundler mode
-- JSX: react-jsx
 
-### Authentication
-- Supabase Auth for user management
-- User profiles auto-created via `handle_new_user()` trigger
-- User profiles stored in `user_profiles` table
-- Session management handled by AuthContext
-- Authentication required for all routes except `/login`
+## Key Integration Patterns
 
-## Database Schema Reference Files
+### Invoice Status Management
+Invoice statuses are automatically calculated based on:
+1. Presence of payments
+2. Payment amounts vs invoice totals
+3. Manual status overrides
+4. Approval workflow states
 
-For all database-related queries (table structures, indexes, triggers, functions, enums, SQL examples), use **only** the following files in `supabase/ai_context`:
-- `ai_tables_min.json` / `ai_tables_full.json` - Table definitions with columns, constraints, indexes
-- `ai_relations.json` - Foreign key relationships between tables
-- `ai_functions_min.json` / `ai_functions_full.json` - Database functions and procedures
-- `ai_triggers_min.json` - Database triggers
-- `ai_enums_min.json` - Enum type definitions
-- `ai_examples.sql` - Example SQL queries and patterns
-- `ai_manifest.json` - Schema manifest and metadata
+### Payment Allocation
+- Multiple payments can be allocated to single invoice
+- Single payment can be split across multiple invoices
+- Automatic remaining amount calculation
+- Overpayment handling
 
-**Important**: Never invent fields, functions, or triggers not present in these files. If information is insufficient, request an update to these files rather than making assumptions.
+### File Upload System
+- Supabase Storage bucket: `attachments`
+- Path pattern: `invoices/{invoice_id}/{timestamp}_{filename}`
+- Metadata tracked in `attachments` table
+- Cascade deletion on invoice removal
+- Support for images, PDFs, and documents
 
-## Database Schema
+### Approval Workflows
+- Configurable routes per invoice type
+- Drag-and-drop stage ordering
+- Sequential approval process
+- Action history tracking
+- Email notifications (when configured)
 
-PostgreSQL database via Supabase with the following core tables:
+## UI/UX Patterns
 
-### Main Tables
-- **user_profiles** - User information linked to auth.users
-- **invoices** - Invoice records with status tracking and payment details
-- **invoice_types** - Invoice type categories
-- **invoice_statuses** - Invoice status definitions (default: draft)
-- **payments** - Payment records linked to invoices
-- **payment_types** - Payment type categories
-- **payment_statuses** - Payment status definitions
-- **projects** - Project management
-- **contractors** - Contractor records with INN validation
-- **contractor_types** - Contractor categories
-- **roles** - User roles
-- **user_projects** - Many-to-many relationship between users and projects
-- **attachments** - File storage metadata
-- **invoice_attachments** - Many-to-many relationship between invoices and attachments
-- **invoice_payments** - Link between invoices and payments with allocation amounts
+### Component Patterns
+- Modal forms for create/edit operations
+- Drawer components for quick actions
+- Tabbed interfaces with URL persistence
+- Floating action buttons for save/cancel
+- Inline expandable tables for related data
 
-### Database Features
-- Auto-updating `updated_at` timestamps via triggers
-- UUID generation for user-related tables
-- Unique constraints on codes, emails, and INN
-- Indexes on frequently queried columns
-- Foreign key relationships maintained
-- Cascade deletion for related records
+### Form Handling
+- Ant Design Form with validation rules
+- Optimistic updates for better UX
+- Error boundary handling
+- Loading states during operations
 
-Database schema is in `supabase/migrations/prod.sql`
+### Localization
+- Russian language throughout
+- Date formatting with Day.js Russian locale
+- Currency formatting for RUB
+- Localized validation messages
 
-## Environment Variables
+## Environment Configuration
 
-Required in `.env` file:
+Required `.env` variables:
 ```
 VITE_SUPABASE_URL=http://31.128.51.210:8001
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_STORAGE_BUCKET=http://31.128.51.210:8001/storage/v1
 ```
 
-## Console Logging
+## Development Guidelines
 
-When developing and debugging functionality, always add detailed logging to the browser console:
+### Code Organization Rules
+- Maximum 600 lines per file
+- Separation between hooks (React state) and services (business logic)
+- Component-specific styles in separate CSS modules
+- Shared utilities in `utils/` directory
 
-1. **Log main actions**:
-   - Start and completion of CRUD operations
-   - API data loading
-   - User action handling (clicks, form submissions)
-   - Component state changes
+### Database Development
+- Implement business logic in application code, not database
+- Use database functions/triggers only when necessary
+- Direct queries without RLS policies
+- Access control in application layer
 
-2. **Logging format**:
-   ```javascript
-   console.log('[ComponentName.methodName] Action description:', {
-     parameter1: value1,
-     parameter2: value2
-   });
-   ```
+### Console Logging Pattern
+```javascript
+console.log('[ComponentName.methodName] Action:', {
+  parameter1: value1,
+  parameter2: value2
+});
+```
 
-3. **Required logging locations**:
-   - API requests and responses
-   - Error handling
-   - Form validation
-   - File upload and processing
-   - Navigation and routing
-   - State store changes
-
-4. **Logging examples**:
-   ```javascript
-   console.log('[useCreateInvoice] Creating invoice:', data);
-   console.log('[InvoiceCreate.handleSubmit] Submitting form:', values);
-   console.error('[InvoiceCreate.handleSubmit] Invoice creation error:', error);
-   ```
-
-## Key Integration Patterns
-
-### Custom Hooks Architecture
-- **useInvoiceManagement** - Handles all invoice CRUD operations
-- **usePaymentManagement** - Manages payment operations for invoices
-- **useInvoiceForm** - Form logic for invoice creation and editing
-
-### Service Layer
-- **invoiceOperations.ts** - Core invoice business logic
-- **paymentOperations.ts** - Payment processing logic
-- Separation of concerns between hooks (React state) and services (business logic)
-
-### File Upload and Storage
-- Files are stored in Supabase Storage bucket `attachments`
-- Storage path pattern: `invoices/{invoice_id}/{timestamp}_{filename}`
-- File metadata tracked in `attachments` table
-- Many-to-many relationship via `invoice_attachments` table
-- Cascade deletion: invoice deletion removes all linked files
-
-### Invoice Management
-- Invoice creation modal: `InvoiceFormModal`
-- Invoice view/edit: `InvoiceView` with tabbed interface
-- Tabs: "Основная информация", "Платежи", "Прикрепленные файлы"
-- Tab routing persists in URL via query parameters
-- VAT calculations: automatic based on amount and rate
-- Delivery date calculations: supports working/calendar days
-- Payment tracking with multiple payment support per invoice
-
-### UI/UX Patterns
-- Floating action buttons for save/cancel operations
-- Modal windows for file preview (images and PDFs)
-- Russian localization throughout the interface
-- Ant Design message component for notifications
-- App.useApp() hook for React 19 modal compatibility
-- Drawer components for quick actions (payments)
-- Inline expandable tables for related data
-
-## Getting Started
-
-1. Install dependencies: `npm install`
-2. Configure Supabase credentials in `.env`
-3. Run database migrations from `supabase/migrations/prod.sql`
-4. Start development: `npm run dev`
-5. Access at `http://localhost:5173`
+Required logging points:
+- API requests/responses
+- User actions (clicks, submissions)
+- State changes
+- Error handling
+- File operations

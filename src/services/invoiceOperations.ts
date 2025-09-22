@@ -3,6 +3,7 @@ import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus } from '.
 import type { UploadFile } from 'antd/es/upload/interface'
 import { message } from 'antd'
 import dayjs from 'dayjs'
+import { calculateInvoiceStatus, shouldUpdateInvoiceStatus } from '../utils/invoiceStatusCalculator'
 
 export const loadReferences = async () => {
   console.log('[InvoiceOperations.loadReferences] Loading references')
@@ -64,7 +65,31 @@ export const loadInvoices = async (userId: string) => {
   console.log('[InvoiceOperations.loadInvoices] Loading invoices for user:', userId)
 
   try {
-    const { data, error } = await supabase
+    // Сначала получаем роль пользователя
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('role_id')
+      .eq('id', userId)
+      .single()
+
+    if (profileError) {
+      console.error('[InvoiceOperations.loadInvoices] Error loading user profile:', profileError)
+      throw profileError
+    }
+
+    // Получаем информацию о роли
+    const { data: role, error: roleError } = await supabase
+      .from('roles')
+      .select('own_projects_only')
+      .eq('id', userProfile.role_id)
+      .single()
+
+    if (roleError) {
+      console.error('[InvoiceOperations.loadInvoices] Error loading role:', roleError)
+      throw roleError
+    }
+
+    let query = supabase
       .from('invoices')
       .select(`
         *,
@@ -75,7 +100,34 @@ export const loadInvoices = async (userId: string) => {
         invoice_status:invoice_statuses(id, code, name, color, sort_order)
       `)
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+
+    // Если у роли стоит ограничение по проектам
+    if (role?.own_projects_only) {
+      console.log('[InvoiceOperations.loadInvoices] Filtering by user projects')
+
+      // Получаем проекты пользователя
+      const { data: userProjects, error: projectsError } = await supabase
+        .from('user_projects')
+        .select('project_id')
+        .eq('user_id', userId)
+
+      if (projectsError) {
+        console.error('[InvoiceOperations.loadInvoices] Error loading user projects:', projectsError)
+        throw projectsError
+      }
+
+      const projectIds = userProjects?.map(up => up.project_id) || []
+
+      if (projectIds.length > 0) {
+        query = query.in('project_id', projectIds)
+      } else {
+        // Если у пользователя нет проектов, возвращаем пустой список
+        console.log('[InvoiceOperations.loadInvoices] User has no projects assigned')
+        return []
+      }
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false })
 
     if (error) throw error
 
@@ -409,5 +461,146 @@ export const processInvoiceFiles = async (invoiceId: string, files: UploadFile[]
       console.error('[InvoiceOperations.processInvoiceFiles] File processing error:', fileError)
       message.error(`Ошибка обработки файла ${file.name}`)
     }
+  }
+}
+
+// Автоматический пересчёт статуса счёта на основе платежей
+export const recalculateInvoiceStatus = async (invoiceId: string) => {
+  console.log('[InvoiceOperations.recalculateInvoiceStatus] Recalculating status for invoice:', invoiceId)
+
+  try {
+    // Получаем информацию о счёте
+    const { data: invoice, error: invoiceError } = await supabase
+      .from('invoices')
+      .select('amount_with_vat, status_id')
+      .eq('id', invoiceId)
+      .single()
+
+    if (invoiceError) {
+      console.error('[InvoiceOperations.recalculateInvoiceStatus] Error fetching invoice:', invoiceError)
+      return false
+    }
+
+    if (!invoice) {
+      console.error('[InvoiceOperations.recalculateInvoiceStatus] Invoice not found')
+      return false
+    }
+
+    // Получаем все платежи по счёту
+    const { data: payments, error: paymentsError } = await supabase
+      .from('payments')
+      .select('amount, status_id')
+      .eq('invoice_id', invoiceId)
+
+    if (paymentsError) {
+      console.error('[InvoiceOperations.recalculateInvoiceStatus] Error fetching payments:', paymentsError)
+      return false
+    }
+
+    // Рассчитываем новый статус
+    const newStatusId = calculateInvoiceStatus(
+      invoice.amount_with_vat,
+      invoice.status_id,
+      payments || []
+    )
+
+    // Обновляем статус, если он изменился
+    if (shouldUpdateInvoiceStatus(invoice.status_id, newStatusId)) {
+      console.log('[InvoiceOperations.recalculateInvoiceStatus] Updating invoice status from', invoice.status_id, 'to', newStatusId)
+
+      const { error: updateError } = await supabase
+        .from('invoices')
+        .update({ status_id: newStatusId })
+        .eq('id', invoiceId)
+
+      if (updateError) {
+        console.error('[InvoiceOperations.recalculateInvoiceStatus] Error updating invoice status:', updateError)
+        return false
+      }
+
+      console.log('[InvoiceOperations.recalculateInvoiceStatus] Invoice status updated successfully')
+      return true
+    }
+
+    console.log('[InvoiceOperations.recalculateInvoiceStatus] Invoice status unchanged')
+    return false
+  } catch (error) {
+    console.error('[InvoiceOperations.recalculateInvoiceStatus] Unexpected error:', error)
+    return false
+  }
+}
+
+// Массовый пересчёт статусов счетов
+export const recalculateAllInvoiceStatuses = async () => {
+  console.log('[InvoiceOperations.recalculateAllInvoiceStatuses] Starting bulk recalculation')
+
+  try {
+    // Получаем все счета (кроме отменённых)
+    const { data: invoices, error: invoicesError } = await supabase
+      .from('invoices')
+      .select('id, amount_with_vat, status_id')
+      .neq('status_id', 5) // Исключаем отменённые
+
+    if (invoicesError) {
+      console.error('[InvoiceOperations.recalculateAllInvoiceStatuses] Error fetching invoices:', invoicesError)
+      return { updated: 0, failed: 0 }
+    }
+
+    if (!invoices || invoices.length === 0) {
+      console.log('[InvoiceOperations.recalculateAllInvoiceStatuses] No invoices to recalculate')
+      return { updated: 0, failed: 0 }
+    }
+
+    // Получаем все платежи для всех счетов
+    const { data: allPayments, error: paymentsError } = await supabase
+      .from('payments')
+      .select('invoice_id, amount, status_id')
+
+    if (paymentsError) {
+      console.error('[InvoiceOperations.recalculateAllInvoiceStatuses] Error fetching payments:', paymentsError)
+      return { updated: 0, failed: 0 }
+    }
+
+    // Группируем платежи по счетам
+    const paymentsByInvoice = (allPayments || []).reduce((acc, payment) => {
+      if (!acc[payment.invoice_id]) {
+        acc[payment.invoice_id] = []
+      }
+      acc[payment.invoice_id].push(payment)
+      return acc
+    }, {} as Record<string, any[]>)
+
+    let updated = 0
+    let failed = 0
+
+    // Обрабатываем каждый счёт
+    for (const invoice of invoices) {
+      const payments = paymentsByInvoice[invoice.id] || []
+      const newStatusId = calculateInvoiceStatus(
+        invoice.amount_with_vat,
+        invoice.status_id,
+        payments
+      )
+
+      if (shouldUpdateInvoiceStatus(invoice.status_id, newStatusId)) {
+        const { error: updateError } = await supabase
+          .from('invoices')
+          .update({ status_id: newStatusId })
+          .eq('id', invoice.id)
+
+        if (updateError) {
+          console.error(`[InvoiceOperations.recalculateAllInvoiceStatuses] Failed to update invoice ${invoice.id}:`, updateError)
+          failed++
+        } else {
+          updated++
+        }
+      }
+    }
+
+    console.log(`[InvoiceOperations.recalculateAllInvoiceStatuses] Completed: ${updated} updated, ${failed} failed`)
+    return { updated, failed }
+  } catch (error) {
+    console.error('[InvoiceOperations.recalculateAllInvoiceStatuses] Unexpected error:', error)
+    return { updated: 0, failed: 0 }
   }
 }

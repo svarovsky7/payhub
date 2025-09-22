@@ -9,7 +9,8 @@ import {
   SolutionOutlined,
   FileTextOutlined,
   CheckCircleOutlined,
-  DollarOutlined
+  DollarOutlined,
+  AuditOutlined
 } from '@ant-design/icons'
 import { UsersTab } from '../components/admin/UsersTab'
 import { ProjectsTab } from '../components/admin/ProjectsTab'
@@ -19,6 +20,7 @@ import { ContractorTypesTab } from '../components/admin/ContractorTypesTab'
 import { InvoiceTypesTab } from '../components/admin/InvoiceTypesTab'
 import { StatusesTab } from '../components/admin/StatusesTab'
 import { PaymentTypesTab } from '../components/admin/PaymentTypesTab'
+import { ApprovalRoutesTab } from '../components/admin/ApprovalRoutesTab'
 
 const tabMapping: { [key: string]: string } = {
   '/admin': 'users',
@@ -29,7 +31,8 @@ const tabMapping: { [key: string]: string } = {
   '/admin/contractor-types': 'contractor-types',
   '/admin/invoice-types': 'invoice-types',
   '/admin/statuses': 'statuses',
-  '/admin/payment-types': 'payment-types'
+  '/admin/payment-types': 'payment-types',
+  '/admin/approval-routes': 'approval-routes'
 }
 
 const pathMapping: { [key: string]: string } = {
@@ -40,7 +43,8 @@ const pathMapping: { [key: string]: string } = {
   'contractor-types': '/admin/contractor-types',
   'invoice-types': '/admin/invoice-types',
   'statuses': '/admin/statuses',
-  'payment-types': '/admin/payment-types'
+  'payment-types': '/admin/payment-types',
+  'approval-routes': '/admin/approval-routes'
 }
 
 export const AdminPage = () => {
@@ -114,6 +118,12 @@ export const AdminPage = () => {
       label: 'Типы платежей',
       icon: <DollarOutlined />,
       children: <PaymentTypesTab />
+    },
+    {
+      key: 'approval-routes',
+      label: 'Маршруты согласования',
+      icon: <AuditOutlined />,
+      children: <ApprovalRoutesTab />
     }
   ]
 

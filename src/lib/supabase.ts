@@ -18,6 +18,7 @@ export type Role = {
   code: string
   name: string
   description?: string
+  own_projects_only: boolean
   created_at: string
   updated_at: string
 }

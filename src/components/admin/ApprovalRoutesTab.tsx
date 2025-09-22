@@ -1,25 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Table, Button, Modal, Form, Input, Select, Space, Switch, message, Card, Tag, Divider } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, SettingOutlined, HolderOutlined, UserOutlined, FileTextOutlined, DollarOutlined } from '@ant-design/icons'
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core'
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable'
-import {
-  CSS,
-} from '@dnd-kit/utilities'
+import { Table, Button, Modal, Form, Input, Select, Space, Switch, message, Card, Tag, Row, Col } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, SettingOutlined, UserOutlined, DollarOutlined } from '@ant-design/icons'
 import { supabase } from '../../lib/supabase'
 import type { InvoiceType } from '../../lib/supabase'
 
@@ -36,10 +17,8 @@ interface WorkflowStage {
   role_id: number
   name: string
   payment_status_id?: number
-  invoice_status_id?: number
   role?: Role
   payment_status?: any
-  invoice_status?: any
 }
 
 interface ApprovalRoute {
@@ -58,7 +37,6 @@ export const ApprovalRoutesTab = () => {
   const [invoiceTypes, setInvoiceTypes] = useState<InvoiceType[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [paymentStatuses, setPaymentStatuses] = useState<any[]>([])
-  const [invoiceStatuses, setInvoiceStatuses] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [stagesModalVisible, setStagesModalVisible] = useState(false)
@@ -71,22 +49,19 @@ export const ApprovalRoutesTab = () => {
     console.log('[ApprovalRoutesTab.loadReferences] Loading references')
 
     try {
-      const [typesResponse, rolesResponse, paymentStatusesResponse, invoiceStatusesResponse] = await Promise.all([
+      const [typesResponse, rolesResponse, paymentStatusesResponse] = await Promise.all([
         supabase.from('invoice_types').select('*').order('name'),
         supabase.from('roles').select('*').order('name'),
-        supabase.from('payment_statuses').select('*').order('sort_order'),
-        supabase.from('invoice_statuses').select('*').order('sort_order')
+        supabase.from('payment_statuses').select('*').order('sort_order')
       ])
 
       if (typesResponse.error) throw typesResponse.error
       if (rolesResponse.error) throw rolesResponse.error
       if (paymentStatusesResponse.error) throw paymentStatusesResponse.error
-      if (invoiceStatusesResponse.error) throw invoiceStatusesResponse.error
 
       setInvoiceTypes(typesResponse.data as InvoiceType[])
       setRoles(rolesResponse.data as Role[])
       setPaymentStatuses(paymentStatusesResponse.data || [])
-      setInvoiceStatuses(invoiceStatusesResponse.data || [])
     } catch (error) {
       console.error('[ApprovalRoutesTab.loadReferences] Error:', error)
       message.error('Ошибка загрузки справочников')
@@ -110,10 +85,8 @@ export const ApprovalRoutesTab = () => {
             role_id,
             name,
             payment_status_id,
-            invoice_status_id,
             role:roles(id, code, name),
-            payment_status:payment_statuses(id, name),
-            invoice_status:invoice_statuses(id, name)
+            payment_status:payment_statuses(id, name)
           )
         `)
         .order('created_at', { ascending: false })
@@ -216,61 +189,31 @@ export const ApprovalRoutesTab = () => {
   }
 
   // Добавление этапа
-  const handleAddStage = () => {
+  const handleAddStage = useCallback(() => {
     const newStage: WorkflowStage = {
       order_index: editingStages.length,
       role_id: 0,
       name: '',
-      payment_status_id: undefined,
-      invoice_status_id: undefined
+      payment_status_id: undefined
     }
     setEditingStages([...editingStages, newStage])
-  }
+  }, [editingStages])
 
   // Удаление этапа
-  const handleRemoveStage = (index: number) => {
+  const handleRemoveStage = useCallback((index: number) => {
     const newStages = editingStages.filter((_, i) => i !== index)
       .map((stage, i) => ({ ...stage, order_index: i }))
     setEditingStages(newStages)
-  }
+  }, [editingStages])
 
   // Изменение этапа
-  const handleStageChange = (index: number, field: string, value: any) => {
-    const newStages = [...editingStages]
-    newStages[index] = { ...newStages[index], [field]: value }
-    setEditingStages(newStages)
-  }
-
-  // Обработка перетаскивания этапов
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-
-    if (over && active.id !== over.id) {
-      setEditingStages((stages) => {
-        const oldIndex = stages.findIndex((_, index) => `stage-${index}` === active.id)
-        const newIndex = stages.findIndex((_, index) => `stage-${index}` === over.id)
-
-        const newStages = arrayMove(stages, oldIndex, newIndex)
-        // Обновляем order_index для всех этапов
-        return newStages.map((stage, index) => ({
-          ...stage,
-          order_index: index
-        }))
-      })
-    }
-  }
-
-  // Настройка сенсоров для перетаскивания
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+  const handleStageChange = useCallback((index: number, field: string, value: any) => {
+    setEditingStages(prev => {
+      const newStages = [...prev]
+      newStages[index] = { ...newStages[index], [field]: value }
+      return newStages
     })
-  )
+  }, [])
 
   // Сохранение этапов
   const handleSaveStages = async () => {
@@ -294,8 +237,7 @@ export const ApprovalRoutesTab = () => {
           order_index: stage.order_index,
           role_id: stage.role_id,
           name: stage.name,
-          payment_status_id: stage.payment_status_id || null,
-          invoice_status_id: stage.invoice_status_id || null
+          payment_status_id: stage.payment_status_id || null
         }))
 
         const { error: insertError } = await supabase
@@ -314,201 +256,6 @@ export const ApprovalRoutesTab = () => {
       console.error('[ApprovalRoutesTab.handleSaveStages] Error:', error)
       message.error(error.message || 'Ошибка сохранения этапов')
     }
-  }
-
-  // Компонент перетаскиваемой карточки этапа
-  interface SortableStageCardProps {
-    stage: WorkflowStage
-    index: number
-    onStageChange: (index: number, field: string, value: any) => void
-    onRemoveStage: (index: number) => void
-    roles: Role[]
-    paymentStatuses: any[]
-    invoiceStatuses: any[]
-  }
-
-  const SortableStageCard = ({
-    stage,
-    index,
-    onStageChange,
-    onRemoveStage,
-    roles,
-    paymentStatuses,
-    invoiceStatuses
-  }: SortableStageCardProps) => {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({ id: `stage-${index}` })
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.8 : 1,
-    }
-
-    const selectedRole = roles.find(r => r.id === stage.role_id)
-    const selectedPaymentStatus = paymentStatuses.find(s => s.id === stage.payment_status_id)
-    const selectedInvoiceStatus = invoiceStatuses.find(s => s.id === stage.invoice_status_id)
-
-    return (
-      <div ref={setNodeRef} style={style}>
-        <Card
-          size="small"
-          style={{
-            marginBottom: 12,
-            border: isDragging ? '2px dashed #1890ff' : '1px solid #d9d9d9',
-            cursor: isDragging ? 'grabbing' : 'default',
-          }}
-          bodyStyle={{ padding: '16px' }}
-          extra={
-            <Space>
-              <Button
-                icon={<HolderOutlined />}
-                type="text"
-                size="small"
-                style={{ cursor: 'grab' }}
-                {...attributes}
-                {...listeners}
-                title="Перетащить для изменения порядка"
-              />
-              <Button
-                icon={<DeleteOutlined />}
-                type="text"
-                size="small"
-                danger
-                onClick={() => onRemoveStage(index)}
-                title="Удалить этап"
-              />
-            </Space>
-          }
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Заголовок этапа */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div
-                style={{
-                  minWidth: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  backgroundColor: '#1890ff',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 600,
-                  fontSize: 14,
-                }}
-              >
-                {index + 1}
-              </div>
-              <div style={{ flex: 1 }}>
-                <Input
-                  value={stage.name}
-                  onChange={(e) => onStageChange(index, 'name', e.target.value)}
-                  placeholder={`Этап ${index + 1} - название (необязательно)`}
-                  style={{ fontWeight: 500 }}
-                />
-              </div>
-            </div>
-
-            {/* Роль */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <UserOutlined style={{ color: '#1890ff', fontSize: 16 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ marginBottom: 4, fontSize: 12, color: '#666' }}>
-                  Ответственная роль
-                </div>
-                <Select
-                  value={stage.role_id || undefined}
-                  onChange={(value) => onStageChange(index, 'role_id', value)}
-                  placeholder="Выберите роль"
-                  style={{ width: '100%' }}
-                  size="small"
-                >
-                  {roles.map(role => (
-                    <Select.Option key={role.id} value={role.id}>
-                      <Tag color="blue" style={{ marginRight: 8 }}>
-                        {role.code}
-                      </Tag>
-                      {role.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </div>
-              {selectedRole && (
-                <Tag color="blue">
-                  {selectedRole.code}
-                </Tag>
-              )}
-            </div>
-
-            <Divider style={{ margin: '8px 0' }} />
-
-            {/* Статусы */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              {/* Статус платежа */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <DollarOutlined style={{ color: '#52c41a', fontSize: 14 }} />
-                  <span style={{ fontSize: 12, color: '#666' }}>Статус платежа</span>
-                </div>
-                <Select
-                  value={stage.payment_status_id || undefined}
-                  onChange={(value) => onStageChange(index, 'payment_status_id', value)}
-                  placeholder="Не изменять"
-                  style={{ width: '100%' }}
-                  size="small"
-                  allowClear
-                >
-                  {paymentStatuses.map(status => (
-                    <Select.Option key={status.id} value={status.id}>
-                      {status.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-                {selectedPaymentStatus && (
-                  <Tag color="green" style={{ marginTop: 4, fontSize: 11 }}>
-                    {selectedPaymentStatus.name}
-                  </Tag>
-                )}
-              </div>
-
-              {/* Статус счёта */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <FileTextOutlined style={{ color: '#faad14', fontSize: 14 }} />
-                  <span style={{ fontSize: 12, color: '#666' }}>Статус счёта</span>
-                </div>
-                <Select
-                  value={stage.invoice_status_id || undefined}
-                  onChange={(value) => onStageChange(index, 'invoice_status_id', value)}
-                  placeholder="Не изменять"
-                  style={{ width: '100%' }}
-                  size="small"
-                  allowClear
-                >
-                  {invoiceStatuses.map(status => (
-                    <Select.Option key={status.id} value={status.id}>
-                      {status.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-                {selectedInvoiceStatus && (
-                  <Tag color="orange" style={{ marginTop: 4, fontSize: 11 }}>
-                    {selectedInvoiceStatus.name}
-                  </Tag>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-    )
   }
 
   const columns = [
@@ -683,25 +430,18 @@ export const ApprovalRoutesTab = () => {
         }}
         okText="Сохранить"
         cancelText="Отмена"
-        width={1000}
+        width={900}
         styles={{
           body: { padding: '24px' }
         }}
       >
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 20 }}>
           <Button
             type="dashed"
             onClick={handleAddStage}
             block
             icon={<PlusOutlined />}
-            size="large"
-            style={{
-              height: 48,
-              borderStyle: 'dashed',
-              borderColor: '#1890ff',
-              color: '#1890ff',
-              fontSize: 16
-            }}
+            style={{ borderColor: '#1890ff', color: '#1890ff' }}
           >
             Добавить этап
           </Button>
@@ -711,63 +451,112 @@ export const ApprovalRoutesTab = () => {
           <div
             style={{
               textAlign: 'center',
-              padding: 48,
+              padding: 40,
               color: '#999',
-              fontSize: 16,
               backgroundColor: '#fafafa',
               borderRadius: 8,
               border: '1px dashed #d9d9d9'
             }}
           >
-            <SettingOutlined style={{ fontSize: 32, marginBottom: 16, color: '#d9d9d9' }} />
-            <div>Добавьте этапы согласования для настройки рабочего процесса</div>
+            <SettingOutlined style={{ fontSize: 24, marginBottom: 8, color: '#d9d9d9' }} />
+            <div>Добавьте этапы согласования</div>
           </div>
         ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={editingStages.map((_, index) => `stage-${index}`)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div style={{ maxHeight: 600, overflowY: 'auto' }}>
-                {editingStages.map((stage, index) => (
-                  <SortableStageCard
-                    key={`stage-${index}`}
-                    stage={stage}
-                    index={index}
-                    onStageChange={handleStageChange}
-                    onRemoveStage={handleRemoveStage}
-                    roles={roles}
-                    paymentStatuses={paymentStatuses}
-                    invoiceStatuses={invoiceStatuses}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+            {editingStages.map((stage, index) => (
+              <Card
+                key={index}
+                size="small"
+                style={{ marginBottom: 12 }}
+                styles={{ body: { padding: '12px' } }}
+              >
+                <Row gutter={[12, 12]} align="middle">
+                  <Col span={1}>
+                    <div
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        backgroundColor: '#1890ff',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 12,
+                        fontWeight: 600
+                      }}
+                    >
+                      {index + 1}
+                    </div>
+                  </Col>
+                  <Col span={7}>
+                    <Input
+                      value={stage.name}
+                      onChange={(e) => handleStageChange(index, 'name', e.target.value)}
+                      placeholder={`Название этапа ${index + 1}`}
+                      size="small"
+                    />
+                  </Col>
+                  <Col span={7}>
+                    <Select
+                      value={stage.role_id || undefined}
+                      onChange={(value) => handleStageChange(index, 'role_id', value)}
+                      placeholder="Выберите роль"
+                      size="small"
+                      style={{ width: '100%' }}
+                    >
+                      {roles.map(role => (
+                        <Select.Option key={role.id} value={role.id}>
+                          {role.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Col>
+                  <Col span={7}>
+                    <Select
+                      value={stage.payment_status_id || undefined}
+                      onChange={(value) => handleStageChange(index, 'payment_status_id', value)}
+                      placeholder="Статус платежа"
+                      size="small"
+                      style={{ width: '100%' }}
+                      allowClear
+                    >
+                      {paymentStatuses.map(status => (
+                        <Select.Option key={status.id} value={status.id}>
+                          {status.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Col>
+                  <Col span={2}>
+                    <Button
+                      icon={<DeleteOutlined />}
+                      size="small"
+                      danger
+                      onClick={() => handleRemoveStage(index)}
+                    />
+                  </Col>
+                </Row>
+              </Card>
+            ))}
+          </div>
         )}
 
         {editingStages.length > 0 && (
           <div
             style={{
-              marginTop: 24,
-              padding: 16,
+              marginTop: 20,
+              padding: 12,
               backgroundColor: '#f6ffed',
               border: '1px solid #b7eb8f',
               borderRadius: 8
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <SettingOutlined style={{ color: '#52c41a' }} />
-              <span style={{ fontWeight: 500, color: '#52c41a' }}>
-                Настроено этапов: {editingStages.length}
-              </span>
+            <div style={{ fontSize: 13, color: '#52c41a', fontWeight: 500 }}>
+              Настроено этапов: {editingStages.length}
             </div>
-            <div style={{ fontSize: 12, color: '#666' }}>
-              Перетащите карточки этапов для изменения порядка. Каждый этап может автоматически изменять статусы счёта и платежа при прохождении.
+            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              Каждый этап может автоматически изменять статус платежа при прохождении
             </div>
           </div>
         )}

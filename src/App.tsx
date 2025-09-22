@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { AuthPage } from './pages/AuthPage'
 import { InvoicesPage } from './pages/InvoicesPage'
 import { AdminPage } from './pages/AdminPage'
+import { ApprovalsPage } from './pages/ApprovalsPage'
 import { MainLayout } from './components/Layout'
 import 'antd/dist/reset.css'
 
@@ -31,6 +32,14 @@ function App() {
               element={
                 <MainLayout>
                   <AdminPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/approvals"
+              element={
+                <MainLayout>
+                  <ApprovalsPage />
                 </MainLayout>
               }
             />

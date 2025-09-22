@@ -5,9 +5,11 @@ import type { User } from '@supabase/supabase-js'
 interface AuthContextType {
   user: User | null
   loading: boolean
+  currentRoleId: number | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, fullName: string) => Promise<void>
   signOut: () => Promise<void>
+  updateCurrentRole: (roleId: number | null) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -23,11 +25,25 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [currentRoleId, setCurrentRoleId] = useState<number | null>(null)
 
   useEffect(() => {
     console.log('[AuthProvider] Checking auth session')
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null)
+
+      // Load current user role
+      if (session?.user) {
+        const { data: userData } = await supabase
+          .from('user_profiles')
+          .select('role_id')
+          .eq('id', session.user.id)
+          .single()
+
+        setCurrentRoleId(userData?.role_id || null)
+        console.log('[AuthProvider] Initial role loaded:', userData?.role_id)
+      }
+
       setLoading(false)
       console.log('[AuthProvider] Session loaded:', session?.user?.email)
     })
@@ -81,8 +97,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('[AuthProvider.signOut] Logout successful')
   }
 
+  const updateCurrentRole = (roleId: number | null) => {
+    console.log('[AuthProvider.updateCurrentRole] Updating role to:', roleId)
+    setCurrentRoleId(roleId)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, currentRoleId, signIn, signUp, signOut, updateCurrentRole }}>
       {children}
     </AuthContext.Provider>
   )

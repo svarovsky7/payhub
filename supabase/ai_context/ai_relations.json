@@ -1,86 +1,233 @@
 [
   {
-    "from_table": "public.contractors",
-    "from_column": "type_id",
-    "to_table": "public.contractor_types",
+    "from_table": "public.approval_routes",
+    "from_column": "invoice_type_id",
+    "to_table": "public.invoice_types",
     "to_column": "id",
-    "description": "Contractor category reference."
+    "description": "Маршрут применяется к определённому типу счета."
+  },
+  {
+    "from_table": "public.approval_steps",
+    "from_column": "acted_by",
+    "to_table": "auth.users",
+    "to_column": "id",
+    "description": "Пользователь, выполнивший действие на шаге."
+  },
+  {
+    "from_table": "public.approval_steps",
+    "from_column": "payment_approval_id",
+    "to_table": "public.payment_approvals",
+    "to_column": "id",
+    "description": "Шаг относится к конкретному процессу согласования платежа."
+  },
+  {
+    "from_table": "public.approval_steps",
+    "from_column": "stage_id",
+    "to_table": "public.workflow_stages",
+    "to_column": "id",
+    "description": "Ссылка на этап маршрута."
+  },
+  {
+    "from_table": "public.attachments",
+    "from_column": "created_by",
+    "to_table": "auth.users",
+    "to_column": "id",
+    "description": "Автор загрузки файла (auth.users)."
   },
   {
     "from_table": "public.contractors",
     "from_column": "created_by",
     "to_table": "auth.users",
     "to_column": "id",
-    "description": "Authoring Supabase user."
+    "description": "Пользователь, создавший контрагента."
   },
   {
-    "from_table": "public.invoices",
-    "from_column": "user_id",
-    "to_table": "auth.users",
+    "from_table": "public.contractors",
+    "from_column": "type_id",
+    "to_table": "public.contractor_types",
     "to_column": "id",
-    "description": "Invoice owner."
+    "description": "Категория контрагента."
   },
   {
-    "from_table": "public.invoices",
-    "from_column": "payer_id",
-    "to_table": "public.contractors",
+    "from_table": "public.invoice_attachments",
+    "from_column": "attachment_id",
+    "to_table": "public.attachments",
     "to_column": "id",
-    "description": "Payer contractor linked to the invoice."
+    "description": "Прикреплённый файл."
   },
   {
-    "from_table": "public.invoices",
-    "from_column": "supplier_id",
-    "to_table": "public.contractors",
+    "from_table": "public.invoice_attachments",
+    "from_column": "invoice_id",
+    "to_table": "public.invoices",
     "to_column": "id",
-    "description": "Supplier contractor linked to the invoice."
+    "description": "Счет, к которому прикреплён файл."
   },
   {
-    "from_table": "public.invoices",
-    "from_column": "project_id",
-    "to_table": "public.projects",
+    "from_table": "public.invoice_payments",
+    "from_column": "invoice_id",
+    "to_table": "public.invoices",
     "to_column": "id",
-    "description": "Project that groups the invoice."
+    "description": "Счет, который покрывает платеж."
+  },
+  {
+    "from_table": "public.invoice_payments",
+    "from_column": "payment_id",
+    "to_table": "public.payments",
+    "to_column": "id",
+    "description": "Платеж, распределенный на счет."
   },
   {
     "from_table": "public.invoices",
     "from_column": "invoice_type_id",
     "to_table": "public.invoice_types",
     "to_column": "id",
-    "description": "Invoice type catalog reference."
+    "description": "Тип счета."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "payer_id",
+    "to_table": "public.contractors",
+    "to_column": "id",
+    "description": "Контрагент-плательщик."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "project_id",
+    "to_table": "public.projects",
+    "to_column": "id",
+    "description": "Проект, к которому относится счет."
   },
   {
     "from_table": "public.invoices",
     "from_column": "status_id",
     "to_table": "public.invoice_statuses",
     "to_column": "id",
-    "description": "Workflow status from invoice_statuses."
+    "description": "Текущий статус счета."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "supplier_id",
+    "to_table": "public.contractors",
+    "to_column": "id",
+    "description": "Контрагент-поставщик."
+  },
+  {
+    "from_table": "public.invoices",
+    "from_column": "user_id",
+    "to_table": "auth.users",
+    "to_column": "id",
+    "description": "Автор счета (auth.users)."
+  },
+  {
+    "from_table": "public.payment_approvals",
+    "from_column": "payment_id",
+    "to_table": "public.payments",
+    "to_column": "id",
+    "description": "Платеж, проходящий согласование."
+  },
+  {
+    "from_table": "public.payment_approvals",
+    "from_column": "route_id",
+    "to_table": "public.approval_routes",
+    "to_column": "id",
+    "description": "Маршрут согласования платежа."
+  },
+  {
+    "from_table": "public.payment_approvals",
+    "from_column": "status_id",
+    "to_table": "public.payment_statuses",
+    "to_column": "id",
+    "description": "Статус процесса согласования."
+  },
+  {
+    "from_table": "public.payment_attachments",
+    "from_column": "attachment_id",
+    "to_table": "public.attachments",
+    "to_column": "id",
+    "description": "Прикреплённый файл платежа."
+  },
+  {
+    "from_table": "public.payment_attachments",
+    "from_column": "payment_id",
+    "to_table": "public.payments",
+    "to_column": "id",
+    "description": "Платеж, к которому прикреплен файл."
+  },
+  {
+    "from_table": "public.payments",
+    "from_column": "created_by",
+    "to_table": "auth.users",
+    "to_column": "id",
+    "description": "Пользователь, зарегистрировавший платеж."
+  },
+  {
+    "from_table": "public.payments",
+    "from_column": "invoice_id",
+    "to_table": "public.invoices",
+    "to_column": "id",
+    "description": "Счет, который оплачивается."
+  },
+  {
+    "from_table": "public.payments",
+    "from_column": "payment_type_id",
+    "to_table": "public.payment_types",
+    "to_column": "id",
+    "description": "Тип платежа."
+  },
+  {
+    "from_table": "public.payments",
+    "from_column": "status_id",
+    "to_table": "public.payment_statuses",
+    "to_column": "id",
+    "description": "Статус платежа."
   },
   {
     "from_table": "public.projects",
     "from_column": "created_by",
     "to_table": "auth.users",
     "to_column": "id",
-    "description": "User that registered the project."
+    "description": "Пользователь, создавший проект."
   },
   {
     "from_table": "public.user_profiles",
     "from_column": "id",
     "to_table": "auth.users",
     "to_column": "id",
-    "description": "Profile mirrors Supabase auth user."
+    "description": "Идентификатор auth.users."
   },
   {
-    "from_table": "public.user_projects",
-    "from_column": "user_id",
-    "to_table": "auth.users",
+    "from_table": "public.user_profiles",
+    "from_column": "role_id",
+    "to_table": "public.roles",
     "to_column": "id",
-    "description": "User receiving project access."
+    "description": "Назначенная роль доступа."
   },
   {
     "from_table": "public.user_projects",
     "from_column": "project_id",
     "to_table": "public.projects",
     "to_column": "id",
-    "description": "Project assigned to the user."
+    "description": "Проект, к которому назначен пользователь."
+  },
+  {
+    "from_table": "public.user_projects",
+    "from_column": "user_id",
+    "to_table": "auth.users",
+    "to_column": "id",
+    "description": "Пользователь с доступом к проекту."
+  },
+  {
+    "from_table": "public.workflow_stages",
+    "from_column": "role_id",
+    "to_table": "public.roles",
+    "to_column": "id",
+    "description": "Роль ответственного за этап."
+  },
+  {
+    "from_table": "public.workflow_stages",
+    "from_column": "route_id",
+    "to_table": "public.approval_routes",
+    "to_column": "id",
+    "description": "Маршрут, которому принадлежит этап."
   }
 ]

@@ -1,27 +1,647 @@
 [
   {
+    "function": "auth.email()",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "auth.jwt()",
+    "returns": "jsonb",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "auth.role()",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "auth.uid()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.algorithm_sign(signables text, secret text, algorithm text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.armor(bytea, text[], text[])",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.armor(bytea)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.crypt(text, text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.dearmor(text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.decrypt_iv(bytea, bytea, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.decrypt(bytea, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.digest(bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.digest(text, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.encrypt_iv(bytea, bytea, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.encrypt(bytea, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.gen_random_bytes(integer)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.gen_random_uuid()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.gen_salt(text, integer)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.gen_salt(text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.grant_pg_cron_access()",
+    "returns": "event_trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.grant_pg_graphql_access()",
+    "returns": "event_trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.grant_pg_net_access()",
+    "returns": "event_trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.hmac(bytea, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.hmac(text, text, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pg_stat_statements_info(OUT dealloc bigint, OUT stats_reset timestamp with time zone)",
+    "returns": "record",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pg_stat_statements_reset(userid oid, dbid oid, queryid bigint)",
+    "returns": "void",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT blk_read_time double precision, OUT blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision)",
+    "returns": "SETOF",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_armor_headers(text, OUT key text, OUT value text)",
+    "returns": "SETOF",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_key_id(bytea)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_decrypt_bytea(bytea, bytea)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_decrypt(bytea, bytea, text, text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_decrypt(bytea, bytea, text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_decrypt(bytea, bytea)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_encrypt_bytea(bytea, bytea)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_encrypt(text, bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_pub_encrypt(text, bytea)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_decrypt_bytea(bytea, text, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_decrypt_bytea(bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_decrypt(bytea, text, text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_decrypt(bytea, text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_encrypt_bytea(bytea, text, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_encrypt_bytea(bytea, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_encrypt(text, text, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgp_sym_encrypt(text, text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgrst_ddl_watch()",
+    "returns": "event_trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.pgrst_drop_watch()",
+    "returns": "event_trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.set_graphql_placeholder()",
+    "returns": "event_trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.sign(payload json, secret text, algorithm text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.try_cast_double(inp text)",
+    "returns": "double",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.url_decode(data text)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.url_encode(data bytea)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_generate_v1()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_generate_v1mc()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_generate_v3(namespace uuid, name text)",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_generate_v4()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_generate_v5(namespace uuid, name text)",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_nil()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_ns_dns()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_ns_oid()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_ns_url()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.uuid_ns_x500()",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "extensions.verify(token text, secret text, algorithm text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "graphql_public.graphql(\"operationName\" text, query text, variables jsonb, extensions jsonb)",
+    "returns": "jsonb",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "graphql._internal_resolve(query text, variables jsonb, \"operationName\" text, extensions jsonb)",
+    "returns": "jsonb",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "graphql.comment_directive(comment_ text)",
+    "returns": "jsonb",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "graphql.exception(message text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "graphql.get_schema_version()",
+    "returns": "integer",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "graphql.increment_schema_version()",
+    "returns": "event_trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "graphql.resolve(query text, variables jsonb, \"operationName\" text, extensions jsonb)",
+    "returns": "jsonb",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net._await_response(request_id bigint)",
+    "returns": "boolean",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net._encode_url_with_params_array(url text, params_array text[])",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net._http_collect_response(request_id bigint, async boolean)",
+    "returns": "net",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net._urlencode_string(string character varying)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net.check_worker_is_up()",
+    "returns": "void",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net.http_collect_response(request_id bigint, async boolean)",
+    "returns": "net",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net.http_delete(url text, params jsonb, headers jsonb, timeout_milliseconds integer)",
+    "returns": "bigint",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net.http_get(url text, params jsonb, headers jsonb, timeout_milliseconds integer)",
+    "returns": "bigint",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net.http_post(url text, body jsonb, params jsonb, headers jsonb, timeout_milliseconds integer)",
+    "returns": "bigint",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "net.worker_restart()",
+    "returns": "boolean",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "pgbouncer.get_auth(p_usename text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
     "function": "public.calculate_vat_amounts()",
     "returns": "trigger",
-    "summary": "Trigger helper that recalculates vat_amount and amount_without_vat before persisting invoices."
+    "summary": "Рассчитывает суммы НДС для строки счета перед сохранением."
   },
   {
     "function": "public.delete_contractor_type(type_id_param integer)",
     "returns": "json",
-    "summary": "Safely deletes a contractor type if no contractors depend on it."
+    "summary": "Удаляет тип контрагента, если от него не зависят записи."
   },
   {
     "function": "public.delete_project(project_id_param integer)",
     "returns": "boolean",
-    "summary": "Removes a project and cleans up user assignments in one call."
+    "summary": "Удаляет проект и связанные назначения пользователей."
   },
   {
     "function": "public.handle_new_user()",
     "returns": "trigger",
-    "summary": "Provision user_profiles row when a Supabase auth user is created."
+    "summary": "Создаёт профиль пользователя при появлении записи в auth.users."
   },
   {
     "function": "public.update_updated_at_column()",
     "returns": "trigger",
-    "summary": "BEFORE UPDATE trigger that stamps NEW.updated_at with now()."
+    "summary": "Устанавливает NEW.updated_at в текущий момент времени."
+  },
+  {
+    "function": "realtime.apply_rls(wal jsonb, max_record_bytes integer)",
+    "returns": "SETOF",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.broadcast_changes(topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text)",
+    "returns": "void",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.build_prepared_statement_sql(prepared_statement_name text, entity regclass, columns realtime.wal_column[])",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.cast(val text, type_ regtype)",
+    "returns": "jsonb",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.check_equality_op(op realtime.equality_op, type_ regtype, val_1 text, val_2 text)",
+    "returns": "boolean",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.is_visible_through_filters(columns realtime.wal_column[], filters realtime.user_defined_filter[])",
+    "returns": "boolean",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.list_changes(publication name, slot_name name, max_changes integer, max_record_bytes integer)",
+    "returns": "SETOF",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.quote_wal2json(entity regclass)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.send(payload jsonb, event text, topic text, private boolean)",
+    "returns": "void",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.subscription_check_filters()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.to_regrole(role_name text)",
+    "returns": "regrole",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "realtime.topic()",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.add_prefixes(_bucket_id text, _name text)",
+    "returns": "void",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.can_insert_object(bucketid text, name text, owner uuid, metadata jsonb)",
+    "returns": "void",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.delete_prefix_hierarchy_trigger()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.delete_prefix(_bucket_id text, _name text)",
+    "returns": "boolean",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.enforce_bucket_name_length()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.extension(name text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.filename(name text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.foldername(name text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.get_level(name text)",
+    "returns": "integer",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.get_prefix(name text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.get_prefixes(name text)",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.get_size_by_bucket()",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.list_multipart_uploads_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer, next_key_token text, next_upload_token text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.list_objects_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer, start_after text, next_token text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.objects_insert_prefix_trigger()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.objects_update_prefix_trigger()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.operation()",
+    "returns": "text",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.prefixes_insert_trigger()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.search_legacy_v1(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.search_v1_optimised(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.search_v2(prefix text, bucket_name text, limits integer, levels integer, start_after text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.search(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text)",
+    "returns": "TABLE",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "storage.update_updated_at_column()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "supabase_functions.http_request()",
+    "returns": "trigger",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "vault._crypto_aead_det_decrypt(message bytea, additional bytea, key_id bigint, context bytea, nonce bytea)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "vault._crypto_aead_det_encrypt(message bytea, additional bytea, key_id bigint, context bytea, nonce bytea)",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "vault._crypto_aead_det_noncegen()",
+    "returns": "bytea",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "vault.create_secret(new_secret text, new_name text, new_description text, new_key_id uuid)",
+    "returns": "uuid",
+    "summary": "Описание функции пока не заполнено."
+  },
+  {
+    "function": "vault.update_secret(secret_id uuid, new_secret text, new_name text, new_description text, new_key_id uuid)",
+    "returns": "void",
+    "summary": "Описание функции пока не заполнено."
   }
 ]

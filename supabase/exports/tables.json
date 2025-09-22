@@ -1,4 +1,3151 @@
 {
+  "_realtime.extensions": {
+    "schema": "_realtime",
+    "name": "extensions",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "type",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "settings",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "tenant_external_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "inserted_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [],
+    "sql": "CREATE TABLE IF NOT EXISTS _realtime.extensions (\n    id uuid NOT NULL,\n    type text,\n    settings jsonb,\n    tenant_external_id text,\n    inserted_at timestamp without time zone NOT NULL,\n    updated_at timestamp without time zone NOT NULL\n);"
+  },
+  "_realtime.schema_migrations": {
+    "schema": "_realtime",
+    "name": "schema_migrations",
+    "comment": "Auth: Manages updates to the auth system.",
+    "columns": [
+      {
+        "name": "version",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "inserted_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [],
+    "sql": "-- Auth: Manages updates to the auth system.\nCREATE TABLE IF NOT EXISTS _realtime.schema_migrations (\n    version bigint(64) NOT NULL,\n    inserted_at timestamp without time zone\n);\n\nCOMMENT ON TABLE _realtime.schema_migrations IS 'Auth: Manages updates to the auth system.';"
+  },
+  "_realtime.tenants": {
+    "schema": "_realtime",
+    "name": "tenants",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "external_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "jwt_secret",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "max_concurrent_users",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "200",
+        "comment": null
+      },
+      {
+        "name": "inserted_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "max_events_per_second",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "100",
+        "comment": null
+      },
+      {
+        "name": "postgres_cdc_default",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "'postgres_cdc_rls'::text",
+        "comment": null
+      },
+      {
+        "name": "max_bytes_per_second",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "100000",
+        "comment": null
+      },
+      {
+        "name": "max_channels_per_client",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "100",
+        "comment": null
+      },
+      {
+        "name": "max_joins_per_second",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "500",
+        "comment": null
+      },
+      {
+        "name": "suspend",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": null
+      },
+      {
+        "name": "jwt_jwks",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "notify_private_alpha",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": null
+      },
+      {
+        "name": "private_only",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "false",
+        "comment": null
+      }
+    ],
+    "constraints": [],
+    "sql": "CREATE TABLE IF NOT EXISTS _realtime.tenants (\n    id uuid NOT NULL,\n    name text,\n    external_id text,\n    jwt_secret text,\n    max_concurrent_users integer(32) NOT NULL DEFAULT 200,\n    inserted_at timestamp without time zone NOT NULL,\n    updated_at timestamp without time zone NOT NULL,\n    max_events_per_second integer(32) NOT NULL DEFAULT 100,\n    postgres_cdc_default text DEFAULT 'postgres_cdc_rls'::text,\n    max_bytes_per_second integer(32) NOT NULL DEFAULT 100000,\n    max_channels_per_client integer(32) NOT NULL DEFAULT 100,\n    max_joins_per_second integer(32) NOT NULL DEFAULT 500,\n    suspend boolean DEFAULT false,\n    jwt_jwks jsonb,\n    notify_private_alpha boolean DEFAULT false,\n    private_only boolean NOT NULL DEFAULT false\n);"
+  },
+  "auth.audit_log_entries": {
+    "schema": "auth",
+    "name": "audit_log_entries",
+    "comment": "Auth: Audit trail for user actions.",
+    "columns": [
+      {
+        "name": "instance_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "payload",
+        "data_type": "json",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "ip_address",
+        "data_type": "character varying",
+        "max_length": 64,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "''::character varying",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_16488_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_16488_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "audit_log_entries_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "audit_log_entries",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "-- Auth: Audit trail for user actions.\nCREATE TABLE IF NOT EXISTS auth.audit_log_entries (\n    instance_id uuid,\n    id uuid NOT NULL,\n    payload json,\n    created_at timestamp with time zone,\n    ip_address character varying(64) NOT NULL DEFAULT ''::character varying,\n    CONSTRAINT audit_log_entries_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE auth.audit_log_entries IS 'Auth: Audit trail for user actions.';"
+  },
+  "auth.flow_state": {
+    "schema": "auth",
+    "name": "flow_state",
+    "comment": "stores metadata for pkce logins",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "auth_code",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "code_challenge_method",
+        "data_type": "USER-DEFINED",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "code_challenge",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "provider_type",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "provider_access_token",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "provider_refresh_token",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "authentication_method",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "auth_code_issued_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17627_11_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17627_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17627_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17627_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17627_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17627_6_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "flow_state_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "flow_state",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "-- stores metadata for pkce logins\nCREATE TABLE IF NOT EXISTS auth.flow_state (\n    id uuid NOT NULL,\n    user_id uuid,\n    auth_code text NOT NULL,\n    code_challenge_method USER-DEFINED NOT NULL,\n    code_challenge text NOT NULL,\n    provider_type text NOT NULL,\n    provider_access_token text,\n    provider_refresh_token text,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    authentication_method text NOT NULL,\n    auth_code_issued_at timestamp with time zone,\n    CONSTRAINT flow_state_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE auth.flow_state IS 'stores metadata for pkce logins';"
+  },
+  "auth.identities": {
+    "schema": "auth",
+    "name": "identities",
+    "comment": "Auth: Stores identities associated to a user.",
+    "columns": [
+      {
+        "name": "provider_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "identity_data",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "provider",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "last_sign_in_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Auth: Email is a generated column that references the optional email property in the identity_data"
+      },
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17424_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17424_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17424_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17424_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17424_9_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "identities_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "identities",
+        "foreign_column": "id"
+      },
+      {
+        "name": "identities_provider_id_provider_unique",
+        "type": "UNIQUE",
+        "column": "provider",
+        "foreign_table_schema": "auth",
+        "foreign_table": "identities",
+        "foreign_column": "provider"
+      },
+      {
+        "name": "identities_provider_id_provider_unique",
+        "type": "UNIQUE",
+        "column": "provider_id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "identities",
+        "foreign_column": "provider"
+      },
+      {
+        "name": "identities_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Auth: Stores identities associated to a user.\nCREATE TABLE IF NOT EXISTS auth.identities (\n    provider_id text NOT NULL,\n    user_id uuid NOT NULL,\n    identity_data jsonb NOT NULL,\n    provider text NOT NULL,\n    last_sign_in_at timestamp with time zone,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    email text,\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    CONSTRAINT identities_pkey PRIMARY KEY (id),\n    CONSTRAINT identities_provider_id_provider_unique UNIQUE (provider),\n    CONSTRAINT identities_provider_id_provider_unique UNIQUE (provider_id),\n    CONSTRAINT identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE auth.identities IS 'Auth: Stores identities associated to a user.';\nCOMMENT ON COLUMN auth.identities.email IS 'Auth: Email is a generated column that references the optional email property in the identity_data';"
+  },
+  "auth.instances": {
+    "schema": "auth",
+    "name": "instances",
+    "comment": "Auth: Manages users across multiple sites.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "uuid",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "raw_base_config",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_16481_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "instances_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "instances",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "-- Auth: Manages users across multiple sites.\nCREATE TABLE IF NOT EXISTS auth.instances (\n    id uuid NOT NULL,\n    uuid uuid,\n    raw_base_config text,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    CONSTRAINT instances_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE auth.instances IS 'Auth: Manages users across multiple sites.';"
+  },
+  "auth.mfa_amr_claims": {
+    "schema": "auth",
+    "name": "mfa_amr_claims",
+    "comment": "auth: stores authenticator method reference claims for multi factor authentication",
+    "columns": [
+      {
+        "name": "session_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "authentication_method",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17514_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17514_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17514_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17514_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17514_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "amr_id_pk",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "mfa_amr_claims",
+        "foreign_column": "id"
+      },
+      {
+        "name": "mfa_amr_claims_session_id_authentication_method_pkey",
+        "type": "UNIQUE",
+        "column": "authentication_method",
+        "foreign_table_schema": "auth",
+        "foreign_table": "mfa_amr_claims",
+        "foreign_column": "authentication_method"
+      },
+      {
+        "name": "mfa_amr_claims_session_id_authentication_method_pkey",
+        "type": "UNIQUE",
+        "column": "session_id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "mfa_amr_claims",
+        "foreign_column": "authentication_method"
+      },
+      {
+        "name": "mfa_amr_claims_session_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "session_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- auth: stores authenticator method reference claims for multi factor authentication\nCREATE TABLE IF NOT EXISTS auth.mfa_amr_claims (\n    session_id uuid NOT NULL,\n    created_at timestamp with time zone NOT NULL,\n    updated_at timestamp with time zone NOT NULL,\n    authentication_method text NOT NULL,\n    id uuid NOT NULL,\n    CONSTRAINT amr_id_pk PRIMARY KEY (id),\n    CONSTRAINT mfa_amr_claims_session_id_authentication_method_pkey UNIQUE (authentication_method),\n    CONSTRAINT mfa_amr_claims_session_id_authentication_method_pkey UNIQUE (session_id),\n    CONSTRAINT mfa_amr_claims_session_id_fkey FOREIGN KEY (session_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE auth.mfa_amr_claims IS 'auth: stores authenticator method reference claims for multi factor authentication';"
+  },
+  "auth.mfa_challenges": {
+    "schema": "auth",
+    "name": "mfa_challenges",
+    "comment": "auth: stores metadata about challenge requests made",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "factor_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "verified_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "ip_address",
+        "data_type": "inet",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "otp_code",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "web_authn_session_data",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17502_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17502_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17502_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17502_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "mfa_challenges_auth_factor_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "factor_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "mfa_challenges_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "mfa_challenges",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "-- auth: stores metadata about challenge requests made\nCREATE TABLE IF NOT EXISTS auth.mfa_challenges (\n    id uuid NOT NULL,\n    factor_id uuid NOT NULL,\n    created_at timestamp with time zone NOT NULL,\n    verified_at timestamp with time zone,\n    ip_address inet NOT NULL,\n    otp_code text,\n    web_authn_session_data jsonb,\n    CONSTRAINT mfa_challenges_auth_factor_id_fkey FOREIGN KEY (factor_id) REFERENCES None.None(None),\n    CONSTRAINT mfa_challenges_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE auth.mfa_challenges IS 'auth: stores metadata about challenge requests made';"
+  },
+  "auth.mfa_factors": {
+    "schema": "auth",
+    "name": "mfa_factors",
+    "comment": "auth: stores metadata about factors",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "friendly_name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "factor_type",
+        "data_type": "USER-DEFINED",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "status",
+        "data_type": "USER-DEFINED",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "secret",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "phone",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "last_challenged_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "web_authn_credential",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "web_authn_aaguid",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17489_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17489_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17489_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17489_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17489_6_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17489_7_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "mfa_factors_last_challenged_at_key",
+        "type": "UNIQUE",
+        "column": "last_challenged_at",
+        "foreign_table_schema": "auth",
+        "foreign_table": "mfa_factors",
+        "foreign_column": "last_challenged_at"
+      },
+      {
+        "name": "mfa_factors_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "mfa_factors",
+        "foreign_column": "id"
+      },
+      {
+        "name": "mfa_factors_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- auth: stores metadata about factors\nCREATE TABLE IF NOT EXISTS auth.mfa_factors (\n    id uuid NOT NULL,\n    user_id uuid NOT NULL,\n    friendly_name text,\n    factor_type USER-DEFINED NOT NULL,\n    status USER-DEFINED NOT NULL,\n    created_at timestamp with time zone NOT NULL,\n    updated_at timestamp with time zone NOT NULL,\n    secret text,\n    phone text,\n    last_challenged_at timestamp with time zone,\n    web_authn_credential jsonb,\n    web_authn_aaguid uuid,\n    CONSTRAINT mfa_factors_last_challenged_at_key UNIQUE (last_challenged_at),\n    CONSTRAINT mfa_factors_pkey PRIMARY KEY (id),\n    CONSTRAINT mfa_factors_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE auth.mfa_factors IS 'auth: stores metadata about factors';"
+  },
+  "auth.one_time_tokens": {
+    "schema": "auth",
+    "name": "one_time_tokens",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "token_type",
+        "data_type": "USER-DEFINED",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "token_hash",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "relates_to",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17677_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17677_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17677_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17677_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17677_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17677_6_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17677_7_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "one_time_tokens_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "one_time_tokens",
+        "foreign_column": "id"
+      },
+      {
+        "name": "one_time_tokens_token_hash_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "one_time_tokens",
+        "foreign_column": "token_hash"
+      },
+      {
+        "name": "one_time_tokens_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS auth.one_time_tokens (\n    id uuid NOT NULL,\n    user_id uuid NOT NULL,\n    token_type USER-DEFINED NOT NULL,\n    token_hash text NOT NULL,\n    relates_to text NOT NULL,\n    created_at timestamp without time zone NOT NULL DEFAULT now(),\n    updated_at timestamp without time zone NOT NULL DEFAULT now(),\n    CONSTRAINT one_time_tokens_pkey PRIMARY KEY (id),\n    CONSTRAINT one_time_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);"
+  },
+  "auth.refresh_tokens": {
+    "schema": "auth",
+    "name": "refresh_tokens",
+    "comment": "Auth: Store of tokens used to refresh JWT tokens once they expire.",
+    "columns": [
+      {
+        "name": "instance_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('auth.refresh_tokens_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "token",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "revoked",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "parent",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "session_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_16470_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "refresh_tokens_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "refresh_tokens",
+        "foreign_column": "id"
+      },
+      {
+        "name": "refresh_tokens_session_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "session_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "refresh_tokens_token_unique",
+        "type": "UNIQUE",
+        "column": "token",
+        "foreign_table_schema": "auth",
+        "foreign_table": "refresh_tokens",
+        "foreign_column": "token"
+      }
+    ],
+    "sql": "-- Auth: Store of tokens used to refresh JWT tokens once they expire.\nCREATE TABLE IF NOT EXISTS auth.refresh_tokens (\n    instance_id uuid,\n    id bigint(64) NOT NULL DEFAULT nextval('auth.refresh_tokens_id_seq'::regclass),\n    token character varying(255),\n    user_id character varying(255),\n    revoked boolean,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    parent character varying(255),\n    session_id uuid,\n    CONSTRAINT refresh_tokens_pkey PRIMARY KEY (id),\n    CONSTRAINT refresh_tokens_session_id_fkey FOREIGN KEY (session_id) REFERENCES None.None(None),\n    CONSTRAINT refresh_tokens_token_unique UNIQUE (token)\n);\n\nCOMMENT ON TABLE auth.refresh_tokens IS 'Auth: Store of tokens used to refresh JWT tokens once they expire.';"
+  },
+  "auth.saml_providers": {
+    "schema": "auth",
+    "name": "saml_providers",
+    "comment": "Auth: Manages SAML Identity Provider connections.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "sso_provider_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "entity_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "metadata_xml",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "metadata_url",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "attribute_mapping",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name_id_format",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17556_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17556_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17556_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17556_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "entity_id not empty",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "saml_providers",
+        "foreign_column": "entity_id"
+      },
+      {
+        "name": "metadata_url not empty",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "saml_providers",
+        "foreign_column": "metadata_url"
+      },
+      {
+        "name": "metadata_xml not empty",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "saml_providers",
+        "foreign_column": "metadata_xml"
+      },
+      {
+        "name": "saml_providers_entity_id_key",
+        "type": "UNIQUE",
+        "column": "entity_id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "saml_providers",
+        "foreign_column": "entity_id"
+      },
+      {
+        "name": "saml_providers_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "saml_providers",
+        "foreign_column": "id"
+      },
+      {
+        "name": "saml_providers_sso_provider_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "sso_provider_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Auth: Manages SAML Identity Provider connections.\nCREATE TABLE IF NOT EXISTS auth.saml_providers (\n    id uuid NOT NULL,\n    sso_provider_id uuid NOT NULL,\n    entity_id text NOT NULL,\n    metadata_xml text NOT NULL,\n    metadata_url text,\n    attribute_mapping jsonb,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    name_id_format text,\n    CONSTRAINT saml_providers_entity_id_key UNIQUE (entity_id),\n    CONSTRAINT saml_providers_pkey PRIMARY KEY (id),\n    CONSTRAINT saml_providers_sso_provider_id_fkey FOREIGN KEY (sso_provider_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE auth.saml_providers IS 'Auth: Manages SAML Identity Provider connections.';"
+  },
+  "auth.saml_relay_states": {
+    "schema": "auth",
+    "name": "saml_relay_states",
+    "comment": "Auth: Contains SAML Relay State information for each Service Provider initiated login.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "sso_provider_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "request_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "for_email",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "redirect_to",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "flow_state_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17574_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17574_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17574_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "request_id not empty",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "saml_relay_states",
+        "foreign_column": "request_id"
+      },
+      {
+        "name": "saml_relay_states_flow_state_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "flow_state_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "saml_relay_states_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "saml_relay_states",
+        "foreign_column": "id"
+      },
+      {
+        "name": "saml_relay_states_sso_provider_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "sso_provider_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Auth: Contains SAML Relay State information for each Service Provider initiated login.\nCREATE TABLE IF NOT EXISTS auth.saml_relay_states (\n    id uuid NOT NULL,\n    sso_provider_id uuid NOT NULL,\n    request_id text NOT NULL,\n    for_email text,\n    redirect_to text,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    flow_state_id uuid,\n    CONSTRAINT saml_relay_states_flow_state_id_fkey FOREIGN KEY (flow_state_id) REFERENCES None.None(None),\n    CONSTRAINT saml_relay_states_pkey PRIMARY KEY (id),\n    CONSTRAINT saml_relay_states_sso_provider_id_fkey FOREIGN KEY (sso_provider_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE auth.saml_relay_states IS 'Auth: Contains SAML Relay State information for each Service Provider initiated login.';"
+  },
+  "auth.schema_migrations": {
+    "schema": "auth",
+    "name": "schema_migrations",
+    "comment": "Auth: Manages updates to the auth system.",
+    "columns": [
+      {
+        "name": "version",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_16496_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "schema_migrations_pkey",
+        "type": "PRIMARY KEY",
+        "column": "version",
+        "foreign_table_schema": "auth",
+        "foreign_table": "schema_migrations",
+        "foreign_column": "version"
+      }
+    ],
+    "sql": "-- Auth: Manages updates to the auth system.\nCREATE TABLE IF NOT EXISTS auth.schema_migrations (\n    version character varying(255) NOT NULL,\n    CONSTRAINT schema_migrations_pkey PRIMARY KEY (version)\n);\n\nCOMMENT ON TABLE auth.schema_migrations IS 'Auth: Manages updates to the auth system.';"
+  },
+  "auth.sessions": {
+    "schema": "auth",
+    "name": "sessions",
+    "comment": "Auth: Stores session data associated to a user.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "factor_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "aal",
+        "data_type": "USER-DEFINED",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "not_after",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Auth: Not after is a nullable column that contains a timestamp after which the session should be regarded as expired."
+      },
+      {
+        "name": "refreshed_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_agent",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "ip",
+        "data_type": "inet",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "tag",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17454_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17454_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "sessions_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "sessions",
+        "foreign_column": "id"
+      },
+      {
+        "name": "sessions_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Auth: Stores session data associated to a user.\nCREATE TABLE IF NOT EXISTS auth.sessions (\n    id uuid NOT NULL,\n    user_id uuid NOT NULL,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    factor_id uuid,\n    aal USER-DEFINED,\n    not_after timestamp with time zone,\n    refreshed_at timestamp without time zone,\n    user_agent text,\n    ip inet,\n    tag text,\n    CONSTRAINT sessions_pkey PRIMARY KEY (id),\n    CONSTRAINT sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE auth.sessions IS 'Auth: Stores session data associated to a user.';\nCOMMENT ON COLUMN auth.sessions.not_after IS 'Auth: Not after is a nullable column that contains a timestamp after which the session should be regarded as expired.';"
+  },
+  "auth.sso_domains": {
+    "schema": "auth",
+    "name": "sso_domains",
+    "comment": "Auth: Manages SSO email address domain mapping to an SSO Identity Provider.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "sso_provider_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "domain",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17541_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17541_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_17541_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "domain not empty",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "sso_domains",
+        "foreign_column": "domain"
+      },
+      {
+        "name": "sso_domains_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "sso_domains",
+        "foreign_column": "id"
+      },
+      {
+        "name": "sso_domains_sso_provider_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "sso_provider_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Auth: Manages SSO email address domain mapping to an SSO Identity Provider.\nCREATE TABLE IF NOT EXISTS auth.sso_domains (\n    id uuid NOT NULL,\n    sso_provider_id uuid NOT NULL,\n    domain text NOT NULL,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    CONSTRAINT sso_domains_pkey PRIMARY KEY (id),\n    CONSTRAINT sso_domains_sso_provider_id_fkey FOREIGN KEY (sso_provider_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE auth.sso_domains IS 'Auth: Manages SSO email address domain mapping to an SSO Identity Provider.';"
+  },
+  "auth.sso_providers": {
+    "schema": "auth",
+    "name": "sso_providers",
+    "comment": "Auth: Manages SSO identity provider information; see saml_providers for SAML.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "resource_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Auth: Uniquely identifies a SSO provider according to a user-chosen resource ID (case insensitive), useful in infrastructure as code."
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_17532_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "resource_id not empty",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "sso_providers",
+        "foreign_column": "resource_id"
+      },
+      {
+        "name": "sso_providers_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "sso_providers",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "-- Auth: Manages SSO identity provider information; see saml_providers for SAML.\nCREATE TABLE IF NOT EXISTS auth.sso_providers (\n    id uuid NOT NULL,\n    resource_id text,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    CONSTRAINT sso_providers_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE auth.sso_providers IS 'Auth: Manages SSO identity provider information; see saml_providers for SAML.';\nCOMMENT ON COLUMN auth.sso_providers.resource_id IS 'Auth: Uniquely identifies a SSO provider according to a user-chosen resource ID (case insensitive), useful in infrastructure as code.';"
+  },
+  "auth.users": {
+    "schema": "auth",
+    "name": "users",
+    "comment": "Auth: Stores user login data within a secure schema.",
+    "columns": [
+      {
+        "name": "instance_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "aud",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "role",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "encrypted_password",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email_confirmed_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "invited_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "confirmation_token",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "confirmation_sent_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "recovery_token",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "recovery_sent_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email_change_token_new",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email_change",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email_change_sent_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "last_sign_in_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "raw_app_meta_data",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "raw_user_meta_data",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "is_super_admin",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "phone",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "NULL::character varying",
+        "comment": null
+      },
+      {
+        "name": "phone_confirmed_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "phone_change",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "''::character varying",
+        "comment": null
+      },
+      {
+        "name": "phone_change_token",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "''::character varying",
+        "comment": null
+      },
+      {
+        "name": "phone_change_sent_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "confirmed_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "email_change_token_current",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "''::character varying",
+        "comment": null
+      },
+      {
+        "name": "email_change_confirm_status",
+        "data_type": "smallint",
+        "max_length": null,
+        "numeric_precision": 16,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "0",
+        "comment": null
+      },
+      {
+        "name": "banned_until",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "reauthentication_token",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "''::character varying",
+        "comment": null
+      },
+      {
+        "name": "reauthentication_sent_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "is_sso_user",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "false",
+        "comment": "Auth: Set this column to true when the account comes from SSO. These accounts can have duplicate emails."
+      },
+      {
+        "name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "is_anonymous",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "false",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16457_16458_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_16458_33_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16457_16458_35_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "users_email_change_confirm_status_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": "auth",
+        "foreign_table": "users",
+        "foreign_column": "email_change_confirm_status"
+      },
+      {
+        "name": "users_phone_key",
+        "type": "UNIQUE",
+        "column": "phone",
+        "foreign_table_schema": "auth",
+        "foreign_table": "users",
+        "foreign_column": "phone"
+      },
+      {
+        "name": "users_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "auth",
+        "foreign_table": "users",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "-- Auth: Stores user login data within a secure schema.\nCREATE TABLE IF NOT EXISTS auth.users (\n    instance_id uuid,\n    id uuid NOT NULL,\n    aud character varying(255),\n    role character varying(255),\n    email character varying(255),\n    encrypted_password character varying(255),\n    email_confirmed_at timestamp with time zone,\n    invited_at timestamp with time zone,\n    confirmation_token character varying(255),\n    confirmation_sent_at timestamp with time zone,\n    recovery_token character varying(255),\n    recovery_sent_at timestamp with time zone,\n    email_change_token_new character varying(255),\n    email_change character varying(255),\n    email_change_sent_at timestamp with time zone,\n    last_sign_in_at timestamp with time zone,\n    raw_app_meta_data jsonb,\n    raw_user_meta_data jsonb,\n    is_super_admin boolean,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    phone text DEFAULT NULL::character varying,\n    phone_confirmed_at timestamp with time zone,\n    phone_change text DEFAULT ''::character varying,\n    phone_change_token character varying(255) DEFAULT ''::character varying,\n    phone_change_sent_at timestamp with time zone,\n    confirmed_at timestamp with time zone,\n    email_change_token_current character varying(255) DEFAULT ''::character varying,\n    email_change_confirm_status smallint(16) DEFAULT 0,\n    banned_until timestamp with time zone,\n    reauthentication_token character varying(255) DEFAULT ''::character varying,\n    reauthentication_sent_at timestamp with time zone,\n    is_sso_user boolean NOT NULL DEFAULT false,\n    deleted_at timestamp with time zone,\n    is_anonymous boolean NOT NULL DEFAULT false,\n    CONSTRAINT users_phone_key UNIQUE (phone),\n    CONSTRAINT users_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE auth.users IS 'Auth: Stores user login data within a secure schema.';\nCOMMENT ON COLUMN auth.users.is_sso_user IS 'Auth: Set this column to true when the account comes from SSO. These accounts can have duplicate emails.';"
+  },
+  "net._http_response": {
+    "schema": "net",
+    "name": "_http_response",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "status_code",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "content_type",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "headers",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "content",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "timed_out",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "error_msg",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16566_16578_8_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS net._http_response (\n    id bigint(64),\n    status_code integer(32),\n    content_type text,\n    headers jsonb,\n    content text,\n    timed_out boolean,\n    error_msg text,\n    created timestamp with time zone NOT NULL DEFAULT now()\n);"
+  },
+  "net.http_request_queue": {
+    "schema": "net",
+    "name": "http_request_queue",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('net.http_request_queue_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "method",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "url",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "headers",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "body",
+        "data_type": "bytea",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "timeout_milliseconds",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16566_16571_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16566_16571_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16566_16571_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16566_16571_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16566_16571_6_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS net.http_request_queue (\n    id bigint(64) NOT NULL DEFAULT nextval('net.http_request_queue_id_seq'::regclass),\n    method text NOT NULL,\n    url text NOT NULL,\n    headers jsonb NOT NULL,\n    body bytea,\n    timeout_milliseconds integer(32) NOT NULL\n);"
+  },
+  "public.approval_routes": {
+    "schema": "public",
+    "name": "approval_routes",
+    "comment": "Маршруты согласования платежей по типам счетов",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "invoice_type_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "is_active",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "true",
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_20081_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20081_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20081_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_routes_invoice_type_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "invoice_type_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_routes_invoice_type_id_key",
+        "type": "UNIQUE",
+        "column": "invoice_type_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_routes_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Маршруты согласования платежей по типам счетов\nCREATE TABLE IF NOT EXISTS public.approval_routes (\n    id integer(32) NOT NULL,\n    invoice_type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_routes_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT approval_routes_invoice_type_id_key UNIQUE (invoice_type_id),\n    CONSTRAINT approval_routes_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.approval_routes IS 'Маршруты согласования платежей по типам счетов';"
+  },
+  "public.approval_steps": {
+    "schema": "public",
+    "name": "approval_steps",
+    "comment": "История шагов согласования",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "payment_approval_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "stage_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "action",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "acted_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "acted_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "comment",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_20143_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20143_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20143_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20143_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_steps_acted_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "acted_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_steps_action_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_steps_payment_approval_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payment_approval_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_steps_payment_approval_id_stage_id_key",
+        "type": "UNIQUE",
+        "column": "payment_approval_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_steps_payment_approval_id_stage_id_key",
+        "type": "UNIQUE",
+        "column": "stage_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_steps_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "approval_steps_stage_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "stage_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- История шагов согласования\nCREATE TABLE IF NOT EXISTS public.approval_steps (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_approval_id uuid NOT NULL,\n    stage_id integer(32) NOT NULL,\n    action text NOT NULL,\n    acted_by uuid,\n    acted_at timestamp with time zone,\n    comment text,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_steps_acted_by_fkey FOREIGN KEY (acted_by) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_fkey FOREIGN KEY (payment_approval_id) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (payment_approval_id),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (stage_id),\n    CONSTRAINT approval_steps_pkey PRIMARY KEY (id),\n    CONSTRAINT approval_steps_stage_id_fkey FOREIGN KEY (stage_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.approval_steps IS 'История шагов согласования';"
+  },
   "public.attachments": {
     "schema": "public",
     "name": "attachments",
@@ -1215,6 +4362,166 @@
     ],
     "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key and external identifier of the invoice.';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who owns or issued the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number visible to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer facing note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor (public.contractors.id) acting as payer.';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor (public.contractors.id) acting as supplier.';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Associated project (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice amount (percent).';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice total amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Delivery day interpretation: working or calendar.';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Invoice workflow status (public.invoice_statuses.id).';"
   },
+  "public.payment_approvals": {
+    "schema": "public",
+    "name": "payment_approvals",
+    "comment": "Экземпляры согласования платежей",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "payment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "route_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "status_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "current_stage_index",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "0",
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_20117_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20117_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20117_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20117_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20117_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_approvals_payment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_approvals_payment_id_key",
+        "type": "UNIQUE",
+        "column": "payment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_approvals_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_approvals_route_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "route_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "payment_approvals_status_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "status_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Экземпляры согласования платежей\nCREATE TABLE IF NOT EXISTS public.payment_approvals (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    route_id integer(32) NOT NULL,\n    status_id integer(32) NOT NULL,\n    current_stage_index integer(32) NOT NULL DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_approvals_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_approvals_pkey PRIMARY KEY (id),\n    CONSTRAINT payment_approvals_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payment_approvals IS 'Экземпляры согласования платежей';"
+  },
   "public.payment_attachments": {
     "schema": "public",
     "name": "payment_attachments",
@@ -1979,6 +5286,16 @@
         "is_nullable": "YES",
         "default": "now()",
         "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+      },
+      {
+        "name": "own_projects_only",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": "Если TRUE, пользователь с этой ролью видит только данные своих проектов"
       }
     ],
     "constraints": [
@@ -2023,7 +5340,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Roles that define access levels inside PayHub.\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key for role.';\nCOMMENT ON COLUMN public.roles.code IS 'Unique machine readable code of the role.';\nCOMMENT ON COLUMN public.roles.name IS 'Human readable role name.';\nCOMMENT ON COLUMN public.roles.description IS 'Optional description of permissions or intended usage.';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role was created.';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Roles that define access levels inside PayHub.\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    own_projects_only boolean DEFAULT false,\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key for role.';\nCOMMENT ON COLUMN public.roles.code IS 'Unique machine readable code of the role.';\nCOMMENT ON COLUMN public.roles.name IS 'Human readable role name.';\nCOMMENT ON COLUMN public.roles.description IS 'Optional description of permissions or intended usage.';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role was created.';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';\nCOMMENT ON COLUMN public.roles.own_projects_only IS 'Если TRUE, пользователь с этой ролью видит только данные своих проектов';"
   },
   "public.user_profiles": {
     "schema": "public",
@@ -2079,6 +5396,16 @@
         "is_nullable": "YES",
         "default": "now()",
         "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+      },
+      {
+        "name": "role_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
       }
     ],
     "constraints": [
@@ -2129,9 +5456,17 @@
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
+      },
+      {
+        "name": "user_profiles_role_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "role_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
       }
     ],
-    "sql": "-- Mirror of Supabase auth user profiles stored in public schema.\nCREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.user_profiles IS 'Mirror of Supabase auth user profiles stored in public schema.';\nCOMMENT ON COLUMN public.user_profiles.id IS 'Primary key and foreign key to auth.users.id.';\nCOMMENT ON COLUMN public.user_profiles.email IS 'Primary email address associated with the user profile.';\nCOMMENT ON COLUMN public.user_profiles.full_name IS 'Display name of the user shown in UI.';\nCOMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was recorded.';\nCOMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Mirror of Supabase auth user profiles stored in public schema.\nCREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    role_id integer(32),\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id),\n    CONSTRAINT user_profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.user_profiles IS 'Mirror of Supabase auth user profiles stored in public schema.';\nCOMMENT ON COLUMN public.user_profiles.id IS 'Primary key and foreign key to auth.users.id.';\nCOMMENT ON COLUMN public.user_profiles.email IS 'Primary email address associated with the user profile.';\nCOMMENT ON COLUMN public.user_profiles.full_name IS 'Display name of the user shown in UI.';\nCOMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was recorded.';\nCOMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
   },
   "public.user_projects": {
     "schema": "public",
@@ -2246,5 +5581,2095 @@
       }
     ],
     "sql": "-- Mapping table assigning users to projects for access control.\nCREATE TABLE IF NOT EXISTS public.user_projects (\n    id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),\n    user_id uuid NOT NULL,\n    project_id integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_projects_pkey PRIMARY KEY (id),\n    CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (project_id),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (user_id)\n);\n\nCOMMENT ON TABLE public.user_projects IS 'Mapping table assigning users to projects for access control.';\nCOMMENT ON COLUMN public.user_projects.id IS 'Surrogate primary key for user-project relation.';\nCOMMENT ON COLUMN public.user_projects.user_id IS 'Supabase auth user granted access to the project.';\nCOMMENT ON COLUMN public.user_projects.project_id IS 'Project (public.projects.id) assigned to the user.';\nCOMMENT ON COLUMN public.user_projects.created_at IS 'Timestamp when the user-project link was created.';"
+  },
+  "public.workflow_stages": {
+    "schema": "public",
+    "name": "workflow_stages",
+    "comment": "Этапы маршрутов согласования с указанием роли и статуса платежа",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "route_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "order_index",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "role_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "payment_status_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "ID статуса платежа, который будет установлен при прохождении этапа"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_20097_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20097_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20097_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20097_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_order_index_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_payment_status_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payment_status_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_role_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "role_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_route_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "route_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_route_id_order_index_key",
+        "type": "UNIQUE",
+        "column": "order_index",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_route_id_order_index_key",
+        "type": "UNIQUE",
+        "column": "route_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Этапы маршрутов согласования с указанием роли и статуса платежа\nCREATE TABLE IF NOT EXISTS public.workflow_stages (\n    id integer(32) NOT NULL,\n    route_id integer(32) NOT NULL,\n    order_index integer(32) NOT NULL,\n    role_id integer(32) NOT NULL,\n    name character varying(255),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    payment_status_id integer(32),\n    CONSTRAINT workflow_stages_payment_status_id_fkey FOREIGN KEY (payment_status_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_pkey PRIMARY KEY (id),\n    CONSTRAINT workflow_stages_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (order_index),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (route_id)\n);\n\nCOMMENT ON TABLE public.workflow_stages IS 'Этапы маршрутов согласования с указанием роли и статуса платежа';\nCOMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'ID статуса платежа, который будет установлен при прохождении этапа';"
+  },
+  "realtime.messages": {
+    "schema": "realtime",
+    "name": "messages",
+    "comment": null,
+    "columns": [
+      {
+        "name": "topic",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "extension",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "payload",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "event",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "private",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "inserted_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16667_18170_10_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18170_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18170_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18170_8_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18170_9_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "messages_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "realtime",
+        "foreign_table": "messages",
+        "foreign_column": "id"
+      },
+      {
+        "name": "messages_pkey",
+        "type": "PRIMARY KEY",
+        "column": "inserted_at",
+        "foreign_table_schema": "realtime",
+        "foreign_table": "messages",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS realtime.messages (\n    topic text NOT NULL,\n    extension text NOT NULL,\n    payload jsonb,\n    event text,\n    private boolean DEFAULT false,\n    updated_at timestamp without time zone NOT NULL DEFAULT now(),\n    inserted_at timestamp without time zone NOT NULL DEFAULT now(),\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    CONSTRAINT messages_pkey PRIMARY KEY (id),\n    CONSTRAINT messages_pkey PRIMARY KEY (inserted_at)\n);"
+  },
+  "realtime.schema_migrations": {
+    "schema": "realtime",
+    "name": "schema_migrations",
+    "comment": "Auth: Manages updates to the auth system.",
+    "columns": [
+      {
+        "name": "version",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "inserted_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16667_18009_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "schema_migrations_pkey",
+        "type": "PRIMARY KEY",
+        "column": "version",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Auth: Manages updates to the auth system.\nCREATE TABLE IF NOT EXISTS realtime.schema_migrations (\n    version bigint(64) NOT NULL,\n    inserted_at timestamp without time zone,\n    CONSTRAINT schema_migrations_pkey PRIMARY KEY (version)\n);\n\nCOMMENT ON TABLE realtime.schema_migrations IS 'Auth: Manages updates to the auth system.';"
+  },
+  "realtime.subscription": {
+    "schema": "realtime",
+    "name": "subscription",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "subscription_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "entity",
+        "data_type": "regclass",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "filters",
+        "data_type": "ARRAY",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "'{}'::realtime.user_defined_filter[]",
+        "comment": null
+      },
+      {
+        "name": "claims",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "claims_role",
+        "data_type": "regrole",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "timezone('utc'::text, now())",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16667_18031_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18031_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18031_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18031_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18031_7_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18031_8_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16667_18031_9_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "pk_subscription",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS realtime.subscription (\n    id bigint(64) NOT NULL,\n    subscription_id uuid NOT NULL,\n    entity regclass NOT NULL,\n    filters ARRAY NOT NULL DEFAULT '{}'::realtime.user_defined_filter[],\n    claims jsonb NOT NULL,\n    claims_role regrole NOT NULL,\n    created_at timestamp without time zone NOT NULL DEFAULT timezone('utc'::text, now()),\n    CONSTRAINT pk_subscription PRIMARY KEY (id)\n);"
+  },
+  "storage.buckets": {
+    "schema": "storage",
+    "name": "buckets",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "owner",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Field is deprecated, use owner_id instead"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "public",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": null
+      },
+      {
+        "name": "avif_autodetection",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": null
+      },
+      {
+        "name": "file_size_limit",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "allowed_mime_types",
+        "data_type": "ARRAY",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "owner_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "type",
+        "data_type": "USER-DEFINED",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "'STANDARD'::storage.buckettype",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_16509_11_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_16509_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_16509_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "buckets_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "buckets",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.buckets (\n    id text NOT NULL,\n    name text NOT NULL,\n    owner uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    public boolean DEFAULT false,\n    avif_autodetection boolean DEFAULT false,\n    file_size_limit bigint(64),\n    allowed_mime_types ARRAY,\n    owner_id text,\n    type USER-DEFINED NOT NULL DEFAULT 'STANDARD'::storage.buckettype,\n    CONSTRAINT buckets_pkey PRIMARY KEY (id)\n);\nCOMMENT ON COLUMN storage.buckets.owner IS 'Field is deprecated, use owner_id instead';"
+  },
+  "storage.buckets_analytics": {
+    "schema": "storage",
+    "name": "buckets_analytics",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "type",
+        "data_type": "USER-DEFINED",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "'ANALYTICS'::storage.buckettype",
+        "comment": null
+      },
+      {
+        "name": "format",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "'ICEBERG'::text",
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_17960_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17960_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17960_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17960_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17960_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "buckets_analytics_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "buckets_analytics",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.buckets_analytics (\n    id text NOT NULL,\n    type USER-DEFINED NOT NULL DEFAULT 'ANALYTICS'::storage.buckettype,\n    format text NOT NULL DEFAULT 'ICEBERG'::text,\n    created_at timestamp with time zone NOT NULL DEFAULT now(),\n    updated_at timestamp with time zone NOT NULL DEFAULT now(),\n    CONSTRAINT buckets_analytics_pkey PRIMARY KEY (id)\n);"
+  },
+  "storage.iceberg_namespaces": {
+    "schema": "storage",
+    "name": "iceberg_namespaces",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "bucket_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_17971_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17971_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17971_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17971_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17971_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "iceberg_namespaces_bucket_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "bucket_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "iceberg_namespaces_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "iceberg_namespaces",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.iceberg_namespaces (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    bucket_id text NOT NULL,\n    name text NOT NULL,\n    created_at timestamp with time zone NOT NULL DEFAULT now(),\n    updated_at timestamp with time zone NOT NULL DEFAULT now(),\n    CONSTRAINT iceberg_namespaces_bucket_id_fkey FOREIGN KEY (bucket_id) REFERENCES None.None(None),\n    CONSTRAINT iceberg_namespaces_pkey PRIMARY KEY (id)\n);"
+  },
+  "storage.iceberg_tables": {
+    "schema": "storage",
+    "name": "iceberg_tables",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "namespace_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "bucket_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "location",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_17987_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17987_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17987_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17987_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17987_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17987_6_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17987_7_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "iceberg_tables_bucket_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "bucket_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "iceberg_tables_namespace_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "namespace_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "iceberg_tables_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "iceberg_tables",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.iceberg_tables (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    namespace_id uuid NOT NULL,\n    bucket_id text NOT NULL,\n    name text NOT NULL,\n    location text NOT NULL,\n    created_at timestamp with time zone NOT NULL DEFAULT now(),\n    updated_at timestamp with time zone NOT NULL DEFAULT now(),\n    CONSTRAINT iceberg_tables_bucket_id_fkey FOREIGN KEY (bucket_id) REFERENCES None.None(None),\n    CONSTRAINT iceberg_tables_namespace_id_fkey FOREIGN KEY (namespace_id) REFERENCES None.None(None),\n    CONSTRAINT iceberg_tables_pkey PRIMARY KEY (id)\n);"
+  },
+  "storage.migrations": {
+    "schema": "storage",
+    "name": "migrations",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 100,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "hash",
+        "data_type": "character varying",
+        "max_length": 40,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "executed_at",
+        "data_type": "timestamp without time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "CURRENT_TIMESTAMP",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_16551_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_16551_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_16551_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "migrations_name_key",
+        "type": "UNIQUE",
+        "column": "name",
+        "foreign_table_schema": "storage",
+        "foreign_table": "migrations",
+        "foreign_column": "name"
+      },
+      {
+        "name": "migrations_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "migrations",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.migrations (\n    id integer(32) NOT NULL,\n    name character varying(100) NOT NULL,\n    hash character varying(40) NOT NULL,\n    executed_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT migrations_name_key UNIQUE (name),\n    CONSTRAINT migrations_pkey PRIMARY KEY (id)\n);"
+  },
+  "storage.objects": {
+    "schema": "storage",
+    "name": "objects",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "bucket_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "owner",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Field is deprecated, use owner_id instead"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "last_accessed_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "metadata",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "path_tokens",
+        "data_type": "ARRAY",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "version",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "owner_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "user_metadata",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "level",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_16524_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "objects_bucketId_fkey",
+        "type": "FOREIGN KEY",
+        "column": "bucket_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "objects_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "objects",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.objects (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    bucket_id text,\n    name text,\n    owner uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    last_accessed_at timestamp with time zone DEFAULT now(),\n    metadata jsonb,\n    path_tokens ARRAY,\n    version text,\n    owner_id text,\n    user_metadata jsonb,\n    level integer(32),\n    CONSTRAINT objects_bucketId_fkey FOREIGN KEY (bucket_id) REFERENCES None.None(None),\n    CONSTRAINT objects_pkey PRIMARY KEY (id)\n);\nCOMMENT ON COLUMN storage.objects.owner IS 'Field is deprecated, use owner_id instead';"
+  },
+  "storage.prefixes": {
+    "schema": "storage",
+    "name": "prefixes",
+    "comment": null,
+    "columns": [
+      {
+        "name": "bucket_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "level",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_17916_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17916_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17916_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "prefixes_bucketId_fkey",
+        "type": "FOREIGN KEY",
+        "column": "bucket_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "prefixes_pkey",
+        "type": "PRIMARY KEY",
+        "column": "bucket_id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "prefixes",
+        "foreign_column": "bucket_id"
+      },
+      {
+        "name": "prefixes_pkey",
+        "type": "PRIMARY KEY",
+        "column": "level",
+        "foreign_table_schema": "storage",
+        "foreign_table": "prefixes",
+        "foreign_column": "bucket_id"
+      },
+      {
+        "name": "prefixes_pkey",
+        "type": "PRIMARY KEY",
+        "column": "name",
+        "foreign_table_schema": "storage",
+        "foreign_table": "prefixes",
+        "foreign_column": "bucket_id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.prefixes (\n    bucket_id text NOT NULL,\n    name text NOT NULL,\n    level integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT prefixes_bucketId_fkey FOREIGN KEY (bucket_id) REFERENCES None.None(None),\n    CONSTRAINT prefixes_pkey PRIMARY KEY (bucket_id),\n    CONSTRAINT prefixes_pkey PRIMARY KEY (level),\n    CONSTRAINT prefixes_pkey PRIMARY KEY (name)\n);"
+  },
+  "storage.s3_multipart_uploads": {
+    "schema": "storage",
+    "name": "s3_multipart_uploads",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "in_progress_size",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "0",
+        "comment": null
+      },
+      {
+        "name": "upload_signature",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "bucket_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "key",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "version",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "owner_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "user_metadata",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_17863_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17863_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17863_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17863_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17863_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17863_6_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17863_8_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "s3_multipart_uploads_bucket_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "bucket_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "s3_multipart_uploads_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "s3_multipart_uploads",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.s3_multipart_uploads (\n    id text NOT NULL,\n    in_progress_size bigint(64) NOT NULL DEFAULT 0,\n    upload_signature text NOT NULL,\n    bucket_id text NOT NULL,\n    key text NOT NULL,\n    version text NOT NULL,\n    owner_id text,\n    created_at timestamp with time zone NOT NULL DEFAULT now(),\n    user_metadata jsonb,\n    CONSTRAINT s3_multipart_uploads_bucket_id_fkey FOREIGN KEY (bucket_id) REFERENCES None.None(None),\n    CONSTRAINT s3_multipart_uploads_pkey PRIMARY KEY (id)\n);"
+  },
+  "storage.s3_multipart_uploads_parts": {
+    "schema": "storage",
+    "name": "s3_multipart_uploads_parts",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "upload_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "size",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "0",
+        "comment": null
+      },
+      {
+        "name": "part_number",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "bucket_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "key",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "etag",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "owner_id",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "version",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16505_17877_10_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_6_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_7_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16505_17877_9_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "s3_multipart_uploads_parts_bucket_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "bucket_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "s3_multipart_uploads_parts_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "storage",
+        "foreign_table": "s3_multipart_uploads_parts",
+        "foreign_column": "id"
+      },
+      {
+        "name": "s3_multipart_uploads_parts_upload_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "upload_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS storage.s3_multipart_uploads_parts (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    upload_id text NOT NULL,\n    size bigint(64) NOT NULL DEFAULT 0,\n    part_number integer(32) NOT NULL,\n    bucket_id text NOT NULL,\n    key text NOT NULL,\n    etag text NOT NULL,\n    owner_id text,\n    version text NOT NULL,\n    created_at timestamp with time zone NOT NULL DEFAULT now(),\n    CONSTRAINT s3_multipart_uploads_parts_bucket_id_fkey FOREIGN KEY (bucket_id) REFERENCES None.None(None),\n    CONSTRAINT s3_multipart_uploads_parts_pkey PRIMARY KEY (id),\n    CONSTRAINT s3_multipart_uploads_parts_upload_id_fkey FOREIGN KEY (upload_id) REFERENCES None.None(None)\n);"
+  },
+  "supabase_functions.hooks": {
+    "schema": "supabase_functions",
+    "name": "hooks",
+    "comment": "Supabase Functions Hooks: Audit trail for triggered hooks.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('supabase_functions.hooks_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "hook_table_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "hook_name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "request_id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16608_16621_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16608_16621_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16608_16621_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16608_16621_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "hooks_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": "supabase_functions",
+        "foreign_table": "hooks",
+        "foreign_column": "id"
+      }
+    ],
+    "sql": "-- Supabase Functions Hooks: Audit trail for triggered hooks.\nCREATE TABLE IF NOT EXISTS supabase_functions.hooks (\n    id bigint(64) NOT NULL DEFAULT nextval('supabase_functions.hooks_id_seq'::regclass),\n    hook_table_id integer(32) NOT NULL,\n    hook_name text NOT NULL,\n    created_at timestamp with time zone NOT NULL DEFAULT now(),\n    request_id bigint(64),\n    CONSTRAINT hooks_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE supabase_functions.hooks IS 'Supabase Functions Hooks: Audit trail for triggered hooks.';"
+  },
+  "supabase_functions.migrations": {
+    "schema": "supabase_functions",
+    "name": "migrations",
+    "comment": null,
+    "columns": [
+      {
+        "name": "version",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "inserted_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16608_16612_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16608_16612_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "migrations_pkey",
+        "type": "PRIMARY KEY",
+        "column": "version",
+        "foreign_table_schema": "supabase_functions",
+        "foreign_table": "migrations",
+        "foreign_column": "version"
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS supabase_functions.migrations (\n    version text NOT NULL,\n    inserted_at timestamp with time zone NOT NULL DEFAULT now(),\n    CONSTRAINT migrations_pkey PRIMARY KEY (version)\n);"
+  },
+  "vault.secrets": {
+    "schema": "vault",
+    "name": "secrets",
+    "comment": "Table with encrypted `secret` column for storing sensitive information on disk.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "''::text",
+        "comment": null
+      },
+      {
+        "name": "secret",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "key_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "nonce",
+        "data_type": "bytea",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "vault._crypto_aead_det_noncegen()",
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "CURRENT_TIMESTAMP",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "CURRENT_TIMESTAMP",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "16713_16718_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16713_16718_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16713_16718_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16713_16718_7_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "16713_16718_8_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "secrets_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Table with encrypted `secret` column for storing sensitive information on disk.\nCREATE TABLE IF NOT EXISTS vault.secrets (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    name text,\n    description text NOT NULL DEFAULT ''::text,\n    secret text NOT NULL,\n    key_id uuid,\n    nonce bytea DEFAULT vault._crypto_aead_det_noncegen(),\n    created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT secrets_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE vault.secrets IS 'Table with encrypted `secret` column for storing sensitive information on disk.';"
   }
 }

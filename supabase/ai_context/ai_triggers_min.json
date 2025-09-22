@@ -1,146 +1,280 @@
 [
   {
-    "table": "public.attachments",
-    "trigger": "update_attachments_updated_at",
-    "function": "update_updated_at_column",
+    "table": "auth.users",
+    "trigger": "on_auth_user_created",
+    "function": "public.handle_new_user",
+    "timing": "AFTER",
+    "events": [
+      "INSERT"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
+  },
+  {
+    "table": "public.approval_routes",
+    "trigger": "update_approval_routes_updated_at",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
+  },
+  {
+    "table": "public.attachments",
+    "trigger": "update_attachments_updated_at",
+    "function": "public.update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.contractor_types",
     "trigger": "update_contractor_types_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.contractors",
     "trigger": "update_contractors_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.invoice_statuses",
     "trigger": "update_invoice_statuses_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.invoice_types",
     "trigger": "update_invoice_types_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.invoices",
     "trigger": "calculate_vat_on_invoice",
-    "function": "calculate_vat_amounts",
+    "function": "public.calculate_vat_amounts",
     "timing": "BEFORE",
     "events": [
       "INSERT",
       "UPDATE"
     ],
     "level": "ROW",
-    "description": null
+    "description": "Перед вставкой или обновлением пересчитывает суммы НДС через calculate_vat_amounts()."
   },
   {
     "table": "public.invoices",
     "trigger": "update_invoices_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
+  },
+  {
+    "table": "public.payment_approvals",
+    "trigger": "update_payment_approvals_updated_at",
+    "function": "public.update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.payment_statuses",
     "trigger": "update_payment_statuses_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.payment_types",
     "trigger": "update_payment_types_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.payments",
     "trigger": "update_payments_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.projects",
     "trigger": "update_projects_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.roles",
     "trigger": "update_roles_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
   },
   {
     "table": "public.user_profiles",
     "trigger": "update_user_profiles_updated_at",
-    "function": "update_updated_at_column",
+    "function": "public.update_updated_at_column",
     "timing": "BEFORE",
     "events": [
       "UPDATE"
     ],
     "level": "ROW",
-    "description": "Keeps updated_at synchronized via update_updated_at_column()."
+    "description": "Автообновление updated_at через update_updated_at_column()."
+  },
+  {
+    "table": "public.workflow_stages",
+    "trigger": "update_workflow_stages_updated_at",
+    "function": "public.update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Автообновление updated_at через update_updated_at_column()."
+  },
+  {
+    "table": "realtime.subscription",
+    "trigger": "tr_check_filters",
+    "function": "realtime.subscription_check_filters",
+    "timing": "BEFORE",
+    "events": [
+      "INSERT",
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
+  },
+  {
+    "table": "storage.buckets",
+    "trigger": "enforce_bucket_name_length_trigger",
+    "function": "storage.enforce_bucket_name_length",
+    "timing": "BEFORE",
+    "events": [
+      "INSERT",
+      "UPDATE OF NAME"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
+  },
+  {
+    "table": "storage.objects",
+    "trigger": "objects_delete_delete_prefix",
+    "function": "storage.delete_prefix_hierarchy_trigger",
+    "timing": "AFTER",
+    "events": [
+      "DELETE"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
+  },
+  {
+    "table": "storage.objects",
+    "trigger": "objects_insert_create_prefix",
+    "function": "storage.objects_insert_prefix_trigger",
+    "timing": "BEFORE",
+    "events": [
+      "INSERT"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
+  },
+  {
+    "table": "storage.objects",
+    "trigger": "objects_update_create_prefix",
+    "function": "storage.objects_update_prefix_trigger",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
+  },
+  {
+    "table": "storage.objects",
+    "trigger": "update_objects_updated_at",
+    "function": "storage.update_updated_at_column",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "level": "ROW",
+    "description": "Автообновление updated_at через update_updated_at_column()."
+  },
+  {
+    "table": "storage.prefixes",
+    "trigger": "prefixes_create_hierarchy",
+    "function": "storage.prefixes_insert_trigger",
+    "timing": "BEFORE",
+    "events": [
+      "INSERT"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
+  },
+  {
+    "table": "storage.prefixes",
+    "trigger": "prefixes_delete_hierarchy",
+    "function": "storage.delete_prefix_hierarchy_trigger",
+    "timing": "AFTER",
+    "events": [
+      "DELETE"
+    ],
+    "level": "ROW",
+    "description": "Служебный триггер."
   }
 ]

@@ -1,4 +1,4 @@
-import { Layout, Menu, Button, Avatar, Dropdown } from 'antd'
+import { Layout, Menu, Button, Avatar, Dropdown, Select, message } from 'antd'
 import {
   FileTextOutlined,
   UserOutlined,
@@ -6,10 +6,13 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ControlOutlined,
+  AuditOutlined,
+  SafetyOutlined,
 } from '@ant-design/icons'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 const { Header, Sider, Content } = Layout
 
@@ -17,15 +20,77 @@ interface MainLayoutProps {
   children: React.ReactNode
 }
 
+interface Role {
+  id: number
+  code: string
+  name: string
+}
+
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false)
+  const [roles, setRoles] = useState<Role[]>([])
+  const [changingRole, setChangingRole] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, signOut } = useAuth()
+  const { user, signOut, currentRoleId, updateCurrentRole } = useAuth()
 
   const userFullName = (user?.user_metadata?.full_name ?? user?.user_metadata?.fullName ?? "").toString().trim()
   const userEmail = (user?.email ?? "").toString().trim()
   const userDisplayName = userFullName && userEmail ? `${userFullName} (${userEmail})` : userFullName || userEmail
+
+  // Load roles
+  useEffect(() => {
+    const loadRoles = async () => {
+      if (!user?.id) return
+
+      try {
+        // Load all roles
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('roles')
+          .select('*')
+          .order('name')
+
+        if (rolesError) throw rolesError
+        setRoles(rolesData || [])
+
+        console.log('[Layout] Loaded roles')
+      } catch (error) {
+        console.error('[Layout] Error loading roles:', error)
+      }
+    }
+
+    loadRoles()
+  }, [user])
+
+  // Handle role change
+  const handleRoleChange = async (roleId: number | null) => {
+    if (!user?.id) return
+
+    console.log('[Layout.handleRoleChange] Changing role to:', roleId)
+    setChangingRole(true)
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ role_id: roleId })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      updateCurrentRole(roleId)
+      message.success('Роль изменена')
+
+      // Reload page if on approvals page to refresh the list
+      if (location.pathname === '/approvals') {
+        window.location.reload()
+      }
+    } catch (error: any) {
+      console.error('[Layout.handleRoleChange] Error:', error)
+      message.error(error.message || 'Ошибка изменения роли')
+    } finally {
+      setChangingRole(false)
+    }
+  }
 
   const handleLogout = async () => {
     console.log('[MainLayout.handleLogout] Logging out')
@@ -59,6 +124,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       key: '/invoices',
       icon: <FileTextOutlined />,
       label: 'Счета',
+    },
+    {
+      key: '/approvals',
+      icon: <AuditOutlined />,
+      label: 'Согласования',
     },
     {
       key: '/admin',
@@ -112,12 +182,35 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             onClick={() => setCollapsed(!collapsed)}
             style={{ fontSize: '16px', width: 64, height: 64 }}
           />
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Avatar icon={<UserOutlined />} />
-              <span>{userDisplayName}</span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Quick role switcher */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <SafetyOutlined style={{ color: '#1890ff' }} />
+              <Select
+                value={currentRoleId}
+                onChange={handleRoleChange}
+                loading={changingRole}
+                style={{ width: 200 }}
+                placeholder="Выберите роль"
+                allowClear
+                options={[
+                  { value: null, label: 'Без роли' },
+                  ...roles.map(role => ({
+                    value: role.id,
+                    label: role.name
+                  }))
+                ]}
+              />
             </div>
-          </Dropdown>
+
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Avatar icon={<UserOutlined />} />
+                <span>{userDisplayName}</span>
+              </div>
+            </Dropdown>
+          </div>
         </Header>
         <Content
           style={{

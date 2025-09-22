@@ -1,9 +1,11 @@
-import { Table, Space, Button, Typography, Empty, Spin } from 'antd'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Table, Space, Button, Typography, Empty, Spin, Tag, Tooltip } from 'antd'
+import { EditOutlined, DeleteOutlined, SendOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import type { Invoice, Payment, PaymentType, PaymentStatus } from '../../lib/supabase'
 import { formatAmount } from '../../utils/invoiceHelpers'
 import dayjs from 'dayjs'
+import { useApprovalManagement } from '../../hooks/useApprovalManagement'
+import { useEffect, useState } from 'react'
 
 const { Text } = Typography
 
@@ -15,6 +17,7 @@ interface PaymentsExpandedProps {
   loading: boolean
   onEditPayment: (payment: Payment) => void
   onDeletePayment: (paymentId: string) => void
+  onApprovalStarted?: () => void
 }
 
 export const PaymentsExpanded = ({
@@ -24,8 +27,29 @@ export const PaymentsExpanded = ({
   paymentStatuses,
   loading,
   onEditPayment,
-  onDeletePayment
+  onDeletePayment,
+  onApprovalStarted
 }: PaymentsExpandedProps) => {
+  const { handleStartApproval, checkApprovalStatus } = useApprovalManagement()
+  const [approvalStatuses, setApprovalStatuses] = useState<Record<string, any>>({})
+  const [loadingApproval, setLoadingApproval] = useState<string | null>(null)
+
+  // Load approval statuses for payments
+  useEffect(() => {
+    const loadApprovalStatuses = async () => {
+      const statuses: Record<string, any> = {}
+      for (const payment of payments) {
+        const status = await checkApprovalStatus(payment.id)
+        statuses[payment.id] = status
+      }
+      setApprovalStatuses(statuses)
+    }
+
+    if (payments.length > 0) {
+      loadApprovalStatuses()
+    }
+  }, [payments, checkApprovalStatus])
+
   // Get payment type name
   const getPaymentTypeName = (typeId?: number) => {
     if (!typeId) return '-'
@@ -40,6 +64,31 @@ export const PaymentsExpanded = ({
     return status?.name || '-'
   }
 
+  // Handle send to approval
+  const handleSendToApproval = async (payment: Payment) => {
+    if (!invoice.invoice_type_id) {
+      return
+    }
+
+    console.log('[PaymentsExpanded.handleSendToApproval] Sending payment to approval:', payment.id)
+    setLoadingApproval(payment.id)
+
+    try {
+      const success = await handleStartApproval(payment.id, invoice.invoice_type_id)
+      if (success) {
+        // Reload approval status
+        const status = await checkApprovalStatus(payment.id)
+        setApprovalStatuses(prev => ({ ...prev, [payment.id]: status }))
+        // Обновляем данные счетов для отображения нового статуса
+        if (onApprovalStarted) {
+          onApprovalStarted()
+        }
+      }
+    } finally {
+      setLoadingApproval(null)
+    }
+  }
+
 
   // Define columns for payments table
   const columns: ColumnsType<Payment> = [
@@ -47,38 +96,47 @@ export const PaymentsExpanded = ({
       title: 'Дата',
       dataIndex: 'payment_date',
       key: 'payment_date',
-      width: 100,
       render: (date: string | null) => date ? dayjs(date).format('DD.MM.YYYY') : '-'
     },
     {
       title: 'Номер',
       dataIndex: 'payment_number',
-      key: 'payment_number',
-      width: 100
+      key: 'payment_number'
     },
     {
       title: 'Тип',
       key: 'payment_type',
-      width: 120,
       render: (_, record) => getPaymentTypeName(record.payment_type_id)
     },
     {
       title: 'Статус',
       key: 'status',
-      width: 120,
       render: (_, record) => {
         const status = paymentStatuses.find(s => s.id === record.status_id)
         const statusName = getPaymentStatusName(record.status_id)
-        return status?.color ? (
-          <span style={{ color: status.color }}>{statusName}</span>
-        ) : statusName
+        const approvalStatus = approvalStatuses[record.id]
+
+        return (
+          <Space size="small">
+            {status?.color ? (
+              <span style={{ color: status.color }}>{statusName}</span>
+            ) : statusName}
+            {approvalStatus?.isInApproval && (
+              <Tooltip title="На согласовании">
+                <Tag icon={<ClockCircleOutlined />} color="processing" style={{ margin: 0 }}>
+                  Этап {approvalStatus.current_stage_index + 1}
+                </Tag>
+              </Tooltip>
+            )}
+          </Space>
+        )
       }
     },
     {
       title: 'Сумма',
       dataIndex: 'amount',
       key: 'amount',
-      width: 120,
+      align: 'right',
       render: (amount: number | null) => amount ? `${formatAmount(amount)} ₽` : '-'
     },
     {
@@ -91,30 +149,47 @@ export const PaymentsExpanded = ({
     {
       title: 'Файлы',
       key: 'attachments',
-      width: 80,
       render: () => '-'
     },
     {
       title: 'Действия',
       key: 'actions',
-      width: 100,
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => onEditPayment(record)}
-            size="small"
-          />
-          <Button
-            type="text"
-            icon={<DeleteOutlined />}
-            onClick={() => onDeletePayment(record.id)}
-            size="small"
-            danger
-          />
-        </Space>
-      )
+      render: (_, record) => {
+        const approvalStatus = approvalStatuses[record.id]
+        const canSendToApproval = !approvalStatus?.isInApproval && record.status_id === 1 // статус "Создан"
+
+        return (
+          <Space size="small">
+            {canSendToApproval && (
+              <Tooltip title="Отправить на согласование">
+                <Button
+                  type="text"
+                  icon={<SendOutlined />}
+                  onClick={() => handleSendToApproval(record)}
+                  size="small"
+                  loading={loadingApproval === record.id}
+                  style={{ color: '#1890ff' }}
+                />
+              </Tooltip>
+            )}
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => onEditPayment(record)}
+              size="small"
+              disabled={approvalStatus?.isInApproval}
+            />
+            <Button
+              type="text"
+              icon={<DeleteOutlined />}
+              onClick={() => onDeletePayment(record.id)}
+              size="small"
+              danger
+              disabled={approvalStatus?.isInApproval}
+            />
+          </Space>
+        )
+      }
     }
   ]
 
@@ -163,6 +238,7 @@ export const PaymentsExpanded = ({
         rowKey="id"
         size="small"
         pagination={false}
+        tableLayout="auto"
       />
     </div>
   )

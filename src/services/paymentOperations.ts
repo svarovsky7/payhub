@@ -4,6 +4,7 @@ import type { UploadFile } from 'antd/es/upload/interface'
 import { message } from 'antd'
 import dayjs from 'dayjs'
 import { parseAmount } from '../utils/invoiceHelpers'
+import { recalculateInvoiceStatus } from './invoiceOperations'
 
 export const loadPaymentReferences = async () => {
   console.log('[PaymentOperations.loadPaymentReferences] Loading payment references')
@@ -134,7 +135,7 @@ export const createPayment = async (
 ) => {
   console.log('[PaymentOperations.createPayment] Creating payment for invoice:', invoiceId)
 
-  // Use status with id=1 from payment_statuses table
+  // Use status "Создан" (id=1) from payment_statuses table
   const defaultStatus = paymentStatuses.find(s => s.id === 1)
 
   if (!defaultStatus) {
@@ -177,6 +178,9 @@ export const createPayment = async (
     await processPaymentFiles(payment.id, files, userId)
   }
 
+  // Пересчитываем статус счёта
+  await recalculateInvoiceStatus(invoiceId)
+
   return payment
 }
 
@@ -186,6 +190,13 @@ export const updatePayment = async (
   files: UploadFile[]
 ) => {
   console.log('[PaymentOperations.updatePayment] Updating payment:', paymentId)
+
+  // Get invoice_id from the payment
+  const { data: payment } = await supabase
+    .from('payments')
+    .select('invoice_id')
+    .eq('id', paymentId)
+    .single()
 
   // Update payment data
   const { error } = await supabase
@@ -208,10 +219,24 @@ export const updatePayment = async (
       throw updateLinkError
     }
   }
+
+  // Пересчитываем статус счёта
+  if (payment?.invoice_id) {
+    await recalculateInvoiceStatus(payment.invoice_id)
+  }
 }
 
 export const deletePayment = async (paymentId: string) => {
   console.log('[PaymentOperations.deletePayment] Deleting payment:', paymentId)
+
+  // Get invoice_id before deleting payment
+  const { data: payment } = await supabase
+    .from('payments')
+    .select('invoice_id')
+    .eq('id', paymentId)
+    .single()
+
+  const invoiceId = payment?.invoice_id
 
   // Get payment attachments
   const { data: attachments, error: fetchError } = await supabase
@@ -276,6 +301,11 @@ export const deletePayment = async (paymentId: string) => {
     .eq('id', paymentId)
 
   if (error) throw error
+
+  // Пересчитываем статус счёта после удаления платежа
+  if (invoiceId) {
+    await recalculateInvoiceStatus(invoiceId)
+  }
 
   return true
 }

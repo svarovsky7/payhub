@@ -3,23 +3,58 @@ import { Table, Space, Button, Modal, Form, Input, Select, message, Tag } from '
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { supabase, type UserProfile, type Project } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
+
+interface Role {
+  id: number
+  code: string
+  name: string
+}
 
 interface UserWithProjects extends UserProfile {
   projects?: number[]
+  role?: Role
+  role_id?: number
 }
 
 export const UsersTab = () => {
   const [users, setUsers] = useState<UserWithProjects[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingUser, setEditingUser] = useState<UserWithProjects | null>(null)
   const [form] = Form.useForm()
+  const { user: currentUser, currentRoleId } = useAuth()
 
   useEffect(() => {
     loadUsers()
     loadProjects()
+    loadRoles()
   }, [])
+
+  // Обновляем список пользователей при изменении роли текущего пользователя
+  useEffect(() => {
+    if (currentUser) {
+      console.log('[UsersTab] Current user role changed, reloading users')
+      loadUsers()
+    }
+  }, [currentRoleId])
+
+  const loadRoles = async () => {
+    console.log('[UsersTab.loadRoles] Loading roles')
+    try {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('*')
+        .order('name')
+
+      if (error) throw error
+      setRoles(data || [])
+    } catch (error) {
+      console.error('[UsersTab.loadRoles] Error:', error)
+    }
+  }
 
   const loadProjects = async () => {
     console.log('[UsersTab.loadProjects] Loading projects')
@@ -41,10 +76,13 @@ export const UsersTab = () => {
     console.log('[UsersTab.loadUsers] Loading users')
     setLoading(true)
     try {
-      // Загружаем пользователей
+      // Загружаем пользователей с ролями
       const { data: usersData, error: usersError } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select(`
+          *,
+          role:roles(*)
+        `)
         .order('created_at', { ascending: false })
 
       if (usersError) throw usersError
@@ -83,7 +121,8 @@ export const UsersTab = () => {
     setEditingUser(record)
     form.setFieldsValue({
       ...record,
-      projectIds: record.projects || []
+      projectIds: record.projects || [],
+      role_id: record.role_id || null
     })
     setIsModalVisible(true)
   }
@@ -98,7 +137,8 @@ export const UsersTab = () => {
         .from('user_profiles')
         .update({
           full_name: values.full_name,
-          email: values.email
+          email: values.email,
+          role_id: values.role_id || null
         })
         .eq('id', editingUser.id)
 
@@ -192,6 +232,16 @@ export const UsersTab = () => {
       key: 'full_name'
     },
     {
+      title: 'Роль',
+      key: 'role',
+      render: (_, record) => {
+        if (record.role) {
+          return <Tag color="blue">{record.role.name}</Tag>
+        }
+        return <Tag>Без роли</Tag>
+      }
+    },
+    {
       title: 'Проекты',
       dataIndex: 'projects',
       key: 'projects',
@@ -267,6 +317,23 @@ export const UsersTab = () => {
             rules={[{ required: true, message: 'Введите ФИО' }]}
           >
             <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="role_id"
+            label="Роль"
+          >
+            <Select
+              placeholder="Выберите роль"
+              allowClear
+              options={[
+                { value: null, label: 'Без роли' },
+                ...roles.map(role => ({
+                  label: role.name,
+                  value: role.id
+                }))
+              ]}
+            />
           </Form.Item>
 
           <Form.Item

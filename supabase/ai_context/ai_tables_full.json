@@ -1,5 +1,3159 @@
 [
   {
+    "table": "_realtime.extensions",
+    "summary": "Служебная таблица _realtime.extensions.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "type",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "settings",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "tenant_external_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "inserted_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [],
+    "indexes": [
+      {
+        "name": "extensions_tenant_external_id_index",
+        "unique": false,
+        "definition": "CREATE INDEX extensions_tenant_external_id_index ON _realtime.extensions USING btree (tenant_external_id)",
+        "columns": [
+          "tenant_external_id"
+        ]
+      },
+      {
+        "name": "extensions_tenant_external_id_type_index",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX extensions_tenant_external_id_type_index ON _realtime.extensions USING btree (tenant_external_id, type)",
+        "columns": [
+          "tenant_external_id",
+          "type"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "_realtime.schema_migrations",
+    "summary": "Auth: Manages updates to the auth system.",
+    "columns": [
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "inserted_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "_realtime.tenants",
+    "summary": "Служебная таблица _realtime.tenants.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "external_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "jwt_secret",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "max_concurrent_users",
+        "type": "integer",
+        "nullable": false,
+        "default": "200",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "inserted_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "max_events_per_second",
+        "type": "integer",
+        "nullable": false,
+        "default": "100",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "postgres_cdc_default",
+        "type": "text",
+        "nullable": true,
+        "default": "'postgres_cdc_rls'::text",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "max_bytes_per_second",
+        "type": "integer",
+        "nullable": false,
+        "default": "100000",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "max_channels_per_client",
+        "type": "integer",
+        "nullable": false,
+        "default": "100",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "max_joins_per_second",
+        "type": "integer",
+        "nullable": false,
+        "default": "500",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "suspend",
+        "type": "boolean",
+        "nullable": true,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "jwt_jwks",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "notify_private_alpha",
+        "type": "boolean",
+        "nullable": true,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "private_only",
+        "type": "boolean",
+        "nullable": false,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [],
+    "indexes": [
+      {
+        "name": "tenants_external_id_index",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX tenants_external_id_index ON _realtime.tenants USING btree (external_id)",
+        "columns": [
+          "external_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.audit_log_entries",
+    "summary": "Auth: Audit trail for user actions.",
+    "columns": [
+      {
+        "name": "instance_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payload",
+        "type": "json",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "ip_address",
+        "type": "varchar(64)",
+        "nullable": false,
+        "default": "''::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_16488_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_16488_5_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "audit_logs_instance_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX audit_logs_instance_id_idx ON auth.audit_log_entries USING btree (instance_id)",
+        "columns": [
+          "instance_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.flow_state",
+    "summary": "stores metadata for pkce logins",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "auth_code",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "code_challenge_method",
+        "type": "USER-DEFINED",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "code_challenge",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "provider_type",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "provider_access_token",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "provider_refresh_token",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "authentication_method",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "auth_code_issued_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_17627_11_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17627_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17627_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17627_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17627_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17627_6_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "flow_state_created_at_idx",
+        "unique": false,
+        "definition": "CREATE INDEX flow_state_created_at_idx ON auth.flow_state USING btree (created_at DESC)",
+        "columns": [
+          "created_at DESC"
+        ]
+      },
+      {
+        "name": "idx_auth_code",
+        "unique": false,
+        "definition": "CREATE INDEX idx_auth_code ON auth.flow_state USING btree (auth_code)",
+        "columns": [
+          "auth_code"
+        ]
+      },
+      {
+        "name": "idx_user_id_auth_method",
+        "unique": false,
+        "definition": "CREATE INDEX idx_user_id_auth_method ON auth.flow_state USING btree (user_id, authentication_method)",
+        "columns": [
+          "user_id",
+          "authentication_method"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.identities",
+    "summary": "Auth: Stores identities associated to a user.",
+    "columns": [
+      {
+        "name": "provider_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "identity_data",
+        "type": "jsonb",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "provider",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "last_sign_in_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "identities_provider_id_provider_unique",
+        "columns": [
+          "provider",
+          "provider_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "16457_17424_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17424_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17424_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17424_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17424_9_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "identities_email_idx",
+        "unique": false,
+        "definition": "CREATE INDEX identities_email_idx ON auth.identities USING btree (email text_pattern_ops)",
+        "columns": [
+          "email text_pattern_ops"
+        ]
+      },
+      {
+        "name": "identities_provider_id_provider_unique",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX identities_provider_id_provider_unique ON auth.identities USING btree (provider_id, provider)",
+        "columns": [
+          "provider_id",
+          "provider"
+        ]
+      },
+      {
+        "name": "identities_user_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX identities_user_id_idx ON auth.identities USING btree (user_id)",
+        "columns": [
+          "user_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.instances",
+    "summary": "Auth: Manages users across multiple sites.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "uuid",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "raw_base_config",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_16481_1_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "auth.mfa_amr_claims",
+    "summary": "auth: stores authenticator method reference claims for multi factor authentication",
+    "columns": [
+      {
+        "name": "session_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "authentication_method",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "mfa_amr_claims_session_id_authentication_method_pkey",
+        "columns": [
+          "authentication_method",
+          "session_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "16457_17514_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17514_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17514_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17514_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17514_5_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "amr_id_pk",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX amr_id_pk ON auth.mfa_amr_claims USING btree (id)",
+        "columns": [
+          "id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.mfa_challenges",
+    "summary": "auth: stores metadata about challenge requests made",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "factor_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "verified_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "ip_address",
+        "type": "inet",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "otp_code",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "web_authn_session_data",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_17502_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17502_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17502_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17502_5_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "mfa_challenge_created_at_idx",
+        "unique": false,
+        "definition": "CREATE INDEX mfa_challenge_created_at_idx ON auth.mfa_challenges USING btree (created_at DESC)",
+        "columns": [
+          "created_at DESC"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.mfa_factors",
+    "summary": "auth: stores metadata about factors",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "friendly_name",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "factor_type",
+        "type": "USER-DEFINED",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "status",
+        "type": "USER-DEFINED",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "secret",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "phone",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "last_challenged_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "web_authn_credential",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "web_authn_aaguid",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "mfa_factors_last_challenged_at_key",
+        "columns": [
+          "last_challenged_at"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "16457_17489_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17489_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17489_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17489_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17489_6_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17489_7_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "factor_id_created_at_idx",
+        "unique": false,
+        "definition": "CREATE INDEX factor_id_created_at_idx ON auth.mfa_factors USING btree (user_id, created_at)",
+        "columns": [
+          "user_id",
+          "created_at"
+        ]
+      },
+      {
+        "name": "mfa_factors_last_challenged_at_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX mfa_factors_last_challenged_at_key ON auth.mfa_factors USING btree (last_challenged_at)",
+        "columns": [
+          "last_challenged_at"
+        ]
+      },
+      {
+        "name": "mfa_factors_user_friendly_name_unique",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX mfa_factors_user_friendly_name_unique ON auth.mfa_factors USING btree (friendly_name, user_id) WHERE (TRIM(BOTH FROM friendly_name) <> ''::text)",
+        "columns": [
+          "friendly_name",
+          "user_id"
+        ]
+      },
+      {
+        "name": "mfa_factors_user_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX mfa_factors_user_id_idx ON auth.mfa_factors USING btree (user_id)",
+        "columns": [
+          "user_id"
+        ]
+      },
+      {
+        "name": "unique_phone_factor_per_user",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX unique_phone_factor_per_user ON auth.mfa_factors USING btree (user_id, phone)",
+        "columns": [
+          "user_id",
+          "phone"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.one_time_tokens",
+    "summary": "Служебная таблица auth.one_time_tokens.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "token_type",
+        "type": "USER-DEFINED",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "token_hash",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "relates_to",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_17677_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17677_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17677_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17677_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17677_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17677_6_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17677_7_not_null",
+        "definition": null
+      },
+      {
+        "name": "one_time_tokens_token_hash_check",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "one_time_tokens_relates_to_hash_idx",
+        "unique": false,
+        "definition": "CREATE INDEX one_time_tokens_relates_to_hash_idx ON auth.one_time_tokens USING hash (relates_to)",
+        "columns": [
+          "relates_to"
+        ]
+      },
+      {
+        "name": "one_time_tokens_token_hash_hash_idx",
+        "unique": false,
+        "definition": "CREATE INDEX one_time_tokens_token_hash_hash_idx ON auth.one_time_tokens USING hash (token_hash)",
+        "columns": [
+          "token_hash"
+        ]
+      },
+      {
+        "name": "one_time_tokens_user_id_token_type_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX one_time_tokens_user_id_token_type_key ON auth.one_time_tokens USING btree (user_id, token_type)",
+        "columns": [
+          "user_id",
+          "token_type"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.refresh_tokens",
+    "summary": "Auth: Store of tokens used to refresh JWT tokens once they expire.",
+    "columns": [
+      {
+        "name": "instance_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": "nextval('auth.refresh_tokens_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "token",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "revoked",
+        "type": "boolean",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "parent",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "session_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "refresh_tokens_token_unique",
+        "columns": [
+          "token"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "16457_16470_2_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "refresh_tokens_instance_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX refresh_tokens_instance_id_idx ON auth.refresh_tokens USING btree (instance_id)",
+        "columns": [
+          "instance_id"
+        ]
+      },
+      {
+        "name": "refresh_tokens_instance_id_user_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX refresh_tokens_instance_id_user_id_idx ON auth.refresh_tokens USING btree (instance_id, user_id)",
+        "columns": [
+          "instance_id",
+          "user_id"
+        ]
+      },
+      {
+        "name": "refresh_tokens_parent_idx",
+        "unique": false,
+        "definition": "CREATE INDEX refresh_tokens_parent_idx ON auth.refresh_tokens USING btree (parent)",
+        "columns": [
+          "parent"
+        ]
+      },
+      {
+        "name": "refresh_tokens_session_id_revoked_idx",
+        "unique": false,
+        "definition": "CREATE INDEX refresh_tokens_session_id_revoked_idx ON auth.refresh_tokens USING btree (session_id, revoked)",
+        "columns": [
+          "session_id",
+          "revoked"
+        ]
+      },
+      {
+        "name": "refresh_tokens_token_unique",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX refresh_tokens_token_unique ON auth.refresh_tokens USING btree (token)",
+        "columns": [
+          "token"
+        ]
+      },
+      {
+        "name": "refresh_tokens_updated_at_idx",
+        "unique": false,
+        "definition": "CREATE INDEX refresh_tokens_updated_at_idx ON auth.refresh_tokens USING btree (updated_at DESC)",
+        "columns": [
+          "updated_at DESC"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.saml_providers",
+    "summary": "Auth: Manages SAML Identity Provider connections.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "sso_provider_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "entity_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "metadata_xml",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "metadata_url",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "attribute_mapping",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name_id_format",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "saml_providers_entity_id_key",
+        "columns": [
+          "entity_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "16457_17556_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17556_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17556_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17556_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "entity_id not empty",
+        "definition": null
+      },
+      {
+        "name": "metadata_url not empty",
+        "definition": null
+      },
+      {
+        "name": "metadata_xml not empty",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "saml_providers_entity_id_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX saml_providers_entity_id_key ON auth.saml_providers USING btree (entity_id)",
+        "columns": [
+          "entity_id"
+        ]
+      },
+      {
+        "name": "saml_providers_sso_provider_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX saml_providers_sso_provider_id_idx ON auth.saml_providers USING btree (sso_provider_id)",
+        "columns": [
+          "sso_provider_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.saml_relay_states",
+    "summary": "Auth: Contains SAML Relay State information for each Service Provider initiated login.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "sso_provider_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "request_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "for_email",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "redirect_to",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "flow_state_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_17574_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17574_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17574_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "request_id not empty",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "saml_relay_states_created_at_idx",
+        "unique": false,
+        "definition": "CREATE INDEX saml_relay_states_created_at_idx ON auth.saml_relay_states USING btree (created_at DESC)",
+        "columns": [
+          "created_at DESC"
+        ]
+      },
+      {
+        "name": "saml_relay_states_for_email_idx",
+        "unique": false,
+        "definition": "CREATE INDEX saml_relay_states_for_email_idx ON auth.saml_relay_states USING btree (for_email)",
+        "columns": [
+          "for_email"
+        ]
+      },
+      {
+        "name": "saml_relay_states_sso_provider_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX saml_relay_states_sso_provider_id_idx ON auth.saml_relay_states USING btree (sso_provider_id)",
+        "columns": [
+          "sso_provider_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.schema_migrations",
+    "summary": "Auth: Manages updates to the auth system.",
+    "columns": [
+      {
+        "name": "version",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "version"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_16496_1_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "auth.sessions",
+    "summary": "Auth: Stores session data associated to a user.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "factor_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "aal",
+        "type": "USER-DEFINED",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "not_after",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "refreshed_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_agent",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "ip",
+        "type": "inet",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "tag",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_17454_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17454_2_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "sessions_not_after_idx",
+        "unique": false,
+        "definition": "CREATE INDEX sessions_not_after_idx ON auth.sessions USING btree (not_after DESC)",
+        "columns": [
+          "not_after DESC"
+        ]
+      },
+      {
+        "name": "sessions_user_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX sessions_user_id_idx ON auth.sessions USING btree (user_id)",
+        "columns": [
+          "user_id"
+        ]
+      },
+      {
+        "name": "user_id_created_at_idx",
+        "unique": false,
+        "definition": "CREATE INDEX user_id_created_at_idx ON auth.sessions USING btree (user_id, created_at)",
+        "columns": [
+          "user_id",
+          "created_at"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.sso_domains",
+    "summary": "Auth: Manages SSO email address domain mapping to an SSO Identity Provider.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "sso_provider_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "domain",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_17541_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17541_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_17541_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "domain not empty",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "sso_domains_domain_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX sso_domains_domain_idx ON auth.sso_domains USING btree (lower(domain))",
+        "columns": [
+          "lower(domain"
+        ]
+      },
+      {
+        "name": "sso_domains_sso_provider_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX sso_domains_sso_provider_id_idx ON auth.sso_domains USING btree (sso_provider_id)",
+        "columns": [
+          "sso_provider_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.sso_providers",
+    "summary": "Auth: Manages SSO identity provider information; see saml_providers for SAML.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "resource_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16457_17532_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "resource_id not empty",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "sso_providers_resource_id_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX sso_providers_resource_id_idx ON auth.sso_providers USING btree (lower(resource_id))",
+        "columns": [
+          "lower(resource_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "auth.users",
+    "summary": "Auth: Stores user login data within a secure schema.",
+    "columns": [
+      {
+        "name": "instance_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "aud",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "role",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "encrypted_password",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email_confirmed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "invited_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "confirmation_token",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "confirmation_sent_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "recovery_token",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "recovery_sent_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email_change_token_new",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email_change",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email_change_sent_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "last_sign_in_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "raw_app_meta_data",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "raw_user_meta_data",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "is_super_admin",
+        "type": "boolean",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "phone",
+        "type": "text",
+        "nullable": true,
+        "default": "NULL::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "phone_confirmed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "phone_change",
+        "type": "text",
+        "nullable": true,
+        "default": "''::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "phone_change_token",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": "''::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "phone_change_sent_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "confirmed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email_change_token_current",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": "''::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "email_change_confirm_status",
+        "type": "smallint",
+        "nullable": true,
+        "default": "0",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "banned_until",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "reauthentication_token",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": "''::character varying",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "reauthentication_sent_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "is_sso_user",
+        "type": "boolean",
+        "nullable": false,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "deleted_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "is_anonymous",
+        "type": "boolean",
+        "nullable": false,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "users_phone_key",
+        "columns": [
+          "phone"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "16457_16458_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_16458_33_not_null",
+        "definition": null
+      },
+      {
+        "name": "16457_16458_35_not_null",
+        "definition": null
+      },
+      {
+        "name": "users_email_change_confirm_status_check",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "confirmation_token_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX confirmation_token_idx ON auth.users USING btree (confirmation_token) WHERE ((confirmation_token)::text !~ '^[0-9 ]*$'::text)",
+        "columns": [
+          "confirmation_token"
+        ]
+      },
+      {
+        "name": "email_change_token_current_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX email_change_token_current_idx ON auth.users USING btree (email_change_token_current) WHERE ((email_change_token_current)::text !~ '^[0-9 ]*$'::text)",
+        "columns": [
+          "email_change_token_current"
+        ]
+      },
+      {
+        "name": "email_change_token_new_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX email_change_token_new_idx ON auth.users USING btree (email_change_token_new) WHERE ((email_change_token_new)::text !~ '^[0-9 ]*$'::text)",
+        "columns": [
+          "email_change_token_new"
+        ]
+      },
+      {
+        "name": "reauthentication_token_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX reauthentication_token_idx ON auth.users USING btree (reauthentication_token) WHERE ((reauthentication_token)::text !~ '^[0-9 ]*$'::text)",
+        "columns": [
+          "reauthentication_token"
+        ]
+      },
+      {
+        "name": "recovery_token_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX recovery_token_idx ON auth.users USING btree (recovery_token) WHERE ((recovery_token)::text !~ '^[0-9 ]*$'::text)",
+        "columns": [
+          "recovery_token"
+        ]
+      },
+      {
+        "name": "users_email_partial_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX users_email_partial_key ON auth.users USING btree (email) WHERE (is_sso_user = false)",
+        "columns": [
+          "email"
+        ]
+      },
+      {
+        "name": "users_instance_id_email_idx",
+        "unique": false,
+        "definition": "CREATE INDEX users_instance_id_email_idx ON auth.users USING btree (instance_id, lower((email)::text))",
+        "columns": [
+          "instance_id",
+          "lower((email"
+        ]
+      },
+      {
+        "name": "users_instance_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX users_instance_id_idx ON auth.users USING btree (instance_id)",
+        "columns": [
+          "instance_id"
+        ]
+      },
+      {
+        "name": "users_is_anonymous_idx",
+        "unique": false,
+        "definition": "CREATE INDEX users_is_anonymous_idx ON auth.users USING btree (is_anonymous)",
+        "columns": [
+          "is_anonymous"
+        ]
+      },
+      {
+        "name": "users_phone_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX users_phone_key ON auth.users USING btree (phone)",
+        "columns": [
+          "phone"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "on_auth_user_created",
+        "timing": "AFTER",
+        "events": [
+          "INSERT"
+        ],
+        "level": "ROW",
+        "function": "public.handle_new_user",
+        "description": "Служебный триггер."
+      }
+    ]
+  },
+  {
+    "table": "net._http_response",
+    "summary": "Служебная таблица net._http_response.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "status_code",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "content_type",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "headers",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "content",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "timed_out",
+        "type": "boolean",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "error_msg",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16566_16578_8_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "_http_response_created_idx",
+        "unique": false,
+        "definition": "CREATE INDEX _http_response_created_idx ON net._http_response USING btree (created)",
+        "columns": [
+          "created"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "net.http_request_queue",
+    "summary": "Служебная таблица net.http_request_queue.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": "nextval('net.http_request_queue_id_seq'::regclass)",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "method",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "url",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "headers",
+        "type": "jsonb",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "body",
+        "type": "bytea",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "timeout_milliseconds",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16566_16571_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16566_16571_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16566_16571_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16566_16571_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16566_16571_6_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "public.approval_routes",
+    "summary": "Маршруты согласования платежей по типам счетов",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "invoice_type_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.invoice_types.id",
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "default": "true",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "invoice_type_id",
+        "references": "public.invoice_types.id",
+        "description": "Маршрут применяется к определённому типу счета."
+      }
+    ],
+    "unique_constraints": [
+      {
+        "name": "approval_routes_invoice_type_id_key",
+        "columns": [
+          "invoice_type_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_20081_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20081_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20081_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "approval_routes_invoice_type_id_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX approval_routes_invoice_type_id_key ON public.approval_routes USING btree (invoice_type_id)",
+        "columns": [
+          "invoice_type_id"
+        ]
+      },
+      {
+        "name": "idx_approval_routes_invoice_type",
+        "unique": false,
+        "definition": "CREATE INDEX idx_approval_routes_invoice_type ON public.approval_routes USING btree (invoice_type_id)",
+        "columns": [
+          "invoice_type_id"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_approval_routes_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.approval_steps",
+    "summary": "История шагов согласования",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_approval_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.payment_approvals.id",
+        "note": null
+      },
+      {
+        "name": "stage_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.workflow_stages.id",
+        "note": null
+      },
+      {
+        "name": "action",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "acted_by",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "auth.users.id",
+        "note": null
+      },
+      {
+        "name": "acted_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "comment",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "acted_by",
+        "references": "auth.users.id",
+        "description": "Пользователь, выполнивший действие на шаге."
+      },
+      {
+        "column": "payment_approval_id",
+        "references": "public.payment_approvals.id",
+        "description": "Шаг относится к конкретному процессу согласования платежа."
+      },
+      {
+        "column": "stage_id",
+        "references": "public.workflow_stages.id",
+        "description": "Ссылка на этап маршрута."
+      }
+    ],
+    "unique_constraints": [
+      {
+        "name": "approval_steps_payment_approval_id_stage_id_key",
+        "columns": [
+          "payment_approval_id",
+          "stage_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_20143_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20143_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20143_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20143_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "approval_steps_action_check",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "approval_steps_payment_approval_id_stage_id_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX approval_steps_payment_approval_id_stage_id_key ON public.approval_steps USING btree (payment_approval_id, stage_id)",
+        "columns": [
+          "payment_approval_id",
+          "stage_id"
+        ]
+      },
+      {
+        "name": "idx_approval_steps_acted_by",
+        "unique": false,
+        "definition": "CREATE INDEX idx_approval_steps_acted_by ON public.approval_steps USING btree (acted_by)",
+        "columns": [
+          "acted_by"
+        ]
+      },
+      {
+        "name": "idx_approval_steps_approval",
+        "unique": false,
+        "definition": "CREATE INDEX idx_approval_steps_approval ON public.approval_steps USING btree (payment_approval_id)",
+        "columns": [
+          "payment_approval_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
     "table": "public.attachments",
     "summary": "Хранение информации о загруженных файлах",
     "columns": [
@@ -59,8 +3213,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "auth.users.id",
         "note": "Пользователь, загрузивший файл"
       },
       {
@@ -87,7 +3241,13 @@
     "primary_key": [
       "id"
     ],
-    "foreign_keys": [],
+    "foreign_keys": [
+      {
+        "column": "created_by",
+        "references": "auth.users.id",
+        "description": "Автор загрузки файла (auth.users)."
+      }
+    ],
     "unique_constraints": [],
     "check_constraints": [
       {
@@ -133,14 +3293,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.contractor_types",
-    "summary": "Dictionary of contractor categories used to classify payments and obligations.",
+    "summary": "Справочник категорий контрагентов.",
     "columns": [
       {
         "name": "id",
@@ -150,7 +3310,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Surrogate primary key."
+        "note": null
       },
       {
         "name": "code",
@@ -160,7 +3320,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Short machine code of contractor type."
+        "note": null
       },
       {
         "name": "name",
@@ -170,7 +3330,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Human friendly type name."
+        "note": null
       },
       {
         "name": "description",
@@ -180,7 +3340,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Optional operator facing description."
+        "note": null
       },
       {
         "name": "created_at",
@@ -190,7 +3350,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp (default now())."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -200,7 +3360,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Audit timestamp updated by trigger before UPDATE."
+        "note": null
       }
     ],
     "primary_key": [
@@ -255,14 +3415,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.contractors",
-    "summary": "Registered contractors with type, tax id and authoring user.",
+    "summary": "Реестр контрагентов, связанных со счетами и проектами.",
     "columns": [
       {
         "name": "id",
@@ -272,7 +3432,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Surrogate primary key."
+        "note": null
       },
       {
         "name": "type_id",
@@ -282,7 +3442,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "public.contractor_types.id",
-        "note": "FK to contractor_types.id that classifies the contractor."
+        "note": null
       },
       {
         "name": "name",
@@ -292,7 +3452,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Full legal name or personal name."
+        "note": null
       },
       {
         "name": "inn",
@@ -302,7 +3462,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Russian tax id (12 digits for sole proprietors/legal entities)."
+        "note": null
       },
       {
         "name": "created_by",
@@ -312,7 +3472,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "auth.users.id",
-        "note": "auth.users.id of the user who created the record."
+        "note": null
       },
       {
         "name": "created_at",
@@ -322,7 +3482,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -332,7 +3492,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Auto refreshed by update_updated_at_column()."
+        "note": null
       }
     ],
     "primary_key": [
@@ -342,12 +3502,12 @@
       {
         "column": "created_by",
         "references": "auth.users.id",
-        "description": "Authoring Supabase user."
+        "description": "Пользователь, создавший контрагента."
       },
       {
         "column": "type_id",
         "references": "public.contractor_types.id",
-        "description": "Contractor category reference."
+        "description": "Категория контрагента."
       }
     ],
     "unique_constraints": [
@@ -406,8 +3566,8 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
@@ -431,8 +3591,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.invoices.id",
         "note": null
       },
       {
@@ -441,8 +3601,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.attachments.id",
         "note": null
       },
       {
@@ -459,17 +3619,23 @@
     "primary_key": [
       "id"
     ],
-    "foreign_keys": [],
+    "foreign_keys": [
+      {
+        "column": "attachment_id",
+        "references": "public.attachments.id",
+        "description": "Прикреплённый файл."
+      },
+      {
+        "column": "invoice_id",
+        "references": "public.invoices.id",
+        "description": "Счет, к которому прикреплён файл."
+      }
+    ],
     "unique_constraints": [
       {
         "name": "invoice_attachments_invoice_id_attachment_id_key",
         "columns": [
-          "attachment_id"
-        ]
-      },
-      {
-        "name": "invoice_attachments_invoice_id_attachment_id_key",
-        "columns": [
+          "attachment_id",
           "invoice_id"
         ]
       }
@@ -519,7 +3685,7 @@
   },
   {
     "table": "public.invoice_payments",
-    "summary": null,
+    "summary": "Связующая таблица между счетами и платежами с распределением сумм.",
     "columns": [
       {
         "name": "id",
@@ -537,8 +3703,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.invoices.id",
         "note": null
       },
       {
@@ -547,8 +3713,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.payments.id",
         "note": null
       },
       {
@@ -575,17 +3741,23 @@
     "primary_key": [
       "id"
     ],
-    "foreign_keys": [],
+    "foreign_keys": [
+      {
+        "column": "invoice_id",
+        "references": "public.invoices.id",
+        "description": "Счет, который покрывает платеж."
+      },
+      {
+        "column": "payment_id",
+        "references": "public.payments.id",
+        "description": "Платеж, распределенный на счет."
+      }
+    ],
     "unique_constraints": [
       {
         "name": "invoice_payments_invoice_id_payment_id_key",
         "columns": [
-          "invoice_id"
-        ]
-      },
-      {
-        "name": "invoice_payments_invoice_id_payment_id_key",
-        "columns": [
+          "invoice_id",
           "payment_id"
         ]
       }
@@ -643,7 +3815,7 @@
   },
   {
     "table": "public.invoice_statuses",
-    "summary": "Invoice workflow statuses used to drive document state transitions.",
+    "summary": "Справочник статусов жизненного цикла счетов.",
     "columns": [
       {
         "name": "id",
@@ -653,7 +3825,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Surrogate status id."
+        "note": null
       },
       {
         "name": "code",
@@ -663,7 +3835,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Unique status code for UI/API."
+        "note": null
       },
       {
         "name": "name",
@@ -673,7 +3845,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Status label."
+        "note": null
       },
       {
         "name": "description",
@@ -683,7 +3855,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Optional status guidance."
+        "note": null
       },
       {
         "name": "sort_order",
@@ -693,7 +3865,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Ordering for UI sequences."
+        "note": null
       },
       {
         "name": "color",
@@ -703,7 +3875,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Optional badge color token."
+        "note": null
       },
       {
         "name": "created_at",
@@ -713,7 +3885,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -723,7 +3895,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Auto refreshed timestamp."
+        "note": null
       }
     ],
     "primary_key": [
@@ -786,14 +3958,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.invoice_types",
-    "summary": "Catalog of invoice types (services, materials, subscriptions, etc.).",
+    "summary": "Справочник типов счетов (например, услуги или материалы).",
     "columns": [
       {
         "name": "id",
@@ -803,7 +3975,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Surrogate type id."
+        "note": null
       },
       {
         "name": "code",
@@ -813,7 +3985,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Unique type code."
+        "note": null
       },
       {
         "name": "name",
@@ -823,7 +3995,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Type label."
+        "note": null
       },
       {
         "name": "description",
@@ -833,7 +4005,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Optional details."
+        "note": null
       },
       {
         "name": "created_at",
@@ -843,7 +4015,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -853,7 +4025,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Auto refreshed timestamp."
+        "note": null
       }
     ],
     "primary_key": [
@@ -908,14 +4080,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.invoices",
-    "summary": "Outbound invoices tracked by PayHub with monetary breakdown and workflow links.",
+    "summary": "Исходящие счета, создаваемые в PayHub.",
     "columns": [
       {
         "name": "id",
@@ -925,7 +4097,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Invoice UUID."
+        "note": null
       },
       {
         "name": "user_id",
@@ -935,7 +4107,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "auth.users.id",
-        "note": "auth.users.id that owns the invoice."
+        "note": null
       },
       {
         "name": "invoice_number",
@@ -945,7 +4117,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "External reference or invoice number."
+        "note": "Внешний номер счета, отображаемый клиенту."
       },
       {
         "name": "description",
@@ -955,7 +4127,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Optional narrative description."
+        "note": null
       },
       {
         "name": "due_date",
@@ -965,7 +4137,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Payment due date."
+        "note": null
       },
       {
         "name": "created_at",
@@ -975,7 +4147,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -985,7 +4157,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Auto refreshed timestamp."
+        "note": null
       },
       {
         "name": "invoice_date",
@@ -995,7 +4167,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Calendar date printed on the invoice."
+        "note": null
       },
       {
         "name": "payer_id",
@@ -1005,7 +4177,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "public.contractors.id",
-        "note": "Contractor acting as payer."
+        "note": null
       },
       {
         "name": "supplier_id",
@@ -1015,7 +4187,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "public.contractors.id",
-        "note": "Contractor acting as supplier."
+        "note": null
       },
       {
         "name": "project_id",
@@ -1025,7 +4197,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "public.projects.id",
-        "note": "Associated project for reporting."
+        "note": null
       },
       {
         "name": "invoice_type_id",
@@ -1035,7 +4207,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "public.invoice_types.id",
-        "note": "Reference to invoice_types."
+        "note": null
       },
       {
         "name": "amount_with_vat",
@@ -1045,7 +4217,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Invoice total including VAT."
+        "note": null
       },
       {
         "name": "vat_rate",
@@ -1055,7 +4227,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "VAT rate applied (percent)."
+        "note": null
       },
       {
         "name": "vat_amount",
@@ -1065,7 +4237,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "VAT amount derived from totals."
+        "note": null
       },
       {
         "name": "amount_without_vat",
@@ -1075,7 +4247,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Invoice total excluding VAT."
+        "note": null
       },
       {
         "name": "delivery_days",
@@ -1085,7 +4257,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Number of days for delivery after payment."
+        "note": null
       },
       {
         "name": "delivery_days_type",
@@ -1095,7 +4267,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Delivery day interpretation (working/calendar)."
+        "note": null
       },
       {
         "name": "preliminary_delivery_date",
@@ -1105,7 +4277,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Projected delivery date computed from payment terms."
+        "note": null
       },
       {
         "name": "status_id",
@@ -1115,7 +4287,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "public.invoice_statuses.id",
-        "note": "Reference to invoice_statuses."
+        "note": null
       }
     ],
     "primary_key": [
@@ -1125,32 +4297,32 @@
       {
         "column": "invoice_type_id",
         "references": "public.invoice_types.id",
-        "description": "Invoice type catalog reference."
+        "description": "Тип счета."
       },
       {
         "column": "payer_id",
         "references": "public.contractors.id",
-        "description": "Payer contractor linked to the invoice."
+        "description": "Контрагент-плательщик."
       },
       {
         "column": "project_id",
         "references": "public.projects.id",
-        "description": "Project that groups the invoice."
+        "description": "Проект, к которому относится счет."
       },
       {
         "column": "status_id",
         "references": "public.invoice_statuses.id",
-        "description": "Workflow status from invoice_statuses."
+        "description": "Текущий статус счета."
       },
       {
         "column": "supplier_id",
         "references": "public.contractors.id",
-        "description": "Supplier contractor linked to the invoice."
+        "description": "Контрагент-поставщик."
       },
       {
         "column": "user_id",
         "references": "auth.users.id",
-        "description": "Invoice owner."
+        "description": "Автор счета (auth.users)."
       }
     ],
     "unique_constraints": [],
@@ -1259,8 +4431,8 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "calculate_vat_amounts",
-        "description": null
+        "function": "public.calculate_vat_amounts",
+        "description": "Перед вставкой или обновлением пересчитывает суммы НДС через calculate_vat_amounts()."
       },
       {
         "name": "update_invoices_updated_at",
@@ -1269,8 +4441,172 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "public.payment_approvals",
+    "summary": "Экземпляры согласования платежей по маршрутам.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.payments.id",
+        "note": null
+      },
+      {
+        "name": "route_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.approval_routes.id",
+        "note": null
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.payment_statuses.id",
+        "note": null
+      },
+      {
+        "name": "current_stage_index",
+        "type": "integer",
+        "nullable": false,
+        "default": "0",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "payment_id",
+        "references": "public.payments.id",
+        "description": "Платеж, проходящий согласование."
+      },
+      {
+        "column": "route_id",
+        "references": "public.approval_routes.id",
+        "description": "Маршрут согласования платежа."
+      },
+      {
+        "column": "status_id",
+        "references": "public.payment_statuses.id",
+        "description": "Статус процесса согласования."
+      }
+    ],
+    "unique_constraints": [
+      {
+        "name": "payment_approvals_payment_id_key",
+        "columns": [
+          "payment_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_20117_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20117_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20117_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20117_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20117_5_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_payment_approvals_payment",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payment_approvals_payment ON public.payment_approvals USING btree (payment_id)",
+        "columns": [
+          "payment_id"
+        ]
+      },
+      {
+        "name": "idx_payment_approvals_status",
+        "unique": false,
+        "definition": "CREATE INDEX idx_payment_approvals_status ON public.payment_approvals USING btree (status_id)",
+        "columns": [
+          "status_id"
+        ]
+      },
+      {
+        "name": "payment_approvals_payment_id_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX payment_approvals_payment_id_key ON public.payment_approvals USING btree (payment_id)",
+        "columns": [
+          "payment_id"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_payment_approvals_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
@@ -1294,8 +4630,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.payments.id",
         "note": "ID платежа"
       },
       {
@@ -1304,8 +4640,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.attachments.id",
         "note": "ID прикрепленного файла"
       },
       {
@@ -1322,17 +4658,23 @@
     "primary_key": [
       "id"
     ],
-    "foreign_keys": [],
+    "foreign_keys": [
+      {
+        "column": "attachment_id",
+        "references": "public.attachments.id",
+        "description": "Прикреплённый файл платежа."
+      },
+      {
+        "column": "payment_id",
+        "references": "public.payments.id",
+        "description": "Платеж, к которому прикреплен файл."
+      }
+    ],
     "unique_constraints": [
       {
         "name": "payment_attachments_payment_id_attachment_id_key",
         "columns": [
-          "attachment_id"
-        ]
-      },
-      {
-        "name": "payment_attachments_payment_id_attachment_id_key",
-        "columns": [
+          "attachment_id",
           "payment_id"
         ]
       }
@@ -1382,7 +4724,7 @@
   },
   {
     "table": "public.payment_statuses",
-    "summary": null,
+    "summary": "Справочник статусов обработки платежей.",
     "columns": [
       {
         "name": "id",
@@ -1509,14 +4851,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.payment_types",
-    "summary": null,
+    "summary": "Справочник типов платежей.",
     "columns": [
       {
         "name": "id",
@@ -1623,14 +4965,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.payments",
-    "summary": null,
+    "summary": "Реестр поступивших платежей и их параметров.",
     "columns": [
       {
         "name": "id",
@@ -1648,8 +4990,8 @@
         "nullable": false,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.invoices.id",
         "note": null
       },
       {
@@ -1660,7 +5002,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": null
+        "note": "Последовательный номер платежа."
       },
       {
         "name": "payment_date",
@@ -1698,8 +5040,8 @@
         "nullable": true,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.payment_types.id",
         "note": null
       },
       {
@@ -1708,8 +5050,8 @@
         "nullable": true,
         "default": "1",
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "public.payment_statuses.id",
         "note": null
       },
       {
@@ -1718,8 +5060,8 @@
         "nullable": true,
         "default": null,
         "is_primary": false,
-        "is_foreign": false,
-        "references": null,
+        "is_foreign": true,
+        "references": "auth.users.id",
         "note": null
       },
       {
@@ -1746,7 +5088,28 @@
     "primary_key": [
       "id"
     ],
-    "foreign_keys": [],
+    "foreign_keys": [
+      {
+        "column": "created_by",
+        "references": "auth.users.id",
+        "description": "Пользователь, зарегистрировавший платеж."
+      },
+      {
+        "column": "invoice_id",
+        "references": "public.invoices.id",
+        "description": "Счет, который оплачивается."
+      },
+      {
+        "column": "payment_type_id",
+        "references": "public.payment_types.id",
+        "description": "Тип платежа."
+      },
+      {
+        "column": "status_id",
+        "references": "public.payment_statuses.id",
+        "description": "Статус платежа."
+      }
+    ],
     "unique_constraints": [
       {
         "name": "payments_payment_number_key",
@@ -1831,14 +5194,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.projects",
-    "summary": "Projects that group invoices and contractors for reporting.",
+    "summary": "Проекты для группировки счетов и контрагентов.",
     "columns": [
       {
         "name": "id",
@@ -1848,7 +5211,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Surrogate primary key."
+        "note": null
       },
       {
         "name": "code",
@@ -1858,7 +5221,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Optional unique project code."
+        "note": "Уникальный код проекта для интеграций."
       },
       {
         "name": "name",
@@ -1868,7 +5231,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Project name."
+        "note": null
       },
       {
         "name": "description",
@@ -1878,7 +5241,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Project description for internal teams."
+        "note": null
       },
       {
         "name": "is_active",
@@ -1888,7 +5251,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Activity flag, defaults to true."
+        "note": null
       },
       {
         "name": "created_by",
@@ -1898,7 +5261,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "auth.users.id",
-        "note": "auth.users.id that created the project."
+        "note": null
       },
       {
         "name": "created_at",
@@ -1908,7 +5271,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -1918,7 +5281,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Auto refreshed timestamp."
+        "note": null
       }
     ],
     "primary_key": [
@@ -1928,7 +5291,7 @@
       {
         "column": "created_by",
         "references": "auth.users.id",
-        "description": "User that registered the project."
+        "description": "Пользователь, создавший проект."
       }
     ],
     "unique_constraints": [
@@ -1983,14 +5346,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.roles",
-    "summary": "Access roles managed inside PayHub.",
+    "summary": "Роли доступа внутри PayHub.",
     "columns": [
       {
         "name": "id",
@@ -2000,7 +5363,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Role primary key."
+        "note": null
       },
       {
         "name": "code",
@@ -2010,7 +5373,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Unique role code."
+        "note": null
       },
       {
         "name": "name",
@@ -2020,7 +5383,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Display name of the role."
+        "note": null
       },
       {
         "name": "description",
@@ -2030,7 +5393,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Optional usage notes."
+        "note": null
       },
       {
         "name": "created_at",
@@ -2040,7 +5403,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -2050,7 +5413,17 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Auto refreshed timestamp."
+        "note": null
+      },
+      {
+        "name": "own_projects_only",
+        "type": "boolean",
+        "nullable": true,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "Если TRUE, пользователь с этой ролью видит только данные своих проектов"
       }
     ],
     "primary_key": [
@@ -2105,14 +5478,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.user_profiles",
-    "summary": "User profile mirror for Supabase auth users.",
+    "summary": "Профили пользователей (зеркало auth.users).",
     "columns": [
       {
         "name": "id",
@@ -2122,7 +5495,7 @@
         "is_primary": true,
         "is_foreign": true,
         "references": "auth.users.id",
-        "note": "Primary key and FK to auth.users.id."
+        "note": null
       },
       {
         "name": "email",
@@ -2132,7 +5505,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "User email."
+        "note": null
       },
       {
         "name": "full_name",
@@ -2142,7 +5515,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Display name for UI."
+        "note": null
       },
       {
         "name": "created_at",
@@ -2152,7 +5525,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       },
       {
         "name": "updated_at",
@@ -2162,7 +5535,17 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Auto refreshed timestamp."
+        "note": null
+      },
+      {
+        "name": "role_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.roles.id",
+        "note": null
       }
     ],
     "primary_key": [
@@ -2172,7 +5555,12 @@
       {
         "column": "id",
         "references": "auth.users.id",
-        "description": "Profile mirrors Supabase auth user."
+        "description": "Идентификатор auth.users."
+      },
+      {
+        "column": "role_id",
+        "references": "public.roles.id",
+        "description": "Назначенная роль доступа."
       }
     ],
     "unique_constraints": [
@@ -2215,14 +5603,14 @@
           "UPDATE"
         ],
         "level": "ROW",
-        "function": "update_updated_at_column",
-        "description": "Keeps updated_at synchronized via update_updated_at_column()."
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
       }
     ]
   },
   {
     "table": "public.user_projects",
-    "summary": "Mapping table granting users access to projects.",
+    "summary": "Назначения пользователей на проекты.",
     "columns": [
       {
         "name": "id",
@@ -2232,7 +5620,7 @@
         "is_primary": true,
         "is_foreign": false,
         "references": null,
-        "note": "Relation surrogate key."
+        "note": null
       },
       {
         "name": "user_id",
@@ -2242,7 +5630,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "auth.users.id",
-        "note": "Supabase user assigned to the project."
+        "note": null
       },
       {
         "name": "project_id",
@@ -2252,7 +5640,7 @@
         "is_primary": false,
         "is_foreign": true,
         "references": "public.projects.id",
-        "note": "Project being granted to the user."
+        "note": null
       },
       {
         "name": "created_at",
@@ -2262,7 +5650,7 @@
         "is_primary": false,
         "is_foreign": false,
         "references": null,
-        "note": "Creation timestamp."
+        "note": null
       }
     ],
     "primary_key": [
@@ -2272,24 +5660,19 @@
       {
         "column": "project_id",
         "references": "public.projects.id",
-        "description": "Project assigned to the user."
+        "description": "Проект, к которому назначен пользователь."
       },
       {
         "column": "user_id",
         "references": "auth.users.id",
-        "description": "User receiving project access."
+        "description": "Пользователь с доступом к проекту."
       }
     ],
     "unique_constraints": [
       {
         "name": "user_projects_user_project_unique",
         "columns": [
-          "project_id"
-        ]
-      },
-      {
-        "name": "user_projects_user_project_unique",
-        "columns": [
+          "project_id",
           "user_id"
         ]
       }
@@ -2332,6 +5715,1954 @@
         "columns": [
           "user_id",
           "project_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "public.workflow_stages",
+    "summary": "Этапы маршрутов согласования с указанием роли и статуса платежа",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "route_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.approval_routes.id",
+        "note": null
+      },
+      {
+        "name": "order_index",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "role_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": true,
+        "references": "public.roles.id",
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payment_status_id",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": "ID статуса платежа, который будет установлен при прохождении этапа"
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [
+      {
+        "column": "role_id",
+        "references": "public.roles.id",
+        "description": "Роль ответственного за этап."
+      },
+      {
+        "column": "route_id",
+        "references": "public.approval_routes.id",
+        "description": "Маршрут, которому принадлежит этап."
+      }
+    ],
+    "unique_constraints": [
+      {
+        "name": "workflow_stages_route_id_order_index_key",
+        "columns": [
+          "order_index",
+          "route_id"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "2200_20097_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20097_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20097_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "2200_20097_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "workflow_stages_order_index_check",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_workflow_stages_payment_status",
+        "unique": false,
+        "definition": "CREATE INDEX idx_workflow_stages_payment_status ON public.workflow_stages USING btree (payment_status_id)",
+        "columns": [
+          "payment_status_id"
+        ]
+      },
+      {
+        "name": "idx_workflow_stages_role",
+        "unique": false,
+        "definition": "CREATE INDEX idx_workflow_stages_role ON public.workflow_stages USING btree (role_id)",
+        "columns": [
+          "role_id"
+        ]
+      },
+      {
+        "name": "idx_workflow_stages_route",
+        "unique": false,
+        "definition": "CREATE INDEX idx_workflow_stages_route ON public.workflow_stages USING btree (route_id)",
+        "columns": [
+          "route_id"
+        ]
+      },
+      {
+        "name": "workflow_stages_route_id_order_index_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX workflow_stages_route_id_order_index_key ON public.workflow_stages USING btree (route_id, order_index)",
+        "columns": [
+          "route_id",
+          "order_index"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "update_workflow_stages_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "public.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "realtime.messages",
+    "summary": "Служебная таблица realtime.messages.",
+    "columns": [
+      {
+        "name": "topic",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "extension",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "payload",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "event",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "private",
+        "type": "boolean",
+        "nullable": true,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "inserted_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id",
+      "inserted_at"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16667_18170_10_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18170_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18170_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18170_8_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18170_9_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "realtime.schema_migrations",
+    "summary": "Auth: Manages updates to the auth system.",
+    "columns": [
+      {
+        "name": "version",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "inserted_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "version"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16667_18009_1_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "realtime.subscription",
+    "summary": "Служебная таблица realtime.subscription.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "subscription_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "entity",
+        "type": "regclass",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "filters",
+        "type": "ARRAY",
+        "nullable": false,
+        "default": "'{}'::realtime.user_defined_filter[]",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "claims",
+        "type": "jsonb",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "claims_role",
+        "type": "regrole",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "nullable": false,
+        "default": "timezone('utc'::text, now())",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16667_18031_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18031_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18031_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18031_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18031_7_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18031_8_not_null",
+        "definition": null
+      },
+      {
+        "name": "16667_18031_9_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "ix_realtime_subscription_entity",
+        "unique": false,
+        "definition": "CREATE INDEX ix_realtime_subscription_entity ON realtime.subscription USING btree (entity)",
+        "columns": [
+          "entity"
+        ]
+      },
+      {
+        "name": "pk_subscription",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX pk_subscription ON realtime.subscription USING btree (id)",
+        "columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "subscription_subscription_id_entity_filters_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX subscription_subscription_id_entity_filters_key ON realtime.subscription USING btree (subscription_id, entity, filters)",
+        "columns": [
+          "subscription_id",
+          "entity",
+          "filters"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "tr_check_filters",
+        "timing": "BEFORE",
+        "events": [
+          "INSERT",
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "realtime.subscription_check_filters",
+        "description": "Служебный триггер."
+      }
+    ]
+  },
+  {
+    "table": "storage.buckets",
+    "summary": "Служебная таблица storage.buckets.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "owner",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "public",
+        "type": "boolean",
+        "nullable": true,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "avif_autodetection",
+        "type": "boolean",
+        "nullable": true,
+        "default": "false",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "file_size_limit",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "allowed_mime_types",
+        "type": "ARRAY",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "owner_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "type",
+        "type": "USER-DEFINED",
+        "nullable": false,
+        "default": "'STANDARD'::storage.buckettype",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_16509_11_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_16509_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_16509_2_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "bname",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX bname ON storage.buckets USING btree (name)",
+        "columns": [
+          "name"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "enforce_bucket_name_length_trigger",
+        "timing": "BEFORE",
+        "events": [
+          "INSERT",
+          "UPDATE OF NAME"
+        ],
+        "level": "ROW",
+        "function": "storage.enforce_bucket_name_length",
+        "description": "Служебный триггер."
+      }
+    ]
+  },
+  {
+    "table": "storage.buckets_analytics",
+    "summary": "Служебная таблица storage.buckets_analytics.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "type",
+        "type": "USER-DEFINED",
+        "nullable": false,
+        "default": "'ANALYTICS'::storage.buckettype",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "format",
+        "type": "text",
+        "nullable": false,
+        "default": "'ICEBERG'::text",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_17960_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17960_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17960_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17960_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17960_5_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "storage.iceberg_namespaces",
+    "summary": "Служебная таблица storage.iceberg_namespaces.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "bucket_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_17971_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17971_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17971_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17971_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17971_5_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_iceberg_namespaces_bucket_id",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX idx_iceberg_namespaces_bucket_id ON storage.iceberg_namespaces USING btree (bucket_id, name)",
+        "columns": [
+          "bucket_id",
+          "name"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "storage.iceberg_tables",
+    "summary": "Служебная таблица storage.iceberg_tables.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "namespace_id",
+        "type": "uuid",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "bucket_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "location",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_17987_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17987_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17987_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17987_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17987_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17987_6_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17987_7_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_iceberg_tables_namespace_id",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX idx_iceberg_tables_namespace_id ON storage.iceberg_tables USING btree (namespace_id, name)",
+        "columns": [
+          "namespace_id",
+          "name"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "storage.migrations",
+    "summary": "Служебная таблица storage.migrations.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "varchar(100)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "hash",
+        "type": "varchar(40)",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "executed_at",
+        "type": "timestamp",
+        "nullable": true,
+        "default": "CURRENT_TIMESTAMP",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [
+      {
+        "name": "migrations_name_key",
+        "columns": [
+          "name"
+        ]
+      }
+    ],
+    "check_constraints": [
+      {
+        "name": "16505_16551_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_16551_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_16551_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "migrations_name_key",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX migrations_name_key ON storage.migrations USING btree (name)",
+        "columns": [
+          "name"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "storage.objects",
+    "summary": "Служебная таблица storage.objects.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "bucket_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "owner",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "last_accessed_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "metadata",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "path_tokens",
+        "type": "ARRAY",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "version",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "owner_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_metadata",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_16524_1_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "bucketid_objname",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX bucketid_objname ON storage.objects USING btree (bucket_id, name)",
+        "columns": [
+          "bucket_id",
+          "name"
+        ]
+      },
+      {
+        "name": "idx_name_bucket_level_unique",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX idx_name_bucket_level_unique ON storage.objects USING btree (name COLLATE \"C\", bucket_id, level)",
+        "columns": [
+          "name COLLATE C",
+          "bucket_id",
+          "level"
+        ]
+      },
+      {
+        "name": "idx_objects_bucket_id_name",
+        "unique": false,
+        "definition": "CREATE INDEX idx_objects_bucket_id_name ON storage.objects USING btree (bucket_id, name COLLATE \"C\")",
+        "columns": [
+          "bucket_id",
+          "name COLLATE C"
+        ]
+      },
+      {
+        "name": "idx_objects_lower_name",
+        "unique": false,
+        "definition": "CREATE INDEX idx_objects_lower_name ON storage.objects USING btree ((path_tokens[level]), lower(name) text_pattern_ops, bucket_id, level)",
+        "columns": [
+          "(path_tokens[level]"
+        ]
+      },
+      {
+        "name": "name_prefix_search",
+        "unique": false,
+        "definition": "CREATE INDEX name_prefix_search ON storage.objects USING btree (name text_pattern_ops)",
+        "columns": [
+          "name text_pattern_ops"
+        ]
+      },
+      {
+        "name": "objects_bucket_id_level_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX objects_bucket_id_level_idx ON storage.objects USING btree (bucket_id, level, name COLLATE \"C\")",
+        "columns": [
+          "bucket_id",
+          "level",
+          "name COLLATE C"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "objects_delete_delete_prefix",
+        "timing": "AFTER",
+        "events": [
+          "DELETE"
+        ],
+        "level": "ROW",
+        "function": "storage.delete_prefix_hierarchy_trigger",
+        "description": "Служебный триггер."
+      },
+      {
+        "name": "objects_insert_create_prefix",
+        "timing": "BEFORE",
+        "events": [
+          "INSERT"
+        ],
+        "level": "ROW",
+        "function": "storage.objects_insert_prefix_trigger",
+        "description": "Служебный триггер."
+      },
+      {
+        "name": "objects_update_create_prefix",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "storage.objects_update_prefix_trigger",
+        "description": "Служебный триггер."
+      },
+      {
+        "name": "update_objects_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "level": "ROW",
+        "function": "storage.update_updated_at_column",
+        "description": "Автообновление updated_at через update_updated_at_column()."
+      }
+    ]
+  },
+  {
+    "table": "storage.prefixes",
+    "summary": "Служебная таблица storage.prefixes.",
+    "columns": [
+      {
+        "name": "bucket_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "bucket_id",
+      "level",
+      "name"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_17916_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17916_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17916_3_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_prefixes_lower_name",
+        "unique": false,
+        "definition": "CREATE INDEX idx_prefixes_lower_name ON storage.prefixes USING btree (bucket_id, level, ((string_to_array(name, '/'::text))[level]), lower(name) text_pattern_ops)",
+        "columns": [
+          "bucket_id",
+          "level",
+          "((string_to_array(name",
+          "'/'::text"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "prefixes_create_hierarchy",
+        "timing": "BEFORE",
+        "events": [
+          "INSERT"
+        ],
+        "level": "ROW",
+        "function": "storage.prefixes_insert_trigger",
+        "description": "Служебный триггер."
+      },
+      {
+        "name": "prefixes_delete_hierarchy",
+        "timing": "AFTER",
+        "events": [
+          "DELETE"
+        ],
+        "level": "ROW",
+        "function": "storage.delete_prefix_hierarchy_trigger",
+        "description": "Служебный триггер."
+      }
+    ]
+  },
+  {
+    "table": "storage.s3_multipart_uploads",
+    "summary": "Служебная таблица storage.s3_multipart_uploads.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "in_progress_size",
+        "type": "bigint",
+        "nullable": false,
+        "default": "0",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "upload_signature",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "bucket_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "key",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "version",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "owner_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "user_metadata",
+        "type": "jsonb",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_17863_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17863_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17863_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17863_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17863_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17863_6_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17863_8_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "idx_multipart_uploads_list",
+        "unique": false,
+        "definition": "CREATE INDEX idx_multipart_uploads_list ON storage.s3_multipart_uploads USING btree (bucket_id, key, created_at)",
+        "columns": [
+          "bucket_id",
+          "key",
+          "created_at"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "storage.s3_multipart_uploads_parts",
+    "summary": "Служебная таблица storage.s3_multipart_uploads_parts.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "upload_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "size",
+        "type": "bigint",
+        "nullable": false,
+        "default": "0",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "part_number",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "bucket_id",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "key",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "etag",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "owner_id",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "version",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16505_17877_10_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_5_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_6_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_7_not_null",
+        "definition": null
+      },
+      {
+        "name": "16505_17877_9_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "supabase_functions.hooks",
+    "summary": "Supabase Functions Hooks: Audit trail for triggered hooks.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "default": "nextval('supabase_functions.hooks_id_seq'::regclass)",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "hook_table_id",
+        "type": "integer",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "hook_name",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "request_id",
+        "type": "bigint",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16608_16621_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16608_16621_2_not_null",
+        "definition": null
+      },
+      {
+        "name": "16608_16621_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16608_16621_4_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "supabase_functions_hooks_h_table_id_h_name_idx",
+        "unique": false,
+        "definition": "CREATE INDEX supabase_functions_hooks_h_table_id_h_name_idx ON supabase_functions.hooks USING btree (hook_table_id, hook_name)",
+        "columns": [
+          "hook_table_id",
+          "hook_name"
+        ]
+      },
+      {
+        "name": "supabase_functions_hooks_request_id_idx",
+        "unique": false,
+        "definition": "CREATE INDEX supabase_functions_hooks_request_id_idx ON supabase_functions.hooks USING btree (request_id)",
+        "columns": [
+          "request_id"
+        ]
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "supabase_functions.migrations",
+    "summary": "Служебная таблица supabase_functions.migrations.",
+    "columns": [
+      {
+        "name": "version",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "inserted_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "now()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "version"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16608_16612_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16608_16612_2_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [],
+    "triggers": []
+  },
+  {
+    "table": "vault.secrets",
+    "summary": "Table with encrypted `secret` column for storing sensitive information on disk.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "default": "gen_random_uuid()",
+        "is_primary": true,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": false,
+        "default": "''::text",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "secret",
+        "type": "text",
+        "nullable": false,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "key_id",
+        "type": "uuid",
+        "nullable": true,
+        "default": null,
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "nonce",
+        "type": "bytea",
+        "nullable": true,
+        "default": "vault._crypto_aead_det_noncegen()",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false,
+        "default": "CURRENT_TIMESTAMP",
+        "is_primary": false,
+        "is_foreign": false,
+        "references": null,
+        "note": null
+      }
+    ],
+    "primary_key": [
+      "id"
+    ],
+    "foreign_keys": [],
+    "unique_constraints": [],
+    "check_constraints": [
+      {
+        "name": "16713_16718_1_not_null",
+        "definition": null
+      },
+      {
+        "name": "16713_16718_3_not_null",
+        "definition": null
+      },
+      {
+        "name": "16713_16718_4_not_null",
+        "definition": null
+      },
+      {
+        "name": "16713_16718_7_not_null",
+        "definition": null
+      },
+      {
+        "name": "16713_16718_8_not_null",
+        "definition": null
+      }
+    ],
+    "indexes": [
+      {
+        "name": "secrets_name_idx",
+        "unique": true,
+        "definition": "CREATE UNIQUE INDEX secrets_name_idx ON vault.secrets USING btree (name) WHERE (name IS NOT NULL)",
+        "columns": [
+          "name"
         ]
       }
     ],

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Table, Space, Button, Modal, Form, Input, message } from 'antd'
+import { Table, Space, Button, Modal, Form, Input, Switch, message, Tooltip } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { supabase, type Role } from '../../lib/supabase'
@@ -122,6 +122,18 @@ export const RolesTab = () => {
       key: 'description'
     },
     {
+      title: 'Только свои проекты',
+      dataIndex: 'own_projects_only',
+      key: 'own_projects_only',
+      width: 180,
+      align: 'center',
+      render: (value: boolean) => (
+        <Tooltip title={value ? 'Видит только данные своих проектов' : 'Видит данные всех проектов'}>
+          <Switch checked={value} disabled />
+        </Tooltip>
+      )
+    },
+    {
       title: 'Действия',
       key: 'actions',
       width: 120,
@@ -199,6 +211,16 @@ export const RolesTab = () => {
 
           <Form.Item name="description" label="Описание">
             <Input.TextArea rows={3} />
+          </Form.Item>
+
+          <Form.Item
+            name="own_projects_only"
+            label="Только свои проекты"
+            valuePropName="checked"
+            initialValue={false}
+            help="Если включено, пользователи с этой ролью будут видеть только данные проектов, к которым они привязаны"
+          >
+            <Switch />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

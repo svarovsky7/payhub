@@ -56,6 +56,7 @@ export const InvoicesPage = () => {
     viewModalVisible,
     setViewModalVisible,
     viewingInvoice,
+    loadInvoiceData,
     handleCreateInvoice,
     handleUpdateInvoice,
     handleDeleteInvoice,
@@ -186,6 +187,7 @@ export const InvoicesPage = () => {
         loading={loadingPayments[record.id] || false}
         onEditPayment={handleEditPayment}
         onDeletePayment={handleDeletePayment}
+        onApprovalStarted={loadInvoiceData}
       />
     ),
     rowExpandable: () => true,
