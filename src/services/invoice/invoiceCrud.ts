@@ -7,7 +7,6 @@ import { processInvoiceFiles, deleteRemovedFiles } from './invoiceFiles'
 import { recalculateInvoiceStatus } from './invoiceStatus'
 
 export const loadInvoices = async (userId: string) => {
-  console.log('[InvoiceOperations.loadInvoices] Loading invoices for user:', userId)
 
   try {
     // Сначала получаем информацию о роли пользователя
@@ -45,7 +44,6 @@ export const loadInvoices = async (userId: string) => {
 
     // Если у роли включен параметр own_projects_only, фильтруем по проектам пользователя
     if (role?.own_projects_only) {
-      console.log('[InvoiceOperations.loadInvoices] Filtering by user projects')
 
       // Получаем проекты пользователя
       const { data: userProjects, error: projectsError } = await supabase
@@ -59,13 +57,11 @@ export const loadInvoices = async (userId: string) => {
       }
 
       const projectIds = userProjects?.map(up => up.project_id) || []
-      console.log('[InvoiceOperations.loadInvoices] User project IDs:', projectIds)
 
       if (projectIds.length > 0) {
         query = query.in('project_id', projectIds)
       } else {
         // Если у пользователя нет проектов и включен фильтр, возвращаем пустой массив
-        console.log('[InvoiceOperations.loadInvoices] User has no projects, returning empty list')
         return []
       }
     }
@@ -77,7 +73,6 @@ export const loadInvoices = async (userId: string) => {
       throw error
     }
 
-    console.log('[InvoiceOperations.loadInvoices] Loaded invoices:', data?.length || 0)
     return (data || []) as Invoice[]
   } catch (error) {
     console.error('[InvoiceOperations.loadInvoices] Error:', error)
@@ -86,7 +81,6 @@ export const loadInvoices = async (userId: string) => {
 }
 
 export const loadSingleInvoice = async (invoiceId: string) => {
-  console.log('[InvoiceOperations.loadSingleInvoice] Loading invoice:', invoiceId)
 
   try {
     const { data, error } = await supabase
@@ -104,7 +98,6 @@ export const loadSingleInvoice = async (invoiceId: string) => {
 
     if (error) throw error
 
-    console.log('[InvoiceOperations.loadSingleInvoice] Invoice loaded')
     return data as Invoice
   } catch (error) {
     console.error('[InvoiceOperations.loadSingleInvoice] Error:', error)
@@ -117,7 +110,6 @@ export const createInvoice = async (
   files: UploadFile[],
   userId: string
 ) => {
-  console.log('[InvoiceOperations.createInvoice] Creating invoice:', invoiceData)
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
@@ -142,7 +134,6 @@ export const createInvoice = async (
       throw error
     }
 
-    console.log('[InvoiceOperations.createInvoice] Invoice created:', data.id)
 
     // Обрабатываем файлы, если они есть
     if (files && files.length > 0) {
@@ -165,7 +156,6 @@ export const updateInvoice = async (
   userId: string,
   originalFiles?: UploadFile[]
 ) => {
-  console.log('[InvoiceOperations.updateInvoice] Updating invoice:', invoiceId, invoiceData)
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
@@ -189,7 +179,6 @@ export const updateInvoice = async (
       throw error
     }
 
-    console.log('[InvoiceOperations.updateInvoice] Invoice updated')
 
     // Если есть оригинальные файлы, проверяем на удаленные
     if (originalFiles) {
@@ -214,7 +203,6 @@ export const updateInvoice = async (
 }
 
 export const deleteInvoice = async (invoiceId: string) => {
-  console.log('[InvoiceOperations.deleteInvoice] Deleting invoice:', invoiceId)
 
   try {
     // Получаем все файлы счета
@@ -284,7 +272,6 @@ export const deleteInvoice = async (invoiceId: string) => {
       throw error
     }
 
-    console.log('[InvoiceOperations.deleteInvoice] Invoice deleted successfully')
     message.success('Счёт успешно удалён')
   } catch (error) {
     console.error('[InvoiceOperations.deleteInvoice] Error:', error)

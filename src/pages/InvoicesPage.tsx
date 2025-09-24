@@ -71,20 +71,15 @@ export const InvoicesPage = () => {
 
   // Wrap handleOpenCreateModal to ensure form reset
   const handleOpenCreateModal = useCallback(() => {
-    console.log('[InvoicesPage] Wrapped handleOpenCreateModal called')
     resetForm()  // Force reset form before opening
     originalHandleOpenCreateModal()
   }, [originalHandleOpenCreateModal, resetForm])
 
   // Populate form when editing invoice changes
   useEffect(() => {
-    console.log('[InvoicesPage] useEffect for editingInvoice triggered')
-    console.log('[InvoicesPage] editingInvoice value:', editingInvoice?.invoice_number || 'null')
     if (editingInvoice) {
-      console.log('[InvoicesPage] Calling populateForm with invoice:', editingInvoice.invoice_number)
       populateForm(editingInvoice)
     } else {
-      console.log('[InvoicesPage] Calling resetForm because editingInvoice is null')
       resetForm()
     }
   }, [editingInvoice, populateForm, resetForm])
@@ -118,7 +113,6 @@ export const InvoicesPage = () => {
   // Load payment references and summaries when component mounts
   useEffect(() => {
     if (user?.id) {
-      console.log('[InvoicesPage] Loading payment references')
       loadPaymentReferences()
     }
   }, [user, loadPaymentReferences])
@@ -126,22 +120,17 @@ export const InvoicesPage = () => {
   // Load payment summaries when invoices change
   useEffect(() => {
     if (invoices.length > 0) {
-      console.log('[InvoicesPage] Loading payment summaries for', invoices.length, 'invoices')
       loadSummaries(invoices.map(inv => inv.id))
     }
   }, [invoices, loadSummaries])
 
   // Handle view payments
   const handleViewPayments = (invoice: Invoice) => {
-    console.log('[InvoicesPage.handleViewPayments] Toggling payments view for invoice:', invoice.id)
     handleExpandRow(invoice.id)
   }
 
   // Handle invoice form submit
   const handleInvoiceFormSubmit = async (values: any, files: any, originalFiles?: any) => {
-    console.log('[InvoicesPage.handleInvoiceFormSubmit] Submitting invoice form', values)
-    console.log('[InvoicesPage.handleInvoiceFormSubmit] Files:', files)
-    console.log('[InvoicesPage.handleInvoiceFormSubmit] Original files:', originalFiles)
 
     // Add VAT calculation data to form values
     const invoiceData = {
@@ -155,7 +144,6 @@ export const InvoicesPage = () => {
       preliminary_delivery_date: preliminaryDeliveryDate
     }
 
-    console.log('[InvoicesPage.handleInvoiceFormSubmit] Invoice data with amounts:', invoiceData)
 
     if (editingInvoice) {
       await handleUpdateInvoice(editingInvoice.id, invoiceData, files, originalFiles)
@@ -184,15 +172,12 @@ export const InvoicesPage = () => {
 
   // Debug expanded rows
   useEffect(() => {
-    console.log('[InvoicesPage] Current expanded rows:', Array.from(expandedRows))
   }, [expandedRows])
 
   // Expandable configuration
   const expandable: ExpandableConfig<Invoice> = {
     expandedRowRender: (record) => {
-      console.log('[InvoicesPage] Rendering expanded row for invoice:', record.id)
       const payments = invoicePayments[record.id] || []
-      console.log('[InvoicesPage] Payments for invoice:', record.id, payments)
 
       return (
         <PaymentsExpanded
@@ -210,8 +195,6 @@ export const InvoicesPage = () => {
     rowExpandable: () => true,
     expandedRowKeys: Array.from(expandedRows),
     onExpand: (expanded, record) => {
-      console.log('[InvoicesPage] onExpand called:', expanded, record.id)
-      console.log('[InvoicesPage] Current expanded rows before:', Array.from(expandedRows))
       handleExpandRow(record.id)
     },
     expandRowByClick: true, // Включаем раскрытие по клику на строку

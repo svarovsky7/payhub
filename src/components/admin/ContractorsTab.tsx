@@ -21,7 +21,6 @@ export const ContractorsTab = () => {
   }, [])
 
   const loadContractors = async () => {
-    console.log('[ContractorsTab.loadContractors] Loading contractors')
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -31,7 +30,6 @@ export const ContractorsTab = () => {
 
       if (error) throw error
 
-      console.log('[ContractorsTab.loadContractors] Loaded contractors:', data?.length || 0)
       setContractors(data || [])
     } catch (error) {
       console.error('[ContractorsTab.loadContractors] Error:', error)
@@ -42,7 +40,6 @@ export const ContractorsTab = () => {
   }
 
   const loadContractorTypes = async () => {
-    console.log('[ContractorsTab.loadContractorTypes] Loading types')
     try {
       const { data, error } = await supabase
         .from('contractor_types')
@@ -57,21 +54,18 @@ export const ContractorsTab = () => {
   }
 
   const handleCreate = () => {
-    console.log('[ContractorsTab.handleCreate] Opening create modal')
     setEditingContractor(null)
     form.resetFields()
     setIsModalVisible(true)
   }
 
   const handleEdit = (record: Contractor) => {
-    console.log('[ContractorsTab.handleEdit] Editing contractor:', record.id)
     setEditingContractor(record)
     form.setFieldsValue(record)
     setIsModalVisible(true)
   }
 
   const handleSubmit = async (values: any) => {
-    console.log('[ContractorsTab.handleSubmit] Submitting:', values)
     try {
       // Проверяем, существует ли контрагент с таким ИНН
       if (values.inn) {
@@ -81,11 +75,9 @@ export const ContractorsTab = () => {
           .eq('inn', values.inn)
           .neq('id', editingContractor?.id || 0)
 
-        console.log('[ContractorsTab.handleSubmit] Check INN result:', { existingContractors, checkError })
 
         if (!checkError && existingContractors && existingContractors.length > 0) {
           const existingContractor = existingContractors[0]
-          console.log('[ContractorsTab.handleSubmit] INN already exists:', existingContractor)
           messageApi.error(`Контрагент с ИНН ${values.inn} уже существует: ${existingContractor.name}`, 5)
 
           // Также показываем ошибку под полем ИНН
@@ -125,7 +117,6 @@ export const ContractorsTab = () => {
   }
 
   const handleDelete = async (id: number) => {
-    console.log('[ContractorsTab.handleDelete] Deleting contractor:', id)
     modal.confirm({
       title: 'Удалить контрагента?',
       content: 'Это действие нельзя отменить',

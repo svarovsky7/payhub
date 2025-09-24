@@ -8,7 +8,6 @@ interface FileWithDescription extends UploadFile {
 }
 
 export const deleteRemovedFiles = async (originalFiles: FileWithDescription[], currentFiles: FileWithDescription[], invoiceId: string) => {
-  console.log('[InvoiceOperations.deleteRemovedFiles] Checking for removed files')
 
   const currentIds = new Set(currentFiles.map(f => f.existingAttachmentId).filter(Boolean))
   const filesToDelete = originalFiles.filter(f => f.existingAttachmentId && !currentIds.has(f.existingAttachmentId))
@@ -16,7 +15,6 @@ export const deleteRemovedFiles = async (originalFiles: FileWithDescription[], c
   for (const file of filesToDelete) {
     if (!file.existingAttachmentId) continue
 
-    console.log('[InvoiceOperations.deleteRemovedFiles] Deleting file:', file.name)
 
     try {
       // Получаем информацию о файле
@@ -63,7 +61,6 @@ export const deleteRemovedFiles = async (originalFiles: FileWithDescription[], c
         console.error('[InvoiceOperations.deleteRemovedFiles] Attachment deletion error:', deleteError)
       }
 
-      console.log('[InvoiceOperations.deleteRemovedFiles] File deleted successfully:', file.name)
     } catch (error) {
       console.error('[InvoiceOperations.deleteRemovedFiles] Error deleting file:', file.name, error)
     }
@@ -71,7 +68,6 @@ export const deleteRemovedFiles = async (originalFiles: FileWithDescription[], c
 }
 
 export const updateFileDescriptions = async (files: FileWithDescription[]) => {
-  console.log('[InvoiceOperations.updateFileDescriptions] Updating descriptions for existing files')
 
   let updatedCount = 0
   const errors: string[] = []
@@ -79,7 +75,6 @@ export const updateFileDescriptions = async (files: FileWithDescription[]) => {
   for (const file of files) {
     // Обновляем описания только для существующих файлов
     if (file.existingAttachmentId && file.description !== undefined) {
-      console.log('[InvoiceOperations.updateFileDescriptions] Updating description for:', file.name)
 
       const { error } = await supabase
         .from('attachments')
@@ -103,10 +98,8 @@ export const updateFileDescriptions = async (files: FileWithDescription[]) => {
 }
 
 export const processInvoiceFiles = async (invoiceId: string, files: FileWithDescription[], userId: string) => {
-  console.log('[InvoiceOperations.processFiles] Processing files for invoice:', invoiceId)
 
   if (!files || files.length === 0) {
-    console.log('[InvoiceOperations.processFiles] No files to process')
     return
   }
 
@@ -121,22 +114,18 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
 
   for (const file of files) {
     try {
-      console.log('[InvoiceOperations.processFiles] Processing file:', file.name)
 
       // Если это существующий файл (уже загружен ранее), пропускаем загрузку
       if (file.status === 'done' && file.existingAttachmentId) {
-        console.log('[InvoiceOperations.processFiles] Skipping existing file:', file.name)
         continue
       }
 
       // Пропускаем файлы, которые были помечены для удаления
       if ((file as any).deleted) {
-        console.log('[InvoiceOperations.processFiles] Skipping deleted file:', file.name)
         continue
       }
 
       if (!file.originFileObj) {
-        console.log('[InvoiceOperations.processFiles] No originFileObj for file:', file.name)
         continue
       }
 
@@ -155,7 +144,6 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
         continue
       }
 
-      console.log('[InvoiceOperations.processFiles] File uploaded to storage:', uploadData.path)
 
       // Создаем запись в таблице attachments
       const { data: attachment, error: attachmentError } = await supabase
@@ -197,7 +185,6 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
       }
 
       uploadedFiles.push(file.name)
-      console.log('[InvoiceOperations.processFiles] File processed successfully:', file.name)
     } catch (error) {
       console.error('[InvoiceOperations.processFiles] Unexpected error processing file:', file.name, error)
       failedFiles.push(file.name)
@@ -212,5 +199,4 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
     message.error(`Не удалось загрузить файлов: ${failedFiles.length}`)
   }
 
-  console.log('[InvoiceOperations.processFiles] Processing complete. Uploaded:', uploadedFiles.length, 'Failed:', failedFiles.length)
 }

@@ -46,7 +46,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
 
   useEffect(() => {
     if (payment && visible) {
-      console.log('[PaymentEditModal] Setting form values for payment:', payment.id)
       form.setFieldsValue({
         payment_date: payment.payment_date ? dayjs(payment.payment_date) : dayjs(),
         amount: payment.amount,
@@ -58,7 +57,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
 
   const loadExistingFiles = async (paymentId: string) => {
     try {
-      console.log('[PaymentEditModal] Loading existing files for payment:', paymentId)
 
       const { data: attachments, error } = await supabase
         .from('payment_attachments')
@@ -87,7 +85,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           url: ''  // We'll use signed URLs for actual preview/download
         }))
 
-        console.log('[PaymentEditModal] Loaded existing files:', files.length)
         setExistingFiles(files as UploadFile[])
       }
     } catch (error) {
@@ -99,8 +96,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
-      console.log('[PaymentEditModal] Submitting payment update:', values)
-      console.log('[PaymentEditModal] Files to upload:', fileList.length)
 
       if (!payment) return
 
@@ -128,7 +123,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   }
 
   const handleRemoveExistingFile = async (file: UploadFile) => {
-    console.log('[PaymentEditModal] Removing existing file:', file.name)
 
     // Remove from existing files list immediately for UI responsiveness
     setExistingFiles(prev => prev.filter(f => f.uid !== file.uid))
@@ -149,7 +143,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   }
 
   const handlePreview = async (file: UploadFile) => {
-    console.log('[PaymentEditModal] Previewing file:', file.name)
 
     try {
       const fileExt = file.name.split('.').pop()?.toLowerCase()
@@ -194,14 +187,12 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
 
   const uploadProps = {
     beforeUpload: (file: any) => {
-      console.log('[PaymentEditModal] Adding file to list:', file.name)
       setFileList(prev => [...prev, file])
       // Инициализируем пустое описание для нового файла
       setFileDescriptions(prev => ({ ...prev, [file.uid]: '' }))
       return false // Prevent auto upload
     },
     onRemove: (file: UploadFile) => {
-      console.log('[PaymentEditModal] Removing file from list:', file.name)
       setFileList(prev => prev.filter(f => f.uid !== file.uid))
       // Удаляем описание для удаленного файла
       setFileDescriptions(prev => {

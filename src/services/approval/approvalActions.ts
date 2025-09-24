@@ -6,7 +6,6 @@ export const approvePayment = async (
   userId: string,
   comment?: string
 ) => {
-  console.log('[ApprovalOperations.approvePayment] Approving:', approvalId)
 
   try {
     // Получаем информацию о процессе согласования
@@ -123,7 +122,6 @@ export const approvePayment = async (
         .single()
 
       if (payment?.invoice_id) {
-        console.log('[ApprovalOperations.approvePayment] Recalculating invoice status for:', payment.invoice_id)
         const { recalculateInvoiceStatus } = await import('../invoiceOperations')
         await recalculateInvoiceStatus(payment.invoice_id)
       }
@@ -131,7 +129,6 @@ export const approvePayment = async (
       message.success('Платёж полностью согласован')
     }
 
-    console.log('[ApprovalOperations.approvePayment] Approved successfully')
     return true
   } catch (error) {
     console.error('[ApprovalOperations.approvePayment] Error:', error)
@@ -145,7 +142,6 @@ export const rejectPayment = async (
   userId: string,
   comment: string
 ) => {
-  console.log('[ApprovalOperations.rejectPayment] Rejecting:', approvalId)
 
   if (!comment) {
     message.error('Укажите причину отклонения')
@@ -239,13 +235,11 @@ export const rejectPayment = async (
       .single()
 
     if (payment?.invoice_id) {
-      console.log('[ApprovalOperations.rejectPayment] Recalculating invoice status for:', payment.invoice_id)
       const { recalculateInvoiceStatus } = await import('../invoiceOperations')
       await recalculateInvoiceStatus(payment.invoice_id)
     }
 
     message.success('Платёж отклонён')
-    console.log('[ApprovalOperations.rejectPayment] Rejected successfully')
     return true
   } catch (error) {
     console.error('[ApprovalOperations.rejectPayment] Error:', error)

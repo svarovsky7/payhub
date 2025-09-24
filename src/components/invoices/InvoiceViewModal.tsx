@@ -41,7 +41,6 @@ export const InvoiceViewModal: React.FC<InvoiceViewModalProps> = ({
     if (!invoice?.id) return
 
     setLoadingAttachments(true)
-    console.log('[InvoiceViewModal] Loading attachments for invoice:', invoice.id)
 
     try {
       const files = await loadInvoiceAttachments(invoice.id)

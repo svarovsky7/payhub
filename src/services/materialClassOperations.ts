@@ -12,7 +12,6 @@ export interface MaterialClass {
 
 // Load all material classes
 export const loadMaterialClasses = async () => {
-  console.log('[MaterialClassOperations.loadMaterialClasses] Loading material classes')
 
   try {
     const { data, error } = await supabase
@@ -22,7 +21,6 @@ export const loadMaterialClasses = async () => {
 
     if (error) throw error
 
-    console.log('[MaterialClassOperations.loadMaterialClasses] Loaded material classes:', data?.length)
     return data || []
   } catch (error) {
     console.error('[MaterialClassOperations.loadMaterialClasses] Error:', error)
@@ -33,7 +31,6 @@ export const loadMaterialClasses = async () => {
 
 // Create material class
 export const createMaterialClass = async (materialClass: Partial<MaterialClass>) => {
-  console.log('[MaterialClassOperations.createMaterialClass] Creating material class:', materialClass)
 
   try {
     const { data, error } = await supabase
@@ -69,7 +66,6 @@ export const createMaterialClass = async (materialClass: Partial<MaterialClass>)
 
 // Update material class
 export const updateMaterialClass = async (id: number, materialClass: Partial<MaterialClass>) => {
-  console.log('[MaterialClassOperations.updateMaterialClass] Updating material class:', id, materialClass)
 
   try {
     const { data, error } = await supabase
@@ -106,7 +102,6 @@ export const updateMaterialClass = async (id: number, materialClass: Partial<Mat
 
 // Delete material class
 export const deleteMaterialClass = async (id: number) => {
-  console.log('[MaterialClassOperations.deleteMaterialClass] Deleting material class:', id)
 
   try {
     const { error } = await supabase
@@ -126,7 +121,6 @@ export const deleteMaterialClass = async (id: number) => {
 
 // Toggle material class active status
 export const toggleMaterialClassActive = async (id: number, is_active: boolean) => {
-  console.log('[MaterialClassOperations.toggleMaterialClassActive] Toggling active status:', id, is_active)
 
   try {
     const { data, error } = await supabase

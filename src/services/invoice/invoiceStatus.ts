@@ -3,7 +3,6 @@ import { message } from 'antd'
 import { calculateInvoiceStatus, shouldUpdateInvoiceStatus } from '../../utils/invoiceStatusCalculator'
 
 export const recalculateInvoiceStatus = async (invoiceId: string) => {
-  console.log('[InvoiceOperations.recalculateInvoiceStatus] Recalculating status for invoice:', invoiceId)
 
   try {
     // Получаем счет с платежами
@@ -38,7 +37,6 @@ export const recalculateInvoiceStatus = async (invoiceId: string) => {
 
     // Проверяем, нужно ли обновлять статус
     if (shouldUpdateInvoiceStatus(invoice.status_id, newStatusId)) {
-      console.log('[InvoiceOperations.recalculateInvoiceStatus] Updating status from', invoice.status_id, 'to', newStatusId)
 
       const { error: updateError } = await supabase
         .from('invoices')
@@ -50,7 +48,6 @@ export const recalculateInvoiceStatus = async (invoiceId: string) => {
       return true
     }
 
-    console.log('[InvoiceOperations.recalculateInvoiceStatus] Status unchanged:', invoice.status_id)
     return false
   } catch (error) {
     console.error('[InvoiceOperations.recalculateInvoiceStatus] Error:', error)
@@ -59,7 +56,6 @@ export const recalculateInvoiceStatus = async (invoiceId: string) => {
 }
 
 export const recalculateAllInvoiceStatuses = async () => {
-  console.log('[InvoiceOperations.recalculateAllInvoiceStatuses] Starting bulk recalculation')
 
   try {
     // Получаем все счета с платежами
@@ -110,7 +106,6 @@ export const recalculateAllInvoiceStatuses = async () => {
       }
     }
 
-    console.log('[InvoiceOperations.recalculateAllInvoiceStatuses] Completed:', updated, 'updated,', failed, 'failed')
     return { updated, failed }
   } catch (error) {
     console.error('[InvoiceOperations.recalculateAllInvoiceStatuses] Fatal error:', error)

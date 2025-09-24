@@ -35,7 +35,6 @@ export const useInvoiceForm = () => {
 
   // Reset form for new invoice
   const resetForm = useCallback(() => {
-    console.log('[useInvoiceForm.resetForm] Resetting form and state')
     form.resetFields()
     setAmountWithVat(0)
     setVatRate(20)
@@ -45,12 +44,10 @@ export const useInvoiceForm = () => {
     setDeliveryDaysType('calendar')
     setInvoiceDate(dayjs())
     setPreliminaryDeliveryDate(null)
-    console.log('[useInvoiceForm.resetForm] Form reset complete')
   }, [form])
 
   // Populate form for editing
   const populateForm = useCallback((invoice: Invoice) => {
-    console.log('[useInvoiceForm.populateForm] Populating form with invoice:', invoice.invoice_number)
     form.setFieldsValue({
       invoice_number: invoice.invoice_number,
       invoice_date: invoice.invoice_date ? dayjs(invoice.invoice_date) : dayjs(),
@@ -69,7 +66,6 @@ export const useInvoiceForm = () => {
     setDeliveryDaysType(invoice.delivery_days_type || 'calendar')
     setInvoiceDate(invoice.invoice_date ? dayjs(invoice.invoice_date) : dayjs())
     setPreliminaryDeliveryDate(invoice.preliminary_delivery_date ? dayjs(invoice.preliminary_delivery_date) : null)
-    console.log('[useInvoiceForm.populateForm] Form populated with amount:', invoice.amount_with_vat)
   }, [form])
 
   return {

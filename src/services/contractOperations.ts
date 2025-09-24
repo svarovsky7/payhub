@@ -3,7 +3,6 @@ import { message } from 'antd'
 
 // Load contractors for select lists
 export const loadContractors = async () => {
-  console.log('[ContractOperations.loadContractors] Loading contractors')
 
   try {
     const { data, error } = await supabase
@@ -13,7 +12,6 @@ export const loadContractors = async () => {
 
     if (error) throw error
 
-    console.log('[ContractOperations.loadContractors] Loaded contractors:', data?.length)
     return data || []
   } catch (error) {
     console.error('[ContractOperations.loadContractors] Error:', error)
@@ -56,7 +54,6 @@ export interface ContractAttachment {
 
 // Load contracts with related data
 export const loadContracts = async () => {
-  console.log('[ContractOperations.loadContracts] Loading contracts')
 
   try {
     const { data, error } = await supabase
@@ -78,7 +75,6 @@ export const loadContracts = async () => {
 
     if (error) throw error
 
-    console.log('[ContractOperations.loadContracts] Loaded contracts:', data?.length)
     return data || []
   } catch (error) {
     console.error('[ContractOperations.loadContracts] Error:', error)
@@ -89,7 +85,6 @@ export const loadContracts = async () => {
 
 // Create contract
 export const createContract = async (contract: Partial<Contract>, userId: string) => {
-  console.log('[ContractOperations.createContract] Creating contract:', contract)
 
   try {
     const { data, error } = await supabase
@@ -122,7 +117,6 @@ export const createContract = async (contract: Partial<Contract>, userId: string
 
 // Update contract
 export const updateContract = async (id: string, contract: Partial<Contract>) => {
-  console.log('[ContractOperations.updateContract] Updating contract:', id)
 
   try {
     const { data, error } = await supabase
@@ -153,7 +147,6 @@ export const updateContract = async (id: string, contract: Partial<Contract>) =>
 
 // Delete contract
 export const deleteContract = async (id: string) => {
-  console.log('[ContractOperations.deleteContract] Deleting contract:', id)
 
   try {
     const { error } = await supabase
@@ -173,7 +166,6 @@ export const deleteContract = async (id: string) => {
 
 // Add invoice to contract
 export const addInvoiceToContract = async (contractId: string, invoiceId: string) => {
-  console.log('[ContractOperations.addInvoiceToContract] Adding invoice to contract:', contractId, invoiceId)
 
   try {
     const { data, error } = await supabase
@@ -202,7 +194,6 @@ export const addInvoiceToContract = async (contractId: string, invoiceId: string
 
 // Remove invoice from contract
 export const removeInvoiceFromContract = async (contractId: string, invoiceId: string) => {
-  console.log('[ContractOperations.removeInvoiceFromContract] Removing invoice from contract:', contractId, invoiceId)
 
   try {
     const { error } = await supabase
@@ -223,7 +214,6 @@ export const removeInvoiceFromContract = async (contractId: string, invoiceId: s
 
 // Add attachment to contract
 export const addAttachmentToContract = async (contractId: string, attachmentId: string) => {
-  console.log('[ContractOperations.addAttachmentToContract] Adding attachment to contract:', contractId, attachmentId)
 
   try {
     const { data, error } = await supabase
@@ -252,7 +242,6 @@ export const addAttachmentToContract = async (contractId: string, attachmentId: 
 
 // Remove attachment from contract
 export const removeAttachmentFromContract = async (contractId: string, attachmentId: string) => {
-  console.log('[ContractOperations.removeAttachmentFromContract] Removing attachment from contract:', contractId, attachmentId)
 
   try {
     const { error } = await supabase
@@ -273,7 +262,6 @@ export const removeAttachmentFromContract = async (contractId: string, attachmen
 
 // Upload file to storage and create attachment record
 export const uploadContractFile = async (file: File, contractId: string, userId: string) => {
-  console.log('[ContractOperations.uploadContractFile] Uploading file:', file.name, 'for contract:', contractId)
 
   try {
     // Generate unique file name
@@ -337,7 +325,6 @@ export const getFileUrl = (storagePath: string) => {
 
 // Delete attachment completely (from storage and database)
 export const deleteAttachment = async (attachmentId: string, storagePath: string) => {
-  console.log('[ContractOperations.deleteAttachment] Deleting attachment:', attachmentId)
 
   try {
     // Delete from storage
@@ -365,7 +352,6 @@ export const deleteAttachment = async (attachmentId: string, storagePath: string
 
 // Load attachments for contract
 export const loadContractAttachments = async (contractId: string) => {
-  console.log('[ContractOperations.loadContractAttachments] Loading attachments for contract:', contractId)
 
   try {
     const { data, error } = await supabase
@@ -378,7 +364,6 @@ export const loadContractAttachments = async (contractId: string) => {
 
     if (error) throw error
 
-    console.log('[ContractOperations.loadContractAttachments] Loaded attachments:', data?.length)
     return data || []
   } catch (error) {
     console.error('[ContractOperations.loadContractAttachments] Error:', error)
@@ -389,7 +374,6 @@ export const loadContractAttachments = async (contractId: string) => {
 
 // Load available invoices (not linked to any contract)
 export const loadAvailableInvoices = async () => {
-  console.log('[ContractOperations.loadAvailableInvoices] Loading available invoices')
 
   try {
     // First get all invoice IDs that are already linked to contracts
@@ -419,7 +403,6 @@ export const loadAvailableInvoices = async () => {
 
     if (error) throw error
 
-    console.log('[ContractOperations.loadAvailableInvoices] Loaded available invoices:', data?.length)
     return data || []
   } catch (error) {
     console.error('[ContractOperations.loadAvailableInvoices] Error:', error)

@@ -77,7 +77,6 @@ export const ApprovalsPage = () => {
     if (!selectedApproval) return
 
     setProcessing(true)
-    console.log('[ApprovalsPage.submitApproval] Approving:', selectedApproval.id)
 
     try {
       const success = await handleApprove(selectedApproval.id, comment || undefined)
@@ -102,7 +101,6 @@ export const ApprovalsPage = () => {
     }
 
     setProcessing(true)
-    console.log('[ApprovalsPage.submitRejection] Rejecting:', selectedApproval.id)
 
     try {
       const success = await handleReject(selectedApproval.id, comment)

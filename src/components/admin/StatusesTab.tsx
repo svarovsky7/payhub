@@ -28,7 +28,6 @@ export const StatusesTab = () => {
 
   // Функции для статусов счетов
   const loadInvoiceStatuses = async () => {
-    console.log('[StatusesTab.loadInvoiceStatuses] Loading invoice statuses')
     setLoadingInvoice(true)
     try {
       const { data, error } = await supabase
@@ -39,7 +38,6 @@ export const StatusesTab = () => {
 
       if (error) throw error
 
-      console.log('[StatusesTab.loadInvoiceStatuses] Loaded statuses:', data?.length || 0)
       setInvoiceStatuses(data || [])
     } catch (error) {
       console.error('[StatusesTab.loadInvoiceStatuses] Error:', error)
@@ -50,7 +48,6 @@ export const StatusesTab = () => {
   }
 
   const handleCreateInvoice = () => {
-    console.log('[StatusesTab.handleCreateInvoice] Opening create modal')
     setEditingInvoiceStatus(null)
     invoiceForm.resetFields()
     invoiceForm.setFieldsValue({ sort_order: 100 })
@@ -58,14 +55,12 @@ export const StatusesTab = () => {
   }
 
   const handleEditInvoice = (record: InvoiceStatus) => {
-    console.log('[StatusesTab.handleEditInvoice] Editing status:', record.id)
     setEditingInvoiceStatus(record)
     invoiceForm.setFieldsValue(record)
     setIsInvoiceModalVisible(true)
   }
 
   const handleSubmitInvoice = async (values: any) => {
-    console.log('[StatusesTab.handleSubmitInvoice] Submitting:', values)
     try {
       if (editingInvoiceStatus) {
         const { error } = await supabase
@@ -97,7 +92,6 @@ export const StatusesTab = () => {
   }
 
   const handleDeleteInvoice = async (id: number) => {
-    console.log('[StatusesTab.handleDeleteInvoice] Deleting status:', id)
     modal.confirm({
       title: 'Удалить статус счёта?',
       content: 'Это действие нельзя отменить. Все счета с этим статусом останутся без статуса.',
@@ -128,7 +122,6 @@ export const StatusesTab = () => {
 
   // Функции для статусов платежей
   const loadPaymentStatuses = async () => {
-    console.log('[StatusesTab.loadPaymentStatuses] Loading payment statuses')
     setLoadingPayment(true)
     try {
       const { data, error } = await supabase
@@ -139,7 +132,6 @@ export const StatusesTab = () => {
 
       if (error) throw error
 
-      console.log('[StatusesTab.loadPaymentStatuses] Loaded statuses:', data?.length || 0)
       setPaymentStatuses(data || [])
     } catch (error) {
       console.error('[StatusesTab.loadPaymentStatuses] Error:', error)
@@ -150,7 +142,6 @@ export const StatusesTab = () => {
   }
 
   const handleCreatePayment = () => {
-    console.log('[StatusesTab.handleCreatePayment] Opening create modal')
     setEditingPaymentStatus(null)
     paymentForm.resetFields()
     paymentForm.setFieldsValue({ sort_order: 100 })
@@ -158,14 +149,12 @@ export const StatusesTab = () => {
   }
 
   const handleEditPayment = (record: PaymentStatus) => {
-    console.log('[StatusesTab.handleEditPayment] Editing status:', record.id)
     setEditingPaymentStatus(record)
     paymentForm.setFieldsValue(record)
     setIsPaymentModalVisible(true)
   }
 
   const handleSubmitPayment = async (values: any) => {
-    console.log('[StatusesTab.handleSubmitPayment] Submitting:', values)
     try {
       if (editingPaymentStatus) {
         const { error } = await supabase
@@ -197,7 +186,6 @@ export const StatusesTab = () => {
   }
 
   const handleDeletePayment = async (id: number) => {
-    console.log('[StatusesTab.handleDeletePayment] Deleting status:', id)
     modal.confirm({
       title: 'Удалить статус платежа?',
       content: 'Это действие нельзя отменить. Все платежи с этим статусом останутся без статуса.',

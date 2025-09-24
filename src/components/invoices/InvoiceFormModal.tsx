@@ -91,7 +91,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     if (!editingInvoice?.id) return
 
     setLoadingFiles(true)
-    console.log('[InvoiceFormModal.loadExistingFiles] Loading files for invoice:', editingInvoice.id)
 
     try {
       const attachments = await loadInvoiceAttachments(editingInvoice.id)
@@ -122,7 +121,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       setFileDescriptions(descriptions)
       setOriginalFiles(existingFiles) // Сохраняем оригинальный список файлов
 
-      console.log('[InvoiceFormModal.loadExistingFiles] Loaded files:', existingFiles.length)
     } catch (error) {
       console.error('[InvoiceFormModal.loadExistingFiles] Error loading files:', error)
       message.error('Ошибка загрузки существующих файлов')

@@ -65,7 +65,9 @@
       "Bash(node:*)",
       "Bash(npm ls:*)",
       "Bash(findstr:*)",
-      "Read(//c/**)"
+      "Read(//c/**)",
+      "Bash(do sed -i '/console\\.log/d' \"$file\")",
+      "Bash(echo \"Cleaned: $file\")"
     ]
   },
   "enableAllProjectMcpServers": true,

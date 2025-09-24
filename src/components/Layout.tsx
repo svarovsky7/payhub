@@ -53,7 +53,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         if (rolesError) throw rolesError
         setRoles(rolesData || [])
 
-        console.log('[Layout] Loaded roles')
       } catch (error) {
         console.error('[Layout] Error loading roles:', error)
       }
@@ -66,7 +65,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const handleRoleChange = async (roleId: number | null) => {
     if (!user?.id) return
 
-    console.log('[Layout.handleRoleChange] Changing role to:', roleId)
     setChangingRole(true)
 
     try {
@@ -93,7 +91,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   const handleLogout = async () => {
-    console.log('[MainLayout.handleLogout] Logging out')
     try {
       await signOut()
       navigate('/login')
@@ -165,7 +162,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           items={menuItems}
           onClick={({ key }) => {
             if (key === 'logout') return
-            console.log('[MainLayout.Menu] Navigating to:', key)
             navigate(key)
           }}
         />

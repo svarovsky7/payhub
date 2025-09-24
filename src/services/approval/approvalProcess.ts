@@ -34,13 +34,11 @@ export const startApprovalProcess = async (
   invoiceTypeId: number,
   userId: string
 ) => {
-  console.log('[ApprovalOperations.startApprovalProcess] Starting approval for payment:', paymentId)
 
   try {
     // Проверяем, есть ли маршрут согласования для данного типа счёта
     const route = await checkApprovalRoute(invoiceTypeId)
     if (!route) {
-      console.log('[ApprovalOperations.startApprovalProcess] No approval route found, skipping')
       message.info('Для данного типа счёта маршрут согласования не настроен')
       return null
     }
@@ -118,13 +116,11 @@ export const startApprovalProcess = async (
       .single()
 
     if (payment?.invoice_id) {
-      console.log('[ApprovalOperations.startApprovalProcess] Recalculating invoice status for:', payment.invoice_id)
       const { recalculateInvoiceStatus } = await import('../invoiceOperations')
       await recalculateInvoiceStatus(payment.invoice_id)
     }
 
     message.success('Платёж отправлен на согласование')
-    console.log('[ApprovalOperations.startApprovalProcess] Approval process started:', approval.id)
 
     return approval
   } catch (error) {

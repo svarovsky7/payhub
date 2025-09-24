@@ -37,7 +37,6 @@ export interface Employee {
 
 // Departments CRUD
 export const loadDepartments = async () => {
-  console.log('[EmployeeOperations.loadDepartments] Loading departments')
 
   try {
     const { data, error } = await supabase
@@ -47,7 +46,6 @@ export const loadDepartments = async () => {
 
     if (error) throw error
 
-    console.log('[EmployeeOperations.loadDepartments] Loaded departments:', data?.length)
     return data || []
   } catch (error) {
     console.error('[EmployeeOperations.loadDepartments] Error:', error)
@@ -57,7 +55,6 @@ export const loadDepartments = async () => {
 }
 
 export const createDepartment = async (name: string, description?: string) => {
-  console.log('[EmployeeOperations.createDepartment] Creating department:', name)
 
   try {
     const { data, error } = await supabase
@@ -82,7 +79,6 @@ export const createDepartment = async (name: string, description?: string) => {
 }
 
 export const updateDepartment = async (id: number, name: string, description?: string) => {
-  console.log('[EmployeeOperations.updateDepartment] Updating department:', id)
 
   try {
     const { data, error } = await supabase
@@ -108,7 +104,6 @@ export const updateDepartment = async (id: number, name: string, description?: s
 }
 
 export const deleteDepartment = async (id: number) => {
-  console.log('[EmployeeOperations.deleteDepartment] Deleting department:', id)
 
   try {
     const { error } = await supabase
@@ -128,7 +123,6 @@ export const deleteDepartment = async (id: number) => {
 
 // Positions CRUD
 export const loadPositions = async () => {
-  console.log('[EmployeeOperations.loadPositions] Loading positions')
 
   try {
     const { data, error } = await supabase
@@ -138,7 +132,6 @@ export const loadPositions = async () => {
 
     if (error) throw error
 
-    console.log('[EmployeeOperations.loadPositions] Loaded positions:', data?.length)
     return data || []
   } catch (error) {
     console.error('[EmployeeOperations.loadPositions] Error:', error)
@@ -148,7 +141,6 @@ export const loadPositions = async () => {
 }
 
 export const createPosition = async (name: string, description?: string) => {
-  console.log('[EmployeeOperations.createPosition] Creating position:', name)
 
   try {
     const { data, error } = await supabase
@@ -173,7 +165,6 @@ export const createPosition = async (name: string, description?: string) => {
 }
 
 export const updatePosition = async (id: number, name: string, description?: string) => {
-  console.log('[EmployeeOperations.updatePosition] Updating position:', id)
 
   try {
     const { data, error } = await supabase
@@ -199,7 +190,6 @@ export const updatePosition = async (id: number, name: string, description?: str
 }
 
 export const deletePosition = async (id: number) => {
-  console.log('[EmployeeOperations.deletePosition] Deleting position:', id)
 
   try {
     const { error } = await supabase
@@ -219,7 +209,6 @@ export const deletePosition = async (id: number) => {
 
 // Employees CRUD
 export const loadEmployees = async () => {
-  console.log('[EmployeeOperations.loadEmployees] Loading employees')
 
   try {
     const { data, error } = await supabase
@@ -233,7 +222,6 @@ export const loadEmployees = async () => {
 
     if (error) throw error
 
-    console.log('[EmployeeOperations.loadEmployees] Loaded employees:', data?.length)
     return data || []
   } catch (error) {
     console.error('[EmployeeOperations.loadEmployees] Error:', error)
@@ -243,7 +231,6 @@ export const loadEmployees = async () => {
 }
 
 export const createEmployee = async (employee: Partial<Employee>, userId: string) => {
-  console.log('[EmployeeOperations.createEmployee] Creating employee:', employee)
 
   try {
     const { data, error } = await supabase
@@ -275,7 +262,6 @@ export const createEmployee = async (employee: Partial<Employee>, userId: string
 }
 
 export const updateEmployee = async (id: number, employee: Partial<Employee>) => {
-  console.log('[EmployeeOperations.updateEmployee] Updating employee:', id)
 
   try {
     const { data, error } = await supabase
@@ -305,7 +291,6 @@ export const updateEmployee = async (id: number, employee: Partial<Employee>) =>
 }
 
 export const deleteEmployee = async (id: number) => {
-  console.log('[EmployeeOperations.deleteEmployee] Deleting employee:', id)
 
   try {
     const { error } = await supabase
@@ -325,7 +310,6 @@ export const deleteEmployee = async (id: number) => {
 
 // Helper function to toggle employee active status
 export const toggleEmployeeStatus = async (id: number, is_active: boolean) => {
-  console.log('[EmployeeOperations.toggleEmployeeStatus] Toggling employee status:', id, is_active)
 
   try {
     const { data, error } = await supabase

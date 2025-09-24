@@ -69,7 +69,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
 
   // Handle quick payment
   const handleQuickPayment = useCallback((invoice: Invoice) => {
-    console.log('[usePaymentManagement.handleQuickPayment] Opening for invoice:', invoice.id)
     setSelectedInvoiceForPayment(invoice)
     setQuickPaymentDrawerOpen(true)
   }, [])
@@ -104,7 +103,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
       setQuickPaymentDrawerOpen(false)
       setSelectedInvoiceForPayment(null)
 
-      console.log('[usePaymentManagement.handleQuickPaymentSubmit] Payment added successfully')
     } catch (error: any) {
       console.error('[usePaymentManagement.handleQuickPaymentSubmit] Error:', error)
       message.error(error.message || 'Ошибка создания платежа')
@@ -113,7 +111,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
 
   // Handle edit payment
   const handleEditPayment = useCallback((payment: Payment) => {
-    console.log('[usePaymentManagement.handleEditPayment] Editing payment:', payment.id)
     setEditingPayment(payment)
     setEditPaymentModalVisible(true)
   }, [])
@@ -136,7 +133,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
         }
       }
 
-      console.log('[usePaymentManagement.handleSavePayment] Found invoice ID:', paymentInvoiceId)
 
       // Update payment
       await updatePayment(paymentId, values, files)
@@ -163,7 +159,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
       // Force state update
       setInvoicePayments(prev => ({ ...prev }))
 
-      console.log('[usePaymentManagement.handleSavePayment] Payment updated successfully')
     } catch (error: any) {
       console.error('[usePaymentManagement.handleSavePayment] Error:', error)
       message.error(error.message || 'Ошибка обновления платежа')
@@ -172,7 +167,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
 
   // Handle delete payment
   const handleDeletePayment = useCallback((paymentId: string) => {
-    console.log('[usePaymentManagement.handleDeletePayment] Deleting payment:', paymentId)
 
     modal.confirm({
       title: 'Удалить платеж?',
@@ -199,7 +193,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
           // Force state update
           setInvoicePayments(prev => ({ ...prev }))
 
-          console.log('[usePaymentManagement.handleDeletePayment] Payment deleted successfully')
         } catch (error: any) {
           console.error('[usePaymentManagement.handleDeletePayment] Error:', error)
           message.error(error.message || 'Ошибка удаления платежа')
@@ -210,7 +203,6 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
 
   // Handle expand row
   const handleExpandRow = useCallback((invoiceId: string) => {
-    console.log('[usePaymentManagement.handleExpandRow] Toggling row:', invoiceId)
 
     setExpandedRows(prev => {
       const newSet = new Set(prev)

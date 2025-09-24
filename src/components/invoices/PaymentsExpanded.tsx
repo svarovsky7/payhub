@@ -70,7 +70,6 @@ export const PaymentsExpanded = memo(({
       return
     }
 
-    console.log('[PaymentsExpanded.handleSendToApproval] Sending payment to approval:', payment.id)
     setLoadingApproval(payment.id)
 
     try {

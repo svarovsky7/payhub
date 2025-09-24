@@ -40,12 +40,10 @@ export const useInvoiceManagement = () => {
 
   // Log editingInvoice changes
   useEffect(() => {
-    console.log('[useInvoiceManagement] editingInvoice changed to:', editingInvoice?.invoice_number || 'null')
   }, [editingInvoice])
 
   // Load reference data
   const loadReferenceData = useCallback(async () => {
-    console.log('[useInvoiceManagement.loadReferenceData] Loading reference data')
     const refs = await loadReferences()
     const emps = await loadEmployees()
     setPayers(refs.payers)
@@ -60,12 +58,10 @@ export const useInvoiceManagement = () => {
   const loadInvoiceData = useCallback(async () => {
     if (!user?.id) return
 
-    console.log('[useInvoiceManagement.loadInvoiceData] Loading invoices')
     setLoading(true)
 
     try {
       // Пересчитываем статусы всех счетов перед загрузкой
-      console.log('[useInvoiceManagement.loadInvoiceData] Recalculating all invoice statuses')
       await recalculateAllInvoiceStatuses()
 
       const data = await loadInvoices(user.id)
@@ -90,7 +86,6 @@ export const useInvoiceManagement = () => {
   ) => {
     if (!user?.id) return
 
-    console.log('[useInvoiceManagement.handleCreateInvoice] Creating invoice:', values)
 
     try {
       const invoiceData = {
@@ -110,19 +105,16 @@ export const useInvoiceManagement = () => {
       await createInvoice(invoiceData, files, user.id)
 
       message.success('Счёт создан успешно')
-      console.log('[useInvoiceManagement.handleCreateInvoice] Before resetting state')
 
       // First set editingInvoice to null to trigger form reset
       setEditingInvoice(null)
       // Then close modal
       setInvoiceModalVisible(false)
 
-      console.log('[useInvoiceManagement.handleCreateInvoice] After resetting state')
 
       // Load data after state reset
       await loadInvoiceData()
 
-      console.log('[useInvoiceManagement.handleCreateInvoice] Invoice created successfully')
     } catch (error: any) {
       console.error('[useInvoiceManagement.handleCreateInvoice] Error:', error)
       message.error(error.message || 'Ошибка создания счёта')
@@ -138,7 +130,6 @@ export const useInvoiceManagement = () => {
   ) => {
     if (!user?.id) return
 
-    console.log('[useInvoiceManagement.handleUpdateInvoice] Updating invoice:', invoiceId)
 
     try {
       const invoiceData = {
@@ -161,7 +152,6 @@ export const useInvoiceManagement = () => {
       setEditingInvoice(null)
       await loadInvoiceData()
 
-      console.log('[useInvoiceManagement.handleUpdateInvoice] Invoice updated successfully')
     } catch (error: any) {
       console.error('[useInvoiceManagement.handleUpdateInvoice] Error:', error)
       message.error(error.message || 'Ошибка обновления счёта')
@@ -170,7 +160,6 @@ export const useInvoiceManagement = () => {
 
   // Delete invoice
   const handleDeleteInvoice = useCallback((invoiceId: string) => {
-    console.log('[useInvoiceManagement.handleDeleteInvoice] Deleting invoice:', invoiceId)
 
     modal.confirm({
       title: 'Удалить счёт?',
@@ -184,7 +173,6 @@ export const useInvoiceManagement = () => {
           message.success('Счёт и все связанные данные удалены')
           await loadInvoiceData()
 
-          console.log('[useInvoiceManagement.handleDeleteInvoice] Invoice deleted successfully')
         } catch (error: any) {
           console.error('[useInvoiceManagement.handleDeleteInvoice] Error:', error)
           message.error(error.message || 'Ошибка удаления счёта')
@@ -195,23 +183,18 @@ export const useInvoiceManagement = () => {
 
   // Open create invoice modal
   const handleOpenCreateModal = useCallback(() => {
-    console.log('[useInvoiceManagement.handleOpenCreateModal] Opening create modal')
-    console.log('[useInvoiceManagement.handleOpenCreateModal] Setting editingInvoice to null')
     setEditingInvoice(null)
     setInvoiceModalVisible(true)
-    console.log('[useInvoiceManagement.handleOpenCreateModal] Modal visible set to true')
   }, [])
 
   // Open edit invoice modal
   const handleOpenEditModal = useCallback((invoice: Invoice) => {
-    console.log('[useInvoiceManagement.handleOpenEditModal] Opening edit modal for invoice:', invoice.id)
     setEditingInvoice(invoice)
     setInvoiceModalVisible(true)
   }, [])
 
   // View invoice
   const handleViewInvoice = useCallback(async (invoice: Invoice) => {
-    console.log('[useInvoiceManagement.handleViewInvoice] Viewing invoice:', invoice.id)
 
     const fullInvoice = await loadSingleInvoice(invoice.id)
     if (fullInvoice) {

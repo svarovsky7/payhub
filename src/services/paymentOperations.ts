@@ -7,7 +7,6 @@ import { parseAmount } from '../utils/invoiceHelpers'
 import { recalculateInvoiceStatus } from './invoiceOperations'
 
 export const loadPaymentReferences = async () => {
-  console.log('[PaymentOperations.loadPaymentReferences] Loading payment references')
 
   try {
     const [typesResponse, statusesResponse] = await Promise.all([
@@ -33,7 +32,6 @@ export const loadPaymentReferences = async () => {
 }
 
 export const loadPaymentSummaries = async (invoiceIds: string[]) => {
-  console.log('[PaymentOperations.loadPaymentSummaries] Loading payment summaries for invoices:', invoiceIds.length)
 
   try {
     const { data: payments, error } = await supabase
@@ -76,7 +74,6 @@ export const loadPaymentSummaries = async (invoiceIds: string[]) => {
       })
     }
 
-    console.log('[PaymentOperations.loadPaymentSummaries] Loaded payments for', Object.keys(paymentsByInvoice).length, 'invoices')
     return paymentsByInvoice
   } catch (error) {
     console.error('[PaymentOperations.loadPaymentSummaries] Error:', error)
@@ -85,7 +82,6 @@ export const loadPaymentSummaries = async (invoiceIds: string[]) => {
 }
 
 export const loadInvoicePayments = async (invoiceId: string) => {
-  console.log('[PaymentOperations.loadInvoicePayments] Loading payments for invoice:', invoiceId)
 
   try {
     const { data, error } = await supabase
@@ -117,7 +113,6 @@ export const loadInvoicePayments = async (invoiceId: string) => {
       payment_status: item.payments?.payment_statuses
     })) || []
 
-    console.log('[PaymentOperations.loadInvoicePayments] Loaded payments:', payments.length)
     return payments
   } catch (error) {
     console.error('[PaymentOperations.loadInvoicePayments] Error:', error)
@@ -133,7 +128,6 @@ export const createPayment = async (
   userId: string,
   paymentStatuses: PaymentStatus[]
 ) => {
-  console.log('[PaymentOperations.createPayment] Creating payment for invoice:', invoiceId)
 
   // Use status "Создан" (id=1) from payment_statuses table
   const defaultStatus = paymentStatuses.find(s => s.id === 1)
@@ -189,7 +183,6 @@ export const updatePayment = async (
   values: any,
   files: UploadFile[]
 ) => {
-  console.log('[PaymentOperations.updatePayment] Updating payment:', paymentId)
 
   // Get invoice_id from the payment
   const { data: payment } = await supabase
@@ -208,7 +201,6 @@ export const updatePayment = async (
 
   // Update allocated amount in invoice_payments if amount changed
   if (values.amount !== undefined) {
-    console.log('[PaymentOperations.updatePayment] Updating allocated_amount to:', values.amount)
     const { error: updateLinkError } = await supabase
       .from('invoice_payments')
       .update({ allocated_amount: values.amount })
@@ -227,7 +219,6 @@ export const updatePayment = async (
 }
 
 export const deletePayment = async (paymentId: string) => {
-  console.log('[PaymentOperations.deletePayment] Deleting payment:', paymentId)
 
   // Get invoice_id before deleting payment
   const { data: payment } = await supabase
@@ -255,7 +246,6 @@ export const deletePayment = async (paymentId: string) => {
     throw fetchError
   }
 
-  console.log('[PaymentOperations.deletePayment] Found attachments:', attachments?.length || 0)
 
   // Delete files from Storage
   if (attachments && attachments.length > 0) {
@@ -264,7 +254,6 @@ export const deletePayment = async (paymentId: string) => {
       .filter(Boolean)
 
     if (storagePaths.length > 0) {
-      console.log('[PaymentOperations.deletePayment] Deleting files from storage:', storagePaths)
 
       const { error: removeError } = await supabase.storage
         .from('attachments')
@@ -273,7 +262,6 @@ export const deletePayment = async (paymentId: string) => {
       if (removeError) {
         console.error('[PaymentOperations.deletePayment] Error removing files from storage:', removeError)
       } else {
-        console.log('[PaymentOperations.deletePayment] Successfully removed files from storage')
       }
     }
 
@@ -315,7 +303,6 @@ interface FileWithDescription extends UploadFile {
 }
 
 export const processPaymentFiles = async (paymentId: string, files: FileWithDescription[], userId: string) => {
-  console.log('[PaymentOperations.processPaymentFiles] Processing files for payment:', paymentId)
 
   // Get current files for this payment
   const { data: currentAttachments } = await supabase
@@ -354,7 +341,6 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
       const fileName = `${timestamp}_${file.name || fileToUpload.name}`
       const storagePath = `payments/${paymentId}/${fileName}`
 
-      console.log('[PaymentOperations.processPaymentFiles] Uploading file:', fileName)
 
       const { error: uploadError } = await supabase.storage
         .from('attachments')
@@ -401,7 +387,6 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
       if (linkError) {
         console.error('[PaymentOperations.processPaymentFiles] Link error:', linkError)
       } else {
-        console.log('[PaymentOperations.processPaymentFiles] File linked successfully:', file.name)
       }
     } catch (fileError) {
       console.error('[PaymentOperations.processPaymentFiles] File processing error:', fileError)
@@ -411,7 +396,6 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
 
   // Delete files that were removed
   for (const attachmentId of currentFileIds) {
-    console.log('[PaymentOperations.processPaymentFiles] Removing attachment:', attachmentId)
 
     // Get file info
     const { data: fileInfo } = await supabase
@@ -458,14 +442,6 @@ export const getPaymentTotals = (invoiceId: string, invoicePayments: Record<stri
     remainingAmount: totalAmount - totalPaid,
     paymentCount: payments.length
   }
-
-  console.log('[getPaymentTotals] Invoice:', invoice?.invoice_number, {
-    invoiceId,
-    totalAmount,
-    totalPaid,
-    paymentsCount: payments.length,
-    remainingAmount: result.remainingAmount
-  })
 
   return result
 }

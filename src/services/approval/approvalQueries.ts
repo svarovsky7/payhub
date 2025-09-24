@@ -3,7 +3,6 @@ import { message } from 'antd'
 import type { PaymentApproval, ApprovalStep } from './approvalProcess'
 
 export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
-  console.log('[ApprovalOperations.loadApprovalsForRole] Loading approvals for role:', roleId)
 
   try {
     // Получаем пользователя и его проекты
@@ -24,7 +23,6 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
 
       if (userProfile?.roles?.own_projects_only) {
         projectIds = userProfile.user_projects?.map(up => up.project_id) || []
-        console.log('[ApprovalOperations.loadApprovalsForRole] Filtering by user projects:', projectIds)
       }
     }
 
@@ -90,7 +88,6 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
       }
     })
 
-    console.log('[ApprovalOperations.loadApprovalsForRole] Loaded approvals:', approvalsWithStage.length)
     return approvalsWithStage as PaymentApproval[]
   } catch (error) {
     console.error('[ApprovalOperations.loadApprovalsForRole] Error:', error)
@@ -100,7 +97,6 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
 }
 
 export const loadApprovalHistory = async (paymentId: string) => {
-  console.log('[ApprovalOperations.loadApprovalHistory] Loading history for payment:', paymentId)
 
   try {
     const { data, error } = await supabase
@@ -125,7 +121,6 @@ export const loadApprovalHistory = async (paymentId: string) => {
 
     if (error) throw error
 
-    console.log('[ApprovalOperations.loadApprovalHistory] Loaded history:', data?.length || 0)
     return data || []
   } catch (error) {
     console.error('[ApprovalOperations.loadApprovalHistory] Error:', error)
@@ -135,7 +130,6 @@ export const loadApprovalHistory = async (paymentId: string) => {
 }
 
 export const checkPaymentApprovalStatus = async (paymentId: string) => {
-  console.log('[ApprovalOperations.checkPaymentApprovalStatus] Checking status for payment:', paymentId)
 
   try {
     const { data, error } = await supabase

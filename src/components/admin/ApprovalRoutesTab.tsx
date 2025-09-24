@@ -88,7 +88,6 @@ export const ApprovalRoutesTab = () => {
 
   // Загрузка справочников
   const loadReferences = useCallback(async () => {
-    console.log('[ApprovalRoutesTab.loadReferences] Loading references')
 
     try {
       const [typesResponse, rolesResponse, paymentStatusesResponse] = await Promise.all([
@@ -112,7 +111,6 @@ export const ApprovalRoutesTab = () => {
 
   // Загрузка маршрутов
   const loadRoutes = useCallback(async () => {
-    console.log('[ApprovalRoutesTab.loadRoutes] Loading routes')
     setLoading(true)
 
     try {
@@ -155,7 +153,6 @@ export const ApprovalRoutesTab = () => {
         return prevSelected
       })
 
-      console.log('[ApprovalRoutesTab.loadRoutes] Loaded routes:', data?.length)
     } catch (error) {
       console.error('[ApprovalRoutesTab.loadRoutes] Error:', error)
       message.error('Ошибка загрузки маршрутов')
@@ -171,7 +168,6 @@ export const ApprovalRoutesTab = () => {
 
   // Выбор маршрута
   const handleSelectRoute = (route: ApprovalRoute) => {
-    console.log('[ApprovalRoutesTab.handleSelectRoute] Selected route:', route.id)
     setSelectedRoute(route)
     const stages = route.stages?.sort((a, b) => a.order_index - b.order_index).map(stage => ({
       ...stage,
@@ -184,7 +180,6 @@ export const ApprovalRoutesTab = () => {
 
   // Создание нового маршрута
   const handleCreateRoute = async (values: any) => {
-    console.log('[ApprovalRoutesTab.handleCreateRoute] Creating route:', values)
 
     try {
       const { data, error } = await supabase
@@ -220,7 +215,6 @@ export const ApprovalRoutesTab = () => {
 
   // Обновление маршрута
   const handleUpdateRoute = async (id: number, values: any) => {
-    console.log('[ApprovalRoutesTab.handleUpdateRoute] Updating route:', id, values)
 
     try {
       const { error } = await supabase
@@ -246,7 +240,6 @@ export const ApprovalRoutesTab = () => {
 
   // Удаление маршрута
   const handleDeleteRoute = async (id: number) => {
-    console.log('[ApprovalRoutesTab.handleDeleteRoute] Deleting route:', id)
 
     try {
       const { error } = await supabase
@@ -315,7 +308,6 @@ export const ApprovalRoutesTab = () => {
   const handleSaveStages = async () => {
     if (!selectedRoute) return
 
-    console.log('[ApprovalRoutesTab.handleSaveStages] Saving stages:', editingStages)
     setSavingStages(true)
 
     try {

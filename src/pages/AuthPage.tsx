@@ -16,7 +16,6 @@ export const AuthPage = () => {
   }, [])
 
   const loadProjects = async () => {
-    console.log('[AuthPage.loadProjects] Loading projects for registration')
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -25,7 +24,6 @@ export const AuthPage = () => {
         .order('name')
 
       if (error) throw error
-      console.log('[AuthPage.loadProjects] Loaded projects:', data?.length || 0)
       setProjects(data || [])
     } catch (error) {
       console.error('[AuthPage.loadProjects] Error:', error)
@@ -33,7 +31,6 @@ export const AuthPage = () => {
   }
 
   const handleLogin = async (values: { email: string; password: string }) => {
-    console.log('[AuthPage.handleLogin] Attempting login:', values.email)
     setLoading(true)
     try {
       await signIn(values.email, values.password)
@@ -53,11 +50,6 @@ export const AuthPage = () => {
     password: string;
     projectIds: number[]
   }) => {
-    console.log('[AuthPage.handleRegister] Registering user:', {
-      email: values.email,
-      fullName: values.fullName,
-      projects: values.projectIds
-    })
     setLoading(true)
     try {
       // Регистрируем пользователя
@@ -67,7 +59,6 @@ export const AuthPage = () => {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user && values.projectIds && values.projectIds.length > 0) {
-        console.log('[AuthPage.handleRegister] Assigning projects to user:', user.id)
         // Добавляем проекты пользователю
         const userProjects = values.projectIds.map(projectId => ({
           user_id: user.id,

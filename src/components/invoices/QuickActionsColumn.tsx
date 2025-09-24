@@ -39,16 +39,6 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
   const invoiceAmount = Number(invoice.amount_with_vat) || 0
   const canAddPayment = remainingAmount > 0 || (invoiceAmount > 0 && paymentCount === 0)
 
-  console.log('[QuickActionsColumn] Invoice:', invoice.invoice_number, {
-    amount_with_vat: invoice.amount_with_vat,
-    amount_with_vat_type: typeof invoice.amount_with_vat,
-    invoiceAmount,
-    remainingAmount,
-    remainingAmount_type: typeof remainingAmount,
-    paymentCount,
-    canAddPayment
-  })
-
   return (
     <Space size={0} wrap={false} style={{ display: 'flex', justifyContent: 'flex-end' }}>
       <Space.Compact size="small">

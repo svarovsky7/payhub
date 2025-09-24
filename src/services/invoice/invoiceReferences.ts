@@ -2,7 +2,6 @@ import { supabase } from '../../lib/supabase'
 import type { Contractor, Project, InvoiceType, InvoiceStatus } from '../../lib/supabase'
 
 export const loadReferences = async () => {
-  console.log('[InvoiceOperations.loadReferences] Loading references')
 
   try {
     const [

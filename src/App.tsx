@@ -11,7 +11,6 @@ import { MainLayout } from './components/Layout'
 import 'antd/dist/reset.css'
 
 function App() {
-  console.log('[App] Rendering application')
 
   return (
     <ConfigProvider locale={ruRU}>

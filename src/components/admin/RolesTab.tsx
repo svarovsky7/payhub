@@ -16,7 +16,6 @@ export const RolesTab = () => {
   }, [])
 
   const loadRoles = async () => {
-    console.log('[RolesTab.loadRoles] Loading roles')
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -26,7 +25,6 @@ export const RolesTab = () => {
 
       if (error) throw error
 
-      console.log('[RolesTab.loadRoles] Loaded roles:', data?.length || 0)
       setRoles(data || [])
     } catch (error) {
       console.error('[RolesTab.loadRoles] Error:', error)
@@ -37,21 +35,18 @@ export const RolesTab = () => {
   }
 
   const handleCreate = () => {
-    console.log('[RolesTab.handleCreate] Opening create modal')
     setEditingRole(null)
     form.resetFields()
     setIsModalVisible(true)
   }
 
   const handleEdit = (record: Role) => {
-    console.log('[RolesTab.handleEdit] Editing role:', record.id)
     setEditingRole(record)
     form.setFieldsValue(record)
     setIsModalVisible(true)
   }
 
   const handleSubmit = async (values: any) => {
-    console.log('[RolesTab.handleSubmit] Submitting:', values)
     try {
       if (editingRole) {
         const { error } = await supabase
@@ -79,7 +74,6 @@ export const RolesTab = () => {
   }
 
   const handleDelete = async (id: number) => {
-    console.log('[RolesTab.handleDelete] Deleting role:', id)
     Modal.confirm({
       title: 'Удалить роль?',
       content: 'Это действие нельзя отменить',

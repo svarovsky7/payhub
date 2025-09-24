@@ -15,7 +15,6 @@ export interface AttachmentData {
 
 export const loadInvoiceAttachments = async (invoiceId: string): Promise<AttachmentData[]> => {
   try {
-    console.log('[loadInvoiceAttachments] Loading attachments for invoice:', invoiceId)
 
     // Загружаем файлы счёта
     const { data: invoiceFiles, error: invoiceError } = await supabase
@@ -79,7 +78,6 @@ export const loadInvoiceAttachments = async (invoiceId: string): Promise<Attachm
     })).filter(Boolean) || []
 
     const allAttachments = [...invoiceAttachments, ...paymentAttachments]
-    console.log('[loadInvoiceAttachments] Loaded attachments:', allAttachments.length)
 
     return allAttachments
   } catch (error) {
@@ -90,7 +88,6 @@ export const loadInvoiceAttachments = async (invoiceId: string): Promise<Attachm
 
 export const loadPaymentsList = async (invoiceId: string) => {
   try {
-    console.log('[loadPaymentsList] Loading payments for invoice:', invoiceId)
 
     const { data, error } = await supabase
       .from('payments')
@@ -107,7 +104,6 @@ export const loadPaymentsList = async (invoiceId: string) => {
       throw error
     }
 
-    console.log('[loadPaymentsList] Loaded payments:', data?.length || 0)
     return data || []
   } catch (error) {
     console.error('[loadPaymentsList] Error:', error)

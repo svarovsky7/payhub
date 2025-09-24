@@ -19,7 +19,6 @@ export const MaterialClassesTab = () => {
 
   // Load material classes
   const loadData = async () => {
-    console.log('[MaterialClassesTab.loadData] Loading material classes')
     setLoading(true)
     try {
       const data = await loadMaterialClasses()
@@ -35,7 +34,6 @@ export const MaterialClassesTab = () => {
 
   // Handle create/edit
   const handleSubmit = async (values: any) => {
-    console.log('[MaterialClassesTab.handleSubmit] Submitting:', values, 'Editing:', editingClass?.id)
 
     try {
       if (editingClass) {
@@ -55,7 +53,6 @@ export const MaterialClassesTab = () => {
 
   // Handle delete
   const handleDelete = async (id: number) => {
-    console.log('[MaterialClassesTab.handleDelete] Deleting material class:', id)
 
     try {
       await deleteMaterialClass(id)
@@ -67,7 +64,6 @@ export const MaterialClassesTab = () => {
 
   // Handle toggle active
   const handleToggleActive = async (id: number, checked: boolean) => {
-    console.log('[MaterialClassesTab.handleToggleActive] Toggling active:', id, checked)
 
     try {
       await toggleMaterialClassActive(id, checked)
@@ -79,7 +75,6 @@ export const MaterialClassesTab = () => {
 
   // Open modal for create/edit
   const openModal = (materialClass?: MaterialClass) => {
-    console.log('[MaterialClassesTab.openModal] Opening modal for:', materialClass?.id)
 
     if (materialClass) {
       setEditingClass(materialClass)

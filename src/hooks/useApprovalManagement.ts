@@ -22,7 +22,6 @@ export const useApprovalManagement = () => {
   const loadUserRole = useCallback(async () => {
     if (!user?.id) return
 
-    console.log('[useApprovalManagement.loadUserRole] Loading user role')
 
     try {
       const { data, error } = await supabase
@@ -34,7 +33,6 @@ export const useApprovalManagement = () => {
       if (error) throw error
 
       setUserRole(data?.role_id || null)
-      console.log('[useApprovalManagement.loadUserRole] User role:', data?.role_id)
     } catch (error) {
       console.error('[useApprovalManagement.loadUserRole] Error:', error)
     }
@@ -44,7 +42,6 @@ export const useApprovalManagement = () => {
   const loadPendingApprovals = useCallback(async () => {
     if (!userRole || !user?.id) return
 
-    console.log('[useApprovalManagement.loadPendingApprovals] Loading approvals for role:', userRole)
     setLoadingApprovals(true)
 
     try {
@@ -78,7 +75,6 @@ export const useApprovalManagement = () => {
       return false
     }
 
-    console.log('[useApprovalManagement.handleStartApproval] Starting approval for payment:', paymentId)
 
     const approval = await startApprovalProcess(paymentId, invoiceTypeId, user.id)
 
@@ -100,7 +96,6 @@ export const useApprovalManagement = () => {
       return false
     }
 
-    console.log('[useApprovalManagement.handleApprove] Approving:', approvalId)
 
     const success = await approvePayment(approvalId, user.id, comment)
 
@@ -121,7 +116,6 @@ export const useApprovalManagement = () => {
       return false
     }
 
-    console.log('[useApprovalManagement.handleReject] Rejecting:', approvalId)
 
     const success = await rejectPayment(approvalId, user.id, comment)
 
@@ -134,13 +128,11 @@ export const useApprovalManagement = () => {
 
   // Загрузка истории согласования для платежа
   const getApprovalHistory = useCallback(async (paymentId: string) => {
-    console.log('[useApprovalManagement.getApprovalHistory] Loading history for:', paymentId)
     return await loadApprovalHistory(paymentId)
   }, [])
 
   // Проверка статуса согласования платежа
   const checkApprovalStatus = useCallback(async (paymentId: string) => {
-    console.log('[useApprovalManagement.checkApprovalStatus] Checking status for:', paymentId)
     return await checkPaymentApprovalStatus(paymentId)
   }, [])
 

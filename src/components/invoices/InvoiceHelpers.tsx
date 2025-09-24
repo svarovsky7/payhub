@@ -12,7 +12,6 @@ export const formatFileSize = (bytes: number): string => {
 
 export const handlePreviewFile = async (attachment: any) => {
   try {
-    console.log('[InvoiceView.handlePreview] Previewing file:', attachment)
 
     const { data, error } = await supabase.storage
       .from('attachments')
@@ -50,7 +49,6 @@ export const handlePreviewFile = async (attachment: any) => {
 
 export const handleDownloadFile = async (attachment: any) => {
   try {
-    console.log('[InvoiceView.handleDownload] Downloading file:', attachment)
 
     const { data, error } = await supabase.storage
       .from('attachments')
@@ -71,7 +69,6 @@ export const handleDownloadFile = async (attachment: any) => {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
 
-    console.log('[InvoiceView.handleDownload] File downloaded successfully')
   } catch (error) {
     console.error('[InvoiceView.handleDownload] Error:', error)
     throw error
@@ -80,7 +77,6 @@ export const handleDownloadFile = async (attachment: any) => {
 
 export const handleDeleteAttachmentFile = async (attachment: any, invoiceId: string, loadAttachments: () => void, messageApi: any) => {
   try {
-    console.log('[InvoiceView.handleDeleteAttachment] Deleting file:', attachment)
 
     // Сначала удаляем файл из Storage
     const { error: storageError } = await supabase.storage
@@ -120,7 +116,6 @@ export const handleDeleteAttachmentFile = async (attachment: any, invoiceId: str
     // Обновляем список файлов
     await loadAttachments()
 
-    console.log('[InvoiceView.handleDeleteAttachment] File deleted successfully')
   } catch (error) {
     console.error('[InvoiceView.handleDeleteAttachment] Error:', error)
     messageApi.error('Ошибка удаления файла')

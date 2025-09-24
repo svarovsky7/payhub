@@ -36,13 +36,11 @@ export const UsersTab = () => {
   // Обновляем список пользователей при изменении роли текущего пользователя
   useEffect(() => {
     if (currentUser) {
-      console.log('[UsersTab] Current user role changed, reloading users')
       loadUsers()
     }
   }, [currentRoleId])
 
   const loadRoles = async () => {
-    console.log('[UsersTab.loadRoles] Loading roles')
     try {
       const { data, error } = await supabase
         .from('roles')
@@ -57,7 +55,6 @@ export const UsersTab = () => {
   }
 
   const loadProjects = async () => {
-    console.log('[UsersTab.loadProjects] Loading projects')
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -73,7 +70,6 @@ export const UsersTab = () => {
   }
 
   const loadUsers = async () => {
-    console.log('[UsersTab.loadUsers] Loading users')
     setLoading(true)
     try {
       // Загружаем пользователей с ролями
@@ -106,7 +102,6 @@ export const UsersTab = () => {
         }
       })
 
-      console.log('[UsersTab.loadUsers] Loaded users with projects:', usersWithProjects.length)
       setUsers(usersWithProjects)
     } catch (error) {
       console.error('[UsersTab.loadUsers] Error:', error)
@@ -117,7 +112,6 @@ export const UsersTab = () => {
   }
 
   const handleEdit = (record: UserWithProjects) => {
-    console.log('[UsersTab.handleEdit] Editing user:', record.id)
     setEditingUser(record)
     form.setFieldsValue({
       ...record,
@@ -130,7 +124,6 @@ export const UsersTab = () => {
   const handleSubmit = async (values: any) => {
     if (!editingUser) return
 
-    console.log('[UsersTab.handleSubmit] Updating user:', editingUser.id, values)
     try {
       // Обновляем профиль пользователя
       const { error: profileError } = await supabase
@@ -176,7 +169,6 @@ export const UsersTab = () => {
   }
 
   const handleDelete = async (id: string) => {
-    console.log('[UsersTab.handleDelete] Deleting user:', id)
     Modal.confirm({
       title: 'Удалить пользователя?',
       content: 'Это действие нельзя отменить. Будут удалены все связанные данные.',

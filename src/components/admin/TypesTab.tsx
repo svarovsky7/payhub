@@ -42,7 +42,6 @@ export const TypesTab = () => {
 
   // Загрузка типов контрагентов
   const loadContractorTypes = async () => {
-    console.log('[TypesTab.loadContractorTypes] Loading contractor types')
     setContractorTypesLoading(true)
     try {
       const { data, error } = await supabase
@@ -52,7 +51,6 @@ export const TypesTab = () => {
 
       if (error) throw error
 
-      console.log('[TypesTab.loadContractorTypes] Loaded types:', data?.length || 0)
       setContractorTypes(data || [])
     } catch (error) {
       console.error('[TypesTab.loadContractorTypes] Error:', error)
@@ -64,7 +62,6 @@ export const TypesTab = () => {
 
   // Загрузка типов счетов
   const loadInvoiceTypes = async () => {
-    console.log('[TypesTab.loadInvoiceTypes] Loading invoice types')
     setInvoiceTypesLoading(true)
     try {
       const { data, error } = await supabase
@@ -74,7 +71,6 @@ export const TypesTab = () => {
 
       if (error) throw error
 
-      console.log('[TypesTab.loadInvoiceTypes] Loaded types:', data?.length || 0)
       setInvoiceTypes(data || [])
     } catch (error) {
       console.error('[TypesTab.loadInvoiceTypes] Error:', error)
@@ -86,7 +82,6 @@ export const TypesTab = () => {
 
   // Загрузка типов платежей
   const loadPaymentTypes = async () => {
-    console.log('[TypesTab.loadPaymentTypes] Loading payment types')
     setPaymentTypesLoading(true)
     try {
       const { data, error } = await supabase
@@ -96,7 +91,6 @@ export const TypesTab = () => {
 
       if (error) throw error
 
-      console.log('[TypesTab.loadPaymentTypes] Loaded types:', data?.length || 0)
       setPaymentTypes(data || [])
     } catch (error) {
       console.error('[TypesTab.loadPaymentTypes] Error:', error)
@@ -107,7 +101,6 @@ export const TypesTab = () => {
   }
 
   const handleCreate = (typeCategory: 'contractor' | 'invoice' | 'payment') => {
-    console.log('[TypesTab.handleCreate] Opening create modal for:', typeCategory)
     setCurrentTypeCategory(typeCategory)
     setEditingRecord(null)
     form.resetFields()
@@ -115,7 +108,6 @@ export const TypesTab = () => {
   }
 
   const handleEdit = (record: TypeRecord, typeCategory: 'contractor' | 'invoice' | 'payment') => {
-    console.log('[TypesTab.handleEdit] Editing record:', record.id, 'type:', typeCategory)
     setCurrentTypeCategory(typeCategory)
     setEditingRecord(record)
     form.setFieldsValue(record)
@@ -123,7 +115,6 @@ export const TypesTab = () => {
   }
 
   const handleSubmit = async (values: any) => {
-    console.log('[TypesTab.handleSubmit] Submitting:', values, 'Type:', currentTypeCategory)
 
     const tableName = currentTypeCategory === 'contractor'
       ? 'contractor_types'
@@ -172,7 +163,6 @@ export const TypesTab = () => {
   }
 
   const handleDelete = async (id: number, typeCategory: 'contractor' | 'invoice' | 'payment') => {
-    console.log('[TypesTab.handleDelete] Deleting record:', id, 'Type:', typeCategory)
 
     const tableName = typeCategory === 'contractor'
       ? 'contractor_types'

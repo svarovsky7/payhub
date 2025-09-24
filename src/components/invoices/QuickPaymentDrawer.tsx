@@ -39,7 +39,6 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
 
   useEffect(() => {
     if (open && invoice) {
-      console.log('[QuickPaymentDrawer] Setting default values for invoice:', invoice.id)
 
       // Устанавливаем значения по умолчанию
       const defaultValues: any = {
@@ -68,8 +67,6 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
   const handleSubmit = async (values: any) => {
     if (!invoice) return
 
-    console.log('[QuickPaymentDrawer.handleSubmit] Submitting payment:', values)
-    console.log('[QuickPaymentDrawer.handleSubmit] Files to upload:', fileList.length)
     setSubmitting(true)
 
     try {
@@ -103,7 +100,6 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
   }
 
   const handlePreview = async (file: UploadFile) => {
-    console.log('[QuickPaymentDrawer] Previewing file:', file.name)
 
     try {
       const fileExt = file.name.split('.').pop()?.toLowerCase()
@@ -134,12 +130,10 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
 
   const uploadProps = {
     beforeUpload: (file: any) => {
-      console.log('[QuickPaymentDrawer] Adding file to list:', file.name)
       setFileList(prev => [...prev, file])
       return false // Prevent auto upload
     },
     onRemove: (file: UploadFile) => {
-      console.log('[QuickPaymentDrawer] Removing file from list:', file.name)
       setFileList(prev => prev.filter(f => f.uid !== file.uid))
     },
     onPreview: handlePreview,

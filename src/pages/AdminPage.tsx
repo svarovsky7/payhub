@@ -55,7 +55,6 @@ export const AdminPage = () => {
   const activeTab = tabMapping[location.pathname] || 'users'
 
   useEffect(() => {
-    console.log('[AdminPage] Current path:', location.pathname, 'Active tab:', activeTab)
     // Если путь /admin без вкладки, перенаправляем на /admin/users
     if (location.pathname === '/admin') {
       navigate('/admin/users', { replace: true })
@@ -63,7 +62,6 @@ export const AdminPage = () => {
   }, [location.pathname])
 
   const handleTabChange = (key: string) => {
-    console.log('[AdminPage] Changing tab to:', key)
     const newPath = pathMapping[key]
     if (newPath) {
       navigate(newPath)

@@ -48,15 +48,8 @@ export function calculateInvoiceStatus(
   currentStatusId: number,
   payments: Payment[]
 ): number {
-  console.log('[calculateInvoiceStatus] Input:', {
-    invoiceAmount,
-    currentStatusId,
-    payments: payments.length
-  })
-
   // 0. Если счёт отменён - не меняем статус
   if (currentStatusId === INVOICE_STATUSES.CANCELLED) {
-    console.log('[calculateInvoiceStatus] Invoice is cancelled, keeping status')
     return INVOICE_STATUSES.CANCELLED
   }
 
@@ -71,32 +64,22 @@ export function calculateInvoiceStatus(
          p.status_id === PAYMENT_STATUSES.APPROVED
   )
 
-  console.log('[calculateInvoiceStatus] Calculated:', {
-    paidSum,
-    hasPendingOrApproved,
-    difference: Math.abs(paidSum - invoiceAmount)
-  })
-
   // 1. Полностью оплачен
   if (Math.abs(paidSum - invoiceAmount) <= EPS || paidSum > invoiceAmount + EPS) {
-    console.log('[calculateInvoiceStatus] Result: PAID (fully paid or overpaid)')
     return INVOICE_STATUSES.PAID
   }
 
   // 2. Частично оплачен
   if (paidSum > EPS && paidSum < invoiceAmount - EPS) {
-    console.log('[calculateInvoiceStatus] Result: PARTIAL (partially paid)')
     return INVOICE_STATUSES.PARTIAL
   }
 
   // 3. На согласовании
   if (hasPendingOrApproved) {
-    console.log('[calculateInvoiceStatus] Result: PENDING (has pending/approved payments)')
     return INVOICE_STATUSES.PENDING
   }
 
   // 4. Черновик (по умолчанию)
-  console.log('[calculateInvoiceStatus] Result: DRAFT (default)')
   return INVOICE_STATUSES.DRAFT
 }
 
