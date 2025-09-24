@@ -1,4 +1,4 @@
-import { Modal } from 'antd'
+import { Modal, message } from 'antd'
 import { InvoiceAttachmentsTab } from './InvoiceAttachmentsTab'
 import { useState, useEffect } from 'react'
 import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus } from '../../lib/supabase'
@@ -52,14 +52,24 @@ export const InvoiceViewModal: React.FC<InvoiceViewModalProps> = ({
   }
 
   const handlePreview = async (file: AttachmentData) => {
-    const previewData = await handlePreviewFile(file)
-    if (previewData) {
-      setPreviewFile(previewData)
+    try {
+      const previewData = await handlePreviewFile(file)
+      if (previewData) {
+        setPreviewFile(previewData)
+      }
+    } catch (error) {
+      console.error('[InvoiceViewModal.handlePreview] Error:', error)
+      message.error('Ошибка при открытии файла')
     }
   }
 
   const handleDownload = async (file: AttachmentData) => {
-    await handleDownloadFile(file)
+    try {
+      await handleDownloadFile(file)
+    } catch (error) {
+      console.error('[InvoiceViewModal.handleDownload] Error:', error)
+      message.error('Ошибка при загрузке файла')
+    }
   }
 
   if (!invoice) return null

@@ -5,7 +5,7 @@ import type { Invoice, Payment, PaymentType, PaymentStatus } from '../../lib/sup
 import { formatAmount } from '../../utils/invoiceHelpers'
 import dayjs from 'dayjs'
 import { useApprovalManagement } from '../../hooks/useApprovalManagement'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, memo } from 'react'
 
 const { Text } = Typography
 
@@ -20,7 +20,7 @@ interface PaymentsExpandedProps {
   onApprovalStarted?: () => void
 }
 
-export const PaymentsExpanded = ({
+export const PaymentsExpanded = memo(({
   invoice,
   payments,
   paymentTypes,
@@ -91,7 +91,7 @@ export const PaymentsExpanded = ({
 
 
   // Define columns for payments table
-  const columns: ColumnsType<Payment> = [
+  const columns: ColumnsType<Payment> = useMemo(() => [
     {
       title: 'Дата',
       dataIndex: 'payment_date',
@@ -116,11 +116,30 @@ export const PaymentsExpanded = ({
         const statusName = getPaymentStatusName(record.status_id)
         const approvalStatus = approvalStatuses[record.id]
 
+        // Определяем цвет тега на основе статуса
+        let tagColor = 'default'
+        if (status) {
+          if (status.name === 'Создан' || status.name === 'Черновик' || status.name === 'Новый') {
+            tagColor = 'default'
+          } else if (status.name === 'На согласовании' || status.name === 'В процессе') {
+            tagColor = 'processing'
+          } else if (status.name === 'Согласован' || status.name === 'Утвержден' || status.name === 'Одобрен') {
+            tagColor = 'success'
+          } else if (status.name === 'Отклонен' || status.name === 'Отменен') {
+            tagColor = 'error'
+          } else if (status.name === 'Оплачен' || status.name === 'Проведен' || status.name === 'Выполнен') {
+            tagColor = 'green'
+          } else if (status.color) {
+            // Если есть цвет в базе, используем его
+            tagColor = status.color
+          }
+        }
+
         return (
           <Space size="small">
-            {status?.color ? (
-              <span style={{ color: status.color }}>{statusName}</span>
-            ) : statusName}
+            <Tag color={tagColor} style={{ margin: 0 }}>
+              {statusName}
+            </Tag>
             {approvalStatus?.isInApproval && (
               <Tooltip title="На согласовании">
                 <Tag icon={<ClockCircleOutlined />} color="processing" style={{ margin: 0 }}>
@@ -156,7 +175,7 @@ export const PaymentsExpanded = ({
       key: 'actions',
       render: (_, record) => {
         const approvalStatus = approvalStatuses[record.id]
-        const canSendToApproval = !approvalStatus?.isInApproval && record.status_id === 1 // статус "Создан"
+        const canSendToApproval = !approvalStatus?.isInApproval && record.status_id === 1 // created (Создан)
 
         return (
           <Space size="small">
@@ -191,7 +210,16 @@ export const PaymentsExpanded = ({
         )
       }
     }
-  ]
+  ], [
+    approvalStatuses,
+    getPaymentTypeName,
+    getPaymentStatusName,
+    handleSendToApproval,
+    loadingApproval,
+    onEditPayment,
+    onDeletePayment,
+    paymentStatuses
+  ])
 
   if (loading) {
     return (
@@ -242,4 +270,4 @@ export const PaymentsExpanded = ({
       />
     </div>
   )
-}
+})

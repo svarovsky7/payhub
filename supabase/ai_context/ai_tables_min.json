@@ -1,4638 +1,1458 @@
 [
   {
-    "table": "_realtime.extensions",
-    "summary": "Служебная таблица _realtime.extensions.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "type",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "settings",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "tenant_external_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "inserted_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "_realtime.schema_migrations",
-    "summary": "Auth: Manages updates to the auth system.",
-    "columns": [
-      {
-        "name": "version",
-        "type": "bigint",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "inserted_at",
-        "type": "timestamp",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "_realtime.tenants",
-    "summary": "Служебная таблица _realtime.tenants.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "external_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "jwt_secret",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "max_concurrent_users",
-        "type": "integer",
-        "nullable": false,
-        "default": "200",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "inserted_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "max_events_per_second",
-        "type": "integer",
-        "nullable": false,
-        "default": "100",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "postgres_cdc_default",
-        "type": "text",
-        "nullable": true,
-        "default": "'postgres_cdc_rls'::text",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "max_bytes_per_second",
-        "type": "integer",
-        "nullable": false,
-        "default": "100000",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "max_channels_per_client",
-        "type": "integer",
-        "nullable": false,
-        "default": "100",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "max_joins_per_second",
-        "type": "integer",
-        "nullable": false,
-        "default": "500",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "suspend",
-        "type": "boolean",
-        "nullable": true,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "jwt_jwks",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "notify_private_alpha",
-        "type": "boolean",
-        "nullable": true,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "private_only",
-        "type": "boolean",
-        "nullable": false,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.audit_log_entries",
-    "summary": "Auth: Audit trail for user actions.",
-    "columns": [
-      {
-        "name": "instance_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "payload",
-        "type": "json",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "ip_address",
-        "type": "varchar(64)",
-        "nullable": false,
-        "default": "''::character varying",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.flow_state",
-    "summary": "stores metadata for pkce logins",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "auth_code",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "code_challenge_method",
-        "type": "USER-DEFINED",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "code_challenge",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "provider_type",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "provider_access_token",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "provider_refresh_token",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "authentication_method",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "auth_code_issued_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.identities",
-    "summary": "Auth: Stores identities associated to a user.",
-    "columns": [
-      {
-        "name": "provider_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "identity_data",
-        "type": "jsonb",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "provider",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "last_sign_in_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.instances",
-    "summary": "Auth: Manages users across multiple sites.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "uuid",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "raw_base_config",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.mfa_amr_claims",
-    "summary": "auth: stores authenticator method reference claims for multi factor authentication",
-    "columns": [
-      {
-        "name": "session_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "authentication_method",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.mfa_challenges",
-    "summary": "auth: stores metadata about challenge requests made",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "factor_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "verified_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "ip_address",
-        "type": "inet",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "otp_code",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "web_authn_session_data",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.mfa_factors",
-    "summary": "auth: stores metadata about factors",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "friendly_name",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "factor_type",
-        "type": "USER-DEFINED",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "status",
-        "type": "USER-DEFINED",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "secret",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "phone",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "last_challenged_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "web_authn_credential",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "web_authn_aaguid",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.one_time_tokens",
-    "summary": "Служебная таблица auth.one_time_tokens.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "token_type",
-        "type": "USER-DEFINED",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "token_hash",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "relates_to",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.refresh_tokens",
-    "summary": "Auth: Store of tokens used to refresh JWT tokens once they expire.",
-    "columns": [
-      {
-        "name": "instance_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "id",
-        "type": "bigint",
-        "nullable": false,
-        "default": "nextval('auth.refresh_tokens_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "token",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_id",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "revoked",
-        "type": "boolean",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "parent",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "session_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.saml_providers",
-    "summary": "Auth: Manages SAML Identity Provider connections.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "sso_provider_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "entity_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "metadata_xml",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "metadata_url",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "attribute_mapping",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name_id_format",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.saml_relay_states",
-    "summary": "Auth: Contains SAML Relay State information for each Service Provider initiated login.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "sso_provider_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "request_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "for_email",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "redirect_to",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "flow_state_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.schema_migrations",
-    "summary": "Auth: Manages updates to the auth system.",
-    "columns": [
-      {
-        "name": "version",
-        "type": "varchar(255)",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.sessions",
-    "summary": "Auth: Stores session data associated to a user.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "factor_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "aal",
-        "type": "USER-DEFINED",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "not_after",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "refreshed_at",
-        "type": "timestamp",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_agent",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "ip",
-        "type": "inet",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "tag",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.sso_domains",
-    "summary": "Auth: Manages SSO email address domain mapping to an SSO Identity Provider.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "sso_provider_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "domain",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.sso_providers",
-    "summary": "Auth: Manages SSO identity provider information; see saml_providers for SAML.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "resource_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "auth.users",
-    "summary": "Auth: Stores user login data within a secure schema.",
-    "columns": [
-      {
-        "name": "instance_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "aud",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "role",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "encrypted_password",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email_confirmed_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "invited_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "confirmation_token",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "confirmation_sent_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "recovery_token",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "recovery_sent_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email_change_token_new",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email_change",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email_change_sent_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "last_sign_in_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "raw_app_meta_data",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "raw_user_meta_data",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "is_super_admin",
-        "type": "boolean",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "phone",
-        "type": "text",
-        "nullable": true,
-        "default": "NULL::character varying",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "phone_confirmed_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "phone_change",
-        "type": "text",
-        "nullable": true,
-        "default": "''::character varying",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "phone_change_token",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": "''::character varying",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "phone_change_sent_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "confirmed_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email_change_token_current",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": "''::character varying",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "email_change_confirm_status",
-        "type": "smallint",
-        "nullable": true,
-        "default": "0",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "banned_until",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "reauthentication_token",
-        "type": "varchar(255)",
-        "nullable": true,
-        "default": "''::character varying",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "reauthentication_sent_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "is_sso_user",
-        "type": "boolean",
-        "nullable": false,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "deleted_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "is_anonymous",
-        "type": "boolean",
-        "nullable": false,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "net._http_response",
-    "summary": "Служебная таблица net._http_response.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "bigint",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "status_code",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "content_type",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "headers",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "content",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "timed_out",
-        "type": "boolean",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "error_msg",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "net.http_request_queue",
-    "summary": "Служебная таблица net.http_request_queue.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "bigint",
-        "nullable": false,
-        "default": "nextval('net.http_request_queue_id_seq'::regclass)",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "method",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "url",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "headers",
-        "type": "jsonb",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "body",
-        "type": "bytea",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "timeout_milliseconds",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
     "table": "public.approval_routes",
-    "summary": "Маршруты согласования платежей по типам счетов",
+    "summary": "Approval routes configured per invoice type.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the approval route."
       },
       {
         "name": "invoice_type_id",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.invoice_types.id",
-        "note": null
+        "fk": "public.invoice_types.id",
+        "description": "Invoice type (public.invoice_types.id) this route applies to."
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Display name of the approval route."
       },
       {
         "name": "is_active",
         "type": "boolean",
         "nullable": true,
-        "default": "true",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "TRUE when the route can be used for new payments."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the route record was created."
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the route record was last updated."
       }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.approval_steps",
-    "summary": "История шагов согласования",
+    "summary": "Audit log of actions performed during payment approval.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the approval step entry."
       },
       {
         "name": "payment_approval_id",
         "type": "uuid",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.payment_approvals.id",
-        "note": null
+        "fk": "public.payment_approvals.id",
+        "description": "Payment approval instance (public.payment_approvals.id) this entry belongs to."
       },
       {
         "name": "stage_id",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.workflow_stages.id",
-        "note": null
+        "fk": "public.workflow_stages.id",
+        "description": "Workflow stage (public.workflow_stages.id) where the action happened."
       },
       {
         "name": "action",
         "type": "text",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Recorded action on the stage, e.g. approve or reject."
       },
       {
         "name": "acted_by",
         "type": "uuid",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": null
+        "fk": "auth.users.id",
+        "description": "User (auth.users.id) who performed the action."
       },
       {
         "name": "acted_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the action was performed."
       },
       {
         "name": "comment",
         "type": "text",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Optional free-form note left by the approver."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the audit entry was stored."
       }
     ]
   },
   {
     "table": "public.attachments",
-    "summary": "Хранение информации о загруженных файлах",
+    "summary": "Metadata for files uploaded to Supabase Storage.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the attachment and Storage object identifier."
       },
       {
         "name": "original_name",
         "type": "varchar(255)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Оригинальное имя файла"
+        "description": "Original filename provided by the user."
       },
       {
         "name": "storage_path",
         "type": "varchar(500)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Путь к файлу в Supabase Storage"
+        "description": "Path to the object inside Supabase Storage."
       },
       {
         "name": "size_bytes",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Размер файла в байтах"
+        "description": "File size in bytes."
       },
       {
         "name": "mime_type",
         "type": "varchar(100)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "MIME тип файла"
+        "description": "Detected MIME type of the file."
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": "Пользователь, загрузивший файл"
+        "fk": "auth.users.id",
+        "description": "User (auth.users.id) who uploaded the file."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the attachment record was created."
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the attachment metadata was last updated."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "User-provided description of the file content"
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.contract_attachments",
+    "summary": "Связь договоров с приложенными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ]
+  },
+  {
+    "table": "public.contract_invoices",
+    "summary": "Связь договоров со счетами",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
       }
     ]
   },
   {
     "table": "public.contractor_types",
-    "summary": "Справочник категорий контрагентов.",
+    "summary": "Reference list of contractor categories.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "default": "nextval('contractor_types_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the contractor type."
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Unique code used to identify the contractor type."
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Human readable contractor type name."
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Optional explanation of when to use the contractor type."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the contractor type was created."
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the contractor type was last updated."
       }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.contractors",
-    "summary": "Реестр контрагентов, связанных со счетами и проектами.",
+    "summary": "Registry of contractors linked to invoices and projects.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "default": "nextval('contractors_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the contractor."
       },
       {
         "name": "type_id",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.contractor_types.id",
-        "note": null
+        "fk": "public.contractor_types.id",
+        "description": "Contractor type (public.contractor_types.id)."
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Official contractor name stored for invoices."
       },
       {
         "name": "inn",
         "type": "varchar(12)",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Russian tax identifier (INN) of the contractor."
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": null
+        "fk": "auth.users.id",
+        "description": "User (auth.users.id) who created the contractor record."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the contractor record was created."
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the contractor record was last updated."
       }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
     ]
   },
   {
-    "table": "public.invoice_attachments",
-    "summary": "Связь между счетами и прикрепленными файлами",
+    "table": "public.contracts",
+    "summary": "Договоры с контрагентами",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true
       },
       {
-        "name": "invoice_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.invoices.id",
-        "note": null
-      },
-      {
-        "name": "attachment_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.attachments.id",
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.invoice_payments",
-    "summary": "Связующая таблица между счетами и платежами с распределением сумм.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "invoice_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.invoices.id",
-        "note": null
-      },
-      {
-        "name": "payment_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.payments.id",
-        "note": null
-      },
-      {
-        "name": "allocated_amount",
-        "type": "numeric(15,2)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.invoice_statuses",
-    "summary": "Справочник статусов жизненного цикла счетов.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "default": "nextval('invoice_statuses_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "code",
-        "type": "varchar(50)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
+        "name": "contract_number",
         "type": "varchar(255)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Номер договора"
       },
       {
-        "name": "description",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "sort_order",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "color",
-        "type": "varchar(20)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.invoice_types",
-    "summary": "Справочник типов счетов (например, услуги или материалы).",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "default": "nextval('invoice_types_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "code",
-        "type": "varchar(50)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "varchar(255)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.invoices",
-    "summary": "Исходящие счета, создаваемые в PayHub.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "uuid_generate_v4()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": null
-      },
-      {
-        "name": "invoice_number",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Внешний номер счета, отображаемый клиенту."
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "due_date",
-        "type": "date",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "invoice_date",
+        "name": "contract_date",
         "type": "date",
         "nullable": false,
-        "default": "CURRENT_DATE",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Дата заключения договора"
       },
       {
         "name": "payer_id",
         "type": "integer",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.contractors.id",
-        "note": null
+        "fk": "public.contractors.id",
+        "description": "Ссылка на плательщика (public.contractors.id)"
       },
       {
         "name": "supplier_id",
         "type": "integer",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.contractors.id",
-        "note": null
-      },
-      {
-        "name": "project_id",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.projects.id",
-        "note": null
-      },
-      {
-        "name": "invoice_type_id",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.invoice_types.id",
-        "note": null
-      },
-      {
-        "name": "amount_with_vat",
-        "type": "numeric(15,2)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "fk": "public.contractors.id",
+        "description": "Ссылка на поставщика (public.contractors.id)"
       },
       {
         "name": "vat_rate",
         "type": "numeric(5,2)",
         "nullable": true,
-        "default": "20",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Ставка НДС в процентах"
       },
       {
-        "name": "vat_amount",
-        "type": "numeric(15,2)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "amount_without_vat",
-        "type": "numeric(15,2)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "delivery_days",
+        "name": "warranty_period_days",
         "type": "integer",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "delivery_days_type",
-        "type": "varchar(20)",
-        "nullable": true,
-        "default": "'working'::character varying",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "preliminary_delivery_date",
-        "type": "date",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "status_id",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.invoice_statuses.id",
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.payment_approvals",
-    "summary": "Экземпляры согласования платежей по маршрутам.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "payment_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.payments.id",
-        "note": null
-      },
-      {
-        "name": "route_id",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.approval_routes.id",
-        "note": null
-      },
-      {
-        "name": "status_id",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.payment_statuses.id",
-        "note": null
-      },
-      {
-        "name": "current_stage_index",
-        "type": "integer",
-        "nullable": false,
-        "default": "0",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.payment_attachments",
-    "summary": "Связь между платежами и прикрепленными файлами",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "payment_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.payments.id",
-        "note": "ID платежа"
-      },
-      {
-        "name": "attachment_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.attachments.id",
-        "note": "ID прикрепленного файла"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.payment_statuses",
-    "summary": "Справочник статусов обработки платежей.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "default": "nextval('payment_statuses_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "code",
-        "type": "varchar(50)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "varchar(255)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Гарантийный срок в днях"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "sort_order",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "color",
-        "type": "varchar(20)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Описание договора"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "fk": "auth.users.id",
+        "description": "Пользователь, создавший запись (auth.users.id)"
       }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
     ]
   },
   {
-    "table": "public.payment_types",
-    "summary": "Справочник типов платежей.",
+    "table": "public.departments",
+    "summary": "Организационные отделы компании",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "default": "nextval('payment_types_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "code",
-        "type": "varchar(50)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "nullable": true
       }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
     ]
   },
   {
-    "table": "public.payments",
-    "summary": "Реестр поступивших платежей и их параметров.",
+    "table": "public.employees",
+    "summary": "Справочник сотрудников",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "last_name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Фамилия сотрудника"
+      },
+      {
+        "name": "first_name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Имя сотрудника"
+      },
+      {
+        "name": "middle_name",
+        "type": "varchar(255)",
+        "nullable": true,
+        "description": "Отчество сотрудника"
+      },
+      {
+        "name": "full_name",
+        "type": "varchar(765)",
+        "nullable": true,
+        "description": "Полное ФИО сотрудника (генерируется автоматически)"
+      },
+      {
+        "name": "department_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.departments.id",
+        "description": "Ссылка на отдел (public.departments.id)"
+      },
+      {
+        "name": "position_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.positions.id",
+        "description": "Ссылка на должность (public.positions.id)"
+      },
+      {
+        "name": "email",
+        "type": "varchar(255)",
+        "nullable": true,
+        "description": "Рабочий email сотрудника"
+      },
+      {
+        "name": "phone",
+        "type": "varchar(50)",
+        "nullable": true,
+        "description": "Рабочий телефон сотрудника"
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": false,
+        "description": "Активен ли сотрудник (false = уволен)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "fk": "auth.users.id",
+        "description": "Пользователь, создавший запись (auth.users.id)"
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.invoice_attachments",
+    "summary": "Associates invoices with stored attachments.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the invoice-attachment relation."
       },
       {
         "name": "invoice_id",
         "type": "uuid",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.invoices.id",
-        "note": null
+        "fk": "public.invoices.id",
+        "description": "Invoice (public.invoices.id) that the file belongs to."
       },
       {
-        "name": "payment_number",
-        "type": "integer",
+        "name": "attachment_id",
+        "type": "uuid",
         "nullable": false,
-        "default": "nextval('payment_number_seq'::regclass)",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Последовательный номер платежа."
+        "fk": "public.attachments.id",
+        "description": "Attachment (public.attachments.id) linked to the invoice."
       },
       {
-        "name": "payment_date",
-        "type": "date",
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the attachment was linked to the invoice."
+      }
+    ]
+  },
+  {
+    "table": "public.invoice_payments",
+    "summary": "Allocation of payments to invoices.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
         "nullable": false,
-        "default": "CURRENT_DATE",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the invoice-payment allocation."
       },
       {
-        "name": "amount",
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "fk": "public.invoices.id",
+        "description": "Invoice (public.invoices.id) receiving the allocation."
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "fk": "public.payments.id",
+        "description": "Payment (public.payments.id) allocated to the invoice."
+      },
+      {
+        "name": "allocated_amount",
         "type": "numeric(15,2)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "payment_type_id",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.payment_types.id",
-        "note": null
-      },
-      {
-        "name": "status_id",
-        "type": "integer",
-        "nullable": true,
-        "default": "1",
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.payment_statuses.id",
-        "note": null
-      },
-      {
-        "name": "created_by",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": null
+        "description": "Portion of the payment applied to the invoice."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the allocation was recorded."
       }
     ]
   },
   {
-    "table": "public.projects",
-    "summary": "Проекты для группировки счетов и контрагентов.",
+    "table": "public.invoice_statuses",
+    "summary": "Reference list of invoice workflow statuses.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "default": "nextval('projects_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "code",
-        "type": "varchar(50)",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Уникальный код проекта для интеграций."
-      },
-      {
-        "name": "name",
-        "type": "varchar(255)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "is_active",
-        "type": "boolean",
-        "nullable": true,
-        "default": "true",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_by",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.roles",
-    "summary": "Роли доступа внутри PayHub.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "default": "nextval('roles_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the invoice status."
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Unique status code used in API and UI."
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Display name of the invoice status."
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Optional description clarifying when to use the status."
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "description": "Ordering weight used when listing statuses."
+      },
+      {
+        "name": "color",
+        "type": "varchar(20)",
+        "nullable": true,
+        "description": "Optional UI color token or hex code for the status."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the invoice status was created."
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "own_projects_only",
-        "type": "boolean",
-        "nullable": true,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "Если TRUE, пользователь с этой ролью видит только данные своих проектов"
+        "description": "Timestamp when the invoice status was last updated."
       }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
     ]
   },
   {
-    "table": "public.user_profiles",
-    "summary": "Профили пользователей (зеркало auth.users).",
+    "table": "public.invoice_types",
+    "summary": "Reference list of invoice classification types.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the invoice type."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "description": "Unique code representing the invoice type."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Display name of the invoice type."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional explanation of what the invoice type represents."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the invoice type record was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the invoice type record was last updated."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.invoices",
+    "summary": "Outbound invoices issued from PayHub.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": null
-      },
-      {
-        "name": "email",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "full_name",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "role_id",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.roles.id",
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "public.user_projects",
-    "summary": "Назначения пользователей на проекты.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "default": "nextval('user_projects_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the invoice (UUID)."
       },
       {
         "name": "user_id",
         "type": "uuid",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "auth.users.id",
-        "note": null
+        "description": "Supabase auth user who created or owns the invoice."
       },
       {
-        "name": "project_id",
-        "type": "integer",
+        "name": "invoice_number",
+        "type": "text",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.projects.id",
-        "note": null
+        "description": "Human readable invoice number shown to customers."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional invoice description or customer note."
+      },
+      {
+        "name": "due_date",
+        "type": "date",
+        "nullable": true,
+        "description": "Date by which payment is expected."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the invoice record was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the invoice record was last updated."
+      },
+      {
+        "name": "invoice_date",
+        "type": "date",
+        "nullable": false,
+        "description": "Calendar date printed on the invoice."
+      },
+      {
+        "name": "payer_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.contractors.id",
+        "description": "Contractor acting as payer (public.contractors.id)."
+      },
+      {
+        "name": "supplier_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.contractors.id",
+        "description": "Contractor acting as supplier (public.contractors.id)."
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.projects.id",
+        "description": "Project associated with the invoice (public.projects.id)."
+      },
+      {
+        "name": "invoice_type_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.invoice_types.id",
+        "description": "Invoice type reference (public.invoice_types.id)."
+      },
+      {
+        "name": "amount_with_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "description": "Invoice total amount including VAT."
+      },
+      {
+        "name": "vat_rate",
+        "type": "numeric(5,2)",
+        "nullable": true,
+        "description": "VAT rate applied to the invoice total, in percent."
+      },
+      {
+        "name": "vat_amount",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "description": "VAT portion of the invoice total."
+      },
+      {
+        "name": "amount_without_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "description": "Invoice amount excluding VAT."
+      },
+      {
+        "name": "delivery_days",
+        "type": "integer",
+        "nullable": true,
+        "description": "Number of days required for delivery after payment."
+      },
+      {
+        "name": "delivery_days_type",
+        "type": "varchar(20)",
+        "nullable": true,
+        "description": "Interpretation of delivery days (working or calendar)."
+      },
+      {
+        "name": "preliminary_delivery_date",
+        "type": "date",
+        "nullable": true,
+        "description": "Projected delivery date calculated from payment terms."
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": false,
+        "fk": "public.invoice_statuses.id",
+        "description": "Workflow status of the invoice (public.invoice_statuses.id)."
+      },
+      {
+        "name": "delivery_cost",
+        "type": "numeric(12,2)",
+        "nullable": true,
+        "description": "Стоимость доставки в рублях"
+      },
+      {
+        "name": "relevance_date",
+        "type": "timestamptz",
+        "nullable": false,
+        "description": "Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем"
+      }
+    ],
+    "notes": [
+      "VAT totals are recalculated via calculate_vat_on_invoice before persist.",
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.material_classes",
+    "summary": "",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "code",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true
       }
     ]
   },
   {
-    "table": "public.workflow_stages",
-    "summary": "Этапы маршрутов согласования с указанием роли и статуса платежа",
+    "table": "public.payment_approvals",
+    "summary": "Payment approval instances.",
     "columns": [
       {
         "name": "id",
-        "type": "integer",
+        "type": "uuid",
         "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "pk": true,
+        "description": "Primary key of the payment approval."
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "fk": "public.payments.id",
+        "description": "Payment (public.payments.id) that is being approved."
       },
       {
         "name": "route_id",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.approval_routes.id",
-        "note": null
+        "fk": "public.approval_routes.id",
+        "description": "Approval route (public.approval_routes.id) used for the payment."
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": false,
+        "fk": "public.payment_statuses.id",
+        "description": "Current status of the approval (public.payment_statuses.id)."
+      },
+      {
+        "name": "current_stage_index",
+        "type": "integer",
+        "nullable": false,
+        "description": "Zero-based index of the current stage within the route."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the approval instance was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the approval instance was last updated."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.payment_attachments",
+    "summary": "Associates payments with stored attachments.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the payment-attachment relation."
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "fk": "public.payments.id",
+        "description": "Payment (public.payments.id) that the file is attached to."
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "fk": "public.attachments.id",
+        "description": "Attachment (public.attachments.id) linked to the payment."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the attachment was linked to the payment."
+      }
+    ]
+  },
+  {
+    "table": "public.payment_statuses",
+    "summary": "Reference list of payment statuses.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the payment status."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "description": "Unique code identifying the payment status."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Display name of the payment status."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional description of what the payment status means."
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "description": "Ordering weight used when listing payment statuses."
+      },
+      {
+        "name": "color",
+        "type": "varchar(20)",
+        "nullable": true,
+        "description": "Optional UI color token or hex code for the payment status."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the payment status was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the payment status was last updated."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.payment_types",
+    "summary": "Reference list of payment types (advance, final, etc.).",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the payment type."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "description": "Unique code used to reference the payment type."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Display name of the payment type."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional description of how the payment type is used."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the payment type record was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the payment type record was last updated."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.payments",
+    "summary": "Payments registered against invoices in PayHub.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the payment (UUID)."
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "fk": "public.invoices.id",
+        "description": "Invoice (public.invoices.id) that the payment relates to."
+      },
+      {
+        "name": "payment_number",
+        "type": "integer",
+        "nullable": false,
+        "description": "Unique sequential number of the payment."
+      },
+      {
+        "name": "payment_date",
+        "type": "date",
+        "nullable": false,
+        "description": "Date on which the payment was made."
+      },
+      {
+        "name": "amount",
+        "type": "numeric(15,2)",
+        "nullable": false,
+        "description": "Monetary amount of the payment."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional description or purpose of the payment."
+      },
+      {
+        "name": "payment_type_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.payment_types.id",
+        "description": "Payment type (public.payment_types.id)."
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.payment_statuses.id",
+        "description": "Current payment status (public.payment_statuses.id)."
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "fk": "auth.users.id",
+        "description": "User (auth.users.id) who created the payment record."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the payment record was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the payment record was last updated."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.positions",
+    "summary": "Должности сотрудников",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.projects",
+    "summary": "Projects used to group invoices and contractors.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the project."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": true,
+        "description": "Optional unique project code used in integrations and search."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Display name of the project."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional project description for internal users."
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "description": "TRUE when the project is active."
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "fk": "auth.users.id",
+        "description": "User (auth.users.id) who created the project."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the project record was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the project record was last updated."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.roles",
+    "summary": "Roles that define access levels inside PayHub.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the role."
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "description": "Unique machine-readable code of the role."
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Display name of the role."
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional description of the role permissions."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the role record was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the role record was last updated."
+      },
+      {
+        "name": "own_projects_only",
+        "type": "boolean",
+        "nullable": true,
+        "description": "TRUE when the role limits users to their own projects."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.user_profiles",
+    "summary": "Mirror of Supabase auth user profiles stored in the public schema.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": "auth.users.id",
+        "description": "Primary key of the profile and foreign key to auth.users.id."
+      },
+      {
+        "name": "email",
+        "type": "text",
+        "nullable": false,
+        "description": "Primary email address associated with the user profile."
+      },
+      {
+        "name": "full_name",
+        "type": "text",
+        "nullable": false,
+        "description": "Display name of the user."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the profile record was created."
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the profile record was last updated."
+      },
+      {
+        "name": "role_id",
+        "type": "integer",
+        "nullable": true,
+        "fk": "public.roles.id",
+        "description": "Role (public.roles.id) assigned to the user."
+      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
+    ]
+  },
+  {
+    "table": "public.user_projects",
+    "summary": "Mapping table assigning users to projects for access control.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the user-project link."
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "fk": "auth.users.id",
+        "description": "User (auth.users.id) who receives access to the project."
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "fk": "public.projects.id",
+        "description": "Project (public.projects.id) granted to the user."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "description": "Timestamp when the user-project link was created."
+      }
+    ]
+  },
+  {
+    "table": "public.workflow_stages",
+    "summary": "Workflow stages that build approval routes and set payment statuses.",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "description": "Primary key of the workflow stage."
+      },
+      {
+        "name": "route_id",
+        "type": "integer",
+        "nullable": false,
+        "fk": "public.approval_routes.id",
+        "description": "Approval route (public.approval_routes.id) the stage belongs to."
       },
       {
         "name": "order_index",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Zero-based order of the stage within the route."
       },
       {
         "name": "role_id",
         "type": "integer",
         "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": true,
-        "references": "public.roles.id",
-        "note": null
+        "fk": "public.roles.id",
+        "description": "Role (public.roles.id) responsible for processing the stage."
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Display name of the workflow stage."
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the workflow stage was created."
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Timestamp when the workflow stage was last updated."
       },
       {
         "name": "payment_status_id",
         "type": "integer",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": "ID статуса платежа, который будет установлен при прохождении этапа"
-      }
-    ]
-  },
-  {
-    "table": "realtime.messages",
-    "summary": "Служебная таблица realtime.messages.",
-    "columns": [
-      {
-        "name": "topic",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "fk": "public.payment_statuses.id",
+        "description": "Payment status (public.payment_statuses.id) applied after the stage is completed."
       },
       {
-        "name": "extension",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "payload",
+        "name": "permissions",
         "type": "jsonb",
         "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "JSON object storing stage-specific permissions like can_edit_invoice, can_add_files, can_edit_amount, etc."
       },
       {
-        "name": "event",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "private",
+        "name": "is_active",
         "type": "boolean",
         "nullable": true,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "inserted_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
+        "description": "Soft deletion flag to preserve referential integrity with approval_steps table"
       }
-    ]
-  },
-  {
-    "table": "realtime.schema_migrations",
-    "summary": "Auth: Manages updates to the auth system.",
-    "columns": [
-      {
-        "name": "version",
-        "type": "bigint",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "inserted_at",
-        "type": "timestamp",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "realtime.subscription",
-    "summary": "Служебная таблица realtime.subscription.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "bigint",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "subscription_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "entity",
-        "type": "regclass",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "filters",
-        "type": "ARRAY",
-        "nullable": false,
-        "default": "'{}'::realtime.user_defined_filter[]",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "claims",
-        "type": "jsonb",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "claims_role",
-        "type": "regrole",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamp",
-        "nullable": false,
-        "default": "timezone('utc'::text, now())",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.buckets",
-    "summary": "Служебная таблица storage.buckets.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "owner",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "public",
-        "type": "boolean",
-        "nullable": true,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "avif_autodetection",
-        "type": "boolean",
-        "nullable": true,
-        "default": "false",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "file_size_limit",
-        "type": "bigint",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "allowed_mime_types",
-        "type": "ARRAY",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "owner_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "type",
-        "type": "USER-DEFINED",
-        "nullable": false,
-        "default": "'STANDARD'::storage.buckettype",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.buckets_analytics",
-    "summary": "Служебная таблица storage.buckets_analytics.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "type",
-        "type": "USER-DEFINED",
-        "nullable": false,
-        "default": "'ANALYTICS'::storage.buckettype",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "format",
-        "type": "text",
-        "nullable": false,
-        "default": "'ICEBERG'::text",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.iceberg_namespaces",
-    "summary": "Служебная таблица storage.iceberg_namespaces.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "bucket_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.iceberg_tables",
-    "summary": "Служебная таблица storage.iceberg_tables.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "namespace_id",
-        "type": "uuid",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "bucket_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "location",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.migrations",
-    "summary": "Служебная таблица storage.migrations.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "varchar(100)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "hash",
-        "type": "varchar(40)",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "executed_at",
-        "type": "timestamp",
-        "nullable": true,
-        "default": "CURRENT_TIMESTAMP",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.objects",
-    "summary": "Служебная таблица storage.objects.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "bucket_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "owner",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "last_accessed_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "metadata",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "path_tokens",
-        "type": "ARRAY",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "version",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "owner_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_metadata",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "level",
-        "type": "integer",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.prefixes",
-    "summary": "Служебная таблица storage.prefixes.",
-    "columns": [
-      {
-        "name": "bucket_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "level",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.s3_multipart_uploads",
-    "summary": "Служебная таблица storage.s3_multipart_uploads.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "in_progress_size",
-        "type": "bigint",
-        "nullable": false,
-        "default": "0",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "upload_signature",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "bucket_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "key",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "version",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "owner_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "user_metadata",
-        "type": "jsonb",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "storage.s3_multipart_uploads_parts",
-    "summary": "Служебная таблица storage.s3_multipart_uploads_parts.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "upload_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "size",
-        "type": "bigint",
-        "nullable": false,
-        "default": "0",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "part_number",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "bucket_id",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "key",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "etag",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "owner_id",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "version",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "supabase_functions.hooks",
-    "summary": "Supabase Functions Hooks: Audit trail for triggered hooks.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "bigint",
-        "nullable": false,
-        "default": "nextval('supabase_functions.hooks_id_seq'::regclass)",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "hook_table_id",
-        "type": "integer",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "hook_name",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "request_id",
-        "type": "bigint",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "supabase_functions.migrations",
-    "summary": "Служебная таблица supabase_functions.migrations.",
-    "columns": [
-      {
-        "name": "version",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "inserted_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "now()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
-    ]
-  },
-  {
-    "table": "vault.secrets",
-    "summary": "Table with encrypted `secret` column for storing sensitive information on disk.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "default": "gen_random_uuid()",
-        "is_primary": true,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "name",
-        "type": "text",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": false,
-        "default": "''::text",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "secret",
-        "type": "text",
-        "nullable": false,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "key_id",
-        "type": "uuid",
-        "nullable": true,
-        "default": null,
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "nonce",
-        "type": "bytea",
-        "nullable": true,
-        "default": "vault._crypto_aead_det_noncegen()",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "CURRENT_TIMESTAMP",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": false,
-        "default": "CURRENT_TIMESTAMP",
-        "is_primary": false,
-        "is_foreign": false,
-        "references": null,
-        "note": null
-      }
+    ],
+    "notes": [
+      "updated_at is maintained automatically on updates."
     ]
   }
 ]

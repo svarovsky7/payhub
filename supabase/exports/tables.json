@@ -2853,7 +2853,7 @@
   "public.approval_routes": {
     "schema": "public",
     "name": "approval_routes",
-    "comment": "Маршруты согласования платежей по типам счетов",
+    "comment": "Approval routes configured per invoice type.",
     "columns": [
       {
         "name": "id",
@@ -2863,7 +2863,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Primary key of the approval route."
       },
       {
         "name": "invoice_type_id",
@@ -2873,7 +2873,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Invoice type (public.invoice_types.id) this route applies to."
       },
       {
         "name": "name",
@@ -2883,7 +2883,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Display name of the approval route."
       },
       {
         "name": "is_active",
@@ -2893,7 +2893,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "true",
-        "comment": null
+        "comment": "TRUE when the route can be used for new payments."
       },
       {
         "name": "created_at",
@@ -2903,7 +2903,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the route record was created."
       },
       {
         "name": "updated_at",
@@ -2913,7 +2913,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the route record was last updated."
       }
     ],
     "constraints": [
@@ -2966,12 +2966,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Маршруты согласования платежей по типам счетов\nCREATE TABLE IF NOT EXISTS public.approval_routes (\n    id integer(32) NOT NULL,\n    invoice_type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_routes_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT approval_routes_invoice_type_id_key UNIQUE (invoice_type_id),\n    CONSTRAINT approval_routes_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.approval_routes IS 'Маршруты согласования платежей по типам счетов';"
+    "sql": "-- Approval routes configured per invoice type.\nCREATE TABLE IF NOT EXISTS public.approval_routes (\n    id integer(32) NOT NULL,\n    invoice_type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_routes_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT approval_routes_invoice_type_id_key UNIQUE (invoice_type_id),\n    CONSTRAINT approval_routes_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.approval_routes IS 'Approval routes configured per invoice type.';\nCOMMENT ON COLUMN public.approval_routes.id IS 'Primary key of the approval route.';\nCOMMENT ON COLUMN public.approval_routes.invoice_type_id IS 'Invoice type (public.invoice_types.id) this route applies to.';\nCOMMENT ON COLUMN public.approval_routes.name IS 'Display name of the approval route.';\nCOMMENT ON COLUMN public.approval_routes.is_active IS 'TRUE when the route can be used for new payments.';\nCOMMENT ON COLUMN public.approval_routes.created_at IS 'Timestamp when the route record was created.';\nCOMMENT ON COLUMN public.approval_routes.updated_at IS 'Timestamp when the route record was last updated.';"
   },
   "public.approval_steps": {
     "schema": "public",
     "name": "approval_steps",
-    "comment": "История шагов согласования",
+    "comment": "Audit log of actions performed during payment approval.",
     "columns": [
       {
         "name": "id",
@@ -2981,7 +2981,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": "gen_random_uuid()",
-        "comment": null
+        "comment": "Primary key of the approval step entry."
       },
       {
         "name": "payment_approval_id",
@@ -2991,7 +2991,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Payment approval instance (public.payment_approvals.id) this entry belongs to."
       },
       {
         "name": "stage_id",
@@ -3001,7 +3001,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Workflow stage (public.workflow_stages.id) where the action happened."
       },
       {
         "name": "action",
@@ -3011,7 +3011,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Recorded action on the stage, e.g. approve or reject."
       },
       {
         "name": "acted_by",
@@ -3021,7 +3021,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "User (auth.users.id) who performed the action."
       },
       {
         "name": "acted_at",
@@ -3031,7 +3031,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Timestamp when the action was performed."
       },
       {
         "name": "comment",
@@ -3041,7 +3041,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Optional free-form note left by the approver."
       },
       {
         "name": "created_at",
@@ -3051,7 +3051,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the audit entry was stored."
       }
     ],
     "constraints": [
@@ -3144,12 +3144,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- История шагов согласования\nCREATE TABLE IF NOT EXISTS public.approval_steps (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_approval_id uuid NOT NULL,\n    stage_id integer(32) NOT NULL,\n    action text NOT NULL,\n    acted_by uuid,\n    acted_at timestamp with time zone,\n    comment text,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_steps_acted_by_fkey FOREIGN KEY (acted_by) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_fkey FOREIGN KEY (payment_approval_id) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (payment_approval_id),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (stage_id),\n    CONSTRAINT approval_steps_pkey PRIMARY KEY (id),\n    CONSTRAINT approval_steps_stage_id_fkey FOREIGN KEY (stage_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.approval_steps IS 'История шагов согласования';"
+    "sql": "-- Audit log of actions performed during payment approval.\nCREATE TABLE IF NOT EXISTS public.approval_steps (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_approval_id uuid NOT NULL,\n    stage_id integer(32) NOT NULL,\n    action text NOT NULL,\n    acted_by uuid,\n    acted_at timestamp with time zone,\n    comment text,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_steps_acted_by_fkey FOREIGN KEY (acted_by) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_fkey FOREIGN KEY (payment_approval_id) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (payment_approval_id),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (stage_id),\n    CONSTRAINT approval_steps_pkey PRIMARY KEY (id),\n    CONSTRAINT approval_steps_stage_id_fkey FOREIGN KEY (stage_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.approval_steps IS 'Audit log of actions performed during payment approval.';\nCOMMENT ON COLUMN public.approval_steps.id IS 'Primary key of the approval step entry.';\nCOMMENT ON COLUMN public.approval_steps.payment_approval_id IS 'Payment approval instance (public.payment_approvals.id) this entry belongs to.';\nCOMMENT ON COLUMN public.approval_steps.stage_id IS 'Workflow stage (public.workflow_stages.id) where the action happened.';\nCOMMENT ON COLUMN public.approval_steps.action IS 'Recorded action on the stage, e.g. approve or reject.';\nCOMMENT ON COLUMN public.approval_steps.acted_by IS 'User (auth.users.id) who performed the action.';\nCOMMENT ON COLUMN public.approval_steps.acted_at IS 'Timestamp when the action was performed.';\nCOMMENT ON COLUMN public.approval_steps.comment IS 'Optional free-form note left by the approver.';\nCOMMENT ON COLUMN public.approval_steps.created_at IS 'Timestamp when the audit entry was stored.';"
   },
   "public.attachments": {
     "schema": "public",
     "name": "attachments",
-    "comment": "Хранение информации о загруженных файлах",
+    "comment": "Metadata for files uploaded to Supabase Storage.",
     "columns": [
       {
         "name": "id",
@@ -3159,7 +3159,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": "gen_random_uuid()",
-        "comment": null
+        "comment": "Primary key of the attachment and Storage object identifier."
       },
       {
         "name": "original_name",
@@ -3169,7 +3169,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Оригинальное имя файла"
+        "comment": "Original filename provided by the user."
       },
       {
         "name": "storage_path",
@@ -3179,7 +3179,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Путь к файлу в Supabase Storage"
+        "comment": "Path to the object inside Supabase Storage."
       },
       {
         "name": "size_bytes",
@@ -3189,7 +3189,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Размер файла в байтах"
+        "comment": "File size in bytes."
       },
       {
         "name": "mime_type",
@@ -3199,7 +3199,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "MIME тип файла"
+        "comment": "Detected MIME type of the file."
       },
       {
         "name": "created_by",
@@ -3209,7 +3209,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Пользователь, загрузивший файл"
+        "comment": "User (auth.users.id) who uploaded the file."
       },
       {
         "name": "created_at",
@@ -3219,7 +3219,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the attachment record was created."
       },
       {
         "name": "updated_at",
@@ -3229,7 +3229,17 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the attachment metadata was last updated."
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "User-provided description of the file content"
       }
     ],
     "constraints": [
@@ -3298,12 +3308,240 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Хранение информации о загруженных файлах\nCREATE TABLE IF NOT EXISTS public.attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    original_name character varying(255) NOT NULL,\n    storage_path character varying(500) NOT NULL,\n    size_bytes integer(32) NOT NULL,\n    mime_type character varying(100) NOT NULL,\n    created_by uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT attachments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.attachments IS 'Хранение информации о загруженных файлах';\nCOMMENT ON COLUMN public.attachments.original_name IS 'Оригинальное имя файла';\nCOMMENT ON COLUMN public.attachments.storage_path IS 'Путь к файлу в Supabase Storage';\nCOMMENT ON COLUMN public.attachments.size_bytes IS 'Размер файла в байтах';\nCOMMENT ON COLUMN public.attachments.mime_type IS 'MIME тип файла';\nCOMMENT ON COLUMN public.attachments.created_by IS 'Пользователь, загрузивший файл';"
+    "sql": "-- Metadata for files uploaded to Supabase Storage.\nCREATE TABLE IF NOT EXISTS public.attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    original_name character varying(255) NOT NULL,\n    storage_path character varying(500) NOT NULL,\n    size_bytes integer(32) NOT NULL,\n    mime_type character varying(100) NOT NULL,\n    created_by uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    description text,\n    CONSTRAINT attachments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.attachments IS 'Metadata for files uploaded to Supabase Storage.';\nCOMMENT ON COLUMN public.attachments.id IS 'Primary key of the attachment and Storage object identifier.';\nCOMMENT ON COLUMN public.attachments.original_name IS 'Original filename provided by the user.';\nCOMMENT ON COLUMN public.attachments.storage_path IS 'Path to the object inside Supabase Storage.';\nCOMMENT ON COLUMN public.attachments.size_bytes IS 'File size in bytes.';\nCOMMENT ON COLUMN public.attachments.mime_type IS 'Detected MIME type of the file.';\nCOMMENT ON COLUMN public.attachments.created_by IS 'User (auth.users.id) who uploaded the file.';\nCOMMENT ON COLUMN public.attachments.created_at IS 'Timestamp when the attachment record was created.';\nCOMMENT ON COLUMN public.attachments.updated_at IS 'Timestamp when the attachment metadata was last updated.';\nCOMMENT ON COLUMN public.attachments.description IS 'User-provided description of the file content';"
+  },
+  "public.contract_attachments": {
+    "schema": "public",
+    "name": "contract_attachments",
+    "comment": "Связь договоров с приложенными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "uuid_generate_v4()",
+        "comment": null
+      },
+      {
+        "name": "contract_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_21097_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21097_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21097_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_attachments_attachment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_attachments_contract_id_attachment_id_key",
+        "type": "UNIQUE",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_attachments_contract_id_attachment_id_key",
+        "type": "UNIQUE",
+        "column": "contract_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_attachments_contract_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "contract_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_attachments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Связь договоров с приложенными файлами\nCREATE TABLE IF NOT EXISTS public.contract_attachments (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT contract_attachments_contract_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT contract_attachments_contract_id_attachment_id_key UNIQUE (contract_id),\n    CONSTRAINT contract_attachments_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_attachments IS 'Связь договоров с приложенными файлами';"
+  },
+  "public.contract_invoices": {
+    "schema": "public",
+    "name": "contract_invoices",
+    "comment": "Связь договоров со счетами",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "uuid_generate_v4()",
+        "comment": null
+      },
+      {
+        "name": "contract_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "invoice_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_21078_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21078_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21078_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_invoices_contract_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "contract_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_invoices_contract_id_invoice_id_key",
+        "type": "UNIQUE",
+        "column": "contract_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_invoices_contract_id_invoice_id_key",
+        "type": "UNIQUE",
+        "column": "invoice_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_invoices_invoice_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "invoice_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_invoices_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Связь договоров со счетами\nCREATE TABLE IF NOT EXISTS public.contract_invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    invoice_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (contract_id),\n    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (invoice_id),\n    CONSTRAINT contract_invoices_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_invoices IS 'Связь договоров со счетами';"
   },
   "public.contractor_types": {
     "schema": "public",
     "name": "contractor_types",
-    "comment": "Reference of contractor categories used across contractor records.",
+    "comment": "Reference list of contractor categories.",
     "columns": [
       {
         "name": "id",
@@ -3313,7 +3551,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('contractor_types_id_seq'::regclass)",
-        "comment": "Surrogate primary key for contractor type."
+        "comment": "Primary key of the contractor type."
       },
       {
         "name": "code",
@@ -3323,7 +3561,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Unique short code of contractor type used in integrations."
+        "comment": "Unique code used to identify the contractor type."
       },
       {
         "name": "name",
@@ -3343,7 +3581,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Optional description that clarifies how the contractor type is used."
+        "comment": "Optional explanation of when to use the contractor type."
       },
       {
         "name": "created_at",
@@ -3353,7 +3591,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp of when the contractor type record was created."
+        "comment": "Timestamp when the contractor type was created."
       },
       {
         "name": "updated_at",
@@ -3363,7 +3601,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the contractor type was last updated."
       }
     ],
     "constraints": [
@@ -3408,7 +3646,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Reference of contractor categories used across contractor records.\nCREATE TABLE IF NOT EXISTS public.contractor_types (\n    id integer(32) NOT NULL DEFAULT nextval('contractor_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractor_types_code_key UNIQUE (code),\n    CONSTRAINT contractor_types_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contractor_types IS 'Reference of contractor categories used across contractor records.';\nCOMMENT ON COLUMN public.contractor_types.id IS 'Surrogate primary key for contractor type.';\nCOMMENT ON COLUMN public.contractor_types.code IS 'Unique short code of contractor type used in integrations.';\nCOMMENT ON COLUMN public.contractor_types.name IS 'Human readable contractor type name.';\nCOMMENT ON COLUMN public.contractor_types.description IS 'Optional description that clarifies how the contractor type is used.';\nCOMMENT ON COLUMN public.contractor_types.created_at IS 'Timestamp of when the contractor type record was created.';\nCOMMENT ON COLUMN public.contractor_types.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Reference list of contractor categories.\nCREATE TABLE IF NOT EXISTS public.contractor_types (\n    id integer(32) NOT NULL DEFAULT nextval('contractor_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractor_types_code_key UNIQUE (code),\n    CONSTRAINT contractor_types_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contractor_types IS 'Reference list of contractor categories.';\nCOMMENT ON COLUMN public.contractor_types.id IS 'Primary key of the contractor type.';\nCOMMENT ON COLUMN public.contractor_types.code IS 'Unique code used to identify the contractor type.';\nCOMMENT ON COLUMN public.contractor_types.name IS 'Human readable contractor type name.';\nCOMMENT ON COLUMN public.contractor_types.description IS 'Optional explanation of when to use the contractor type.';\nCOMMENT ON COLUMN public.contractor_types.created_at IS 'Timestamp when the contractor type was created.';\nCOMMENT ON COLUMN public.contractor_types.updated_at IS 'Timestamp when the contractor type was last updated.';"
   },
   "public.contractors": {
     "schema": "public",
@@ -3423,7 +3661,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('contractors_id_seq'::regclass)",
-        "comment": "Surrogate primary key for contractor."
+        "comment": "Primary key of the contractor."
       },
       {
         "name": "type_id",
@@ -3433,7 +3671,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Foreign key to public.contractor_types.id indicating contractor category."
+        "comment": "Contractor type (public.contractor_types.id)."
       },
       {
         "name": "name",
@@ -3443,7 +3681,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Official contractor name stored for invoicing."
+        "comment": "Official contractor name stored for invoices."
       },
       {
         "name": "inn",
@@ -3463,7 +3701,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Identifier of the Supabase auth user that created the contractor."
+        "comment": "User (auth.users.id) who created the contractor record."
       },
       {
         "name": "created_at",
@@ -3483,7 +3721,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the contractor record was last updated."
       }
     ],
     "constraints": [
@@ -3544,12 +3782,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Registry of contractors linked to invoices and projects.\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    inn character varying(12),\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id),\n    CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects.';\nCOMMENT ON COLUMN public.contractors.id IS 'Surrogate primary key for contractor.';\nCOMMENT ON COLUMN public.contractors.type_id IS 'Foreign key to public.contractor_types.id indicating contractor category.';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name stored for invoicing.';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN) of the contractor.';\nCOMMENT ON COLUMN public.contractors.created_by IS 'Identifier of the Supabase auth user that created the contractor.';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor record was created.';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Registry of contractors linked to invoices and projects.\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    inn character varying(12),\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id),\n    CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects.';\nCOMMENT ON COLUMN public.contractors.id IS 'Primary key of the contractor.';\nCOMMENT ON COLUMN public.contractors.type_id IS 'Contractor type (public.contractor_types.id).';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name stored for invoices.';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN) of the contractor.';\nCOMMENT ON COLUMN public.contractors.created_by IS 'User (auth.users.id) who created the contractor record.';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor record was created.';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor record was last updated.';"
   },
-  "public.invoice_attachments": {
+  "public.contracts": {
     "schema": "public",
-    "name": "invoice_attachments",
-    "comment": "Связь между счетами и прикрепленными файлами",
+    "name": "contracts",
+    "comment": "Договоры с контрагентами",
     "columns": [
       {
         "name": "id",
@@ -3558,13 +3796,189 @@
         "numeric_precision": null,
         "numeric_scale": null,
         "is_nullable": "NO",
-        "default": "gen_random_uuid()",
+        "default": "uuid_generate_v4()",
         "comment": null
       },
       {
-        "name": "invoice_id",
+        "name": "contract_number",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Номер договора"
+      },
+      {
+        "name": "contract_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Дата заключения договора"
+      },
+      {
+        "name": "payer_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на плательщика (public.contractors.id)"
+      },
+      {
+        "name": "supplier_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на поставщика (public.contractors.id)"
+      },
+      {
+        "name": "vat_rate",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 5,
+        "numeric_scale": 2,
+        "is_nullable": "YES",
+        "default": "20",
+        "comment": "Ставка НДС в процентах"
+      },
+      {
+        "name": "warranty_period_days",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Гарантийный срок в днях"
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Описание договора"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "created_by",
         "data_type": "uuid",
         "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Пользователь, создавший запись (auth.users.id)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_21052_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21052_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21052_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contracts_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contracts_payer_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "payer_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contracts_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contracts_supplier_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "supplier_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Договоры с контрагентами\nCREATE TABLE IF NOT EXISTS public.contracts (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_number character varying(255) NOT NULL,\n    contract_date date NOT NULL,\n    payer_id integer(32),\n    supplier_id integer(32),\n    vat_rate numeric(5,2) DEFAULT 20,\n    warranty_period_days integer(32),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_pkey PRIMARY KEY (id),\n    CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';\nCOMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';\nCOMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';\nCOMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';\nCOMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';\nCOMMENT ON COLUMN public.contracts.description IS 'Описание договора';\nCOMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';"
+  },
+  "public.departments": {
+    "schema": "public",
+    "name": "departments",
+    "comment": "Организационные отделы компании",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('departments_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
         "numeric_precision": null,
         "numeric_scale": null,
         "is_nullable": "NO",
@@ -3572,12 +3986,12 @@
         "comment": null
       },
       {
-        "name": "attachment_id",
-        "data_type": "uuid",
+        "name": "description",
+        "data_type": "text",
         "max_length": null,
         "numeric_precision": null,
         "numeric_scale": null,
-        "is_nullable": "NO",
+        "is_nullable": "YES",
         "default": null,
         "comment": null
       },
@@ -3590,6 +4004,302 @@
         "is_nullable": "YES",
         "default": "now()",
         "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_20791_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20791_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "departments_name_key",
+        "type": "UNIQUE",
+        "column": "name",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "departments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Организационные отделы компании\nCREATE TABLE IF NOT EXISTS public.departments (\n    id integer(32) NOT NULL DEFAULT nextval('departments_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT departments_name_key UNIQUE (name),\n    CONSTRAINT departments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.departments IS 'Организационные отделы компании';"
+  },
+  "public.employees": {
+    "schema": "public",
+    "name": "employees",
+    "comment": "Справочник сотрудников",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('employees_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "last_name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Фамилия сотрудника"
+      },
+      {
+        "name": "first_name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Имя сотрудника"
+      },
+      {
+        "name": "middle_name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Отчество сотрудника"
+      },
+      {
+        "name": "full_name",
+        "data_type": "character varying",
+        "max_length": 765,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Полное ФИО сотрудника (генерируется автоматически)"
+      },
+      {
+        "name": "department_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на отдел (public.departments.id)"
+      },
+      {
+        "name": "position_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на должность (public.positions.id)"
+      },
+      {
+        "name": "email",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Рабочий email сотрудника"
+      },
+      {
+        "name": "phone",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Рабочий телефон сотрудника"
+      },
+      {
+        "name": "is_active",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "true",
+        "comment": "Активен ли сотрудник (false = уволен)"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Пользователь, создавший запись (auth.users.id)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_20817_10_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20817_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20817_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20817_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "employees_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "employees_department_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "department_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "employees_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "employees_position_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "position_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Справочник сотрудников\nCREATE TABLE IF NOT EXISTS public.employees (\n    id integer(32) NOT NULL DEFAULT nextval('employees_id_seq'::regclass),\n    last_name character varying(255) NOT NULL,\n    first_name character varying(255) NOT NULL,\n    middle_name character varying(255),\n    full_name character varying(765),\n    department_id integer(32),\n    position_id integer(32),\n    email character varying(255),\n    phone character varying(50),\n    is_active boolean NOT NULL DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    CONSTRAINT employees_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT employees_department_id_fkey FOREIGN KEY (department_id) REFERENCES None.None(None),\n    CONSTRAINT employees_pkey PRIMARY KEY (id),\n    CONSTRAINT employees_position_id_fkey FOREIGN KEY (position_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.employees IS 'Справочник сотрудников';\nCOMMENT ON COLUMN public.employees.last_name IS 'Фамилия сотрудника';\nCOMMENT ON COLUMN public.employees.first_name IS 'Имя сотрудника';\nCOMMENT ON COLUMN public.employees.middle_name IS 'Отчество сотрудника';\nCOMMENT ON COLUMN public.employees.full_name IS 'Полное ФИО сотрудника (генерируется автоматически)';\nCOMMENT ON COLUMN public.employees.department_id IS 'Ссылка на отдел (public.departments.id)';\nCOMMENT ON COLUMN public.employees.position_id IS 'Ссылка на должность (public.positions.id)';\nCOMMENT ON COLUMN public.employees.email IS 'Рабочий email сотрудника';\nCOMMENT ON COLUMN public.employees.phone IS 'Рабочий телефон сотрудника';\nCOMMENT ON COLUMN public.employees.is_active IS 'Активен ли сотрудник (false = уволен)';\nCOMMENT ON COLUMN public.employees.created_by IS 'Пользователь, создавший запись (auth.users.id)';"
+  },
+  "public.invoice_attachments": {
+    "schema": "public",
+    "name": "invoice_attachments",
+    "comment": "Associates invoices with stored attachments.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": "Primary key of the invoice-attachment relation."
+      },
+      {
+        "name": "invoice_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Invoice (public.invoices.id) that the file belongs to."
+      },
+      {
+        "name": "attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Attachment (public.attachments.id) linked to the invoice."
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": "Timestamp when the attachment was linked to the invoice."
       }
     ],
     "constraints": [
@@ -3658,12 +4368,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Связь между счетами и прикрепленными файлами\nCREATE TABLE IF NOT EXISTS public.invoice_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_attachments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_attachments IS 'Связь между счетами и прикрепленными файлами';"
+    "sql": "-- Associates invoices with stored attachments.\nCREATE TABLE IF NOT EXISTS public.invoice_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_attachments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_attachments IS 'Associates invoices with stored attachments.';\nCOMMENT ON COLUMN public.invoice_attachments.id IS 'Primary key of the invoice-attachment relation.';\nCOMMENT ON COLUMN public.invoice_attachments.invoice_id IS 'Invoice (public.invoices.id) that the file belongs to.';\nCOMMENT ON COLUMN public.invoice_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the invoice.';\nCOMMENT ON COLUMN public.invoice_attachments.created_at IS 'Timestamp when the attachment was linked to the invoice.';"
   },
   "public.invoice_payments": {
     "schema": "public",
     "name": "invoice_payments",
-    "comment": null,
+    "comment": "Allocation of payments to invoices.",
     "columns": [
       {
         "name": "id",
@@ -3673,7 +4383,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": "gen_random_uuid()",
-        "comment": null
+        "comment": "Primary key of the invoice-payment allocation."
       },
       {
         "name": "invoice_id",
@@ -3683,7 +4393,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Invoice (public.invoices.id) receiving the allocation."
       },
       {
         "name": "payment_id",
@@ -3693,7 +4403,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Payment (public.payments.id) allocated to the invoice."
       },
       {
         "name": "allocated_amount",
@@ -3703,7 +4413,7 @@
         "numeric_scale": 2,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Portion of the payment applied to the invoice."
       },
       {
         "name": "created_at",
@@ -3713,7 +4423,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the allocation was recorded."
       }
     ],
     "constraints": [
@@ -3798,12 +4508,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "CREATE TABLE IF NOT EXISTS public.invoice_payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_id uuid NOT NULL,\n    allocated_amount numeric(15,2) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT invoice_payments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)\n);"
+    "sql": "-- Allocation of payments to invoices.\nCREATE TABLE IF NOT EXISTS public.invoice_payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_id uuid NOT NULL,\n    allocated_amount numeric(15,2) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT invoice_payments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_payments IS 'Allocation of payments to invoices.';\nCOMMENT ON COLUMN public.invoice_payments.id IS 'Primary key of the invoice-payment allocation.';\nCOMMENT ON COLUMN public.invoice_payments.invoice_id IS 'Invoice (public.invoices.id) receiving the allocation.';\nCOMMENT ON COLUMN public.invoice_payments.payment_id IS 'Payment (public.payments.id) allocated to the invoice.';\nCOMMENT ON COLUMN public.invoice_payments.allocated_amount IS 'Portion of the payment applied to the invoice.';\nCOMMENT ON COLUMN public.invoice_payments.created_at IS 'Timestamp when the allocation was recorded.';"
   },
   "public.invoice_statuses": {
     "schema": "public",
     "name": "invoice_statuses",
-    "comment": "Reference of invoice workflow statuses used throughout PayHub.",
+    "comment": "Reference list of invoice workflow statuses.",
     "columns": [
       {
         "name": "id",
@@ -3813,7 +4523,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('invoice_statuses_id_seq'::regclass)",
-        "comment": "Surrogate primary key for invoice status."
+        "comment": "Primary key of the invoice status."
       },
       {
         "name": "code",
@@ -3823,7 +4533,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Unique code used to reference the status in APIs and UI."
+        "comment": "Unique status code used in API and UI."
       },
       {
         "name": "name",
@@ -3833,7 +4543,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Human readable status label."
+        "comment": "Display name of the invoice status."
       },
       {
         "name": "description",
@@ -3843,7 +4553,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Optional description explaining when to use the status."
+        "comment": "Optional description clarifying when to use the status."
       },
       {
         "name": "sort_order",
@@ -3853,7 +4563,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Ordering weight for displaying statuses."
+        "comment": "Ordering weight used when listing statuses."
       },
       {
         "name": "color",
@@ -3863,7 +4573,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Optional color token or hex value for UI badges."
+        "comment": "Optional UI color token or hex code for the status."
       },
       {
         "name": "created_at",
@@ -3883,7 +4593,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the invoice status was last updated."
       }
     ],
     "constraints": [
@@ -3928,12 +4638,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Reference of invoice workflow statuses used throughout PayHub.\nCREATE TABLE IF NOT EXISTS public.invoice_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('invoice_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    sort_order integer(32),\n    color character varying(20),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_statuses_code_key UNIQUE (code),\n    CONSTRAINT invoice_statuses_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_statuses IS 'Reference of invoice workflow statuses used throughout PayHub.';\nCOMMENT ON COLUMN public.invoice_statuses.id IS 'Surrogate primary key for invoice status.';\nCOMMENT ON COLUMN public.invoice_statuses.code IS 'Unique code used to reference the status in APIs and UI.';\nCOMMENT ON COLUMN public.invoice_statuses.name IS 'Human readable status label.';\nCOMMENT ON COLUMN public.invoice_statuses.description IS 'Optional description explaining when to use the status.';\nCOMMENT ON COLUMN public.invoice_statuses.sort_order IS 'Ordering weight for displaying statuses.';\nCOMMENT ON COLUMN public.invoice_statuses.color IS 'Optional color token or hex value for UI badges.';\nCOMMENT ON COLUMN public.invoice_statuses.created_at IS 'Timestamp when the invoice status was created.';\nCOMMENT ON COLUMN public.invoice_statuses.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Reference list of invoice workflow statuses.\nCREATE TABLE IF NOT EXISTS public.invoice_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('invoice_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    sort_order integer(32),\n    color character varying(20),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_statuses_code_key UNIQUE (code),\n    CONSTRAINT invoice_statuses_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_statuses IS 'Reference list of invoice workflow statuses.';\nCOMMENT ON COLUMN public.invoice_statuses.id IS 'Primary key of the invoice status.';\nCOMMENT ON COLUMN public.invoice_statuses.code IS 'Unique status code used in API and UI.';\nCOMMENT ON COLUMN public.invoice_statuses.name IS 'Display name of the invoice status.';\nCOMMENT ON COLUMN public.invoice_statuses.description IS 'Optional description clarifying when to use the status.';\nCOMMENT ON COLUMN public.invoice_statuses.sort_order IS 'Ordering weight used when listing statuses.';\nCOMMENT ON COLUMN public.invoice_statuses.color IS 'Optional UI color token or hex code for the status.';\nCOMMENT ON COLUMN public.invoice_statuses.created_at IS 'Timestamp when the invoice status was created.';\nCOMMENT ON COLUMN public.invoice_statuses.updated_at IS 'Timestamp when the invoice status was last updated.';"
   },
   "public.invoice_types": {
     "schema": "public",
     "name": "invoice_types",
-    "comment": "Reference of invoice classification types (e.g. services, materials).",
+    "comment": "Reference list of invoice classification types.",
     "columns": [
       {
         "name": "id",
@@ -3943,7 +4653,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('invoice_types_id_seq'::regclass)",
-        "comment": "Surrogate primary key for invoice type."
+        "comment": "Primary key of the invoice type."
       },
       {
         "name": "code",
@@ -3963,7 +4673,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Human readable invoice type name."
+        "comment": "Display name of the invoice type."
       },
       {
         "name": "description",
@@ -3973,7 +4683,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Optional description of what the invoice type represents."
+        "comment": "Optional explanation of what the invoice type represents."
       },
       {
         "name": "created_at",
@@ -3993,7 +4703,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the invoice type record was last updated."
       }
     ],
     "constraints": [
@@ -4038,7 +4748,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Reference of invoice classification types (e.g. services, materials).\nCREATE TABLE IF NOT EXISTS public.invoice_types (\n    id integer(32) NOT NULL DEFAULT nextval('invoice_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_types_code_key UNIQUE (code),\n    CONSTRAINT invoice_types_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_types IS 'Reference of invoice classification types (e.g. services, materials).';\nCOMMENT ON COLUMN public.invoice_types.id IS 'Surrogate primary key for invoice type.';\nCOMMENT ON COLUMN public.invoice_types.code IS 'Unique code representing the invoice type.';\nCOMMENT ON COLUMN public.invoice_types.name IS 'Human readable invoice type name.';\nCOMMENT ON COLUMN public.invoice_types.description IS 'Optional description of what the invoice type represents.';\nCOMMENT ON COLUMN public.invoice_types.created_at IS 'Timestamp when the invoice type record was created.';\nCOMMENT ON COLUMN public.invoice_types.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Reference list of invoice classification types.\nCREATE TABLE IF NOT EXISTS public.invoice_types (\n    id integer(32) NOT NULL DEFAULT nextval('invoice_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_types_code_key UNIQUE (code),\n    CONSTRAINT invoice_types_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_types IS 'Reference list of invoice classification types.';\nCOMMENT ON COLUMN public.invoice_types.id IS 'Primary key of the invoice type.';\nCOMMENT ON COLUMN public.invoice_types.code IS 'Unique code representing the invoice type.';\nCOMMENT ON COLUMN public.invoice_types.name IS 'Display name of the invoice type.';\nCOMMENT ON COLUMN public.invoice_types.description IS 'Optional explanation of what the invoice type represents.';\nCOMMENT ON COLUMN public.invoice_types.created_at IS 'Timestamp when the invoice type record was created.';\nCOMMENT ON COLUMN public.invoice_types.updated_at IS 'Timestamp when the invoice type record was last updated.';"
   },
   "public.invoices": {
     "schema": "public",
@@ -4053,7 +4763,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": "uuid_generate_v4()",
-        "comment": "Primary key and external identifier of the invoice."
+        "comment": "Primary key of the invoice (UUID)."
       },
       {
         "name": "user_id",
@@ -4063,7 +4773,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Supabase auth user who owns or issued the invoice."
+        "comment": "Supabase auth user who created or owns the invoice."
       },
       {
         "name": "invoice_number",
@@ -4073,7 +4783,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Human readable invoice number visible to customers."
+        "comment": "Human readable invoice number shown to customers."
       },
       {
         "name": "description",
@@ -4083,7 +4793,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Optional invoice description or customer facing note."
+        "comment": "Optional invoice description or customer note."
       },
       {
         "name": "due_date",
@@ -4103,7 +4813,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp when the invoice was created."
+        "comment": "Timestamp when the invoice record was created."
       },
       {
         "name": "updated_at",
@@ -4113,7 +4823,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the invoice record was last updated."
       },
       {
         "name": "invoice_date",
@@ -4133,7 +4843,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Contractor (public.contractors.id) acting as payer."
+        "comment": "Contractor acting as payer (public.contractors.id)."
       },
       {
         "name": "supplier_id",
@@ -4143,7 +4853,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Contractor (public.contractors.id) acting as supplier."
+        "comment": "Contractor acting as supplier (public.contractors.id)."
       },
       {
         "name": "project_id",
@@ -4153,7 +4863,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Associated project (public.projects.id)."
+        "comment": "Project associated with the invoice (public.projects.id)."
       },
       {
         "name": "invoice_type_id",
@@ -4183,7 +4893,7 @@
         "numeric_scale": 2,
         "is_nullable": "YES",
         "default": "20",
-        "comment": "VAT rate applied to the invoice amount (percent)."
+        "comment": "VAT rate applied to the invoice total, in percent."
       },
       {
         "name": "vat_amount",
@@ -4203,7 +4913,7 @@
         "numeric_scale": 2,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Invoice total amount excluding VAT."
+        "comment": "Invoice amount excluding VAT."
       },
       {
         "name": "delivery_days",
@@ -4213,7 +4923,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Number of days for delivery after payment."
+        "comment": "Number of days required for delivery after payment."
       },
       {
         "name": "delivery_days_type",
@@ -4223,7 +4933,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "'working'::character varying",
-        "comment": "Delivery day interpretation: working or calendar."
+        "comment": "Interpretation of delivery days (working or calendar)."
       },
       {
         "name": "preliminary_delivery_date",
@@ -4243,7 +4953,27 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Invoice workflow status (public.invoice_statuses.id)."
+        "comment": "Workflow status of the invoice (public.invoice_statuses.id)."
+      },
+      {
+        "name": "delivery_cost",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 12,
+        "numeric_scale": 2,
+        "is_nullable": "YES",
+        "default": "0",
+        "comment": "Стоимость доставки в рублях"
+      },
+      {
+        "name": "relevance_date",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "CURRENT_TIMESTAMP",
+        "comment": "Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем"
       }
     ],
     "constraints": [
@@ -4265,6 +4995,14 @@
       },
       {
         "name": "2200_18252_22_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18252_24_not_null",
         "type": "CHECK",
         "column": null,
         "foreign_table_schema": null,
@@ -4360,26 +5098,36 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key and external identifier of the invoice.';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who owns or issued the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number visible to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer facing note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor (public.contractors.id) acting as payer.';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor (public.contractors.id) acting as supplier.';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Associated project (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice amount (percent).';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice total amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Delivery day interpretation: working or calendar.';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Invoice workflow status (public.invoice_statuses.id).';"
+    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';"
   },
-  "public.payment_approvals": {
+  "public.material_classes": {
     "schema": "public",
-    "name": "payment_approvals",
-    "comment": "Экземпляры согласования платежей",
+    "name": "material_classes",
+    "comment": null,
     "columns": [
       {
         "name": "id",
-        "data_type": "uuid",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "text",
         "max_length": null,
         "numeric_precision": null,
         "numeric_scale": null,
         "is_nullable": "NO",
-        "default": "gen_random_uuid()",
+        "default": null,
         "comment": null
       },
       {
-        "name": "payment_id",
-        "data_type": "uuid",
+        "name": "name",
+        "data_type": "text",
         "max_length": null,
         "numeric_precision": null,
         "numeric_scale": null,
@@ -4388,33 +5136,13 @@
         "comment": null
       },
       {
-        "name": "route_id",
-        "data_type": "integer",
+        "name": "is_active",
+        "data_type": "boolean",
         "max_length": null,
-        "numeric_precision": 32,
-        "numeric_scale": 0,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": null
-      },
-      {
-        "name": "status_id",
-        "data_type": "integer",
-        "max_length": null,
-        "numeric_precision": 32,
-        "numeric_scale": 0,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": null
-      },
-      {
-        "name": "current_stage_index",
-        "data_type": "integer",
-        "max_length": null,
-        "numeric_precision": 32,
-        "numeric_scale": 0,
-        "is_nullable": "NO",
-        "default": "0",
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "true",
         "comment": null
       },
       {
@@ -4424,7 +5152,7 @@
         "numeric_precision": null,
         "numeric_scale": null,
         "is_nullable": "YES",
-        "default": "now()",
+        "default": "CURRENT_TIMESTAMP",
         "comment": null
       },
       {
@@ -4434,8 +5162,136 @@
         "numeric_precision": null,
         "numeric_scale": null,
         "is_nullable": "YES",
-        "default": "now()",
+        "default": "CURRENT_TIMESTAMP",
         "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_21264_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21264_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21264_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_classes_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_classes_name_key",
+        "type": "UNIQUE",
+        "column": "name",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_classes_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.material_classes (\n    id bigint(64) NOT NULL,\n    code text NOT NULL,\n    name text NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT material_classes_code_key UNIQUE (code),\n    CONSTRAINT material_classes_name_key UNIQUE (name),\n    CONSTRAINT material_classes_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.payment_approvals": {
+    "schema": "public",
+    "name": "payment_approvals",
+    "comment": "Payment approval instances.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": "Primary key of the payment approval."
+      },
+      {
+        "name": "payment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Payment (public.payments.id) that is being approved."
+      },
+      {
+        "name": "route_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Approval route (public.approval_routes.id) used for the payment."
+      },
+      {
+        "name": "status_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Current status of the approval (public.payment_statuses.id)."
+      },
+      {
+        "name": "current_stage_index",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "0",
+        "comment": "Zero-based index of the current stage within the route."
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": "Timestamp when the approval instance was created."
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": "Timestamp when the approval instance was last updated."
       }
     ],
     "constraints": [
@@ -4520,12 +5376,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Экземпляры согласования платежей\nCREATE TABLE IF NOT EXISTS public.payment_approvals (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    route_id integer(32) NOT NULL,\n    status_id integer(32) NOT NULL,\n    current_stage_index integer(32) NOT NULL DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_approvals_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_approvals_pkey PRIMARY KEY (id),\n    CONSTRAINT payment_approvals_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payment_approvals IS 'Экземпляры согласования платежей';"
+    "sql": "-- Payment approval instances.\nCREATE TABLE IF NOT EXISTS public.payment_approvals (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    route_id integer(32) NOT NULL,\n    status_id integer(32) NOT NULL,\n    current_stage_index integer(32) NOT NULL DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_approvals_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_approvals_pkey PRIMARY KEY (id),\n    CONSTRAINT payment_approvals_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payment_approvals IS 'Payment approval instances.';\nCOMMENT ON COLUMN public.payment_approvals.id IS 'Primary key of the payment approval.';\nCOMMENT ON COLUMN public.payment_approvals.payment_id IS 'Payment (public.payments.id) that is being approved.';\nCOMMENT ON COLUMN public.payment_approvals.route_id IS 'Approval route (public.approval_routes.id) used for the payment.';\nCOMMENT ON COLUMN public.payment_approvals.status_id IS 'Current status of the approval (public.payment_statuses.id).';\nCOMMENT ON COLUMN public.payment_approvals.current_stage_index IS 'Zero-based index of the current stage within the route.';\nCOMMENT ON COLUMN public.payment_approvals.created_at IS 'Timestamp when the approval instance was created.';\nCOMMENT ON COLUMN public.payment_approvals.updated_at IS 'Timestamp when the approval instance was last updated.';"
   },
   "public.payment_attachments": {
     "schema": "public",
     "name": "payment_attachments",
-    "comment": "Связь между платежами и прикрепленными файлами",
+    "comment": "Associates payments with stored attachments.",
     "columns": [
       {
         "name": "id",
@@ -4535,7 +5391,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": "gen_random_uuid()",
-        "comment": null
+        "comment": "Primary key of the payment-attachment relation."
       },
       {
         "name": "payment_id",
@@ -4545,7 +5401,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "ID платежа"
+        "comment": "Payment (public.payments.id) that the file is attached to."
       },
       {
         "name": "attachment_id",
@@ -4555,7 +5411,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "ID прикрепленного файла"
+        "comment": "Attachment (public.attachments.id) linked to the payment."
       },
       {
         "name": "created_at",
@@ -4565,7 +5421,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the attachment was linked to the payment."
       }
     ],
     "constraints": [
@@ -4634,12 +5490,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Связь между платежами и прикрепленными файлами\nCREATE TABLE IF NOT EXISTS public.payment_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_attachments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.payment_attachments IS 'Связь между платежами и прикрепленными файлами';\nCOMMENT ON COLUMN public.payment_attachments.payment_id IS 'ID платежа';\nCOMMENT ON COLUMN public.payment_attachments.attachment_id IS 'ID прикрепленного файла';"
+    "sql": "-- Associates payments with stored attachments.\nCREATE TABLE IF NOT EXISTS public.payment_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_attachments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.payment_attachments IS 'Associates payments with stored attachments.';\nCOMMENT ON COLUMN public.payment_attachments.id IS 'Primary key of the payment-attachment relation.';\nCOMMENT ON COLUMN public.payment_attachments.payment_id IS 'Payment (public.payments.id) that the file is attached to.';\nCOMMENT ON COLUMN public.payment_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the payment.';\nCOMMENT ON COLUMN public.payment_attachments.created_at IS 'Timestamp when the attachment was linked to the payment.';"
   },
   "public.payment_statuses": {
     "schema": "public",
     "name": "payment_statuses",
-    "comment": null,
+    "comment": "Reference list of payment statuses.",
     "columns": [
       {
         "name": "id",
@@ -4649,7 +5505,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('payment_statuses_id_seq'::regclass)",
-        "comment": null
+        "comment": "Primary key of the payment status."
       },
       {
         "name": "code",
@@ -4659,7 +5515,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Unique code identifying the payment status."
       },
       {
         "name": "name",
@@ -4669,7 +5525,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Display name of the payment status."
       },
       {
         "name": "description",
@@ -4679,7 +5535,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Optional description of what the payment status means."
       },
       {
         "name": "sort_order",
@@ -4689,7 +5545,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Ordering weight used when listing payment statuses."
       },
       {
         "name": "color",
@@ -4699,7 +5555,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Optional UI color token or hex code for the payment status."
       },
       {
         "name": "created_at",
@@ -4709,7 +5565,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the payment status was created."
       },
       {
         "name": "updated_at",
@@ -4719,7 +5575,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the payment status was last updated."
       }
     ],
     "constraints": [
@@ -4764,12 +5620,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "CREATE TABLE IF NOT EXISTS public.payment_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('payment_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    sort_order integer(32),\n    color character varying(20),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_statuses_code_key UNIQUE (code),\n    CONSTRAINT payment_statuses_pkey PRIMARY KEY (id)\n);"
+    "sql": "-- Reference list of payment statuses.\nCREATE TABLE IF NOT EXISTS public.payment_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('payment_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    sort_order integer(32),\n    color character varying(20),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_statuses_code_key UNIQUE (code),\n    CONSTRAINT payment_statuses_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.payment_statuses IS 'Reference list of payment statuses.';\nCOMMENT ON COLUMN public.payment_statuses.id IS 'Primary key of the payment status.';\nCOMMENT ON COLUMN public.payment_statuses.code IS 'Unique code identifying the payment status.';\nCOMMENT ON COLUMN public.payment_statuses.name IS 'Display name of the payment status.';\nCOMMENT ON COLUMN public.payment_statuses.description IS 'Optional description of what the payment status means.';\nCOMMENT ON COLUMN public.payment_statuses.sort_order IS 'Ordering weight used when listing payment statuses.';\nCOMMENT ON COLUMN public.payment_statuses.color IS 'Optional UI color token or hex code for the payment status.';\nCOMMENT ON COLUMN public.payment_statuses.created_at IS 'Timestamp when the payment status was created.';\nCOMMENT ON COLUMN public.payment_statuses.updated_at IS 'Timestamp when the payment status was last updated.';"
   },
   "public.payment_types": {
     "schema": "public",
     "name": "payment_types",
-    "comment": null,
+    "comment": "Reference list of payment types (advance, final, etc.).",
     "columns": [
       {
         "name": "id",
@@ -4779,7 +5635,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('payment_types_id_seq'::regclass)",
-        "comment": null
+        "comment": "Primary key of the payment type."
       },
       {
         "name": "code",
@@ -4789,7 +5645,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Unique code used to reference the payment type."
       },
       {
         "name": "name",
@@ -4799,7 +5655,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Display name of the payment type."
       },
       {
         "name": "description",
@@ -4809,7 +5665,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Optional description of how the payment type is used."
       },
       {
         "name": "created_at",
@@ -4819,7 +5675,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the payment type record was created."
       },
       {
         "name": "updated_at",
@@ -4829,7 +5685,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the payment type record was last updated."
       }
     ],
     "constraints": [
@@ -4874,12 +5730,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "CREATE TABLE IF NOT EXISTS public.payment_types (\n    id integer(32) NOT NULL DEFAULT nextval('payment_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_types_code_key UNIQUE (code),\n    CONSTRAINT payment_types_pkey PRIMARY KEY (id)\n);"
+    "sql": "-- Reference list of payment types (advance, final, etc.).\nCREATE TABLE IF NOT EXISTS public.payment_types (\n    id integer(32) NOT NULL DEFAULT nextval('payment_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_types_code_key UNIQUE (code),\n    CONSTRAINT payment_types_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.payment_types IS 'Reference list of payment types (advance, final, etc.).';\nCOMMENT ON COLUMN public.payment_types.id IS 'Primary key of the payment type.';\nCOMMENT ON COLUMN public.payment_types.code IS 'Unique code used to reference the payment type.';\nCOMMENT ON COLUMN public.payment_types.name IS 'Display name of the payment type.';\nCOMMENT ON COLUMN public.payment_types.description IS 'Optional description of how the payment type is used.';\nCOMMENT ON COLUMN public.payment_types.created_at IS 'Timestamp when the payment type record was created.';\nCOMMENT ON COLUMN public.payment_types.updated_at IS 'Timestamp when the payment type record was last updated.';"
   },
   "public.payments": {
     "schema": "public",
     "name": "payments",
-    "comment": null,
+    "comment": "Payments registered against invoices in PayHub.",
     "columns": [
       {
         "name": "id",
@@ -4889,7 +5745,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": "gen_random_uuid()",
-        "comment": null
+        "comment": "Primary key of the payment (UUID)."
       },
       {
         "name": "invoice_id",
@@ -4899,7 +5755,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Invoice (public.invoices.id) that the payment relates to."
       },
       {
         "name": "payment_number",
@@ -4909,7 +5765,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('payment_number_seq'::regclass)",
-        "comment": null
+        "comment": "Unique sequential number of the payment."
       },
       {
         "name": "payment_date",
@@ -4919,7 +5775,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": "CURRENT_DATE",
-        "comment": null
+        "comment": "Date on which the payment was made."
       },
       {
         "name": "amount",
@@ -4929,7 +5785,7 @@
         "numeric_scale": 2,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Monetary amount of the payment."
       },
       {
         "name": "description",
@@ -4939,7 +5795,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Optional description or purpose of the payment."
       },
       {
         "name": "payment_type_id",
@@ -4949,7 +5805,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Payment type (public.payment_types.id)."
       },
       {
         "name": "status_id",
@@ -4959,7 +5815,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": "1",
-        "comment": null
+        "comment": "Current payment status (public.payment_statuses.id)."
       },
       {
         "name": "created_by",
@@ -4969,7 +5825,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "User (auth.users.id) who created the payment record."
       },
       {
         "name": "created_at",
@@ -4979,7 +5835,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the payment record was created."
       },
       {
         "name": "updated_at",
@@ -4989,7 +5845,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the payment record was last updated."
       }
     ],
     "constraints": [
@@ -5090,12 +5946,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "CREATE TABLE IF NOT EXISTS public.payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),\n    payment_date date NOT NULL DEFAULT CURRENT_DATE,\n    amount numeric(15,2) NOT NULL,\n    description text,\n    payment_type_id integer(32),\n    status_id integer(32) DEFAULT 1,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),\n    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),\n    CONSTRAINT payments_pkey PRIMARY KEY (id),\n    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);"
+    "sql": "-- Payments registered against invoices in PayHub.\nCREATE TABLE IF NOT EXISTS public.payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),\n    payment_date date NOT NULL DEFAULT CURRENT_DATE,\n    amount numeric(15,2) NOT NULL,\n    description text,\n    payment_type_id integer(32),\n    status_id integer(32) DEFAULT 1,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),\n    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),\n    CONSTRAINT payments_pkey PRIMARY KEY (id),\n    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payments IS 'Payments registered against invoices in PayHub.';\nCOMMENT ON COLUMN public.payments.id IS 'Primary key of the payment (UUID).';\nCOMMENT ON COLUMN public.payments.invoice_id IS 'Invoice (public.invoices.id) that the payment relates to.';\nCOMMENT ON COLUMN public.payments.payment_number IS 'Unique sequential number of the payment.';\nCOMMENT ON COLUMN public.payments.payment_date IS 'Date on which the payment was made.';\nCOMMENT ON COLUMN public.payments.amount IS 'Monetary amount of the payment.';\nCOMMENT ON COLUMN public.payments.description IS 'Optional description or purpose of the payment.';\nCOMMENT ON COLUMN public.payments.payment_type_id IS 'Payment type (public.payment_types.id).';\nCOMMENT ON COLUMN public.payments.status_id IS 'Current payment status (public.payment_statuses.id).';\nCOMMENT ON COLUMN public.payments.created_by IS 'User (auth.users.id) who created the payment record.';\nCOMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment record was created.';\nCOMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment record was last updated.';"
   },
-  "public.projects": {
+  "public.positions": {
     "schema": "public",
-    "name": "projects",
-    "comment": "Projects that group invoices and contractors for reporting.",
+    "name": "positions",
+    "comment": "Должности сотрудников",
     "columns": [
       {
         "name": "id",
@@ -5104,18 +5960,8 @@
         "numeric_precision": 32,
         "numeric_scale": 0,
         "is_nullable": "NO",
-        "default": "nextval('projects_id_seq'::regclass)",
-        "comment": "Surrogate primary key for project."
-      },
-      {
-        "name": "code",
-        "data_type": "character varying",
-        "max_length": 50,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "YES",
-        "default": null,
-        "comment": "Optional unique project code for integrations and search."
+        "default": "nextval('positions_id_seq'::regclass)",
+        "comment": null
       },
       {
         "name": "name",
@@ -5125,7 +5971,109 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Project display name."
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_20804_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_20804_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "positions_name_key",
+        "type": "UNIQUE",
+        "column": "name",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "positions_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Должности сотрудников\nCREATE TABLE IF NOT EXISTS public.positions (\n    id integer(32) NOT NULL DEFAULT nextval('positions_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT positions_name_key UNIQUE (name),\n    CONSTRAINT positions_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.positions IS 'Должности сотрудников';"
+  },
+  "public.projects": {
+    "schema": "public",
+    "name": "projects",
+    "comment": "Projects used to group invoices and contractors.",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('projects_id_seq'::regclass)",
+        "comment": "Primary key of the project."
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Optional unique project code used in integrations and search."
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Display name of the project."
       },
       {
         "name": "description",
@@ -5145,7 +6093,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "true",
-        "comment": "Flag that marks whether the project is active."
+        "comment": "TRUE when the project is active."
       },
       {
         "name": "created_by",
@@ -5155,7 +6103,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Supabase auth user who created the project."
+        "comment": "User (auth.users.id) who created the project."
       },
       {
         "name": "created_at",
@@ -5175,7 +6123,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the project record was last updated."
       }
     ],
     "constraints": [
@@ -5220,7 +6168,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Projects that group invoices and contractors for reporting.\nCREATE TABLE IF NOT EXISTS public.projects (\n    id integer(32) NOT NULL DEFAULT nextval('projects_id_seq'::regclass),\n    code character varying(50),\n    name character varying(255) NOT NULL,\n    description text,\n    is_active boolean DEFAULT true,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT projects_code_key UNIQUE (code),\n    CONSTRAINT projects_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT projects_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.projects IS 'Projects that group invoices and contractors for reporting.';\nCOMMENT ON COLUMN public.projects.id IS 'Surrogate primary key for project.';\nCOMMENT ON COLUMN public.projects.code IS 'Optional unique project code for integrations and search.';\nCOMMENT ON COLUMN public.projects.name IS 'Project display name.';\nCOMMENT ON COLUMN public.projects.description IS 'Optional project description for internal users.';\nCOMMENT ON COLUMN public.projects.is_active IS 'Flag that marks whether the project is active.';\nCOMMENT ON COLUMN public.projects.created_by IS 'Supabase auth user who created the project.';\nCOMMENT ON COLUMN public.projects.created_at IS 'Timestamp when the project record was created.';\nCOMMENT ON COLUMN public.projects.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Projects used to group invoices and contractors.\nCREATE TABLE IF NOT EXISTS public.projects (\n    id integer(32) NOT NULL DEFAULT nextval('projects_id_seq'::regclass),\n    code character varying(50),\n    name character varying(255) NOT NULL,\n    description text,\n    is_active boolean DEFAULT true,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT projects_code_key UNIQUE (code),\n    CONSTRAINT projects_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT projects_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.projects IS 'Projects used to group invoices and contractors.';\nCOMMENT ON COLUMN public.projects.id IS 'Primary key of the project.';\nCOMMENT ON COLUMN public.projects.code IS 'Optional unique project code used in integrations and search.';\nCOMMENT ON COLUMN public.projects.name IS 'Display name of the project.';\nCOMMENT ON COLUMN public.projects.description IS 'Optional project description for internal users.';\nCOMMENT ON COLUMN public.projects.is_active IS 'TRUE when the project is active.';\nCOMMENT ON COLUMN public.projects.created_by IS 'User (auth.users.id) who created the project.';\nCOMMENT ON COLUMN public.projects.created_at IS 'Timestamp when the project record was created.';\nCOMMENT ON COLUMN public.projects.updated_at IS 'Timestamp when the project record was last updated.';"
   },
   "public.roles": {
     "schema": "public",
@@ -5235,7 +6183,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('roles_id_seq'::regclass)",
-        "comment": "Primary key for role."
+        "comment": "Primary key of the role."
       },
       {
         "name": "code",
@@ -5245,7 +6193,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Unique machine readable code of the role."
+        "comment": "Unique machine-readable code of the role."
       },
       {
         "name": "name",
@@ -5255,7 +6203,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Human readable role name."
+        "comment": "Display name of the role."
       },
       {
         "name": "description",
@@ -5265,7 +6213,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Optional description of permissions or intended usage."
+        "comment": "Optional description of the role permissions."
       },
       {
         "name": "created_at",
@@ -5275,7 +6223,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp when the role was created."
+        "comment": "Timestamp when the role record was created."
       },
       {
         "name": "updated_at",
@@ -5285,7 +6233,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the role record was last updated."
       },
       {
         "name": "own_projects_only",
@@ -5295,7 +6243,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "false",
-        "comment": "Если TRUE, пользователь с этой ролью видит только данные своих проектов"
+        "comment": "TRUE when the role limits users to their own projects."
       }
     ],
     "constraints": [
@@ -5340,12 +6288,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Roles that define access levels inside PayHub.\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    own_projects_only boolean DEFAULT false,\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key for role.';\nCOMMENT ON COLUMN public.roles.code IS 'Unique machine readable code of the role.';\nCOMMENT ON COLUMN public.roles.name IS 'Human readable role name.';\nCOMMENT ON COLUMN public.roles.description IS 'Optional description of permissions or intended usage.';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role was created.';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';\nCOMMENT ON COLUMN public.roles.own_projects_only IS 'Если TRUE, пользователь с этой ролью видит только данные своих проектов';"
+    "sql": "-- Roles that define access levels inside PayHub.\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    own_projects_only boolean DEFAULT false,\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key of the role.';\nCOMMENT ON COLUMN public.roles.code IS 'Unique machine-readable code of the role.';\nCOMMENT ON COLUMN public.roles.name IS 'Display name of the role.';\nCOMMENT ON COLUMN public.roles.description IS 'Optional description of the role permissions.';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role record was created.';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role record was last updated.';\nCOMMENT ON COLUMN public.roles.own_projects_only IS 'TRUE when the role limits users to their own projects.';"
   },
   "public.user_profiles": {
     "schema": "public",
     "name": "user_profiles",
-    "comment": "Mirror of Supabase auth user profiles stored in public schema.",
+    "comment": "Mirror of Supabase auth user profiles stored in the public schema.",
     "columns": [
       {
         "name": "id",
@@ -5355,7 +6303,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Primary key and foreign key to auth.users.id."
+        "comment": "Primary key of the profile and foreign key to auth.users.id."
       },
       {
         "name": "email",
@@ -5375,7 +6323,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Display name of the user shown in UI."
+        "comment": "Display name of the user."
       },
       {
         "name": "created_at",
@@ -5385,7 +6333,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp when the profile was recorded."
+        "comment": "Timestamp when the profile record was created."
       },
       {
         "name": "updated_at",
@@ -5395,7 +6343,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": "Timestamp automatically refreshed by trigger update_updated_at_column()."
+        "comment": "Timestamp when the profile record was last updated."
       },
       {
         "name": "role_id",
@@ -5405,7 +6353,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Role (public.roles.id) assigned to the user."
       }
     ],
     "constraints": [
@@ -5466,7 +6414,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Mirror of Supabase auth user profiles stored in public schema.\nCREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    role_id integer(32),\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id),\n    CONSTRAINT user_profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.user_profiles IS 'Mirror of Supabase auth user profiles stored in public schema.';\nCOMMENT ON COLUMN public.user_profiles.id IS 'Primary key and foreign key to auth.users.id.';\nCOMMENT ON COLUMN public.user_profiles.email IS 'Primary email address associated with the user profile.';\nCOMMENT ON COLUMN public.user_profiles.full_name IS 'Display name of the user shown in UI.';\nCOMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was recorded.';\nCOMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp automatically refreshed by trigger update_updated_at_column().';"
+    "sql": "-- Mirror of Supabase auth user profiles stored in the public schema.\nCREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    role_id integer(32),\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id),\n    CONSTRAINT user_profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.user_profiles IS 'Mirror of Supabase auth user profiles stored in the public schema.';\nCOMMENT ON COLUMN public.user_profiles.id IS 'Primary key of the profile and foreign key to auth.users.id.';\nCOMMENT ON COLUMN public.user_profiles.email IS 'Primary email address associated with the user profile.';\nCOMMENT ON COLUMN public.user_profiles.full_name IS 'Display name of the user.';\nCOMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile record was created.';\nCOMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp when the profile record was last updated.';\nCOMMENT ON COLUMN public.user_profiles.role_id IS 'Role (public.roles.id) assigned to the user.';"
   },
   "public.user_projects": {
     "schema": "public",
@@ -5481,7 +6429,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": "nextval('user_projects_id_seq'::regclass)",
-        "comment": "Surrogate primary key for user-project relation."
+        "comment": "Primary key of the user-project link."
       },
       {
         "name": "user_id",
@@ -5491,7 +6439,7 @@
         "numeric_scale": null,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Supabase auth user granted access to the project."
+        "comment": "User (auth.users.id) who receives access to the project."
       },
       {
         "name": "project_id",
@@ -5501,7 +6449,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": "Project (public.projects.id) assigned to the user."
+        "comment": "Project (public.projects.id) granted to the user."
       },
       {
         "name": "created_at",
@@ -5580,12 +6528,12 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Mapping table assigning users to projects for access control.\nCREATE TABLE IF NOT EXISTS public.user_projects (\n    id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),\n    user_id uuid NOT NULL,\n    project_id integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_projects_pkey PRIMARY KEY (id),\n    CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (project_id),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (user_id)\n);\n\nCOMMENT ON TABLE public.user_projects IS 'Mapping table assigning users to projects for access control.';\nCOMMENT ON COLUMN public.user_projects.id IS 'Surrogate primary key for user-project relation.';\nCOMMENT ON COLUMN public.user_projects.user_id IS 'Supabase auth user granted access to the project.';\nCOMMENT ON COLUMN public.user_projects.project_id IS 'Project (public.projects.id) assigned to the user.';\nCOMMENT ON COLUMN public.user_projects.created_at IS 'Timestamp when the user-project link was created.';"
+    "sql": "-- Mapping table assigning users to projects for access control.\nCREATE TABLE IF NOT EXISTS public.user_projects (\n    id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),\n    user_id uuid NOT NULL,\n    project_id integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT user_projects_pkey PRIMARY KEY (id),\n    CONSTRAINT user_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (project_id),\n    CONSTRAINT user_projects_user_project_unique UNIQUE (user_id)\n);\n\nCOMMENT ON TABLE public.user_projects IS 'Mapping table assigning users to projects for access control.';\nCOMMENT ON COLUMN public.user_projects.id IS 'Primary key of the user-project link.';\nCOMMENT ON COLUMN public.user_projects.user_id IS 'User (auth.users.id) who receives access to the project.';\nCOMMENT ON COLUMN public.user_projects.project_id IS 'Project (public.projects.id) granted to the user.';\nCOMMENT ON COLUMN public.user_projects.created_at IS 'Timestamp when the user-project link was created.';"
   },
   "public.workflow_stages": {
     "schema": "public",
     "name": "workflow_stages",
-    "comment": "Этапы маршрутов согласования с указанием роли и статуса платежа",
+    "comment": "Workflow stages that build approval routes and set payment statuses.",
     "columns": [
       {
         "name": "id",
@@ -5595,7 +6543,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Primary key of the workflow stage."
       },
       {
         "name": "route_id",
@@ -5605,7 +6553,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Approval route (public.approval_routes.id) the stage belongs to."
       },
       {
         "name": "order_index",
@@ -5615,7 +6563,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Zero-based order of the stage within the route."
       },
       {
         "name": "role_id",
@@ -5625,7 +6573,7 @@
         "numeric_scale": 0,
         "is_nullable": "NO",
         "default": null,
-        "comment": null
+        "comment": "Role (public.roles.id) responsible for processing the stage."
       },
       {
         "name": "name",
@@ -5635,7 +6583,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": null
+        "comment": "Display name of the workflow stage."
       },
       {
         "name": "created_at",
@@ -5645,7 +6593,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the workflow stage was created."
       },
       {
         "name": "updated_at",
@@ -5655,7 +6603,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": "now()",
-        "comment": null
+        "comment": "Timestamp when the workflow stage was last updated."
       },
       {
         "name": "payment_status_id",
@@ -5665,7 +6613,27 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": "ID статуса платежа, который будет установлен при прохождении этапа"
+        "comment": "Payment status (public.payment_statuses.id) applied after the stage is completed."
+      },
+      {
+        "name": "permissions",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "'{}'::jsonb",
+        "comment": "JSON object storing stage-specific permissions like can_edit_invoice, can_add_files, can_edit_amount, etc."
+      },
+      {
+        "name": "is_active",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "true",
+        "comment": "Soft deletion flag to preserve referential integrity with approval_steps table"
       }
     ],
     "constraints": [
@@ -5758,7 +6726,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Этапы маршрутов согласования с указанием роли и статуса платежа\nCREATE TABLE IF NOT EXISTS public.workflow_stages (\n    id integer(32) NOT NULL,\n    route_id integer(32) NOT NULL,\n    order_index integer(32) NOT NULL,\n    role_id integer(32) NOT NULL,\n    name character varying(255),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    payment_status_id integer(32),\n    CONSTRAINT workflow_stages_payment_status_id_fkey FOREIGN KEY (payment_status_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_pkey PRIMARY KEY (id),\n    CONSTRAINT workflow_stages_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (order_index),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (route_id)\n);\n\nCOMMENT ON TABLE public.workflow_stages IS 'Этапы маршрутов согласования с указанием роли и статуса платежа';\nCOMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'ID статуса платежа, который будет установлен при прохождении этапа';"
+    "sql": "-- Workflow stages that build approval routes and set payment statuses.\nCREATE TABLE IF NOT EXISTS public.workflow_stages (\n    id integer(32) NOT NULL,\n    route_id integer(32) NOT NULL,\n    order_index integer(32) NOT NULL,\n    role_id integer(32) NOT NULL,\n    name character varying(255),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    payment_status_id integer(32),\n    permissions jsonb DEFAULT '{}'::jsonb,\n    is_active boolean DEFAULT true,\n    CONSTRAINT workflow_stages_payment_status_id_fkey FOREIGN KEY (payment_status_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_pkey PRIMARY KEY (id),\n    CONSTRAINT workflow_stages_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (order_index),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (route_id)\n);\n\nCOMMENT ON TABLE public.workflow_stages IS 'Workflow stages that build approval routes and set payment statuses.';\nCOMMENT ON COLUMN public.workflow_stages.id IS 'Primary key of the workflow stage.';\nCOMMENT ON COLUMN public.workflow_stages.route_id IS 'Approval route (public.approval_routes.id) the stage belongs to.';\nCOMMENT ON COLUMN public.workflow_stages.order_index IS 'Zero-based order of the stage within the route.';\nCOMMENT ON COLUMN public.workflow_stages.role_id IS 'Role (public.roles.id) responsible for processing the stage.';\nCOMMENT ON COLUMN public.workflow_stages.name IS 'Display name of the workflow stage.';\nCOMMENT ON COLUMN public.workflow_stages.created_at IS 'Timestamp when the workflow stage was created.';\nCOMMENT ON COLUMN public.workflow_stages.updated_at IS 'Timestamp when the workflow stage was last updated.';\nCOMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'Payment status (public.payment_statuses.id) applied after the stage is completed.';\nCOMMENT ON COLUMN public.workflow_stages.permissions IS 'JSON object storing stage-specific permissions like can_edit_invoice, can_add_files, can_edit_amount, etc.';\nCOMMENT ON COLUMN public.workflow_stages.is_active IS 'Soft deletion flag to preserve referential integrity with approval_steps table';"
   },
   "realtime.messages": {
     "schema": "realtime",

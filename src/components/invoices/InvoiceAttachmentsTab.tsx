@@ -1,5 +1,6 @@
-import { Table, Button, Space, Tag, Empty, Modal } from 'antd'
-import { FileOutlined, DownloadOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Table, Button, Space, Tag, Empty, Modal, Tooltip } from 'antd'
+import { FileOutlined, DownloadOutlined, EyeOutlined, DeleteOutlined, FileImageOutlined, FilePdfOutlined, FileTextOutlined, FileExcelOutlined, FileWordOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
 
 interface AttachmentData {
   id: string
@@ -7,6 +8,7 @@ interface AttachmentData {
   storage_path: string
   size_bytes: number
   mime_type: string
+  description?: string
   created_at: string
   source?: string
   source_label?: string
@@ -21,6 +23,19 @@ interface InvoiceAttachmentsTabProps {
   formatFileSize: (bytes: number) => string
 }
 
+// Функция для получения иконки файла по типу
+const getFileIcon = (mimeType: string, fileName: string) => {
+  if (mimeType.startsWith('image/')) return <FileImageOutlined style={{ fontSize: 18, color: '#52c41a' }} />
+  if (mimeType === 'application/pdf') return <FilePdfOutlined style={{ fontSize: 18, color: '#ff4d4f' }} />
+
+  const ext = fileName.split('.').pop()?.toLowerCase()
+  if (ext && ['xls', 'xlsx'].includes(ext)) return <FileExcelOutlined style={{ fontSize: 18, color: '#52c41a' }} />
+  if (ext && ['doc', 'docx'].includes(ext)) return <FileWordOutlined style={{ fontSize: 18, color: '#1890ff' }} />
+  if (ext && ['txt', 'csv'].includes(ext)) return <FileTextOutlined style={{ fontSize: 18, color: '#666' }} />
+
+  return <FileOutlined style={{ fontSize: 18, color: '#8c8c8c' }} />
+}
+
 export const InvoiceAttachmentsTab: React.FC<InvoiceAttachmentsTabProps> = ({
   attachments,
   loadingAttachments,
@@ -29,15 +44,17 @@ export const InvoiceAttachmentsTab: React.FC<InvoiceAttachmentsTabProps> = ({
   onDelete,
   formatFileSize
 }) => {
-  const columns = [
+  const columns: ColumnsType<AttachmentData> = [
     {
       title: 'Название файла',
       dataIndex: 'original_name',
       key: 'original_name',
-      render: (name: string) => (
+      sorter: (a, b) => a.original_name.localeCompare(b.original_name),
+      ellipsis: true,
+      render: (name: string, record: AttachmentData) => (
         <Space>
-          <FileOutlined />
-          {name}
+          {getFileIcon(record.mime_type, name)}
+          <span style={{ fontWeight: 500 }}>{name}</span>
         </Space>
       )
     },
@@ -45,7 +62,7 @@ export const InvoiceAttachmentsTab: React.FC<InvoiceAttachmentsTabProps> = ({
       title: 'Источник',
       dataIndex: 'source_label',
       key: 'source_label',
-      width: 150,
+      sorter: (a, b) => (a.source_label || '').localeCompare(b.source_label || ''),
       render: (label: string, record: any) => (
         <Tag color={record.source === 'invoice' ? 'blue' : 'green'}>
           {label}
@@ -56,26 +73,44 @@ export const InvoiceAttachmentsTab: React.FC<InvoiceAttachmentsTabProps> = ({
       title: 'Размер',
       dataIndex: 'size_bytes',
       key: 'size_bytes',
-      width: 120,
+      sorter: (a, b) => a.size_bytes - b.size_bytes,
       render: (size: number) => formatFileSize(size)
     },
     {
-      title: 'Тип файла',
-      dataIndex: 'mime_type',
-      key: 'mime_type',
-      width: 150
+      title: 'Описание',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (description: string) => (
+        description ? (
+          <Tooltip placement="topLeft" title={description}>
+            <span>{description}</span>
+          </Tooltip>
+        ) : (
+          <span style={{ color: '#bfbfbf' }}>—</span>
+        )
+      )
     },
     {
       title: 'Дата загрузки',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 180,
-      render: (date: string) => new Date(date).toLocaleString('ru-RU')
+      sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      defaultSortOrder: 'descend',
+      render: (date: string) => new Date(date).toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     },
     {
       title: 'Действия',
       key: 'actions',
-      width: 180,
+      fixed: 'right',
       render: (_: any, record: AttachmentData) => (
         <Space>
           <Button
@@ -121,6 +156,8 @@ export const InvoiceAttachmentsTab: React.FC<InvoiceAttachmentsTabProps> = ({
           rowKey="id"
           columns={columns}
           pagination={false}
+          tableLayout="auto"
+          scroll={{ x: 'max-content' }}
         />
       ) : (
         <Empty description="Нет прикрепленных файлов" />

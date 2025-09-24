@@ -1,1 +1,80 @@
-[]
+[
+  {
+    "enum": "auth.aal_level",
+    "values": [
+      "aal1",
+      "aal2",
+      "aal3"
+    ]
+  },
+  {
+    "enum": "auth.code_challenge_method",
+    "values": [
+      "s256",
+      "plain"
+    ]
+  },
+  {
+    "enum": "auth.factor_status",
+    "values": [
+      "unverified",
+      "verified"
+    ]
+  },
+  {
+    "enum": "auth.factor_type",
+    "values": [
+      "totp",
+      "webauthn",
+      "phone"
+    ]
+  },
+  {
+    "enum": "auth.one_time_token_type",
+    "values": [
+      "confirmation_token",
+      "reauthentication_token",
+      "recovery_token",
+      "email_change_token_new",
+      "email_change_token_current",
+      "phone_change_token"
+    ]
+  },
+  {
+    "enum": "net.request_status",
+    "values": [
+      "PENDING",
+      "SUCCESS",
+      "ERROR"
+    ]
+  },
+  {
+    "enum": "realtime.action",
+    "values": [
+      "INSERT",
+      "UPDATE",
+      "DELETE",
+      "TRUNCATE",
+      "ERROR"
+    ]
+  },
+  {
+    "enum": "realtime.equality_op",
+    "values": [
+      "eq",
+      "neq",
+      "lt",
+      "lte",
+      "gt",
+      "gte",
+      "in"
+    ]
+  },
+  {
+    "enum": "storage.buckettype",
+    "values": [
+      "STANDARD",
+      "ANALYTICS"
+    ]
+  }
+]

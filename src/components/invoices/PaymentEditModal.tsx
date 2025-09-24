@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Modal, Form, DatePicker, InputNumber, Select, Input, Space, Button, Upload, message, Image } from 'antd'
+import { Modal, Form, DatePicker, InputNumber, Select, Input, Space, Button, Upload, message, Image, Table } from 'antd'
 import { UploadOutlined, DeleteOutlined, FileOutlined, EyeOutlined, FilePdfOutlined, FileImageOutlined, FileTextOutlined, DownloadOutlined } from '@ant-design/icons'
 import type { Payment, PaymentType, PaymentStatus } from '../../lib/supabase'
 import type { UploadFile } from 'antd/es/upload/interface'
@@ -13,7 +13,7 @@ interface PaymentEditModalProps {
   paymentTypes: PaymentType[]
   paymentStatuses: PaymentStatus[]
   onCancel: () => void
-  onSave: (paymentId: string, values: any, files: UploadFile[]) => void
+  onSave: (paymentId: string, values: any, files: any[]) => void
 }
 
 export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
@@ -27,6 +27,7 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   const [form] = Form.useForm()
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [existingFiles, setExistingFiles] = useState<UploadFile[]>([])
+  const [fileDescriptions, setFileDescriptions] = useState<{ [uid: string]: string }>({})
   const [loading, setLoading] = useState(false)
   const [previewVisible, setPreviewVisible] = useState(false)
   const [previewUrl, setPreviewUrl] = useState('')
@@ -110,8 +111,12 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         description: values.description
       }
 
-      // Combine existing files and new files
-      const allFiles = [...existingFiles, ...fileList]
+      // Combine existing files and new files with descriptions
+      const filesWithDescriptions = fileList.map(file => ({
+        ...file,
+        description: fileDescriptions[file.uid] || ''
+      }))
+      const allFiles = [...existingFiles, ...filesWithDescriptions]
 
       onSave(payment.id, paymentData, allFiles)
       form.resetFields()
@@ -191,19 +196,24 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
     beforeUpload: (file: any) => {
       console.log('[PaymentEditModal] Adding file to list:', file.name)
       setFileList(prev => [...prev, file])
+      // Инициализируем пустое описание для нового файла
+      setFileDescriptions(prev => ({ ...prev, [file.uid]: '' }))
       return false // Prevent auto upload
     },
     onRemove: (file: UploadFile) => {
       console.log('[PaymentEditModal] Removing file from list:', file.name)
       setFileList(prev => prev.filter(f => f.uid !== file.uid))
+      // Удаляем описание для удаленного файла
+      setFileDescriptions(prev => {
+        const newDescriptions = { ...prev }
+        delete newDescriptions[file.uid]
+        return newDescriptions
+      })
     },
     onPreview: handlePreview,
     fileList,
     multiple: true,
-    showUploadList: {
-      showPreviewIcon: true,
-      showRemoveIcon: true
-    }
+    showUploadList: false // Отключаем стандартный список, так как используем таблицу
   }
 
   return (
@@ -336,6 +346,78 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
             <Upload {...uploadProps}>
               <Button icon={<UploadOutlined />}>Добавить файлы</Button>
             </Upload>
+
+            {fileList.length > 0 && (
+              <Table
+                style={{ marginTop: 16 }}
+                dataSource={fileList}
+                rowKey="uid"
+                pagination={false}
+                size="small"
+                columns={[
+                  {
+                    title: 'Файл',
+                    dataIndex: 'name',
+                    key: 'name',
+                    width: '40%',
+                    render: (name: string) => (
+                      <Space size="small">
+                        <EyeOutlined
+                          style={{ color: '#1890ff', cursor: 'pointer' }}
+                          onClick={() => {
+                            const file = fileList.find(f => f.name === name)
+                            if (file) {
+                              handlePreview(file)
+                            }
+                          }}
+                          title="Просмотр"
+                        />
+                        <DeleteOutlined
+                          style={{ color: '#ff4d4f', cursor: 'pointer' }}
+                          onClick={() => {
+                            const file = fileList.find(f => f.name === name)
+                            if (file) {
+                              uploadProps.onRemove?.(file)
+                            }
+                          }}
+                          title="Удалить"
+                        />
+                        <span>{name}</span>
+                      </Space>
+                    )
+                  },
+                  {
+                    title: 'Размер',
+                    dataIndex: 'size',
+                    key: 'size',
+                    width: '15%',
+                    render: (size: number) => {
+                      const kb = size / 1024
+                      return kb < 1024
+                        ? `${kb.toFixed(1)} КБ`
+                        : `${(kb / 1024).toFixed(1)} МБ`
+                    }
+                  },
+                  {
+                    title: 'Описание',
+                    key: 'description',
+                    render: (_, file) => (
+                      <Input
+                        placeholder="Введите описание файла (необязательно)"
+                        value={fileDescriptions[file.uid] || ''}
+                        onChange={(e) =>
+                          setFileDescriptions(prev => ({
+                            ...prev,
+                            [file.uid]: e.target.value,
+                          }))
+                        }
+                        size="small"
+                      />
+                    )
+                  }
+                ]}
+              />
+            )}
           </Form.Item>
         </Form>
       </Modal>

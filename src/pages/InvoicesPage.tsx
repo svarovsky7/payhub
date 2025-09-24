@@ -2,7 +2,9 @@ import { useEffect, useCallback } from 'react'
 import { Table, Button, Space, App } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ExpandableConfig } from 'antd/es/table/interface'
+import dayjs from 'dayjs'
 import { useAuth } from '../contexts/AuthContext'
+import '../styles/InvoicesPage.css'
 import { useInvoiceManagement } from '../hooks/useInvoiceManagement'
 import { usePaymentManagement } from '../hooks/usePaymentManagement'
 import { useInvoiceForm } from '../hooks/useInvoiceForm'
@@ -47,6 +49,7 @@ export const InvoicesPage = () => {
     projects,
     invoiceTypes,
     invoiceStatuses,
+    employees,
     invoices,
     loading,
     invoiceModalVisible,
@@ -56,6 +59,7 @@ export const InvoicesPage = () => {
     viewModalVisible,
     setViewModalVisible,
     viewingInvoice,
+    setViewingInvoice,
     loadInvoiceData,
     handleCreateInvoice,
     handleUpdateInvoice,
@@ -134,8 +138,10 @@ export const InvoicesPage = () => {
   }
 
   // Handle invoice form submit
-  const handleInvoiceFormSubmit = async (values: any, files: any) => {
+  const handleInvoiceFormSubmit = async (values: any, files: any, originalFiles?: any) => {
     console.log('[InvoicesPage.handleInvoiceFormSubmit] Submitting invoice form', values)
+    console.log('[InvoicesPage.handleInvoiceFormSubmit] Files:', files)
+    console.log('[InvoicesPage.handleInvoiceFormSubmit] Original files:', originalFiles)
 
     // Add VAT calculation data to form values
     const invoiceData = {
@@ -152,7 +158,7 @@ export const InvoicesPage = () => {
     console.log('[InvoicesPage.handleInvoiceFormSubmit] Invoice data with amounts:', invoiceData)
 
     if (editingInvoice) {
-      await handleUpdateInvoice(editingInvoice.id, invoiceData, files)
+      await handleUpdateInvoice(editingInvoice.id, invoiceData, files, originalFiles)
     } else {
       await handleCreateInvoice(invoiceData, files)
     }
@@ -176,36 +182,45 @@ export const InvoicesPage = () => {
     expandedRows
   })
 
+  // Debug expanded rows
+  useEffect(() => {
+    console.log('[InvoicesPage] Current expanded rows:', Array.from(expandedRows))
+  }, [expandedRows])
+
   // Expandable configuration
   const expandable: ExpandableConfig<Invoice> = {
-    expandedRowRender: (record) => (
-      <PaymentsExpanded
-        invoice={record}
-        payments={invoicePayments[record.id] || []}
-        paymentTypes={paymentTypes}
-        paymentStatuses={paymentStatuses}
-        loading={loadingPayments[record.id] || false}
-        onEditPayment={handleEditPayment}
-        onDeletePayment={handleDeletePayment}
-        onApprovalStarted={loadInvoiceData}
-      />
-    ),
+    expandedRowRender: (record) => {
+      console.log('[InvoicesPage] Rendering expanded row for invoice:', record.id)
+      const payments = invoicePayments[record.id] || []
+      console.log('[InvoicesPage] Payments for invoice:', record.id, payments)
+
+      return (
+        <PaymentsExpanded
+          invoice={record}
+          payments={payments}
+          paymentTypes={paymentTypes}
+          paymentStatuses={paymentStatuses}
+          loading={loadingPayments[record.id] || false}
+          onEditPayment={handleEditPayment}
+          onDeletePayment={handleDeletePayment}
+          onApprovalStarted={loadInvoiceData}
+        />
+      )
+    },
     rowExpandable: () => true,
     expandedRowKeys: Array.from(expandedRows),
     onExpand: (expanded, record) => {
-      console.log('[InvoicesPage] Row expand:', expanded, record.id)
-      if (expanded) {
-        handleExpandRow(record.id)
-      } else {
-        handleExpandRow(record.id)
-      }
+      console.log('[InvoicesPage] onExpand called:', expanded, record.id)
+      console.log('[InvoicesPage] Current expanded rows before:', Array.from(expandedRows))
+      handleExpandRow(record.id)
     },
-    expandRowByClick: false,
-    showExpandColumn: false
+    expandRowByClick: true, // Включаем раскрытие по клику на строку
+    showExpandColumn: false,
+    expandedRowClassName: () => 'expanded-row-animated'
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 24, width: '100%' }}>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <h1 style={{ margin: 0 }}>Счета</h1>
         <Space>
@@ -225,12 +240,29 @@ export const InvoicesPage = () => {
         rowKey="id"
         loading={loading}
         expandable={expandable}
-        scroll={{ x: 1200 }}
+        scroll={{ x: true }}
+        tableLayout="auto"
+        rowClassName={(record) => {
+          // Подсветка устаревших счетов (более 30 дней)
+          if (record.relevance_date) {
+            const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
+            if (daysSinceRelevance > 30) {
+              return 'outdated-invoice-row'
+            }
+          }
+          return ''
+        }}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,
           showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
+          pageSizeOptions: ['10', '20', '50', '100']
         }}
+        onRow={() => ({
+          style: { cursor: 'pointer' }
+        })}
+        className="expandable-table-smooth"
+        style={{ width: '100%' }}
       />
 
       {/* Invoice Form Modal */}
@@ -249,6 +281,7 @@ export const InvoicesPage = () => {
         projects={projects}
         invoiceTypes={invoiceTypes}
         invoiceStatuses={invoiceStatuses}
+        employees={employees}
         amountWithVat={amountWithVat}
         onAmountWithVatChange={setAmountWithVat}
         vatRate={vatRate}

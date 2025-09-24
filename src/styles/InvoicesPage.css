@@ -1,0 +1,246 @@
+/* Автоматическое распределение ширины таблицы */
+.expandable-table-smooth {
+  width: 100% !important;
+}
+
+.expandable-table-smooth .ant-table {
+  width: 100% !important;
+  table-layout: auto !important;
+}
+
+.expandable-table-smooth .ant-table-wrapper {
+  width: 100% !important;
+}
+
+.expandable-table-smooth .ant-table-container {
+  width: 100% !important;
+}
+
+.expandable-table-smooth .ant-table-content {
+  overflow-x: auto;
+}
+
+.expandable-table-smooth table {
+  width: 100% !important;
+  min-width: 100%;
+}
+
+/* Минимальная ширина для важных колонок */
+.expandable-table-smooth .ant-table-thead > tr > th:nth-child(1) {
+  min-width: 80px; /* Номер */
+}
+
+.expandable-table-smooth .ant-table-thead > tr > th:nth-child(2) {
+  min-width: 90px; /* Дата */
+}
+
+.expandable-table-smooth .ant-table-thead > tr > th:nth-child(3) {
+  min-width: 150px; /* Плательщик */
+}
+
+.expandable-table-smooth .ant-table-thead > tr > th:nth-child(4) {
+  min-width: 150px; /* Поставщик */
+}
+
+.expandable-table-smooth .ant-table-thead > tr > th:nth-child(7) {
+  min-width: 120px; /* Сумма */
+}
+
+.expandable-table-smooth .ant-table-thead > tr > th:last-child {
+  min-width: 150px; /* Действия */
+}
+
+/* Адаптивность колонок для предотвращения переполнения */
+.expandable-table-smooth .ant-table-thead > tr > th,
+.expandable-table-smooth .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+}
+
+/* Текст с многоточием для длинных значений */
+.expandable-table-smooth .ant-table-cell-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+  max-width: 300px;
+}
+
+/* Убираем лишние отступы и растягиваем содержимое */
+.ant-layout-content {
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+/* Полная ширина для контента */
+.expandable-table-smooth .ant-table-thead > tr > th:nth-child(3),
+.expandable-table-smooth .ant-table-tbody > tr > td:nth-child(3),
+.expandable-table-smooth .ant-table-thead > tr > th:nth-child(4),
+.expandable-table-smooth .ant-table-tbody > tr > td:nth-child(4) {
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* Плавная анимация для раскрывающихся строк */
+.expandable-table-smooth .ant-table-expanded-row > td {
+  padding: 0 !important;
+  border-bottom: 0;
+  background: #fafafa;
+}
+
+.expandable-table-smooth .ant-table-expanded-row .ant-table-cell {
+  overflow: hidden;
+}
+
+.expandable-table-smooth .ant-table-expanded-row-fixed {
+  animation: expandRow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Стили для контейнера с платежами */
+.expandable-table-smooth .ant-table-expanded-row > td > div {
+  animation: fadeIn 0.15s ease-out;
+  padding: 16px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Hover эффект для строк */
+.expandable-table-smooth .ant-table-tbody > tr {
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.expandable-table-smooth .ant-table-tbody > tr:hover {
+  background-color: #f0f5ff;
+  transform: translateX(1px);
+  box-shadow: 0 1px 4px rgba(24, 144, 255, 0.15);
+}
+
+/* Активное состояние при клике */
+.expandable-table-smooth .ant-table-tbody > tr:active {
+  transform: scale(0.995);
+  transition: transform 0.05s ease;
+}
+
+/* Плавное изменение иконки раскрытия */
+.expandable-table-smooth .ant-table-row-expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.expandable-table-smooth .ant-table-row-expand-icon-expanded {
+  transform: rotate(90deg);
+}
+
+/* Убираем стандартную границу при раскрытии */
+.expandable-table-smooth .ant-table-expanded-row-level-1 > td {
+  border-bottom: none;
+}
+
+/* Добавляем визуальное разделение для раскрытого контента */
+.expanded-row-animated td {
+  background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Оптимизация производительности анимации */
+.expandable-table-smooth .ant-table-tbody > tr {
+  will-change: background-color, transform;
+  -webkit-tap-highlight-color: transparent;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.expandable-table-smooth .ant-table-expanded-row > td > div {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Ускорение рендеринга для раскрытых строк */
+.expandable-table-smooth .ant-table-expanded-row {
+  contain: layout style;
+}
+
+/* Убираем дефолтный отступ у кнопок действий при наведении на строку */
+.expandable-table-smooth .ant-table-tbody > tr:hover .ant-btn-icon-only {
+  transform: none;
+}
+
+/* Стиль для индикации кликабельности */
+.expandable-table-smooth .ant-table-tbody > tr > td:not(:last-child) {
+  user-select: none;
+}
+
+/* Визуальная подсказка о кликабельности строки */
+.expandable-table-smooth .ant-table-tbody > tr::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.expandable-table-smooth .ant-table-tbody > tr:hover::after {
+  background: #1890ff;
+}
+
+/* Быстрое раскрытие без задержек */
+.expandable-table-smooth .ant-table-expanded-row-fixed::before {
+  display: none;
+}
+
+/* Убираем лишние отступы для ускорения отрисовки */
+.expandable-table-smooth .ant-table-expanded-row > td {
+  padding: 0 !important;
+  transition: none !important;
+}
+
+/* Подсветка устаревших счетов (более 30 дней) */
+.outdated-invoice-row {
+  background-color: rgba(255, 0, 0, 0.08) !important;
+}
+
+.outdated-invoice-row:hover {
+  background-color: rgba(255, 0, 0, 0.12) !important;
+}
+
+.outdated-invoice-row td {
+  position: relative;
+}
+
+.outdated-invoice-row td::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border-left: 3px solid rgba(255, 77, 79, 0.5);
+}
+
+.outdated-invoice-row td:first-child::after {
+  border-left: 3px solid rgba(255, 77, 79, 0.8);
+}

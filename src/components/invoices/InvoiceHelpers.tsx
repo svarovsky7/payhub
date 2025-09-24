@@ -10,7 +10,7 @@ export const formatFileSize = (bytes: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
-export const handlePreviewFile = async (attachment: any, setPreviewFile: (file: any) => void, messageApi: any) => {
+export const handlePreviewFile = async (attachment: any) => {
   try {
     console.log('[InvoiceView.handlePreview] Previewing file:', attachment)
 
@@ -20,8 +20,7 @@ export const handlePreviewFile = async (attachment: any, setPreviewFile: (file: 
 
     if (error) {
       console.error('[InvoiceView.handlePreview] Error:', error)
-      messageApi.error('Ошибка загрузки файла для просмотра')
-      return
+      throw new Error('Ошибка загрузки файла для просмотра')
     }
 
     // Создаем URL для предпросмотра
@@ -31,24 +30,25 @@ export const handlePreviewFile = async (attachment: any, setPreviewFile: (file: 
 
     // Определяем тип файла для предпросмотра
     if (mimeType.startsWith('image/')) {
-      setPreviewFile({ url, name: fileName, type: 'image' })
+      return { url, name: fileName, type: mimeType }
     } else if (mimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
-      setPreviewFile({ url, name: fileName, type: 'pdf' })
+      return { url, name: fileName, type: 'application/pdf' }
     } else {
       // Для других типов файлов открываем в новом окне
       const newWindow = window.open(url, '_blank')
       if (!newWindow) {
-        messageApi.error('Не удалось открыть файл. Проверьте настройки блокировки всплывающих окон.')
+        throw new Error('Не удалось открыть файл. Проверьте настройки блокировки всплывающих окон.')
       }
       setTimeout(() => URL.revokeObjectURL(url), 100)
+      return null
     }
   } catch (error) {
     console.error('[InvoiceView.handlePreview] Error:', error)
-    messageApi.error('Ошибка при открытии файла')
+    throw error
   }
 }
 
-export const handleDownloadFile = async (attachment: any, messageApi: any) => {
+export const handleDownloadFile = async (attachment: any) => {
   try {
     console.log('[InvoiceView.handleDownload] Downloading file:', attachment)
 
@@ -58,8 +58,7 @@ export const handleDownloadFile = async (attachment: any, messageApi: any) => {
 
     if (error) {
       console.error('[InvoiceView.handleDownload] Error:', error)
-      messageApi.error('Ошибка загрузки файла')
-      return
+      throw new Error('Ошибка загрузки файла')
     }
 
     // Создаем ссылку для скачивания
@@ -75,7 +74,7 @@ export const handleDownloadFile = async (attachment: any, messageApi: any) => {
     console.log('[InvoiceView.handleDownload] File downloaded successfully')
   } catch (error) {
     console.error('[InvoiceView.handleDownload] Error:', error)
-    messageApi.error('Ошибка загрузки файла')
+    throw error
   }
 }
 
@@ -140,7 +139,8 @@ export const loadPaymentFiles = async (paymentId: string): Promise<any[]> => {
           original_name,
           storage_path,
           size_bytes,
-          mime_type
+          mime_type,
+          description
         )
       `)
       .eq('payment_id', paymentId)

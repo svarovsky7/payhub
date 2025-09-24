@@ -44,6 +44,33 @@
     "comment": null,
     "sql": "CREATE TRIGGER update_contractors_updated_at BEFORE UPDATE ON public.contractors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
+  "public.contracts.update_contracts_updated_at": {
+    "schema": "public",
+    "name": "update_contracts_updated_at",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_contracts_updated_at BEFORE UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.departments.update_departments_updated_at": {
+    "schema": "public",
+    "name": "update_departments_updated_at",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON public.departments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.employees.update_employees_updated_at": {
+    "schema": "public",
+    "name": "update_employees_updated_at",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_employees_updated_at BEFORE UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
   "public.invoice_statuses.update_invoice_statuses_updated_at": {
     "schema": "public",
     "name": "update_invoice_statuses_updated_at",
@@ -80,6 +107,15 @@
     "comment": null,
     "sql": "CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
+  "public.material_classes.update_material_classes_updated_at": {
+    "schema": "public",
+    "name": "update_material_classes_updated_at",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at()"
+  },
   "public.payment_approvals.update_payment_approvals_updated_at": {
     "schema": "public",
     "name": "update_payment_approvals_updated_at",
@@ -115,6 +151,15 @@
     "timing": null,
     "comment": null,
     "sql": "CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.positions.update_positions_updated_at": {
+    "schema": "public",
+    "name": "update_positions_updated_at",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON public.positions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
   "public.projects.update_projects_updated_at": {
     "schema": "public",

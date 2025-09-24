@@ -6,6 +6,7 @@ export interface AttachmentData {
   storage_path: string
   size_bytes: number
   mime_type: string
+  description?: string
   created_at: string
   source?: string
   source_label?: string
@@ -27,6 +28,7 @@ export const loadInvoiceAttachments = async (invoiceId: string): Promise<Attachm
           storage_path,
           size_bytes,
           mime_type,
+          description,
           created_at
         )
       `)
@@ -47,6 +49,7 @@ export const loadInvoiceAttachments = async (invoiceId: string): Promise<Attachm
           storage_path,
           size_bytes,
           mime_type,
+          description,
           created_at
         ),
         payments!inner (

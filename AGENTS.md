@@ -1,22 +1,22 @@
 # Repository Guidelines
+Welcome to PayHub. This guide aligns contributors quickly and keeps changes consistent with team expectations.
 
 ## Project Structure & Module Organization
-PayHub is a Vite + React + TypeScript app. All product code lives in `src/`. Screens follow `src/pages/InvoicesPage.tsx`, while shared UI goes in `src/components/` and shared logic in `src/hooks/`. Entry wiring stays lean inside `src/main.tsx`. Place reusable assets in `src/assets/`, and expose public-only files via `public/`. Store backend metadata and SQL in `supabase/` - avoid ad-hoc migrations elsewhere.
+Product code stays in `src/`. Pages live under `src/pages/` (for example `src/pages/InvoicesPage.tsx`), shared UI widgets in `src/components/`, and hooks in `src/hooks/`. Keep entry wiring limited to `src/main.tsx`. Place reusable media in `src/assets/` and public-only files in `public/`. Store backend metadata and SQL migrations exclusively inside `supabase/ai_context` to avoid drifting schemas.
 
 ## Build, Test, and Development Commands
-- `npm run dev` starts Vite on `http://localhost:5173` for local work.
-- `npm run build` runs `tsc -b` and emits the production bundle to `dist/`.
-- `npm run preview` serves the built bundle for smoke checks.
-- `npm run lint` executes ESLint over `.ts/.tsx` sources.
+Use `npm run dev` to boot Vite on http://localhost:5173 for iterative work. `npm run build` runs `tsc -b` and produces the optimized bundle in `dist/`. Smoke the bundle with `npm run preview`. Lint all TypeScript with `npm run lint`. Run the Vitest suite with `npm test` (add `-- --watch` for TDD loops).
 
 ## Coding Style & Naming Conventions
-Use functional components in PascalCase (`PaymentPanel.tsx`) and hooks/utilities in camelCase (`useInvoices.ts`). Format with 2-space indentation, single quotes, and trailing commas. Group imports: external packages, absolute aliases, then relative paths. ESLint is the source of truth - resolve or justify warnings before merging.
+Write functional components in PascalCase (`PaymentPanel.tsx`) and hooks/utilities in camelCase (`useInvoices.ts`). Follow 2-space indentation, single quotes, trailing commas, and grouped imports (external, absolute aliases, then relatives). Let ESLint guide formatting; fix or justify any warning before merging.
 
 ## Testing Guidelines
-Tests sit alongside code as `Component.test.tsx`. We rely on Vitest plus React Testing Library; run the suite with `npm test` or `npm run test -- --watch`. Target >=80% coverage on critical flows and document any manual verification in PR notes.
+Tests sit beside their subjects as `Component.test.tsx`. We rely on Vitest plus React Testing Library; aim for >=80% coverage on critical flows. Prefer scenario-driven tests that mirror user behavior. Document any manual verification when automated coverage is not feasible.
 
 ## Commit & Pull Request Guidelines
-Follow Conventional Commits (`feat:`, `fix:`, `chore:`). Each PR should link to the tracked task, summarize changes, include results of lint/test runs, and attach UI screenshots when altering visuals. Call out deployment risks and follow-up work for the release plan.
+Use Conventional Commits such as `feat:`, `fix:`, or `chore:`. Each PR should link its tracked task, summarize the change, list lint/test results, and attach UI screenshots when visuals shift. Highlight deployment risks, note required follow-up, and confirm Supabase migrations remain synced.
 
 ## Security & Configuration Tips
-Keep secrets in `.env` using the `VITE_` prefix and never log Supabase keys. Manage schema changes through versioned files under `supabase/ai_context`. After dependency updates, run `npm install` and re-validate build and lint before opening a PR.
+Secrets belong in `.env` with the `VITE_` prefix; never log Supabase keys. After dependency bumps, run `npm install`, then re-run build and lint before asking for review. Keep schema work versioned in `supabase/ai_context` rather than ad-hoc scripts.
+
+

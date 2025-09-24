@@ -6,6 +6,7 @@ import { AuthPage } from './pages/AuthPage'
 import { InvoicesPage } from './pages/InvoicesPage'
 import { AdminPage } from './pages/AdminPage'
 import { ApprovalsPage } from './pages/ApprovalsPage'
+import { ContractsPage } from './pages/ContractsPage'
 import { MainLayout } from './components/Layout'
 import 'antd/dist/reset.css'
 
@@ -40,6 +41,14 @@ function App() {
               element={
                 <MainLayout>
                   <ApprovalsPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/contracts"
+              element={
+                <MainLayout>
+                  <ContractsPage />
                 </MainLayout>
               }
             />

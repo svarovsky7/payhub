@@ -126,6 +126,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       label: 'Счета',
     },
     {
+      key: '/contracts',
+      icon: <FileTextOutlined />,
+      label: 'Договоры',
+    },
+    {
       key: '/approvals',
       icon: <AuditOutlined />,
       label: 'Согласования',

@@ -431,6 +431,54 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)"
   },
+  "public.contract_attachments.contract_attachments_contract_id_attachment_id_key": {
+    "schema": "public",
+    "name": "contract_attachments_contract_id_attachment_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX contract_attachments_contract_id_attachment_id_key ON public.contract_attachments USING btree (contract_id, attachment_id)"
+  },
+  "public.contract_attachments.idx_contract_attachments_attachment_id": {
+    "schema": "public",
+    "name": "idx_contract_attachments_attachment_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contract_attachments_attachment_id ON public.contract_attachments USING btree (attachment_id)"
+  },
+  "public.contract_attachments.idx_contract_attachments_contract_id": {
+    "schema": "public",
+    "name": "idx_contract_attachments_contract_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contract_attachments_contract_id ON public.contract_attachments USING btree (contract_id)"
+  },
+  "public.contract_invoices.contract_invoices_contract_id_invoice_id_key": {
+    "schema": "public",
+    "name": "contract_invoices_contract_id_invoice_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX contract_invoices_contract_id_invoice_id_key ON public.contract_invoices USING btree (contract_id, invoice_id)"
+  },
+  "public.contract_invoices.idx_contract_invoices_contract_id": {
+    "schema": "public",
+    "name": "idx_contract_invoices_contract_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contract_invoices_contract_id ON public.contract_invoices USING btree (contract_id)"
+  },
+  "public.contract_invoices.idx_contract_invoices_invoice_id": {
+    "schema": "public",
+    "name": "idx_contract_invoices_invoice_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contract_invoices_invoice_id ON public.contract_invoices USING btree (invoice_id)"
+  },
   "public.contractor_types.contractor_types_code_key": {
     "schema": "public",
     "name": "contractor_types_code_key",
@@ -470,6 +518,78 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)"
+  },
+  "public.contracts.idx_contracts_contract_date": {
+    "schema": "public",
+    "name": "idx_contracts_contract_date",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contracts_contract_date ON public.contracts USING btree (contract_date)"
+  },
+  "public.contracts.idx_contracts_contract_number": {
+    "schema": "public",
+    "name": "idx_contracts_contract_number",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contracts_contract_number ON public.contracts USING btree (contract_number)"
+  },
+  "public.contracts.idx_contracts_payer_id": {
+    "schema": "public",
+    "name": "idx_contracts_payer_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contracts_payer_id ON public.contracts USING btree (payer_id)"
+  },
+  "public.contracts.idx_contracts_supplier_id": {
+    "schema": "public",
+    "name": "idx_contracts_supplier_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contracts_supplier_id ON public.contracts USING btree (supplier_id)"
+  },
+  "public.departments.departments_name_key": {
+    "schema": "public",
+    "name": "departments_name_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX departments_name_key ON public.departments USING btree (name)"
+  },
+  "public.employees.idx_employees_department_id": {
+    "schema": "public",
+    "name": "idx_employees_department_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_employees_department_id ON public.employees USING btree (department_id)"
+  },
+  "public.employees.idx_employees_full_name": {
+    "schema": "public",
+    "name": "idx_employees_full_name",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_employees_full_name ON public.employees USING btree (full_name)"
+  },
+  "public.employees.idx_employees_is_active": {
+    "schema": "public",
+    "name": "idx_employees_is_active",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_employees_is_active ON public.employees USING btree (is_active)"
+  },
+  "public.employees.idx_employees_position_id": {
+    "schema": "public",
+    "name": "idx_employees_position_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_employees_position_id ON public.employees USING btree (position_id)"
   },
   "public.invoice_attachments.idx_invoice_attachments_attachment_id": {
     "schema": "public",
@@ -623,6 +743,30 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)"
   },
+  "public.material_classes.idx_material_classes_is_active": {
+    "schema": "public",
+    "name": "idx_material_classes_is_active",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_classes_is_active ON public.material_classes USING btree (is_active)"
+  },
+  "public.material_classes.material_classes_code_key": {
+    "schema": "public",
+    "name": "material_classes_code_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX material_classes_code_key ON public.material_classes USING btree (code)"
+  },
+  "public.material_classes.material_classes_name_key": {
+    "schema": "public",
+    "name": "material_classes_name_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX material_classes_name_key ON public.material_classes USING btree (name)"
+  },
   "public.payment_approvals.idx_payment_approvals_payment": {
     "schema": "public",
     "name": "idx_payment_approvals_payment",
@@ -727,6 +871,14 @@
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX payments_payment_number_key ON public.payments USING btree (payment_number)"
   },
+  "public.positions.positions_name_key": {
+    "schema": "public",
+    "name": "positions_name_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX positions_name_key ON public.positions USING btree (name)"
+  },
   "public.projects.idx_projects_code": {
     "schema": "public",
     "name": "idx_projects_code",
@@ -799,6 +951,14 @@
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX user_projects_user_project_unique ON public.user_projects USING btree (user_id, project_id)"
   },
+  "public.workflow_stages.idx_workflow_stages_is_active": {
+    "schema": "public",
+    "name": "idx_workflow_stages_is_active",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_workflow_stages_is_active ON public.workflow_stages USING btree (is_active)"
+  },
   "public.workflow_stages.idx_workflow_stages_payment_status": {
     "schema": "public",
     "name": "idx_workflow_stages_payment_status",
@@ -806,6 +966,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_workflow_stages_payment_status ON public.workflow_stages USING btree (payment_status_id)"
+  },
+  "public.workflow_stages.idx_workflow_stages_permissions": {
+    "schema": "public",
+    "name": "idx_workflow_stages_permissions",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_workflow_stages_permissions ON public.workflow_stages USING gin (permissions)"
   },
   "public.workflow_stages.idx_workflow_stages_role": {
     "schema": "public",

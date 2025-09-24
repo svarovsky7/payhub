@@ -124,7 +124,7 @@ export const getInvoiceTableColumns = ({
       title: 'Номер',
       dataIndex: 'invoice_number',
       key: 'invoice_number',
-      width: 80,
+      ellipsis: true,
       sorter: (a, b) => (a.invoice_number || '').localeCompare(b.invoice_number || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
       filters: invoiceNumberFilters,
@@ -136,7 +136,6 @@ export const getInvoiceTableColumns = ({
       title: 'Дата',
       dataIndex: 'invoice_date',
       key: 'invoice_date',
-      width: 85,
       render: (date: string | null) => (date ? new Date(date).toLocaleDateString('ru-RU') : '-'),
       sorter: (a, b) => {
         const dateA = a.invoice_date ? dayjs(a.invoice_date).valueOf() : 0
@@ -158,7 +157,6 @@ export const getInvoiceTableColumns = ({
       title: 'Плательщик',
       dataIndex: ['payer', 'name'],
       key: 'payer',
-      width: 130,
       ellipsis: true,
       sorter: (a, b) => (a.payer?.name || '').localeCompare(b.payer?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
@@ -170,7 +168,6 @@ export const getInvoiceTableColumns = ({
       title: 'Поставщик',
       dataIndex: ['supplier', 'name'],
       key: 'supplier',
-      width: 130,
       ellipsis: true,
       sorter: (a, b) => (a.supplier?.name || '').localeCompare(b.supplier?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
@@ -182,7 +179,6 @@ export const getInvoiceTableColumns = ({
       title: 'Проект',
       dataIndex: ['project', 'name'],
       key: 'project',
-      width: 100,
       ellipsis: true,
       sorter: (a, b) => (a.project?.name || '').localeCompare(b.project?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
@@ -194,7 +190,7 @@ export const getInvoiceTableColumns = ({
       title: 'Тип',
       dataIndex: ['invoice_type', 'name'],
       key: 'invoice_type',
-      width: 80,
+      ellipsis: true,
       sorter: (a, b) => (a.invoice_type?.name || '').localeCompare(b.invoice_type?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
       filters: invoiceTypeFilters,
@@ -205,15 +201,23 @@ export const getInvoiceTableColumns = ({
       title: 'Сумма с НДС',
       dataIndex: 'amount_with_vat',
       key: 'amount_with_vat',
-      width: 110,
+      align: 'right',
       render: (amount: number | null) => (amount ? `${formatAmount(amount)} ₽` : '-'),
       sorter: (a, b) => (a.amount_with_vat ?? 0) - (b.amount_with_vat ?? 0),
       sortDirections: ['ascend', 'descend'],
     },
     {
+      title: 'Доставка',
+      dataIndex: 'delivery_cost',
+      key: 'delivery_cost',
+      align: 'right',
+      render: (cost: number | null) => (cost ? `${formatAmount(cost)} ₽` : '-'),
+      sorter: (a, b) => (a.delivery_cost ?? 0) - (b.delivery_cost ?? 0),
+      sortDirections: ['ascend', 'descend'],
+    },
+    {
       title: 'Статус',
       key: 'status',
-      width: 90,
       sorter: (a, b) => {
         const orderA = a.invoice_status?.sort_order ?? 0
         const orderB = b.invoice_status?.sort_order ?? 0
@@ -236,7 +240,6 @@ export const getInvoiceTableColumns = ({
     {
       title: 'Оплата',
       key: 'payment_status',
-      width: 120,
       render: (_, record) => {
         const totals = getPaymentTotals(record.id)
         return (
@@ -251,8 +254,6 @@ export const getInvoiceTableColumns = ({
     {
       title: 'Действия',
       key: 'actions',
-      width: 150,
-      fixed: 'right',
       render: (_, record) => {
         const paymentTotals = getPaymentTotals(record.id)
         return (

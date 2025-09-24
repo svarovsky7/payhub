@@ -4,21 +4,23 @@
 const EPS = 10
 
 // ID статусов счетов
+// Используйте только эти официальные определения статусов!
 export const INVOICE_STATUSES = {
-  DRAFT: 1,      // Черновик
-  PENDING: 2,    // На согласовании
-  PARTIAL: 3,    // Частично оплачен
-  PAID: 4,       // Оплачен
-  CANCELLED: 5   // Отменён
+  DRAFT: 1,      // draft (Черновик)
+  PENDING: 2,    // pending (На согласовании)
+  PARTIAL: 3,    // partial (Частично оплачен)
+  PAID: 4,       // paid (Оплачен)
+  CANCELLED: 5   // cancelled (Отменен)
 }
 
 // ID статусов платежей
+// Используйте только эти официальные определения статусов!
 export const PAYMENT_STATUSES = {
-  CREATED: 1,    // Создан
-  PENDING: 2,    // На согласовании
-  APPROVED: 3,   // Согласован
-  PAID: 4,       // Оплачен
-  CANCELLED: 5   // Отменён
+  CREATED: 1,    // created (Создан)
+  PENDING: 2,    // pending (На согласовании)
+  APPROVED: 3,   // approved (В оплате)
+  PAID: 4,       // paid (Оплачен)
+  CANCELLED: 5   // cancelled (Отменён)
 }
 
 interface Payment {

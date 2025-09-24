@@ -87,6 +87,7 @@ export type Invoice = {
   vat_rate?: number
   vat_amount?: number
   amount_without_vat?: number
+  delivery_cost?: number
   delivery_days?: number
   delivery_days_type?: 'working' | 'calendar'
   preliminary_delivery_date?: string
@@ -94,6 +95,7 @@ export type Invoice = {
   status_id?: number
   description?: string
   due_date?: string // оставляем для совместимости, но не используем
+  relevance_date?: string
   created_at: string
   updated_at: string
   // Связанные объекты (для JOIN запросов)

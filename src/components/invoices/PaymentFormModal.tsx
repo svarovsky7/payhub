@@ -1,4 +1,4 @@
-import { Modal, Form, Input, InputNumber, Select, DatePicker, Space, Button, Upload, App } from 'antd'
+import { Modal, Form, Input, InputNumber, Select, DatePicker, Space, Button, Upload, App, Table } from 'antd'
 import { useEffect, useState } from 'react'
 import { UploadOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
@@ -9,7 +9,7 @@ import type { PaymentType, PaymentStatus } from '../../lib/supabase'
 interface PaymentFormModalProps {
   isVisible: boolean
   onClose: () => void
-  onSubmit: (values: any, files: UploadFile[]) => void
+  onSubmit: (values: any, files: any[]) => void
   form: any
   paymentTypes: PaymentType[]
   paymentStatuses: PaymentStatus[]
@@ -33,6 +33,7 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
 }) => {
   const { message: messageApi } = App.useApp()
   const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [fileDescriptions, setFileDescriptions] = useState<{ [uid: string]: string }>({})
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null)
 
   useEffect(() => {
@@ -78,7 +79,12 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
 
   const handleSubmit = (values: any) => {
     console.log('[PaymentFormModal.handleSubmit] Submitting with files:', fileList.length)
-    onSubmit(values, fileList)
+    // Добавляем описания к файлам
+    const filesWithDescriptions = fileList.map(file => ({
+      ...file,
+      description: fileDescriptions[file.uid] || ''
+    }))
+    onSubmit(values, filesWithDescriptions)
   }
 
   const handlePreview = async (file: UploadFile) => {
@@ -124,13 +130,7 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
   const uploadProps: UploadProps = {
     multiple: true,
     fileList,
-    showUploadList: {
-      showPreviewIcon: true,
-      showRemoveIcon: true,
-      showDownloadIcon: false,
-      previewIcon: <EyeOutlined />,
-      removeIcon: <DeleteOutlined />,
-    },
+    showUploadList: false, // Отключаем стандартный список, так как используем таблицу
     onPreview: handlePreview,
     beforeUpload: (file) => {
       console.log('[PaymentFormModal.beforeUpload] Adding file:', file.name)
@@ -153,11 +153,19 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
 
       // Добавляем файл в список
       setFileList((prev) => [...prev, uploadFile])
+      // Инициализируем пустое описание для нового файла
+      setFileDescriptions((prev) => ({ ...prev, [uploadFile.uid]: '' }))
       return false // Предотвращаем автоматическую загрузку
     },
     onRemove: (file: UploadFile) => {
       console.log('[PaymentFormModal.onRemove] Removing file:', file.name)
       setFileList((prev) => prev.filter(f => f.uid !== file.uid))
+      // Удаляем описание для удаленного файла
+      setFileDescriptions((prev) => {
+        const newDescriptions = { ...prev }
+        delete newDescriptions[file.uid]
+        return newDescriptions
+      })
     },
     // Исключаем показ превью в тултипе
     previewFile: async () => {
@@ -269,6 +277,77 @@ export const PaymentFormModal: React.FC<PaymentFormModalProps> = ({
           <Upload {...uploadProps}>
             <Button icon={<UploadOutlined />}>Выбрать файлы</Button>
           </Upload>
+          {fileList.length > 0 && (
+            <Table
+              style={{ marginTop: 16 }}
+              dataSource={fileList}
+              rowKey="uid"
+              pagination={false}
+              size="small"
+              columns={[
+                {
+                  title: 'Файл',
+                  dataIndex: 'name',
+                  key: 'name',
+                  width: '40%',
+                  render: (name: string) => (
+                    <Space size="small">
+                      <EyeOutlined
+                        style={{ color: '#1890ff', cursor: 'pointer' }}
+                        onClick={() => {
+                          const file = fileList.find(f => f.name === name)
+                          if (file) {
+                            handlePreview(file)
+                          }
+                        }}
+                        title="Просмотр"
+                      />
+                      <DeleteOutlined
+                        style={{ color: '#ff4d4f', cursor: 'pointer' }}
+                        onClick={() => {
+                          const file = fileList.find(f => f.name === name)
+                          if (file) {
+                            uploadProps.onRemove?.(file)
+                          }
+                        }}
+                        title="Удалить"
+                      />
+                      <span>{name}</span>
+                    </Space>
+                  )
+                },
+                {
+                  title: 'Размер',
+                  dataIndex: 'size',
+                  key: 'size',
+                  width: '15%',
+                  render: (size: number) => {
+                    const kb = size / 1024
+                    return kb < 1024
+                      ? `${kb.toFixed(1)} КБ`
+                      : `${(kb / 1024).toFixed(1)} МБ`
+                  }
+                },
+                {
+                  title: 'Описание',
+                  key: 'description',
+                  render: (_, file) => (
+                    <Input
+                      placeholder="Введите описание файла (необязательно)"
+                      value={fileDescriptions[file.uid] || ''}
+                      onChange={(e) =>
+                        setFileDescriptions((prev) => ({
+                          ...prev,
+                          [file.uid]: e.target.value,
+                        }))
+                      }
+                      size="small"
+                    />
+                  )
+                }
+              ]}
+            />
+          )}
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

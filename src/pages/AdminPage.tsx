@@ -6,21 +6,21 @@ import {
   ProjectOutlined,
   SafetyOutlined,
   TeamOutlined,
-  SolutionOutlined,
-  FileTextOutlined,
+  AppstoreOutlined,
   CheckCircleOutlined,
-  DollarOutlined,
-  AuditOutlined
+  AuditOutlined,
+  IdcardOutlined,
+  BlockOutlined
 } from '@ant-design/icons'
 import { UsersTab } from '../components/admin/UsersTab'
 import { ProjectsTab } from '../components/admin/ProjectsTab'
 import { RolesTab } from '../components/admin/RolesTab'
 import { ContractorsTab } from '../components/admin/ContractorsTab'
-import { ContractorTypesTab } from '../components/admin/ContractorTypesTab'
-import { InvoiceTypesTab } from '../components/admin/InvoiceTypesTab'
+import { TypesTab } from '../components/admin/TypesTab'
 import { StatusesTab } from '../components/admin/StatusesTab'
-import { PaymentTypesTab } from '../components/admin/PaymentTypesTab'
 import { ApprovalRoutesTab } from '../components/admin/ApprovalRoutesTab'
+import { EmployeesTab } from '../components/admin/EmployeesTab'
+import { MaterialClassesTab } from '../components/admin/MaterialClassesTab'
 
 const tabMapping: { [key: string]: string } = {
   '/admin': 'users',
@@ -28,11 +28,11 @@ const tabMapping: { [key: string]: string } = {
   '/admin/projects': 'projects',
   '/admin/roles': 'roles',
   '/admin/contractors': 'contractors',
-  '/admin/contractor-types': 'contractor-types',
-  '/admin/invoice-types': 'invoice-types',
+  '/admin/employees': 'employees',
+  '/admin/types': 'types',
   '/admin/statuses': 'statuses',
-  '/admin/payment-types': 'payment-types',
-  '/admin/approval-routes': 'approval-routes'
+  '/admin/approval-routes': 'approval-routes',
+  '/admin/material-classes': 'material-classes'
 }
 
 const pathMapping: { [key: string]: string } = {
@@ -40,11 +40,11 @@ const pathMapping: { [key: string]: string } = {
   'projects': '/admin/projects',
   'roles': '/admin/roles',
   'contractors': '/admin/contractors',
-  'contractor-types': '/admin/contractor-types',
-  'invoice-types': '/admin/invoice-types',
+  'employees': '/admin/employees',
+  'types': '/admin/types',
   'statuses': '/admin/statuses',
-  'payment-types': '/admin/payment-types',
-  'approval-routes': '/admin/approval-routes'
+  'approval-routes': '/admin/approval-routes',
+  'material-classes': '/admin/material-classes'
 }
 
 export const AdminPage = () => {
@@ -96,16 +96,16 @@ export const AdminPage = () => {
       children: <ContractorsTab />
     },
     {
-      key: 'contractor-types',
-      label: 'Типы контрагентов',
-      icon: <SolutionOutlined />,
-      children: <ContractorTypesTab />
+      key: 'employees',
+      label: 'Сотрудники',
+      icon: <IdcardOutlined />,
+      children: <EmployeesTab />
     },
     {
-      key: 'invoice-types',
-      label: 'Типы счетов',
-      icon: <FileTextOutlined />,
-      children: <InvoiceTypesTab />
+      key: 'types',
+      label: 'Типы',
+      icon: <AppstoreOutlined />,
+      children: <TypesTab />
     },
     {
       key: 'statuses',
@@ -114,16 +114,16 @@ export const AdminPage = () => {
       children: <StatusesTab />
     },
     {
-      key: 'payment-types',
-      label: 'Типы платежей',
-      icon: <DollarOutlined />,
-      children: <PaymentTypesTab />
-    },
-    {
       key: 'approval-routes',
       label: 'Маршруты согласования',
       icon: <AuditOutlined />,
       children: <ApprovalRoutesTab />
+    },
+    {
+      key: 'material-classes',
+      label: 'Классификатор материалов',
+      icon: <BlockOutlined />,
+      children: <MaterialClassesTab />
     }
   ]
 

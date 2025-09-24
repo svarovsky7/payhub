@@ -1,11 +1,13 @@
-import { Form, Modal, Input, InputNumber, Select, DatePicker, Radio, Row, Col, Space, Button, Upload, message } from 'antd'
+import { Form, Modal, Input, InputNumber, Select, DatePicker, Radio, Row, Col, Space, Button, Upload, message, Table } from 'antd'
 import { useState, useEffect } from 'react'
-import { UploadOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons'
+import { UploadOutlined, EyeOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
 import type { Contractor, Project, InvoiceType, InvoiceStatus, Invoice } from '../../lib/supabase'
+import { loadInvoiceAttachments } from './AttachmentOperations'
+import type { Employee } from '../../services/employeeOperations'
 
 // Принудительно активируем русскую локаль для dayjs
 dayjs.locale('ru')
@@ -14,13 +16,14 @@ interface InvoiceFormModalProps {
   isVisible: boolean
   editingInvoice?: Invoice | null
   onClose: () => void
-  onSubmit: (values: any, files: UploadFile[]) => void
+  onSubmit: (values: any, files: UploadFile[], originalFiles?: UploadFile[]) => void
   form: any
   payers: Contractor[]
   suppliers: Contractor[]
   projects: Project[]
   invoiceTypes: InvoiceType[]
   invoiceStatuses: InvoiceStatus[]
+  employees: Employee[]
   amountWithVat: number
   onAmountWithVatChange: (value: number) => void
   vatRate: number
@@ -49,6 +52,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   projects,
   invoiceTypes,
   invoiceStatuses,
+  employees,
   amountWithVat,
   onAmountWithVatChange,
   vatRate: currentVatRate,
@@ -66,13 +70,66 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   parseAmount,
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [fileDescriptions, setFileDescriptions] = useState<{ [uid: string]: string }>({})
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null)
+  const [loadingFiles, setLoadingFiles] = useState(false)
+  const [originalFiles, setOriginalFiles] = useState<UploadFile[]>([]) // Для отслеживания удаленных файлов
 
   useEffect(() => {
     if (!isVisible) {
       setFileList([])
+      setFileDescriptions({})
+      setOriginalFiles([])
+    } else if (editingInvoice?.id) {
+      // Загружаем существующие файлы при редактировании счета
+      loadExistingFiles()
     }
-  }, [isVisible])
+  }, [isVisible, editingInvoice])
+
+  // Функция загрузки существующих файлов счета
+  const loadExistingFiles = async () => {
+    if (!editingInvoice?.id) return
+
+    setLoadingFiles(true)
+    console.log('[InvoiceFormModal.loadExistingFiles] Loading files for invoice:', editingInvoice.id)
+
+    try {
+      const attachments = await loadInvoiceAttachments(editingInvoice.id)
+
+      // Фильтруем только файлы счета (не файлы платежей)
+      const invoiceAttachments = attachments.filter(a => a.source === 'invoice' || !a.source)
+
+      // Преобразуем загруженные файлы в формат UploadFile
+      const existingFiles: UploadFile[] = invoiceAttachments.map(attachment => ({
+        uid: attachment.id,
+        name: attachment.original_name,
+        size: attachment.size_bytes,
+        type: attachment.mime_type,
+        status: 'done' as const,
+        existingAttachmentId: attachment.id,
+        url: `${import.meta.env.VITE_STORAGE_BUCKET}/object/public/attachments/${attachment.storage_path}`
+      }))
+
+      // Создаем объект с описаниями
+      const descriptions: { [uid: string]: string } = {}
+      invoiceAttachments.forEach(attachment => {
+        if (attachment.description) {
+          descriptions[attachment.id] = attachment.description
+        }
+      })
+
+      setFileList(existingFiles)
+      setFileDescriptions(descriptions)
+      setOriginalFiles(existingFiles) // Сохраняем оригинальный список файлов
+
+      console.log('[InvoiceFormModal.loadExistingFiles] Loaded files:', existingFiles.length)
+    } catch (error) {
+      console.error('[InvoiceFormModal.loadExistingFiles] Error loading files:', error)
+      message.error('Ошибка загрузки существующих файлов')
+    } finally {
+      setLoadingFiles(false)
+    }
+  }
 
   useEffect(() => {
     if (isVisible) {
@@ -121,13 +178,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   const uploadProps: UploadProps = {
     multiple: true,
     fileList,
-    showUploadList: {
-      showPreviewIcon: true,
-      showRemoveIcon: true,
-      showDownloadIcon: false,
-      previewIcon: <EyeOutlined />,
-      removeIcon: <DeleteOutlined />,
-    },
+    showUploadList: false, // Отключаем стандартный список, так как используем таблицу
     onPreview: handlePreview,
     beforeUpload: (file) => {
       const isLt10Mb = file.size / 1024 / 1024 < 10
@@ -147,15 +198,32 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       }
 
       setFileList((prev) => [...prev, uploadFile])
+      // Инициализируем пустое описание для нового файла
+      setFileDescriptions((prev) => ({ ...prev, [uploadFile.uid]: '' }))
       return false
     },
     onRemove: (file) => {
       setFileList((prev) => prev.filter((item) => item.uid !== file.uid))
+      // Удаляем описание для удаленного файла
+      setFileDescriptions((prev) => {
+        const newDescriptions = { ...prev }
+        delete newDescriptions[file.uid]
+        return newDescriptions
+      })
     },
   }
 
   const handleSubmit = (values: any) => {
-    onSubmit(values, fileList)
+    // Добавляем описания к файлам
+    const filesWithDescriptions = fileList.map(file => ({
+      ...file,
+      description: fileDescriptions[file.uid] || ''
+    }))
+
+    // Передаем оригинальные файлы если это редактирование
+    const originalFilesWithDescriptions = editingInvoice ? originalFiles : []
+
+    onSubmit(values, filesWithDescriptions, originalFilesWithDescriptions)
   }
 
   return (
@@ -270,6 +338,30 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           </Col>
         </Row>
 
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="employee_id"
+              label="Ответственный сотрудник"
+            >
+              <Select
+                placeholder="Выберите сотрудника"
+                showSearch
+                optionFilterProp="label"
+                allowClear
+                options={employees
+                  .filter(emp => emp.is_active)
+                  .map((employee) => ({
+                    value: employee.id,
+                    label: employee.full_name || `${employee.last_name} ${employee.first_name}`,
+                  }))}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            {/* Empty column for layout balance */}
+          </Col>
+        </Row>
 
         <Row gutter={16}>
           <Col span={8}>
@@ -378,6 +470,41 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           </Col>
         </Row>
 
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item
+              name="delivery_cost"
+              label="Стоимость доставки"
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                precision={2}
+                decimalSeparator=","
+                placeholder="0,00"
+                formatter={(value) => {
+                  if (value === undefined || value === null || value === '') {
+                    return ''
+                  }
+                  const numeric = typeof value === 'number' ? value : Number(value.toString().replace(/\s/g, '').replace(',', '.'))
+                  if (Number.isNaN(numeric)) {
+                    return ''
+                  }
+                  return numeric
+                    .toFixed(2)
+                    .replace('.', ',')
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+                }}
+                parser={(value) => {
+                  if (!value) return 0
+                  return Number(value.replace(/\s/g, '').replace(',', '.'))
+                }}
+                addonAfter="₽"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
         <Form.Item
           name="description"
           label="Описание"
@@ -389,6 +516,107 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           <Upload {...uploadProps}>
             <Button icon={<UploadOutlined />}>Выбрать файлы</Button>
           </Upload>
+          {(fileList.length > 0 || loadingFiles) && (
+            <Table
+              style={{ marginTop: 16 }}
+              loading={loadingFiles}
+              dataSource={fileList}
+              rowKey="uid"
+              pagination={false}
+              size="small"
+              columns={[
+                {
+                  title: 'Файл',
+                  dataIndex: 'name',
+                  key: 'name',
+                  width: '40%',
+                  render: (name: string) => (
+                    <Space size="small">
+                      <EyeOutlined
+                        style={{ color: '#1890ff', cursor: 'pointer' }}
+                        onClick={() => {
+                          const file = fileList.find(f => f.name === name)
+                          if (file) {
+                            handlePreview(file)
+                          }
+                        }}
+                        title="Просмотр"
+                      />
+                      <DeleteOutlined
+                        style={{ color: '#ff4d4f', cursor: 'pointer' }}
+                        onClick={() => {
+                          const file = fileList.find(f => f.name === name)
+                          if (file) {
+                            uploadProps.onRemove?.(file)
+                          }
+                        }}
+                        title="Удалить"
+                      />
+                      <span>{name}</span>
+                    </Space>
+                  )
+                },
+                {
+                  title: 'Размер',
+                  dataIndex: 'size',
+                  key: 'size',
+                  width: '15%',
+                  render: (size: number) => {
+                    const kb = size / 1024
+                    return kb < 1024
+                      ? `${kb.toFixed(1)} КБ`
+                      : `${(kb / 1024).toFixed(1)} МБ`
+                  }
+                },
+                {
+                  title: 'Описание',
+                  key: 'description',
+                  render: (_, file) => (
+                    <Input
+                      placeholder="Введите описание файла (необязательно)"
+                      value={fileDescriptions[file.uid] || ''}
+                      onChange={(e) =>
+                        setFileDescriptions((prev) => ({
+                          ...prev,
+                          [file.uid]: e.target.value,
+                        }))
+                      }
+                      size="small"
+                    />
+                  )
+                }
+              ]}
+            />
+          )}
+        </Form.Item>
+
+        {/* Кнопка обновления даты актуальности - только для редактирования */}
+        {editingInvoice && (
+          <Form.Item label="Дата актуальности счета" style={{ marginBottom: 16 }}>
+            <Space>
+              <Input
+                value={form.getFieldValue('relevance_date')
+                  ? dayjs(form.getFieldValue('relevance_date')).format('DD.MM.YYYY HH:mm')
+                  : 'Не установлена'}
+                disabled
+                style={{ width: 200 }}
+              />
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => {
+                  const now = dayjs().toISOString()
+                  form.setFieldsValue({ relevance_date: now })
+                  message.success('Дата актуальности обновлена')
+                }}
+              >
+                Обновить дату актуальности
+              </Button>
+            </Space>
+          </Form.Item>
+        )}
+
+        <Form.Item name="relevance_date" hidden>
+          <Input />
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

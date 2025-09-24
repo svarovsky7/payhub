@@ -310,7 +310,11 @@ export const deletePayment = async (paymentId: string) => {
   return true
 }
 
-export const processPaymentFiles = async (paymentId: string, files: UploadFile[], userId: string) => {
+interface FileWithDescription extends UploadFile {
+  description?: string
+}
+
+export const processPaymentFiles = async (paymentId: string, files: FileWithDescription[], userId: string) => {
   console.log('[PaymentOperations.processPaymentFiles] Processing files for payment:', paymentId)
 
   // Get current files for this payment
@@ -370,6 +374,7 @@ export const processPaymentFiles = async (paymentId: string, files: UploadFile[]
         storage_path: storagePath,
         size_bytes: file.size || fileToUpload.size || 0,
         mime_type: file.type || fileToUpload.type || 'application/octet-stream',
+        description: file.description || null,
         created_by: userId,
       }
 

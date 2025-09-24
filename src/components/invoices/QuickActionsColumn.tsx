@@ -50,7 +50,7 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
   })
 
   return (
-    <Space size={2}>
+    <Space size={0} wrap={false} style={{ display: 'flex', justifyContent: 'flex-end' }}>
       <Space.Compact size="small">
         {/* Быстрый платёж */}
         <Tooltip title={canAddPayment ? "Добавить платёж" : "Полностью оплачен"}>

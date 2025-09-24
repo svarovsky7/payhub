@@ -11,6 +11,8 @@ import {
   deleteInvoice,
   recalculateAllInvoiceStatuses
 } from '../services/invoiceOperations'
+import { loadEmployees } from '../services/employeeOperations'
+import type { Employee } from '../services/employeeOperations'
 import { useAuth } from '../contexts/AuthContext'
 import dayjs from 'dayjs'
 
@@ -24,6 +26,7 @@ export const useInvoiceManagement = () => {
   const [projects, setProjects] = useState<Project[]>([])
   const [invoiceTypes, setInvoiceTypes] = useState<InvoiceType[]>([])
   const [invoiceStatuses, setInvoiceStatuses] = useState<InvoiceStatus[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
 
   // Invoice states
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -44,11 +47,13 @@ export const useInvoiceManagement = () => {
   const loadReferenceData = useCallback(async () => {
     console.log('[useInvoiceManagement.loadReferenceData] Loading reference data')
     const refs = await loadReferences()
+    const emps = await loadEmployees()
     setPayers(refs.payers)
     setSuppliers(refs.suppliers)
     setProjects(refs.projects)
     setInvoiceTypes(refs.invoiceTypes)
     setInvoiceStatuses(refs.invoiceStatuses)
+    setEmployees(emps)
   }, [])
 
   // Load invoices
@@ -98,10 +103,11 @@ export const useInvoiceManagement = () => {
         amount_with_vat: values.amount_with_vat || 0,
         vat_rate: values.vat_rate || 20,
         vat_amount: values.vat_amount || 0,
-        amount_without_vat: values.amount_without_vat || 0
+        amount_without_vat: values.amount_without_vat || 0,
+        relevance_date: dayjs().toISOString() // Автоматически устанавливаем дату актуальности при создании
       }
 
-      await createInvoice(invoiceData, files, user.id, invoiceStatuses)
+      await createInvoice(invoiceData, files, user.id)
 
       message.success('Счёт создан успешно')
       console.log('[useInvoiceManagement.handleCreateInvoice] Before resetting state')
@@ -127,7 +133,8 @@ export const useInvoiceManagement = () => {
   const handleUpdateInvoice = useCallback(async (
     invoiceId: string,
     values: any,
-    files: UploadFile[] = []
+    files: UploadFile[] = [],
+    originalFiles?: UploadFile[]
   ) => {
     if (!user?.id) return
 
@@ -147,7 +154,7 @@ export const useInvoiceManagement = () => {
         amount_without_vat: values.amount_without_vat || 0
       }
 
-      await updateInvoice(invoiceId, invoiceData, files, user.id)
+      await updateInvoice(invoiceId, invoiceData, files, user.id, originalFiles)
 
       message.success('Счёт обновлён успешно')
       setInvoiceModalVisible(false)
@@ -220,6 +227,7 @@ export const useInvoiceManagement = () => {
     projects,
     invoiceTypes,
     invoiceStatuses,
+    employees,
 
     // Invoices
     invoices,
