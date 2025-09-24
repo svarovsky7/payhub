@@ -3,22 +3,13 @@
   width: 100% !important;
 }
 
-.expandable-table-smooth .ant-table {
-  width: 100% !important;
-  table-layout: auto !important;
-}
+.expandable-table-smooth { width: 100%; }
+.expandable-table-smooth table { width: 100%; min-width: 0; }
 
-.expandable-table-smooth .ant-table-wrapper {
-  width: 100% !important;
-}
-
-.expandable-table-smooth .ant-table-container {
-  width: 100% !important;
-}
-
-.expandable-table-smooth .ant-table-content {
-  overflow-x: auto;
-}
+.expandable-table-smooth .ant-table-content,
+.expandable-table-smooth .ant-table-container,
+.expandable-table-smooth .ant-table-body {
+    overflow-x: hidden;   /* не даём появляться горизонтальной полосе */
 
 .expandable-table-smooth table {
   width: 100% !important;
