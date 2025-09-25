@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { message } from 'antd'
+import type { Project } from '../lib/supabase'
 
 // Load contractors for select lists
 export const loadContractors = async () => {
@@ -20,12 +21,33 @@ export const loadContractors = async () => {
   }
 }
 
+// Load projects for select lists
+export const loadProjects = async (): Promise<Project[]> => {
+
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('is_active', true)
+      .order('name')
+
+    if (error) throw error
+
+    return data || []
+  } catch (error) {
+    console.error('[ContractOperations.loadProjects] Error:', error)
+    message.error('Ошибка загрузки проектов')
+    return []
+  }
+}
+
 export interface Contract {
   id: string
   contract_number: string
   contract_date: string
   payer_id?: number
   supplier_id?: number
+  project_id?: number
   vat_rate?: number
   warranty_period_days?: number
   description?: string
@@ -34,6 +56,7 @@ export interface Contract {
   created_by?: string
   payer?: any
   supplier?: any
+  project?: any
   invoices?: any[]
   attachments?: any[]
 }
@@ -62,6 +85,7 @@ export const loadContracts = async () => {
         *,
         payer:contractors!contracts_payer_id_fkey(*),
         supplier:contractors!contracts_supplier_id_fkey(*),
+        project:projects(*),
         contract_invoices(
           *,
           invoice:invoices(*)
@@ -96,7 +120,8 @@ export const createContract = async (contract: Partial<Contract>, userId: string
       .select(`
         *,
         payer:contractors!contracts_payer_id_fkey(*),
-        supplier:contractors!contracts_supplier_id_fkey(*)
+        supplier:contractors!contracts_supplier_id_fkey(*),
+        project:projects(*)
       `)
       .single()
 
@@ -126,7 +151,8 @@ export const updateContract = async (id: string, contract: Partial<Contract>) =>
       .select(`
         *,
         payer:contractors!contracts_payer_id_fkey(*),
-        supplier:contractors!contracts_supplier_id_fkey(*)
+        supplier:contractors!contracts_supplier_id_fkey(*),
+        project:projects(*)
       `)
       .single()
 

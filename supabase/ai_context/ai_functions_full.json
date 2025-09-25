@@ -66,6 +66,35 @@
     ]
   },
   {
+    "function": "public.update_material_request_items_count()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [
+      "public.material_request_items",
+      "public.material_requests"
+    ],
+    "invoked_by": [
+      "public.update_material_request_items_count_trigger"
+    ],
+    "side_effects": []
+  },
+  {
+    "function": "public.update_material_requests_updated_at()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [
+      "public.update_material_requests_updated_at"
+    ],
+    "side_effects": []
+  },
+  {
     "function": "public.update_updated_at()",
     "returns": "trigger",
     "language": "plpgsql",

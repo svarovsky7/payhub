@@ -3898,6 +3898,16 @@
         "is_nullable": "YES",
         "default": null,
         "comment": "Пользователь, создавший запись (auth.users.id)"
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на проект (public.projects.id)"
       }
     ],
     "constraints": [
@@ -3950,6 +3960,14 @@
         "foreign_column": null
       },
       {
+        "name": "contracts_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
         "name": "contracts_supplier_id_fkey",
         "type": "FOREIGN KEY",
         "column": "supplier_id",
@@ -3958,7 +3976,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Договоры с контрагентами\nCREATE TABLE IF NOT EXISTS public.contracts (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_number character varying(255) NOT NULL,\n    contract_date date NOT NULL,\n    payer_id integer(32),\n    supplier_id integer(32),\n    vat_rate numeric(5,2) DEFAULT 20,\n    warranty_period_days integer(32),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_pkey PRIMARY KEY (id),\n    CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';\nCOMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';\nCOMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';\nCOMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';\nCOMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';\nCOMMENT ON COLUMN public.contracts.description IS 'Описание договора';\nCOMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';"
+    "sql": "-- Договоры с контрагентами\nCREATE TABLE IF NOT EXISTS public.contracts (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_number character varying(255) NOT NULL,\n    contract_date date NOT NULL,\n    payer_id integer(32),\n    supplier_id integer(32),\n    vat_rate numeric(5,2) DEFAULT 20,\n    warranty_period_days integer(32),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    project_id integer(32),\n    CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_pkey PRIMARY KEY (id),\n    CONSTRAINT contracts_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';\nCOMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';\nCOMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';\nCOMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';\nCOMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';\nCOMMENT ON COLUMN public.contracts.description IS 'Описание договора';\nCOMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';\nCOMMENT ON COLUMN public.contracts.project_id IS 'Ссылка на проект (public.projects.id)';"
   },
   "public.departments": {
     "schema": "public",
@@ -4974,6 +4992,16 @@
         "is_nullable": "NO",
         "default": "CURRENT_TIMESTAMP",
         "comment": "Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем"
+      },
+      {
+        "name": "material_request_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на заявку на материалы"
       }
     ],
     "constraints": [
@@ -5042,6 +5070,14 @@
         "foreign_column": null
       },
       {
+        "name": "invoices_material_request_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "material_request_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
         "name": "invoices_payer_id_fkey",
         "type": "FOREIGN KEY",
         "column": "payer_id",
@@ -5098,7 +5134,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';"
+    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на заявку на материалы';"
   },
   "public.material_classes": {
     "schema": "public",
@@ -5217,6 +5253,306 @@
       }
     ],
     "sql": "CREATE TABLE IF NOT EXISTS public.material_classes (\n    id bigint(64) NOT NULL,\n    code text NOT NULL,\n    name text NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT material_classes_code_key UNIQUE (code),\n    CONSTRAINT material_classes_name_key UNIQUE (name),\n    CONSTRAINT material_classes_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.material_request_items": {
+    "schema": "public",
+    "name": "material_request_items",
+    "comment": "Позиции в заявках на материалы",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": "Уникальный идентификатор позиции"
+      },
+      {
+        "name": "material_request_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Ссылка на заявку"
+      },
+      {
+        "name": "material_name",
+        "data_type": "character varying",
+        "max_length": 500,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Наименование материала"
+      },
+      {
+        "name": "unit",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Единица измерения (шт, кг, м, м2, м3, л и т.д.)"
+      },
+      {
+        "name": "quantity",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 15,
+        "numeric_scale": 3,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Количество"
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "0",
+        "comment": "Порядок сортировки позиций"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_21636_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21636_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21636_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21636_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21636_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_items_material_request_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "material_request_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_items_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_items_quantity_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Позиции в заявках на материалы\nCREATE TABLE IF NOT EXISTS public.material_request_items (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    material_request_id uuid NOT NULL,\n    material_name character varying(500) NOT NULL,\n    unit character varying(50) NOT NULL,\n    quantity numeric(15,3) NOT NULL,\n    sort_order integer(32) DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT material_request_items_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_items_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.material_request_items IS 'Позиции в заявках на материалы';\nCOMMENT ON COLUMN public.material_request_items.id IS 'Уникальный идентификатор позиции';\nCOMMENT ON COLUMN public.material_request_items.material_request_id IS 'Ссылка на заявку';\nCOMMENT ON COLUMN public.material_request_items.material_name IS 'Наименование материала';\nCOMMENT ON COLUMN public.material_request_items.unit IS 'Единица измерения (шт, кг, м, м2, м3, л и т.д.)';\nCOMMENT ON COLUMN public.material_request_items.quantity IS 'Количество';\nCOMMENT ON COLUMN public.material_request_items.sort_order IS 'Порядок сортировки позиций';"
+  },
+  "public.material_requests": {
+    "schema": "public",
+    "name": "material_requests",
+    "comment": "Заявки на материалы",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": "Уникальный идентификатор заявки"
+      },
+      {
+        "name": "request_number",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Номер заявки"
+      },
+      {
+        "name": "request_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "CURRENT_DATE",
+        "comment": "Дата создания заявки"
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на проект"
+      },
+      {
+        "name": "employee_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ответственный сотрудник"
+      },
+      {
+        "name": "total_items",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "0",
+        "comment": "Общее количество позиций в заявке"
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Пользователь, создавший заявку"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_21608_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21608_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_21608_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_requests_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_requests_employee_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "employee_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_requests_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_requests_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Заявки на материалы\nCREATE TABLE IF NOT EXISTS public.material_requests (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    request_number character varying(255) NOT NULL,\n    request_date date NOT NULL DEFAULT CURRENT_DATE,\n    project_id integer(32),\n    employee_id integer(32),\n    total_items integer(32) DEFAULT 0,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT material_requests_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT material_requests_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES None.None(None),\n    CONSTRAINT material_requests_pkey PRIMARY KEY (id),\n    CONSTRAINT material_requests_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.material_requests IS 'Заявки на материалы';\nCOMMENT ON COLUMN public.material_requests.id IS 'Уникальный идентификатор заявки';\nCOMMENT ON COLUMN public.material_requests.request_number IS 'Номер заявки';\nCOMMENT ON COLUMN public.material_requests.request_date IS 'Дата создания заявки';\nCOMMENT ON COLUMN public.material_requests.project_id IS 'Ссылка на проект';\nCOMMENT ON COLUMN public.material_requests.employee_id IS 'Ответственный сотрудник';\nCOMMENT ON COLUMN public.material_requests.total_items IS 'Общее количество позиций в заявке';\nCOMMENT ON COLUMN public.material_requests.created_by IS 'Пользователь, создавший заявку';"
   },
   "public.payment_approvals": {
     "schema": "public",

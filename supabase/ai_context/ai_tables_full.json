@@ -1694,6 +1694,12 @@
         "nullable": false,
         "default": "CURRENT_TIMESTAMP",
         "description": "Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем"
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": true,
+        "description": "Ссылка на заявку на материалы"
       }
     ],
     "constraints": {
@@ -1774,6 +1780,13 @@
         "name": "idx_invoices_invoice_type_id",
         "columns": [
           "invoice_type_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_invoices_material_request",
+        "columns": [
+          "material_request_id"
         ],
         "unique": false
       },
@@ -1934,6 +1947,226 @@
           "UPDATE"
         ],
         "function": "public.update_updated_at()"
+      }
+    ]
+  },
+  {
+    "table": "public.material_request_items",
+    "summary": "Позиции в заявках на материалы",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()",
+        "description": "Уникальный идентификатор позиции"
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": false,
+        "description": "Ссылка на заявку"
+      },
+      {
+        "name": "material_name",
+        "type": "varchar(500)",
+        "nullable": false,
+        "description": "Наименование материала"
+      },
+      {
+        "name": "unit",
+        "type": "varchar(50)",
+        "nullable": false,
+        "description": "Единица измерения (шт, кг, м, м2, м3, л и т.д.)"
+      },
+      {
+        "name": "quantity",
+        "type": "numeric(15,3)",
+        "nullable": false,
+        "description": "Количество"
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "default": "0",
+        "description": "Порядок сортировки позиций"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [],
+      "checks": [
+        {
+          "name": "2200_21636_1_not_null"
+        },
+        {
+          "name": "2200_21636_2_not_null"
+        },
+        {
+          "name": "2200_21636_3_not_null"
+        },
+        {
+          "name": "2200_21636_4_not_null"
+        },
+        {
+          "name": "2200_21636_5_not_null"
+        },
+        {
+          "name": "material_request_items_quantity_check"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_material_request_items_request",
+        "columns": [
+          "material_request_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_request_items_sort",
+        "columns": [
+          "sort_order"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": [
+      {
+        "trigger": "update_material_request_items_count_trigger",
+        "timing": "AFTER",
+        "events": [
+          "INSERT",
+          "DELETE"
+        ],
+        "function": "public.update_material_request_items_count()"
+      }
+    ]
+  },
+  {
+    "table": "public.material_requests",
+    "summary": "Заявки на материалы",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()",
+        "description": "Уникальный идентификатор заявки"
+      },
+      {
+        "name": "request_number",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Номер заявки"
+      },
+      {
+        "name": "request_date",
+        "type": "date",
+        "nullable": false,
+        "default": "CURRENT_DATE",
+        "description": "Дата создания заявки"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Ссылка на проект"
+      },
+      {
+        "name": "employee_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Ответственный сотрудник"
+      },
+      {
+        "name": "total_items",
+        "type": "integer",
+        "nullable": true,
+        "default": "0",
+        "description": "Общее количество позиций в заявке"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "description": "Пользователь, создавший заявку"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [],
+      "checks": [
+        {
+          "name": "2200_21608_1_not_null"
+        },
+        {
+          "name": "2200_21608_2_not_null"
+        },
+        {
+          "name": "2200_21608_3_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_material_requests_date",
+        "columns": [
+          "request_date"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_requests_employee",
+        "columns": [
+          "employee_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_requests_project",
+        "columns": [
+          "project_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": [
+      {
+        "trigger": "update_material_requests_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "function": "public.update_material_requests_updated_at()"
       }
     ]
   },

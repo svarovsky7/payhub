@@ -116,6 +116,24 @@
     "comment": null,
     "sql": "CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at()"
   },
+  "public.material_request_items.update_material_request_items_count_trigger": {
+    "schema": "public",
+    "name": "update_material_request_items_count_trigger",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_material_request_items_count_trigger AFTER INSERT OR DELETE ON public.material_request_items FOR EACH ROW EXECUTE FUNCTION update_material_request_items_count()"
+  },
+  "public.material_requests.update_material_requests_updated_at": {
+    "schema": "public",
+    "name": "update_material_requests_updated_at",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.material_requests FOR EACH ROW EXECUTE FUNCTION update_material_requests_updated_at()"
+  },
   "public.payment_approvals.update_payment_approvals_updated_at": {
     "schema": "public",
     "name": "update_payment_approvals_updated_at",

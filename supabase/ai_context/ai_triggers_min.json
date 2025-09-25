@@ -121,6 +121,27 @@
     "purpose": ""
   },
   {
+    "trigger": "public.update_material_request_items_count_trigger",
+    "table": "public.material_request_items",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "DELETE"
+    ],
+    "function": "public.update_material_request_items_count()",
+    "purpose": ""
+  },
+  {
+    "trigger": "public.update_material_requests_updated_at",
+    "table": "public.material_requests",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "function": "public.update_material_requests_updated_at()",
+    "purpose": ""
+  },
+  {
     "trigger": "public.update_payment_approvals_updated_at",
     "table": "public.payment_approvals",
     "timing": "BEFORE",

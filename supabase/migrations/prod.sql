@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-24T07:53:39.460657
+-- Generated: 2025-09-25T07:36:31.756089
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -515,9 +515,11 @@ CREATE TABLE IF NOT EXISTS public.contracts (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     created_by uuid,
+    project_id integer(32),
     CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),
     CONSTRAINT contracts_pkey PRIMARY KEY (id),
+    CONSTRAINT contracts_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
     CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)
 );
 
@@ -530,6 +532,7 @@ COMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в проц�
 COMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';
 COMMENT ON COLUMN public.contracts.description IS 'Описание договора';
 COMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';
+COMMENT ON COLUMN public.contracts.project_id IS 'Ссылка на проект (public.projects.id)';
 
 -- Организационные отделы компании
 CREATE TABLE IF NOT EXISTS public.departments (
@@ -685,7 +688,9 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     status_id integer(32) NOT NULL,
     delivery_cost numeric(12,2) DEFAULT 0,
     relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    material_request_id uuid,
     CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
+    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),
     CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),
     CONSTRAINT invoices_pkey PRIMARY KEY (id),
     CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
@@ -717,6 +722,7 @@ COMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delive
 COMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';
 COMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';
 COMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';
+COMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на заявку на материалы';
 
 CREATE TABLE IF NOT EXISTS public.material_classes (
     id bigint(64) NOT NULL,
@@ -729,6 +735,53 @@ CREATE TABLE IF NOT EXISTS public.material_classes (
     CONSTRAINT material_classes_name_key UNIQUE (name),
     CONSTRAINT material_classes_pkey PRIMARY KEY (id)
 );
+
+-- Позиции в заявках на материалы
+CREATE TABLE IF NOT EXISTS public.material_request_items (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    material_request_id uuid NOT NULL,
+    material_name character varying(500) NOT NULL,
+    unit character varying(50) NOT NULL,
+    quantity numeric(15,3) NOT NULL,
+    sort_order integer(32) DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT material_request_items_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),
+    CONSTRAINT material_request_items_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.material_request_items IS 'Позиции в заявках на материалы';
+COMMENT ON COLUMN public.material_request_items.id IS 'Уникальный идентификатор позиции';
+COMMENT ON COLUMN public.material_request_items.material_request_id IS 'Ссылка на заявку';
+COMMENT ON COLUMN public.material_request_items.material_name IS 'Наименование материала';
+COMMENT ON COLUMN public.material_request_items.unit IS 'Единица измерения (шт, кг, м, м2, м3, л и т.д.)';
+COMMENT ON COLUMN public.material_request_items.quantity IS 'Количество';
+COMMENT ON COLUMN public.material_request_items.sort_order IS 'Порядок сортировки позиций';
+
+-- Заявки на материалы
+CREATE TABLE IF NOT EXISTS public.material_requests (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    request_number character varying(255) NOT NULL,
+    request_date date NOT NULL DEFAULT CURRENT_DATE,
+    project_id integer(32),
+    employee_id integer(32),
+    total_items integer(32) DEFAULT 0,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT material_requests_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT material_requests_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES None.None(None),
+    CONSTRAINT material_requests_pkey PRIMARY KEY (id),
+    CONSTRAINT material_requests_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)
+);
+
+COMMENT ON TABLE public.material_requests IS 'Заявки на материалы';
+COMMENT ON COLUMN public.material_requests.id IS 'Уникальный идентификатор заявки';
+COMMENT ON COLUMN public.material_requests.request_number IS 'Номер заявки';
+COMMENT ON COLUMN public.material_requests.request_date IS 'Дата создания заявки';
+COMMENT ON COLUMN public.material_requests.project_id IS 'Ссылка на проект';
+COMMENT ON COLUMN public.material_requests.employee_id IS 'Ответственный сотрудник';
+COMMENT ON COLUMN public.material_requests.total_items IS 'Общее количество позиций в заявке';
+COMMENT ON COLUMN public.material_requests.created_by IS 'Пользователь, создавший заявку';
 
 -- Payment approval instances.
 CREATE TABLE IF NOT EXISTS public.payment_approvals (
@@ -1313,7 +1366,7 @@ $function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea)
+CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1321,7 +1374,7 @@ AS '$libdir/pgcrypto', $function$pg_armor$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
+CREATE OR REPLACE FUNCTION extensions.armor(bytea)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1409,19 +1462,19 @@ AS '$libdir/pgcrypto', $function$pg_random_uuid$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
- RETURNS text
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
  RETURNS text
  LANGUAGE c
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
+ RETURNS text
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
 
 ;
 
@@ -1621,14 +1674,6 @@ AS '$libdir/pgcrypto', $function$pgp_key_id_w$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
- RETURNS text
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)
  RETURNS text
  LANGUAGE c
@@ -1645,15 +1690,15 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
- RETURNS bytea
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
+ RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1669,11 +1714,11 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 ;
 
@@ -1685,7 +1730,15 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)
+ RETURNS bytea
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1693,7 +1746,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1749,7 +1802,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1757,7 +1810,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -2509,6 +2562,38 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email)
   );
   RETURN NEW;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.update_material_request_items_count()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    IF TG_OP = 'INSERT' OR TG_OP = 'DELETE' THEN
+        UPDATE public.material_requests
+        SET total_items = (
+            SELECT COUNT(*)
+            FROM public.material_request_items
+            WHERE material_request_id = COALESCE(NEW.material_request_id, OLD.material_request_id)
+        )
+        WHERE id = COALESCE(NEW.material_request_id, OLD.material_request_id);
+    END IF;
+    RETURN NEW;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.update_material_requests_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
 END;
 $function$
 
@@ -4010,6 +4095,12 @@ CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR E
 CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at()
 ;
 
+CREATE TRIGGER update_material_request_items_count_trigger AFTER INSERT OR DELETE ON public.material_request_items FOR EACH ROW EXECUTE FUNCTION update_material_request_items_count()
+;
+
+CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.material_requests FOR EACH ROW EXECUTE FUNCTION update_material_requests_updated_at()
+;
+
 CREATE TRIGGER update_payment_approvals_updated_at BEFORE UPDATE ON public.payment_approvals FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -4269,6 +4360,9 @@ CREATE INDEX idx_contracts_contract_number ON public.contracts USING btree (cont
 CREATE INDEX idx_contracts_payer_id ON public.contracts USING btree (payer_id)
 ;
 
+CREATE INDEX idx_contracts_project_id ON public.contracts USING btree (project_id)
+;
+
 CREATE INDEX idx_contracts_supplier_id ON public.contracts USING btree (supplier_id)
 ;
 
@@ -4329,6 +4423,9 @@ CREATE INDEX idx_invoices_invoice_date ON public.invoices USING btree (invoice_d
 CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoice_type_id)
 ;
 
+CREATE INDEX idx_invoices_material_request ON public.invoices USING btree (material_request_id)
+;
+
 CREATE INDEX idx_invoices_payer_id ON public.invoices USING btree (payer_id)
 ;
 
@@ -4351,6 +4448,21 @@ CREATE UNIQUE INDEX material_classes_code_key ON public.material_classes USING b
 ;
 
 CREATE UNIQUE INDEX material_classes_name_key ON public.material_classes USING btree (name)
+;
+
+CREATE INDEX idx_material_request_items_request ON public.material_request_items USING btree (material_request_id)
+;
+
+CREATE INDEX idx_material_request_items_sort ON public.material_request_items USING btree (sort_order)
+;
+
+CREATE INDEX idx_material_requests_date ON public.material_requests USING btree (request_date)
+;
+
+CREATE INDEX idx_material_requests_employee ON public.material_requests USING btree (employee_id)
+;
+
+CREATE INDEX idx_material_requests_project ON public.material_requests USING btree (project_id)
 ;
 
 CREATE INDEX idx_payment_approvals_payment ON public.payment_approvals USING btree (payment_id)

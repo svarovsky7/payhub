@@ -8,6 +8,7 @@ import {
   ControlOutlined,
   AuditOutlined,
   SafetyOutlined,
+  FormOutlined,
 } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -123,6 +124,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       label: 'Счета',
     },
     {
+      key: '/material-requests',
+      icon: <FormOutlined />,
+      label: 'Заявки на материалы',
+    },
+    {
       key: '/contracts',
       icon: <FileTextOutlined />,
       label: 'Договоры',
@@ -189,19 +195,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <SafetyOutlined style={{ color: '#1890ff' }} />
               <Select
-                value={currentRoleId}
+                value={currentRoleId || undefined}
                 onChange={handleRoleChange}
                 loading={changingRole}
                 style={{ width: 200 }}
                 placeholder="Выберите роль"
                 allowClear
-                options={[
-                  { value: null, label: 'Без роли' },
-                  ...roles.map(role => ({
-                    value: role.id,
-                    label: role.name
-                  }))
-                ]}
+                options={roles.map(role => ({
+                  value: role.id,
+                  label: role.name
+                }))}
               />
             </div>
 

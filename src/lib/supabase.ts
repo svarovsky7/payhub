@@ -96,6 +96,8 @@ export type Invoice = {
   description?: string
   due_date?: string // оставляем для совместимости, но не используем
   relevance_date?: string
+  contract_id?: string // новое поле для связи с договором
+  material_request_id?: string // новое поле для связи с заявкой на материалы
   created_at: string
   updated_at: string
   // Связанные объекты (для JOIN запросов)

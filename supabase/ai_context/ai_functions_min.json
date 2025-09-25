@@ -20,6 +20,16 @@
     "summary": "Seeds public.user_profiles when auth.users gains a new row."
   },
   {
+    "function": "public.update_material_request_items_count()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
+    "function": "public.update_material_requests_updated_at()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
     "function": "public.update_updated_at()",
     "returns": "trigger",
     "summary": ""

@@ -543,6 +543,14 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_contracts_payer_id ON public.contracts USING btree (payer_id)"
   },
+  "public.contracts.idx_contracts_project_id": {
+    "schema": "public",
+    "name": "idx_contracts_project_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contracts_project_id ON public.contracts USING btree (project_id)"
+  },
   "public.contracts.idx_contracts_supplier_id": {
     "schema": "public",
     "name": "idx_contracts_supplier_id",
@@ -703,6 +711,14 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoice_type_id)"
   },
+  "public.invoices.idx_invoices_material_request": {
+    "schema": "public",
+    "name": "idx_invoices_material_request",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_material_request ON public.invoices USING btree (material_request_id)"
+  },
   "public.invoices.idx_invoices_payer_id": {
     "schema": "public",
     "name": "idx_invoices_payer_id",
@@ -766,6 +782,46 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX material_classes_name_key ON public.material_classes USING btree (name)"
+  },
+  "public.material_request_items.idx_material_request_items_request": {
+    "schema": "public",
+    "name": "idx_material_request_items_request",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_request_items_request ON public.material_request_items USING btree (material_request_id)"
+  },
+  "public.material_request_items.idx_material_request_items_sort": {
+    "schema": "public",
+    "name": "idx_material_request_items_sort",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_request_items_sort ON public.material_request_items USING btree (sort_order)"
+  },
+  "public.material_requests.idx_material_requests_date": {
+    "schema": "public",
+    "name": "idx_material_requests_date",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_requests_date ON public.material_requests USING btree (request_date)"
+  },
+  "public.material_requests.idx_material_requests_employee": {
+    "schema": "public",
+    "name": "idx_material_requests_employee",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_requests_employee ON public.material_requests USING btree (employee_id)"
+  },
+  "public.material_requests.idx_material_requests_project": {
+    "schema": "public",
+    "name": "idx_material_requests_project",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_requests_project ON public.material_requests USING btree (project_id)"
   },
   "public.payment_approvals.idx_payment_approvals_payment": {
     "schema": "public",

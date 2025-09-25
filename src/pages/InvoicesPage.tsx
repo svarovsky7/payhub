@@ -39,7 +39,13 @@ export const InvoicesPage = () => {
     setInvoiceDate,
     preliminaryDeliveryDate,
     resetForm,
-    populateForm
+    populateForm,
+    // New fields
+    materialRequests,
+    contracts,
+    loadingReferences,
+    loadReferences,
+    handleContractSelect
   } = useInvoiceForm()
 
   // Use invoice management hook
@@ -69,20 +75,22 @@ export const InvoicesPage = () => {
     handleViewInvoice
   } = useInvoiceManagement()
 
-  // Wrap handleOpenCreateModal to ensure form reset
+  // Wrap handleOpenCreateModal to ensure form reset and load references
   const handleOpenCreateModal = useCallback(() => {
     resetForm()  // Force reset form before opening
+    loadReferences()  // Load material requests and contracts
     originalHandleOpenCreateModal()
-  }, [originalHandleOpenCreateModal, resetForm])
+  }, [originalHandleOpenCreateModal, resetForm, loadReferences])
 
   // Populate form when editing invoice changes
   useEffect(() => {
     if (editingInvoice) {
+      loadReferences()  // Load material requests and contracts for editing
       populateForm(editingInvoice)
     } else {
       resetForm()
     }
-  }, [editingInvoice, populateForm, resetForm])
+  }, [editingInvoice, populateForm, resetForm, loadReferences])
 
   // Use payment management hook
   const {
@@ -280,6 +288,11 @@ export const InvoicesPage = () => {
         preliminaryDeliveryDate={preliminaryDeliveryDate}
         formatAmount={formatAmount}
         parseAmount={parseAmount}
+        // New props for material requests and contracts
+        materialRequests={materialRequests}
+        contracts={contracts}
+        onContractSelect={handleContractSelect}
+        loadingReferences={loadingReferences}
       />
 
       {/* Invoice View Modal */}

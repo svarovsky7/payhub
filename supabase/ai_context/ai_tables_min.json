@@ -839,6 +839,12 @@
         "type": "timestamptz",
         "nullable": false,
         "description": "Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем"
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": true,
+        "description": "Ссылка на заявку на материалы"
       }
     ],
     "notes": [
@@ -870,6 +876,113 @@
         "name": "is_active",
         "type": "boolean",
         "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ]
+  },
+  {
+    "table": "public.material_request_items",
+    "summary": "Позиции в заявках на материалы",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "description": "Уникальный идентификатор позиции"
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": false,
+        "description": "Ссылка на заявку"
+      },
+      {
+        "name": "material_name",
+        "type": "varchar(500)",
+        "nullable": false,
+        "description": "Наименование материала"
+      },
+      {
+        "name": "unit",
+        "type": "varchar(50)",
+        "nullable": false,
+        "description": "Единица измерения (шт, кг, м, м2, м3, л и т.д.)"
+      },
+      {
+        "name": "quantity",
+        "type": "numeric(15,3)",
+        "nullable": false,
+        "description": "Количество"
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "description": "Порядок сортировки позиций"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ]
+  },
+  {
+    "table": "public.material_requests",
+    "summary": "Заявки на материалы",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "description": "Уникальный идентификатор заявки"
+      },
+      {
+        "name": "request_number",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Номер заявки"
+      },
+      {
+        "name": "request_date",
+        "type": "date",
+        "nullable": false,
+        "description": "Дата создания заявки"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Ссылка на проект"
+      },
+      {
+        "name": "employee_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Ответственный сотрудник"
+      },
+      {
+        "name": "total_items",
+        "type": "integer",
+        "nullable": true,
+        "description": "Общее количество позиций в заявке"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "description": "Пользователь, создавший заявку"
       },
       {
         "name": "created_at",

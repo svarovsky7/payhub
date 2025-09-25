@@ -5,8 +5,7 @@ export const loadReferences = async () => {
 
   try {
     const [
-      payersResponse,
-      suppliersResponse,
+      contractorsResponse,
       projectsResponse,
       invoiceTypesResponse,
       invoiceStatusesResponse
@@ -14,12 +13,6 @@ export const loadReferences = async () => {
       supabase
         .from('contractors')
         .select('*')
-        .eq('type_id', 1)
-        .order('name'),
-      supabase
-        .from('contractors')
-        .select('*')
-        .eq('type_id', 2)
         .order('name'),
       supabase
         .from('projects')
@@ -30,15 +23,17 @@ export const loadReferences = async () => {
       supabase.from('invoice_statuses').select('*').order('sort_order')
     ])
 
-    if (payersResponse.error) throw payersResponse.error
-    if (suppliersResponse.error) throw suppliersResponse.error
+    if (contractorsResponse.error) throw contractorsResponse.error
     if (projectsResponse.error) throw projectsResponse.error
     if (invoiceTypesResponse.error) throw invoiceTypesResponse.error
     if (invoiceStatusesResponse.error) throw invoiceStatusesResponse.error
 
+    // Используем один и тот же список контрагентов для плательщиков и поставщиков
+    const contractors = contractorsResponse.data as Contractor[]
+
     return {
-      payers: payersResponse.data as Contractor[],
-      suppliers: suppliersResponse.data as Contractor[],
+      payers: contractors,
+      suppliers: contractors,
       projects: projectsResponse.data as Project[],
       invoiceTypes: invoiceTypesResponse.data as InvoiceType[],
       invoiceStatuses: invoiceStatusesResponse.data as InvoiceStatus[]

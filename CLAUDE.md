@@ -30,7 +30,6 @@ node scripts/generate-ai-context.cjs  # Regenerate database AI context files
 - **Supabase** backend services and PostgreSQL database
 - **React Router 7** client-side routing
 - **Day.js** date manipulation (Russian locale)
-- **@dnd-kit** drag-and-drop functionality
 
 ### Core Application Structure
 
@@ -39,6 +38,7 @@ node scripts/generate-ai-context.cjs  # Regenerate database AI context files
 - `usePaymentManagement.ts` - Payment operations for invoices
 - `useApprovalManagement.ts` - Approval workflow management
 - `useInvoiceForm.ts` - Form state management for invoice creation/editing
+- `useMaterialRequestManagement.ts` - Material request operations
 
 #### Services Layer (`src/services/`)
 **Primary service files:**
@@ -46,6 +46,9 @@ node scripts/generate-ai-context.cjs  # Regenerate database AI context files
 - `paymentOperations.ts` - Payment processing and allocation
 - `approvalOperations.ts` - Approval workflow orchestration
 - `employeeOperations.ts` - Employee management operations
+- `contractOperations.ts` - Contract management
+- `materialClassOperations.ts` - Material classification
+- `materialRequestOperations.ts` - Material request management
 
 **Modular service subdirectories:**
 - `services/invoice/` - Invoice-specific operations split into modules:
@@ -69,7 +72,8 @@ node scripts/generate-ai-context.cjs  # Regenerate database AI context files
 #### Component Organization
 - `components/admin/` - Admin panel tabs (users, roles, projects, contractors, approval routes)
 - `components/invoices/` - Invoice management components with tabbed interface
-- `pages/` - Route-level components (AuthPage, InvoicesPage, ApprovalsPage, AdminPage)
+- `components/materialRequests/` - Material request components (form modal, items table, view modal)
+- `pages/` - Route-level components (AuthPage, InvoicesPage, ApprovalsPage, AdminPage, ContractsPage, MaterialRequestsPage)
 - `contexts/AuthContext.tsx` - Authentication state management
 
 ### Routing Structure
@@ -77,6 +81,8 @@ node scripts/generate-ai-context.cjs  # Regenerate database AI context files
 - `/invoices` - Invoice management
 - `/approvals` - Approval workflows
 - `/admin/*` - Admin panel with nested routes
+- `/contracts` - Contract management
+- `/material-requests` - Material requests
 - `/` - Redirects to login
 
 ## Database Architecture
@@ -107,10 +113,12 @@ All database queries must reference the auto-generated context files in `supabas
 - **departments** - Organizational departments
 - **positions** - Employee positions
 - **approval_routes** - Approval workflows per invoice type
-- **workflow_stages** - Approval route stages with drag-and-drop ordering
+- **workflow_stages** - Approval route stages with sequential ordering
 - **payment_approvals** - Active approval instances
 - **approval_steps** - Approval action history
 - **attachments** / **invoice_attachments** - File storage metadata with descriptions
+- **material_requests** - Material request headers
+- **material_request_items** - Line items for material requests
 
 ### Database Design Principles
 - No Row Level Security (RLS) - security handled in application layer
@@ -152,7 +160,7 @@ Invoice statuses are automatically calculated based on:
 
 ### Approval Workflows
 - Configurable routes per invoice type
-- Drag-and-drop stage ordering
+- Sequential stage ordering
 - Sequential approval process
 - Action history tracking
 - Email notifications (when configured)

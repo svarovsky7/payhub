@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Form } from 'antd'
+import { Form, message } from 'antd'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import { calculateVat, calculatePreliminaryDeliveryDate } from '../utils/vatCalculator'
 import type { Invoice } from '../lib/supabase'
+import { loadMaterialRequests } from '../services/materialRequestOperations'
+import { loadContracts } from '../services/contractOperations'
+import type { MaterialRequest } from '../services/materialRequestOperations'
+import type { Contract } from '../services/contractOperations'
 
 export const useInvoiceForm = () => {
   const [form] = Form.useForm()
@@ -15,6 +19,12 @@ export const useInvoiceForm = () => {
   const [deliveryDaysType, setDeliveryDaysType] = useState<'working' | 'calendar'>('calendar')
   const [invoiceDate, setInvoiceDate] = useState<Dayjs>(dayjs())
   const [preliminaryDeliveryDate, setPreliminaryDeliveryDate] = useState<Dayjs | null>(null)
+
+  // New states for material requests and contracts
+  const [materialRequests, setMaterialRequests] = useState<MaterialRequest[]>([])
+  const [contracts, setContracts] = useState<Contract[]>([])
+  const [loadingReferences, setLoadingReferences] = useState(false)
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null)
 
   // Calculate VAT when amount or rate changes
   useEffect(() => {
@@ -33,6 +43,49 @@ export const useInvoiceForm = () => {
     setPreliminaryDeliveryDate(date)
   }, [invoiceDate, deliveryDays, deliveryDaysType])
 
+  // Load material requests and contracts
+  const loadReferences = useCallback(async () => {
+    setLoadingReferences(true)
+    try {
+      const [requestsData, contractsData] = await Promise.all([
+        loadMaterialRequests(),
+        loadContracts()
+      ])
+      setMaterialRequests(requestsData)
+      setContracts(contractsData)
+    } catch (error) {
+      console.error('[useInvoiceForm.loadReferences] Error:', error)
+      message.error('Ошибка загрузки данных')
+    } finally {
+      setLoadingReferences(false)
+    }
+  }, [])
+
+  // Handle contract selection - auto-fill fields
+  const handleContractSelect = useCallback((contractId: string | null) => {
+    if (!contractId) {
+      setSelectedContract(null)
+      return
+    }
+
+    const contract = contracts.find(c => c.id === contractId)
+    if (contract) {
+      setSelectedContract(contract)
+
+      // Auto-fill form fields from contract
+      form.setFieldsValue({
+        payer_id: contract.payer_id,
+        supplier_id: contract.supplier_id,
+        project_id: contract.project_id  // Auto-fill project from contract
+      })
+
+      // Set VAT rate from contract if available
+      if (contract.vat_rate !== undefined && contract.vat_rate !== null) {
+        setVatRate(contract.vat_rate)
+      }
+    }
+  }, [contracts, form])
+
   // Reset form for new invoice
   const resetForm = useCallback(() => {
     form.resetFields()
@@ -44,6 +97,7 @@ export const useInvoiceForm = () => {
     setDeliveryDaysType('calendar')
     setInvoiceDate(dayjs())
     setPreliminaryDeliveryDate(null)
+    setSelectedContract(null)
   }, [form])
 
   // Populate form for editing
@@ -56,6 +110,8 @@ export const useInvoiceForm = () => {
       project_id: invoice.project_id,
       invoice_type_id: invoice.invoice_type_id,
       description: invoice.description,
+      contract_id: invoice.contract_id,
+      material_request_id: invoice.material_request_id,
     })
 
     setAmountWithVat(invoice.amount_with_vat || 0)
@@ -84,6 +140,13 @@ export const useInvoiceForm = () => {
     setInvoiceDate,
     preliminaryDeliveryDate,
     resetForm,
-    populateForm
+    populateForm,
+    // New exports
+    materialRequests,
+    contracts,
+    loadingReferences,
+    loadReferences,
+    handleContractSelect,
+    selectedContract
   }
 }

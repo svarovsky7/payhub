@@ -7,6 +7,7 @@ import { InvoicesPage } from './pages/InvoicesPage'
 import { AdminPage } from './pages/AdminPage'
 import { ApprovalsPage } from './pages/ApprovalsPage'
 import { ContractsPage } from './pages/ContractsPage'
+import { MaterialRequestsPage } from './pages/MaterialRequestsPage'
 import { MainLayout } from './components/Layout'
 import 'antd/dist/reset.css'
 
@@ -48,6 +49,14 @@ function App() {
               element={
                 <MainLayout>
                   <ContractsPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/material-requests"
+              element={
+                <MainLayout>
+                  <MaterialRequestsPage />
                 </MainLayout>
               }
             />

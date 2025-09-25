@@ -44,6 +44,7 @@ import {
   removeInvoiceFromContract,
   loadAvailableInvoices,
   loadContractors,
+  loadProjects,
   uploadContractFile,
   deleteAttachment,
   getFileUrl,
@@ -61,6 +62,7 @@ export const ContractsPage = () => {
   // State
   const [contracts, setContracts] = useState<Contract[]>([])
   const [contractors, setContractors] = useState<any[]>([])
+  const [projects, setProjects] = useState<any[]>([])
   const [availableInvoices, setAvailableInvoices] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -83,12 +85,14 @@ export const ContractsPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [contractsData, contractorsData] = await Promise.all([
+      const [contractsData, contractorsData, projectsData] = await Promise.all([
         loadContracts(),
-        loadContractors()
+        loadContractors(),
+        loadProjects()
       ])
       setContracts(contractsData)
       setContractors(contractorsData)
+      setProjects(projectsData)
     } finally {
       setLoading(false)
     }
@@ -138,7 +142,8 @@ export const ContractsPage = () => {
     setCurrentContractId(contract.id)
     form.setFieldsValue({
       ...contract,
-      contract_date: contract.contract_date ? dayjs(contract.contract_date) : null
+      contract_date: contract.contract_date ? dayjs(contract.contract_date) : null,
+      project_id: contract.project_id
     })
 
     // Load existing attachments
@@ -302,6 +307,12 @@ export const ContractsPage = () => {
       dataIndex: ['supplier', 'name'],
       key: 'supplier',
       render: (_, record) => record.supplier?.name || '—'
+    },
+    {
+      title: 'Проект',
+      dataIndex: ['project', 'name'],
+      key: 'project',
+      render: (_, record) => record.project?.name || '—'
     },
     {
       title: 'Ставка НДС',
@@ -572,6 +583,25 @@ export const ContractsPage = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
+                name="project_id"
+                label="Проект"
+              >
+                <Select
+                  placeholder="Выберите проект"
+                  allowClear
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={projects.map(p => ({
+                    value: p.id,
+                    label: p.name
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
                 name="vat_rate"
                 label="Ставка НДС (%)"
                 initialValue={20}
@@ -585,6 +615,9 @@ export const ContractsPage = () => {
                 />
               </Form.Item>
             </Col>
+          </Row>
+
+          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 name="warranty_period_days"

@@ -8,6 +8,8 @@ import 'dayjs/locale/ru'
 import type { Contractor, Project, InvoiceType, InvoiceStatus, Invoice } from '../../lib/supabase'
 import { loadInvoiceAttachments } from './AttachmentOperations'
 import type { Employee } from '../../services/employeeOperations'
+import type { MaterialRequest } from '../../services/materialRequestOperations'
+import type { Contract } from '../../services/contractOperations'
 
 // Принудительно активируем русскую локаль для dayjs
 dayjs.locale('ru')
@@ -39,6 +41,11 @@ interface InvoiceFormModalProps {
   preliminaryDeliveryDate: Dayjs | null
   formatAmount: (value: number | string | undefined) => string
   parseAmount: (value: string | undefined) => number
+  // New props for material requests and contracts
+  materialRequests?: MaterialRequest[]
+  contracts?: Contract[]
+  onContractSelect?: (contractId: string | null) => void
+  loadingReferences?: boolean
 }
 
 export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
@@ -68,6 +75,10 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   preliminaryDeliveryDate,
   formatAmount,
   parseAmount,
+  materialRequests = [],
+  contracts = [],
+  onContractSelect,
+  loadingReferences = false,
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [fileDescriptions, setFileDescriptions] = useState<{ [uid: string]: string }>({})
@@ -265,6 +276,46 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
+              name="contract_id"
+              label="Договор"
+            >
+              <Select
+                placeholder="Выберите договор"
+                showSearch
+                optionFilterProp="label"
+                allowClear
+                loading={loadingReferences}
+                onChange={onContractSelect}
+                options={contracts.map((contract) => ({
+                  value: contract.id,
+                  label: `${contract.contract_number} от ${dayjs(contract.contract_date).format('DD.MM.YYYY')}`,
+                }))}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="material_request_id"
+              label="Заявка на материалы"
+            >
+              <Select
+                placeholder="Выберите заявку на материалы"
+                showSearch
+                optionFilterProp="label"
+                allowClear
+                loading={loadingReferences}
+                options={materialRequests.map((request) => ({
+                  value: request.id,
+                  label: `${request.request_number} от ${dayjs(request.request_date).format('DD.MM.YYYY')}`,
+                }))}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
               name="payer_id"
               label="Плательщик"
               rules={[{ required: true, message: 'Выберите плательщика' }]}
@@ -371,7 +422,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                 placeholder="0,00"
                 min={0}
                 precision={2}
-                decimalSeparator="," 
+                decimalSeparator=","
                 formatter={(value) => {
                   if (value === undefined || value === null || value === '') {
                     return '0,00'
@@ -429,6 +480,41 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         </Row>
 
         <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item
+              name="delivery_cost"
+              label="Стоимость доставки"
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                precision={2}
+                decimalSeparator=","
+                placeholder="0,00"
+                formatter={(value) => {
+                  if (value === undefined || value === null || value === '') {
+                    return ''
+                  }
+                  const numeric = typeof value === 'number' ? value : Number(value.toString().replace(/\s/g, '').replace(',', '.'))
+                  if (Number.isNaN(numeric)) {
+                    return ''
+                  }
+                  return numeric
+                    .toFixed(2)
+                    .replace('.', ',')
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+                }}
+                parser={(value) => {
+                  if (!value) return 0
+                  return Number(value.replace(/\s/g, '').replace(',', '.'))
+                }}
+                addonAfter="₽"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
           <Col span={6}>
             <Form.Item
               name="delivery_days"
@@ -463,41 +549,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
                   backgroundColor: '#f5f5f5',
                   fontWeight: preliminaryDeliveryDate ? 'bold' : 'normal',
                 }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={8}>
-            <Form.Item
-              name="delivery_cost"
-              label="Стоимость доставки"
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                precision={2}
-                decimalSeparator=","
-                placeholder="0,00"
-                formatter={(value) => {
-                  if (value === undefined || value === null || value === '') {
-                    return ''
-                  }
-                  const numeric = typeof value === 'number' ? value : Number(value.toString().replace(/\s/g, '').replace(',', '.'))
-                  if (Number.isNaN(numeric)) {
-                    return ''
-                  }
-                  return numeric
-                    .toFixed(2)
-                    .replace('.', ',')
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-                }}
-                parser={(value) => {
-                  if (!value) return 0
-                  return Number(value.replace(/\s/g, '').replace(',', '.'))
-                }}
-                addonAfter="₽"
               />
             </Form.Item>
           </Col>
