@@ -25,12 +25,15 @@ interface Role {
   id: number
   code: string
   name: string
+  allowed_pages?: any // JSON field for storing allowed pages array
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [roles, setRoles] = useState<Role[]>([])
   const [changingRole, setChangingRole] = useState(false)
+  const [currentRole, setCurrentRole] = useState<Role | null>(null)
+  const [allowedPages, setAllowedPages] = useState<string[]>([])
   const navigate = useNavigate()
   const location = useLocation()
   const { user, signOut, currentRoleId, updateCurrentRole } = useAuth()
@@ -39,7 +42,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const userEmail = (user?.email ?? "").toString().trim()
   const userDisplayName = userFullName && userEmail ? `${userFullName} (${userEmail})` : userFullName || userEmail
 
-  // Load roles
+  // Load roles and current role's allowed pages
   useEffect(() => {
     const loadRoles = async () => {
       if (!user?.id) return
@@ -54,13 +57,32 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         if (rolesError) throw rolesError
         setRoles(rolesData || [])
 
+        // Load current user's role with allowed pages
+        if (currentRoleId) {
+          const role = rolesData?.find(r => r.id === currentRoleId)
+          if (role) {
+            setCurrentRole(role)
+            // Parse allowed_pages from JSON string if needed
+            const pages = role.allowed_pages
+              ? (typeof role.allowed_pages === 'string'
+                  ? JSON.parse(role.allowed_pages)
+                  : role.allowed_pages)
+              : []
+            setAllowedPages(pages)
+          }
+        } else {
+          // No role selected, allow all pages
+          setCurrentRole(null)
+          setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/admin'])
+        }
+
       } catch (error) {
         console.error('[Layout] Error loading roles:', error)
       }
     }
 
     loadRoles()
-  }, [user])
+  }, [user, currentRoleId])
 
   // Handle role change
   const handleRoleChange = async (roleId: number | null) => {
@@ -77,6 +99,32 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       if (error) throw error
 
       updateCurrentRole(roleId)
+
+      // Update current role and allowed pages
+      if (roleId) {
+        const role = roles.find(r => r.id === roleId)
+        if (role) {
+          setCurrentRole(role)
+          const pages = role.allowed_pages
+            ? (typeof role.allowed_pages === 'string'
+                ? JSON.parse(role.allowed_pages)
+                : role.allowed_pages)
+            : []
+          setAllowedPages(pages)
+
+          // Check if current page is still allowed
+          if (pages.length > 0 && !pages.includes(location.pathname)) {
+            // Redirect to first allowed page
+            navigate(pages[0])
+            message.warning('У вас нет доступа к этой странице с выбранной ролью')
+          }
+        }
+      } else {
+        // No role selected, allow all pages
+        setCurrentRole(null)
+        setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/admin'])
+      }
+
       message.success('Роль изменена')
 
       // Reload page if on approvals page to refresh the list
@@ -117,7 +165,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     },
   ]
 
-  const menuItems = [
+  // Filter menu items based on allowed pages
+  const allMenuItems = [
     {
       key: '/invoices',
       icon: <FileTextOutlined />,
@@ -145,9 +194,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     },
   ]
 
+  // Filter menu items based on allowed pages
+  const menuItems = currentRoleId && allowedPages.length > 0
+    ? allMenuItems.filter(item => allowedPages.includes(item.key))
+    : allMenuItems // Show all items if no role selected or no restrictions
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        width={250}
+        collapsedWidth={80}
+      >
         <div
           style={{
             height: 64,

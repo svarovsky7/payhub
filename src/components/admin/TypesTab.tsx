@@ -242,7 +242,6 @@ export const TypesTab = () => {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 80,
       sorter: (a, b) => a.id - b.id
     },
     {
@@ -255,7 +254,6 @@ export const TypesTab = () => {
       title: 'Код',
       dataIndex: 'code',
       key: 'code',
-      width: 120,
       sorter: (a, b) => (a.code || '').localeCompare(b.code || ''),
       render: (code: string | undefined) => code || '-'
     },
@@ -263,7 +261,6 @@ export const TypesTab = () => {
       title: 'Активен',
       dataIndex: 'is_active',
       key: 'is_active',
-      width: 100,
       sorter: (a, b) => {
         const aActive = a.is_active === undefined || a.is_active ? 1 : 0
         const bActive = b.is_active === undefined || b.is_active ? 1 : 0
@@ -276,7 +273,6 @@ export const TypesTab = () => {
       title: 'Создан',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 180,
       sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       render: (date: string) => date ? dayjs(date).format('DD.MM.YYYY HH:mm') : '-'
     }
@@ -289,7 +285,6 @@ export const TypesTab = () => {
       {
         title: 'Действия',
         key: 'actions',
-        width: 120,
         render: (_, record) => (
           <Space size="small">
             <Button

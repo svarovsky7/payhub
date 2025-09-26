@@ -178,27 +178,23 @@ export const ContractorsTab = () => {
     {
       title: 'ИНН',
       dataIndex: 'inn',
-      key: 'inn',
-      width: 130
+      key: 'inn'
     },
     {
       title: 'Тип',
       dataIndex: 'type_id',
       key: 'type_id',
-      width: 150,
       render: (typeId) => getTypeName(typeId)
     },
     {
       title: 'Дата создания',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 120,
       render: (date) => new Date(date).toLocaleDateString('ru-RU')
     },
     {
       title: 'Действия',
       key: 'actions',
-      width: 120,
       render: (_, record) => (
         <Space size="small">
           <Button

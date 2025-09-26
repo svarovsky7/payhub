@@ -119,6 +119,7 @@ All database queries must reference the auto-generated context files in `supabas
 - **attachments** / **invoice_attachments** - File storage metadata with descriptions
 - **material_requests** - Material request headers
 - **material_request_items** - Line items for material requests
+- **contracts** - Contract management
 
 ### Database Design Principles
 - No Row Level Security (RLS) - security handled in application layer

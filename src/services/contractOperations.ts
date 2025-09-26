@@ -61,19 +61,6 @@ export interface Contract {
   attachments?: any[]
 }
 
-export interface ContractInvoice {
-  id: string
-  contract_id: string
-  invoice_id: string
-  created_at: string
-}
-
-export interface ContractAttachment {
-  id: string
-  contract_id: string
-  attachment_id: string
-  created_at: string
-}
 
 // Load contracts with related data
 export const loadContracts = async () => {
@@ -175,6 +162,53 @@ export const updateContract = async (id: string, contract: Partial<Contract>) =>
 export const deleteContract = async (id: string) => {
 
   try {
+    // Получаем все файлы договора
+    const { data: attachments, error: attachmentsError } = await supabase
+      .from('contract_attachments')
+      .select(`
+        attachment_id,
+        attachments (
+          id,
+          storage_path
+        )
+      `)
+      .eq('contract_id', id)
+
+    if (attachmentsError) {
+      console.error('[ContractOperations.deleteContract] Error loading attachments:', attachmentsError)
+    }
+
+    // Удаляем файлы из Storage
+    if (attachments && attachments.length > 0) {
+      const storagePaths = attachments
+        .map(item => (item as any).attachments?.storage_path)
+        .filter(Boolean)
+
+      if (storagePaths.length > 0) {
+        const { error: storageError } = await supabase.storage
+          .from('attachments')
+          .remove(storagePaths)
+
+        if (storageError) {
+          console.error('[ContractOperations.deleteContract] Storage deletion error:', storageError)
+        }
+      }
+
+      // Удаляем записи из таблицы attachments
+      const attachmentIds = attachments.map(item => item.attachment_id).filter(Boolean)
+      if (attachmentIds.length > 0) {
+        const { error: attachmentDeleteError } = await supabase
+          .from('attachments')
+          .delete()
+          .in('id', attachmentIds)
+
+        if (attachmentDeleteError) {
+          console.error('[ContractOperations.deleteContract] Attachments deletion error:', attachmentDeleteError)
+        }
+      }
+    }
+
+    // Удаляем сам договор
     const { error } = await supabase
       .from('contracts')
       .delete()
@@ -238,53 +272,6 @@ export const removeInvoiceFromContract = async (contractId: string, invoiceId: s
   }
 }
 
-// Add attachment to contract
-export const addAttachmentToContract = async (contractId: string, attachmentId: string) => {
-
-  try {
-    const { data, error } = await supabase
-      .from('contract_attachments')
-      .insert({
-        contract_id: contractId,
-        attachment_id: attachmentId
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    message.success('Файл успешно прикреплен к договору')
-    return data
-  } catch (error: any) {
-    console.error('[ContractOperations.addAttachmentToContract] Error:', error)
-    if (error.code === '23505') {
-      message.error('Этот файл уже прикреплен к договору')
-    } else {
-      message.error('Ошибка прикрепления файла к договору')
-    }
-    throw error
-  }
-}
-
-// Remove attachment from contract
-export const removeAttachmentFromContract = async (contractId: string, attachmentId: string) => {
-
-  try {
-    const { error } = await supabase
-      .from('contract_attachments')
-      .delete()
-      .eq('contract_id', contractId)
-      .eq('attachment_id', attachmentId)
-
-    if (error) throw error
-
-    message.success('Файл успешно откреплен от договора')
-  } catch (error) {
-    console.error('[ContractOperations.removeAttachmentFromContract] Error:', error)
-    message.error('Ошибка открепления файла от договора')
-    throw error
-  }
-}
 
 // Upload file to storage and create attachment record
 export const uploadContractFile = async (file: File, contractId: string, userId: string) => {

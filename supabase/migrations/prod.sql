@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-25T07:36:31.756089
+-- Generated: 2025-09-26T07:03:41.552639
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -532,7 +532,7 @@ COMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в проц�
 COMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';
 COMMENT ON COLUMN public.contracts.description IS 'Описание договора';
 COMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';
-COMMENT ON COLUMN public.contracts.project_id IS 'Ссылка на проект (public.projects.id)';
+COMMENT ON COLUMN public.contracts.project_id IS 'Проект, связанный с договором';
 
 -- Организационные отделы компании
 CREATE TABLE IF NOT EXISTS public.departments (
@@ -689,6 +689,10 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     delivery_cost numeric(12,2) DEFAULT 0,
     relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     material_request_id uuid,
+    contract_id uuid,
+    employee_id integer(32),
+    CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),
+    CONSTRAINT invoices_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES None.None(None),
     CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
     CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),
     CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),
@@ -722,7 +726,9 @@ COMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delive
 COMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';
 COMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';
 COMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';
-COMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на заявку на материалы';
+COMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';
+COMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';
+COMMENT ON COLUMN public.invoices.employee_id IS 'Ответственный сотрудник за счёт';
 
 CREATE TABLE IF NOT EXISTS public.material_classes (
     id bigint(64) NOT NULL,
@@ -952,6 +958,7 @@ CREATE TABLE IF NOT EXISTS public.roles (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     own_projects_only boolean DEFAULT false,
+    allowed_pages jsonb,
     CONSTRAINT roles_code_key UNIQUE (code),
     CONSTRAINT roles_pkey PRIMARY KEY (id)
 );
@@ -964,6 +971,7 @@ COMMENT ON COLUMN public.roles.description IS 'Optional description of the role 
 COMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role record was created.';
 COMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role record was last updated.';
 COMMENT ON COLUMN public.roles.own_projects_only IS 'TRUE when the role limits users to their own projects.';
+COMMENT ON COLUMN public.roles.allowed_pages IS 'JSON array of allowed page paths for this role';
 
 -- Mirror of Supabase auth user profiles stored in the public schema.
 CREATE TABLE IF NOT EXISTS public.user_profiles (
@@ -2555,11 +2563,12 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
  SECURITY DEFINER
 AS $function$
 BEGIN
-  INSERT INTO public.user_profiles (id, email, full_name)
+  INSERT INTO public.user_profiles (id, email, full_name, role_id)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email)
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
+    4  -- Default role_id for 'user' role
   );
   RETURN NEW;
 END;
@@ -4414,7 +4423,13 @@ CREATE INDEX idx_invoice_types_code ON public.invoice_types USING btree (code)
 CREATE UNIQUE INDEX invoice_types_code_key ON public.invoice_types USING btree (code)
 ;
 
+CREATE INDEX idx_invoices_contract_id ON public.invoices USING btree (contract_id)
+;
+
 CREATE INDEX idx_invoices_created_at ON public.invoices USING btree (created_at DESC)
+;
+
+CREATE INDEX idx_invoices_employee_id ON public.invoices USING btree (employee_id)
 ;
 
 CREATE INDEX idx_invoices_invoice_date ON public.invoices USING btree (invoice_date)
@@ -4424,6 +4439,9 @@ CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoic
 ;
 
 CREATE INDEX idx_invoices_material_request ON public.invoices USING btree (material_request_id)
+;
+
+CREATE INDEX idx_invoices_material_request_id ON public.invoices USING btree (material_request_id)
 ;
 
 CREATE INDEX idx_invoices_payer_id ON public.invoices USING btree (payer_id)
@@ -4514,6 +4532,9 @@ CREATE INDEX idx_projects_is_active ON public.projects USING btree (is_active)
 ;
 
 CREATE UNIQUE INDEX projects_code_key ON public.projects USING btree (code)
+;
+
+CREATE INDEX idx_roles_allowed_pages ON public.roles USING gin (allowed_pages)
 ;
 
 CREATE INDEX idx_roles_code ON public.roles USING btree (code)

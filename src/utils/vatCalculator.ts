@@ -50,21 +50,3 @@ export const calculatePreliminaryDeliveryDate = (
   return calculateDeliveryDate(invoiceDate, deliveryDays, deliveryDaysType)
 }
 
-/**
- * Format VAT amount for display
- */
-export const formatVatAmount = (amount: number): string => {
-  return new Intl.NumberFormat('ru-RU', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount)
-}
-
-/**
- * Parse VAT amount from formatted string
- */
-export const parseVatAmount = (value: string): number => {
-  if (!value) return 0
-  const parsed = parseFloat(value.replace(/\s/g, '').replace(',', '.'))
-  return isNaN(parsed) ? 0 : parsed
-}

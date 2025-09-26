@@ -3907,7 +3907,7 @@
         "numeric_scale": 0,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Ссылка на проект (public.projects.id)"
+        "comment": "Проект, связанный с договором"
       }
     ],
     "constraints": [
@@ -3976,7 +3976,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Договоры с контрагентами\nCREATE TABLE IF NOT EXISTS public.contracts (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_number character varying(255) NOT NULL,\n    contract_date date NOT NULL,\n    payer_id integer(32),\n    supplier_id integer(32),\n    vat_rate numeric(5,2) DEFAULT 20,\n    warranty_period_days integer(32),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    project_id integer(32),\n    CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_pkey PRIMARY KEY (id),\n    CONSTRAINT contracts_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';\nCOMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';\nCOMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';\nCOMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';\nCOMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';\nCOMMENT ON COLUMN public.contracts.description IS 'Описание договора';\nCOMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';\nCOMMENT ON COLUMN public.contracts.project_id IS 'Ссылка на проект (public.projects.id)';"
+    "sql": "-- Договоры с контрагентами\nCREATE TABLE IF NOT EXISTS public.contracts (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_number character varying(255) NOT NULL,\n    contract_date date NOT NULL,\n    payer_id integer(32),\n    supplier_id integer(32),\n    vat_rate numeric(5,2) DEFAULT 20,\n    warranty_period_days integer(32),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    project_id integer(32),\n    CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_pkey PRIMARY KEY (id),\n    CONSTRAINT contracts_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';\nCOMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';\nCOMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';\nCOMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';\nCOMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';\nCOMMENT ON COLUMN public.contracts.description IS 'Описание договора';\nCOMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';\nCOMMENT ON COLUMN public.contracts.project_id IS 'Проект, связанный с договором';"
   },
   "public.departments": {
     "schema": "public",
@@ -5001,7 +5001,27 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Ссылка на заявку на материалы"
+        "comment": "Ссылка на связанную заявку на материалы"
+      },
+      {
+        "name": "contract_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ссылка на связанный договор"
+      },
+      {
+        "name": "employee_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ответственный сотрудник за счёт"
       }
     ],
     "constraints": [
@@ -5054,9 +5074,25 @@
         "foreign_column": null
       },
       {
+        "name": "invoices_contract_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "contract_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
         "name": "invoices_delivery_days_type_check",
         "type": "CHECK",
         "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "invoices_employee_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "employee_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
@@ -5134,7 +5170,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на заявку на материалы';"
+    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    contract_id uuid,\n    employee_id integer(32),\n    CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';\nCOMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';\nCOMMENT ON COLUMN public.invoices.employee_id IS 'Ответственный сотрудник за счёт';"
   },
   "public.material_classes": {
     "schema": "public",
@@ -6580,6 +6616,16 @@
         "is_nullable": "YES",
         "default": "false",
         "comment": "TRUE when the role limits users to their own projects."
+      },
+      {
+        "name": "allowed_pages",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "JSON array of allowed page paths for this role"
       }
     ],
     "constraints": [
@@ -6624,7 +6670,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Roles that define access levels inside PayHub.\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    own_projects_only boolean DEFAULT false,\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key of the role.';\nCOMMENT ON COLUMN public.roles.code IS 'Unique machine-readable code of the role.';\nCOMMENT ON COLUMN public.roles.name IS 'Display name of the role.';\nCOMMENT ON COLUMN public.roles.description IS 'Optional description of the role permissions.';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role record was created.';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role record was last updated.';\nCOMMENT ON COLUMN public.roles.own_projects_only IS 'TRUE when the role limits users to their own projects.';"
+    "sql": "-- Roles that define access levels inside PayHub.\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    own_projects_only boolean DEFAULT false,\n    allowed_pages jsonb,\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key of the role.';\nCOMMENT ON COLUMN public.roles.code IS 'Unique machine-readable code of the role.';\nCOMMENT ON COLUMN public.roles.name IS 'Display name of the role.';\nCOMMENT ON COLUMN public.roles.description IS 'Optional description of the role permissions.';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role record was created.';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role record was last updated.';\nCOMMENT ON COLUMN public.roles.own_projects_only IS 'TRUE when the role limits users to their own projects.';\nCOMMENT ON COLUMN public.roles.allowed_pages IS 'JSON array of allowed page paths for this role';"
   },
   "public.user_profiles": {
     "schema": "public",

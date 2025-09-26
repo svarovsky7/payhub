@@ -807,6 +807,12 @@
         "nullable": true,
         "fk": "auth.users.id",
         "description": "Пользователь, создавший запись (auth.users.id)"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Проект, связанный с договором"
       }
     ],
     "constraints": {
@@ -862,6 +868,13 @@
         "name": "idx_contracts_payer_id",
         "columns": [
           "payer_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_contracts_project_id",
+        "columns": [
+          "project_id"
         ],
         "unique": false
       },
@@ -1699,7 +1712,19 @@
         "name": "material_request_id",
         "type": "uuid",
         "nullable": true,
-        "description": "Ссылка на заявку на материалы"
+        "description": "Ссылка на связанную заявку на материалы"
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": true,
+        "description": "Ссылка на связанный договор"
+      },
+      {
+        "name": "employee_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Ответственный сотрудник за счёт"
       }
     ],
     "constraints": {
@@ -1763,9 +1788,23 @@
     },
     "indexes": [
       {
+        "name": "idx_invoices_contract_id",
+        "columns": [
+          "contract_id"
+        ],
+        "unique": false
+      },
+      {
         "name": "idx_invoices_created_at",
         "columns": [
           "created_at DESC"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_invoices_employee_id",
+        "columns": [
+          "employee_id"
         ],
         "unique": false
       },
@@ -1785,6 +1824,13 @@
       },
       {
         "name": "idx_invoices_material_request",
+        "columns": [
+          "material_request_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_invoices_material_request_id",
         "columns": [
           "material_request_id"
         ],
@@ -3027,6 +3073,12 @@
         "nullable": true,
         "default": "false",
         "description": "TRUE when the role limits users to their own projects."
+      },
+      {
+        "name": "allowed_pages",
+        "type": "jsonb",
+        "nullable": true,
+        "description": "JSON array of allowed page paths for this role"
       }
     ],
     "constraints": {
@@ -3055,6 +3107,13 @@
       ]
     },
     "indexes": [
+      {
+        "name": "idx_roles_allowed_pages",
+        "columns": [
+          "allowed_pages"
+        ],
+        "unique": false
+      },
       {
         "name": "idx_roles_code",
         "columns": [

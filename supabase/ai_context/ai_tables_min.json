@@ -1,177 +1,144 @@
 [
   {
     "table": "public.approval_routes",
-    "summary": "Approval routes configured per invoice type.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the approval route."
+        "pk": true
       },
       {
         "name": "invoice_type_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.invoice_types.id",
-        "description": "Invoice type (public.invoice_types.id) this route applies to."
+        "fk": "public.invoice_types.id"
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Display name of the approval route."
+        "nullable": false
       },
       {
         "name": "is_active",
         "type": "boolean",
-        "nullable": true,
-        "description": "TRUE when the route can be used for new payments."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the route record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the route record was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.approval_steps",
-    "summary": "Audit log of actions performed during payment approval.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the approval step entry."
+        "pk": true
       },
       {
         "name": "payment_approval_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payment_approvals.id",
-        "description": "Payment approval instance (public.payment_approvals.id) this entry belongs to."
+        "fk": "public.payment_approvals.id"
       },
       {
         "name": "stage_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.workflow_stages.id",
-        "description": "Workflow stage (public.workflow_stages.id) where the action happened."
+        "fk": "public.workflow_stages.id"
       },
       {
         "name": "action",
         "type": "text",
-        "nullable": false,
-        "description": "Recorded action on the stage, e.g. approve or reject."
+        "nullable": false
       },
       {
         "name": "acted_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who performed the action."
+        "fk": "auth.users.id"
       },
       {
         "name": "acted_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the action was performed."
+        "nullable": true
       },
       {
         "name": "comment",
         "type": "text",
-        "nullable": true,
-        "description": "Optional free-form note left by the approver."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the audit entry was stored."
+        "nullable": true
       }
     ]
   },
   {
     "table": "public.attachments",
-    "summary": "Metadata for files uploaded to Supabase Storage.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the attachment and Storage object identifier."
+        "pk": true
       },
       {
         "name": "original_name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Original filename provided by the user."
+        "nullable": false
       },
       {
         "name": "storage_path",
         "type": "varchar(500)",
-        "nullable": false,
-        "description": "Path to the object inside Supabase Storage."
+        "nullable": false
       },
       {
         "name": "size_bytes",
         "type": "integer",
-        "nullable": false,
-        "description": "File size in bytes."
+        "nullable": false
       },
       {
         "name": "mime_type",
         "type": "varchar(100)",
-        "nullable": false,
-        "description": "Detected MIME type of the file."
+        "nullable": false
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": false,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who uploaded the file."
+        "fk": "auth.users.id"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the attachment record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the attachment metadata was last updated."
+        "nullable": true
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "User-provided description of the file content"
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.contract_attachments",
-    "summary": "Связь договоров с приложенными файлами",
     "columns": [
       {
         "name": "id",
@@ -198,7 +165,6 @@
   },
   {
     "table": "public.contract_invoices",
-    "summary": "Связь договоров со счетами",
     "columns": [
       {
         "name": "id",
@@ -225,107 +191,85 @@
   },
   {
     "table": "public.contractor_types",
-    "summary": "Reference list of contractor categories.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the contractor type."
+        "pk": true
       },
       {
         "name": "code",
         "type": "varchar(50)",
-        "nullable": false,
-        "description": "Unique code used to identify the contractor type."
+        "nullable": false
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Human readable contractor type name."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional explanation of when to use the contractor type."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the contractor type was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the contractor type was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.contractors",
-    "summary": "Registry of contractors linked to invoices and projects.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the contractor."
+        "pk": true
       },
       {
         "name": "type_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.contractor_types.id",
-        "description": "Contractor type (public.contractor_types.id)."
+        "fk": "public.contractor_types.id"
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Official contractor name stored for invoices."
+        "nullable": false
       },
       {
         "name": "inn",
         "type": "varchar(12)",
-        "nullable": true,
-        "description": "Russian tax identifier (INN) of the contractor."
+        "nullable": true
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who created the contractor record."
+        "fk": "auth.users.id"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the contractor record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the contractor record was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.contracts",
-    "summary": "Договоры с контрагентами",
     "columns": [
       {
         "name": "id",
@@ -336,46 +280,39 @@
       {
         "name": "contract_number",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Номер договора"
+        "nullable": false
       },
       {
         "name": "contract_date",
         "type": "date",
-        "nullable": false,
-        "description": "Дата заключения договора"
+        "nullable": false
       },
       {
         "name": "payer_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Ссылка на плательщика (public.contractors.id)"
+        "fk": "public.contractors.id"
       },
       {
         "name": "supplier_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Ссылка на поставщика (public.contractors.id)"
+        "fk": "public.contractors.id"
       },
       {
         "name": "vat_rate",
         "type": "numeric(5,2)",
-        "nullable": true,
-        "description": "Ставка НДС в процентах"
+        "nullable": true
       },
       {
         "name": "warranty_period_days",
         "type": "integer",
-        "nullable": true,
-        "description": "Гарантийный срок в днях"
+        "nullable": true
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Описание договора"
+        "nullable": true
       },
       {
         "name": "created_at",
@@ -391,17 +328,17 @@
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "Пользователь, создавший запись (auth.users.id)"
+        "fk": "auth.users.id"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.departments",
-    "summary": "Организационные отделы компании",
     "columns": [
       {
         "name": "id",
@@ -429,14 +366,10 @@
         "type": "timestamptz",
         "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.employees",
-    "summary": "Справочник сотрудников",
     "columns": [
       {
         "name": "id",
@@ -447,58 +380,49 @@
       {
         "name": "last_name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Фамилия сотрудника"
+        "nullable": false
       },
       {
         "name": "first_name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Имя сотрудника"
+        "nullable": false
       },
       {
         "name": "middle_name",
         "type": "varchar(255)",
-        "nullable": true,
-        "description": "Отчество сотрудника"
+        "nullable": true
       },
       {
         "name": "full_name",
         "type": "varchar(765)",
-        "nullable": true,
-        "description": "Полное ФИО сотрудника (генерируется автоматически)"
+        "nullable": true
       },
       {
         "name": "department_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.departments.id",
-        "description": "Ссылка на отдел (public.departments.id)"
+        "fk": "public.departments.id"
       },
       {
         "name": "position_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.positions.id",
-        "description": "Ссылка на должность (public.positions.id)"
+        "fk": "public.positions.id"
       },
       {
         "name": "email",
         "type": "varchar(255)",
-        "nullable": true,
-        "description": "Рабочий email сотрудника"
+        "nullable": true
       },
       {
         "name": "phone",
         "type": "varchar(50)",
-        "nullable": true,
-        "description": "Рабочий телефон сотрудника"
+        "nullable": true
       },
       {
         "name": "is_active",
         "type": "boolean",
-        "nullable": false,
-        "description": "Активен ли сотрудник (false = уволен)"
+        "nullable": false
       },
       {
         "name": "created_at",
@@ -514,347 +438,291 @@
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "Пользователь, создавший запись (auth.users.id)"
+        "fk": "auth.users.id"
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.invoice_attachments",
-    "summary": "Associates invoices with stored attachments.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the invoice-attachment relation."
+        "pk": true
       },
       {
         "name": "invoice_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.invoices.id",
-        "description": "Invoice (public.invoices.id) that the file belongs to."
+        "fk": "public.invoices.id"
       },
       {
         "name": "attachment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.attachments.id",
-        "description": "Attachment (public.attachments.id) linked to the invoice."
+        "fk": "public.attachments.id"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the attachment was linked to the invoice."
+        "nullable": true
       }
     ]
   },
   {
     "table": "public.invoice_payments",
-    "summary": "Allocation of payments to invoices.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the invoice-payment allocation."
+        "pk": true
       },
       {
         "name": "invoice_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.invoices.id",
-        "description": "Invoice (public.invoices.id) receiving the allocation."
+        "fk": "public.invoices.id"
       },
       {
         "name": "payment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payments.id",
-        "description": "Payment (public.payments.id) allocated to the invoice."
+        "fk": "public.payments.id"
       },
       {
         "name": "allocated_amount",
         "type": "numeric(15,2)",
-        "nullable": false,
-        "description": "Portion of the payment applied to the invoice."
+        "nullable": false
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the allocation was recorded."
+        "nullable": true
       }
     ]
   },
   {
     "table": "public.invoice_statuses",
-    "summary": "Reference list of invoice workflow statuses.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the invoice status."
+        "pk": true
       },
       {
         "name": "code",
         "type": "varchar(50)",
-        "nullable": false,
-        "description": "Unique status code used in API and UI."
+        "nullable": false
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Display name of the invoice status."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional description clarifying when to use the status."
+        "nullable": true
       },
       {
         "name": "sort_order",
         "type": "integer",
-        "nullable": true,
-        "description": "Ordering weight used when listing statuses."
+        "nullable": true
       },
       {
         "name": "color",
         "type": "varchar(20)",
-        "nullable": true,
-        "description": "Optional UI color token or hex code for the status."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the invoice status was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the invoice status was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.invoice_types",
-    "summary": "Reference list of invoice classification types.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the invoice type."
+        "pk": true
       },
       {
         "name": "code",
         "type": "varchar(50)",
-        "nullable": false,
-        "description": "Unique code representing the invoice type."
+        "nullable": false
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Display name of the invoice type."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional explanation of what the invoice type represents."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the invoice type record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the invoice type record was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.invoices",
-    "summary": "Outbound invoices issued from PayHub.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the invoice (UUID)."
+        "pk": true
       },
       {
         "name": "user_id",
         "type": "uuid",
-        "nullable": false,
-        "description": "Supabase auth user who created or owns the invoice."
+        "nullable": false
       },
       {
         "name": "invoice_number",
         "type": "text",
-        "nullable": false,
-        "description": "Human readable invoice number shown to customers."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional invoice description or customer note."
+        "nullable": true
       },
       {
         "name": "due_date",
         "type": "date",
-        "nullable": true,
-        "description": "Date by which payment is expected."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the invoice record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the invoice record was last updated."
+        "nullable": true
       },
       {
         "name": "invoice_date",
         "type": "date",
-        "nullable": false,
-        "description": "Calendar date printed on the invoice."
+        "nullable": false
       },
       {
         "name": "payer_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Contractor acting as payer (public.contractors.id)."
+        "fk": "public.contractors.id"
       },
       {
         "name": "supplier_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Contractor acting as supplier (public.contractors.id)."
+        "fk": "public.contractors.id"
       },
       {
         "name": "project_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.projects.id",
-        "description": "Project associated with the invoice (public.projects.id)."
+        "fk": "public.projects.id"
       },
       {
         "name": "invoice_type_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.invoice_types.id",
-        "description": "Invoice type reference (public.invoice_types.id)."
+        "fk": "public.invoice_types.id"
       },
       {
         "name": "amount_with_vat",
         "type": "numeric(15,2)",
-        "nullable": true,
-        "description": "Invoice total amount including VAT."
+        "nullable": true
       },
       {
         "name": "vat_rate",
         "type": "numeric(5,2)",
-        "nullable": true,
-        "description": "VAT rate applied to the invoice total, in percent."
+        "nullable": true
       },
       {
         "name": "vat_amount",
         "type": "numeric(15,2)",
-        "nullable": true,
-        "description": "VAT portion of the invoice total."
+        "nullable": true
       },
       {
         "name": "amount_without_vat",
         "type": "numeric(15,2)",
-        "nullable": true,
-        "description": "Invoice amount excluding VAT."
+        "nullable": true
       },
       {
         "name": "delivery_days",
         "type": "integer",
-        "nullable": true,
-        "description": "Number of days required for delivery after payment."
+        "nullable": true
       },
       {
         "name": "delivery_days_type",
         "type": "varchar(20)",
-        "nullable": true,
-        "description": "Interpretation of delivery days (working or calendar)."
+        "nullable": true
       },
       {
         "name": "preliminary_delivery_date",
         "type": "date",
-        "nullable": true,
-        "description": "Projected delivery date calculated from payment terms."
+        "nullable": true
       },
       {
         "name": "status_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.invoice_statuses.id",
-        "description": "Workflow status of the invoice (public.invoice_statuses.id)."
+        "fk": "public.invoice_statuses.id"
       },
       {
         "name": "delivery_cost",
         "type": "numeric(12,2)",
-        "nullable": true,
-        "description": "Стоимость доставки в рублях"
+        "nullable": true
       },
       {
         "name": "relevance_date",
         "type": "timestamptz",
-        "nullable": false,
-        "description": "Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем"
+        "nullable": false
       },
       {
         "name": "material_request_id",
         "type": "uuid",
-        "nullable": true,
-        "description": "Ссылка на заявку на материалы"
+        "nullable": true
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "employee_id",
+        "type": "integer",
+        "nullable": true
       }
-    ],
-    "notes": [
-      "VAT totals are recalculated via calculate_vat_on_invoice before persist.",
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.material_classes",
-    "summary": "",
     "columns": [
       {
         "name": "id",
@@ -891,44 +759,37 @@
   },
   {
     "table": "public.material_request_items",
-    "summary": "Позиции в заявках на материалы",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Уникальный идентификатор позиции"
+        "pk": true
       },
       {
         "name": "material_request_id",
         "type": "uuid",
-        "nullable": false,
-        "description": "Ссылка на заявку"
+        "nullable": false
       },
       {
         "name": "material_name",
         "type": "varchar(500)",
-        "nullable": false,
-        "description": "Наименование материала"
+        "nullable": false
       },
       {
         "name": "unit",
         "type": "varchar(50)",
-        "nullable": false,
-        "description": "Единица измерения (шт, кг, м, м2, м3, л и т.д.)"
+        "nullable": false
       },
       {
         "name": "quantity",
         "type": "numeric(15,3)",
-        "nullable": false,
-        "description": "Количество"
+        "nullable": false
       },
       {
         "name": "sort_order",
         "type": "integer",
-        "nullable": true,
-        "description": "Порядок сортировки позиций"
+        "nullable": true
       },
       {
         "name": "created_at",
@@ -939,50 +800,42 @@
   },
   {
     "table": "public.material_requests",
-    "summary": "Заявки на материалы",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Уникальный идентификатор заявки"
+        "pk": true
       },
       {
         "name": "request_number",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Номер заявки"
+        "nullable": false
       },
       {
         "name": "request_date",
         "type": "date",
-        "nullable": false,
-        "description": "Дата создания заявки"
+        "nullable": false
       },
       {
         "name": "project_id",
         "type": "integer",
-        "nullable": true,
-        "description": "Ссылка на проект"
+        "nullable": true
       },
       {
         "name": "employee_id",
         "type": "integer",
-        "nullable": true,
-        "description": "Ответственный сотрудник"
+        "nullable": true
       },
       {
         "name": "total_items",
         "type": "integer",
-        "nullable": true,
-        "description": "Общее количество позиций в заявке"
+        "nullable": true
       },
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": true,
-        "description": "Пользователь, создавший заявку"
+        "nullable": true
       },
       {
         "name": "created_at",
@@ -998,279 +851,225 @@
   },
   {
     "table": "public.payment_approvals",
-    "summary": "Payment approval instances.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the payment approval."
+        "pk": true
       },
       {
         "name": "payment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payments.id",
-        "description": "Payment (public.payments.id) that is being approved."
+        "fk": "public.payments.id"
       },
       {
         "name": "route_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.approval_routes.id",
-        "description": "Approval route (public.approval_routes.id) used for the payment."
+        "fk": "public.approval_routes.id"
       },
       {
         "name": "status_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.payment_statuses.id",
-        "description": "Current status of the approval (public.payment_statuses.id)."
+        "fk": "public.payment_statuses.id"
       },
       {
         "name": "current_stage_index",
         "type": "integer",
-        "nullable": false,
-        "description": "Zero-based index of the current stage within the route."
+        "nullable": false
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the approval instance was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the approval instance was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.payment_attachments",
-    "summary": "Associates payments with stored attachments.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the payment-attachment relation."
+        "pk": true
       },
       {
         "name": "payment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payments.id",
-        "description": "Payment (public.payments.id) that the file is attached to."
+        "fk": "public.payments.id"
       },
       {
         "name": "attachment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.attachments.id",
-        "description": "Attachment (public.attachments.id) linked to the payment."
+        "fk": "public.attachments.id"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the attachment was linked to the payment."
+        "nullable": true
       }
     ]
   },
   {
     "table": "public.payment_statuses",
-    "summary": "Reference list of payment statuses.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the payment status."
+        "pk": true
       },
       {
         "name": "code",
         "type": "varchar(50)",
-        "nullable": false,
-        "description": "Unique code identifying the payment status."
+        "nullable": false
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Display name of the payment status."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional description of what the payment status means."
+        "nullable": true
       },
       {
         "name": "sort_order",
         "type": "integer",
-        "nullable": true,
-        "description": "Ordering weight used when listing payment statuses."
+        "nullable": true
       },
       {
         "name": "color",
         "type": "varchar(20)",
-        "nullable": true,
-        "description": "Optional UI color token or hex code for the payment status."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the payment status was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the payment status was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.payment_types",
-    "summary": "Reference list of payment types (advance, final, etc.).",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the payment type."
+        "pk": true
       },
       {
         "name": "code",
         "type": "varchar(50)",
-        "nullable": false,
-        "description": "Unique code used to reference the payment type."
+        "nullable": false
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Display name of the payment type."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional description of how the payment type is used."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the payment type record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the payment type record was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.payments",
-    "summary": "Payments registered against invoices in PayHub.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the payment (UUID)."
+        "pk": true
       },
       {
         "name": "invoice_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.invoices.id",
-        "description": "Invoice (public.invoices.id) that the payment relates to."
+        "fk": "public.invoices.id"
       },
       {
         "name": "payment_number",
         "type": "integer",
-        "nullable": false,
-        "description": "Unique sequential number of the payment."
+        "nullable": false
       },
       {
         "name": "payment_date",
         "type": "date",
-        "nullable": false,
-        "description": "Date on which the payment was made."
+        "nullable": false
       },
       {
         "name": "amount",
         "type": "numeric(15,2)",
-        "nullable": false,
-        "description": "Monetary amount of the payment."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional description or purpose of the payment."
+        "nullable": true
       },
       {
         "name": "payment_type_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.payment_types.id",
-        "description": "Payment type (public.payment_types.id)."
+        "fk": "public.payment_types.id"
       },
       {
         "name": "status_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.payment_statuses.id",
-        "description": "Current payment status (public.payment_statuses.id)."
+        "fk": "public.payment_statuses.id"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who created the payment record."
+        "fk": "auth.users.id"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the payment record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the payment record was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.positions",
-    "summary": "Должности сотрудников",
     "columns": [
       {
         "name": "id",
@@ -1298,274 +1097,224 @@
         "type": "timestamptz",
         "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.projects",
-    "summary": "Projects used to group invoices and contractors.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the project."
+        "pk": true
       },
       {
         "name": "code",
         "type": "varchar(50)",
-        "nullable": true,
-        "description": "Optional unique project code used in integrations and search."
+        "nullable": true
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Display name of the project."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional project description for internal users."
+        "nullable": true
       },
       {
         "name": "is_active",
         "type": "boolean",
-        "nullable": true,
-        "description": "TRUE when the project is active."
+        "nullable": true
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who created the project."
+        "fk": "auth.users.id"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the project record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the project record was last updated."
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.roles",
-    "summary": "Roles that define access levels inside PayHub.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the role."
+        "pk": true
       },
       {
         "name": "code",
         "type": "varchar(50)",
-        "nullable": false,
-        "description": "Unique machine-readable code of the role."
+        "nullable": false
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false,
-        "description": "Display name of the role."
+        "nullable": false
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true,
-        "description": "Optional description of the role permissions."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the role record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the role record was last updated."
+        "nullable": true
       },
       {
         "name": "own_projects_only",
         "type": "boolean",
-        "nullable": true,
-        "description": "TRUE when the role limits users to their own projects."
+        "nullable": true
+      },
+      {
+        "name": "allowed_pages",
+        "type": "jsonb",
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.user_profiles",
-    "summary": "Mirror of Supabase auth user profiles stored in the public schema.",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
         "pk": true,
-        "fk": "auth.users.id",
-        "description": "Primary key of the profile and foreign key to auth.users.id."
+        "fk": "auth.users.id"
       },
       {
         "name": "email",
         "type": "text",
-        "nullable": false,
-        "description": "Primary email address associated with the user profile."
+        "nullable": false
       },
       {
         "name": "full_name",
         "type": "text",
-        "nullable": false,
-        "description": "Display name of the user."
+        "nullable": false
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the profile record was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the profile record was last updated."
+        "nullable": true
       },
       {
         "name": "role_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.roles.id",
-        "description": "Role (public.roles.id) assigned to the user."
+        "fk": "public.roles.id"
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   },
   {
     "table": "public.user_projects",
-    "summary": "Mapping table assigning users to projects for access control.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the user-project link."
+        "pk": true
       },
       {
         "name": "user_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who receives access to the project."
+        "fk": "auth.users.id"
       },
       {
         "name": "project_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.projects.id",
-        "description": "Project (public.projects.id) granted to the user."
+        "fk": "public.projects.id"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the user-project link was created."
+        "nullable": true
       }
     ]
   },
   {
     "table": "public.workflow_stages",
-    "summary": "Workflow stages that build approval routes and set payment statuses.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key of the workflow stage."
+        "pk": true
       },
       {
         "name": "route_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.approval_routes.id",
-        "description": "Approval route (public.approval_routes.id) the stage belongs to."
+        "fk": "public.approval_routes.id"
       },
       {
         "name": "order_index",
         "type": "integer",
-        "nullable": false,
-        "description": "Zero-based order of the stage within the route."
+        "nullable": false
       },
       {
         "name": "role_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.roles.id",
-        "description": "Role (public.roles.id) responsible for processing the stage."
+        "fk": "public.roles.id"
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": true,
-        "description": "Display name of the workflow stage."
+        "nullable": true
       },
       {
         "name": "created_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the workflow stage was created."
+        "nullable": true
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
-        "nullable": true,
-        "description": "Timestamp when the workflow stage was last updated."
+        "nullable": true
       },
       {
         "name": "payment_status_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.payment_statuses.id",
-        "description": "Payment status (public.payment_statuses.id) applied after the stage is completed."
+        "fk": "public.payment_statuses.id"
       },
       {
         "name": "permissions",
         "type": "jsonb",
-        "nullable": true,
-        "description": "JSON object storing stage-specific permissions like can_edit_invoice, can_add_files, can_edit_amount, etc."
+        "nullable": true
       },
       {
         "name": "is_active",
         "type": "boolean",
-        "nullable": true,
-        "description": "Soft deletion flag to preserve referential integrity with approval_steps table"
+        "nullable": true
       }
-    ],
-    "notes": [
-      "updated_at is maintained automatically on updates."
     ]
   }
 ]

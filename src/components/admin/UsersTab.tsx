@@ -248,7 +248,6 @@ export const UsersTab = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 120,
       render: (_, record) => (
         <Space size="small">
           <Button

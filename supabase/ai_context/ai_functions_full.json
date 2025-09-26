@@ -70,8 +70,8 @@
     "returns": "trigger",
     "language": "plpgsql",
     "security": "invoker",
-    "summary": "",
-    "details": "",
+    "summary": "Keeps material_requests.total_items in sync with child records.",
+    "details": "After INSERT or DELETE on public.material_request_items the trigger recomputes total_items for the parent request id.",
     "touches_tables": [
       "public.material_request_items",
       "public.material_requests"
@@ -79,33 +79,39 @@
     "invoked_by": [
       "public.update_material_request_items_count_trigger"
     ],
-    "side_effects": []
+    "side_effects": [
+      "UPDATE public.material_requests"
+    ]
   },
   {
     "function": "public.update_material_requests_updated_at()",
     "returns": "trigger",
     "language": "plpgsql",
     "security": "invoker",
-    "summary": "",
-    "details": "",
+    "summary": "Refreshes updated_at on material_requests before changes commit.",
+    "details": "Sets NEW.updated_at to now() so list views reflect the latest edits.",
     "touches_tables": [],
     "invoked_by": [
       "public.update_material_requests_updated_at"
     ],
-    "side_effects": []
+    "side_effects": [
+      "mutates NEW.updated_at"
+    ]
   },
   {
     "function": "public.update_updated_at()",
     "returns": "trigger",
     "language": "plpgsql",
     "security": "invoker",
-    "summary": "",
-    "details": "",
+    "summary": "Generic BEFORE UPDATE helper that sets NEW.updated_at to the current timestamp.",
+    "details": "Used on legacy tables that require CURRENT_TIMESTAMP instead of now().",
     "touches_tables": [],
     "invoked_by": [
       "public.update_material_classes_updated_at"
     ],
-    "side_effects": []
+    "side_effects": [
+      "mutates NEW.updated_at"
+    ]
   },
   {
     "function": "public.update_updated_at_column()",

@@ -98,7 +98,6 @@ export const MaterialClassesTab = () => {
       title: 'Код',
       dataIndex: 'code',
       key: 'code',
-      width: 100,
       sorter: (a: MaterialClass, b: MaterialClass) => a.code.localeCompare(b.code),
     },
     {
@@ -111,7 +110,6 @@ export const MaterialClassesTab = () => {
       title: 'Статус',
       dataIndex: 'is_active',
       key: 'is_active',
-      width: 120,
       render: (is_active: boolean, record: MaterialClass) => (
         <Switch
           checked={is_active}
@@ -129,7 +127,6 @@ export const MaterialClassesTab = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 150,
       render: (_: any, record: MaterialClass) => (
         <Space>
           <Button

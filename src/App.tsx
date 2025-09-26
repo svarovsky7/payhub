@@ -9,6 +9,7 @@ import { ApprovalsPage } from './pages/ApprovalsPage'
 import { ContractsPage } from './pages/ContractsPage'
 import { MaterialRequestsPage } from './pages/MaterialRequestsPage'
 import { MainLayout } from './components/Layout'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import 'antd/dist/reset.css'
 
 function App() {
@@ -23,41 +24,51 @@ function App() {
             <Route
               path="/invoices"
               element={
-                <MainLayout>
-                  <InvoicesPage />
-                </MainLayout>
+                <ProtectedRoute requiredPath="/invoices">
+                  <MainLayout>
+                    <InvoicesPage />
+                  </MainLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/*"
               element={
-                <MainLayout>
-                  <AdminPage />
-                </MainLayout>
+                <ProtectedRoute requiredPath="/admin">
+                  <MainLayout>
+                    <AdminPage />
+                  </MainLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/approvals"
               element={
-                <MainLayout>
-                  <ApprovalsPage />
-                </MainLayout>
+                <ProtectedRoute requiredPath="/approvals">
+                  <MainLayout>
+                    <ApprovalsPage />
+                  </MainLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/contracts"
               element={
-                <MainLayout>
-                  <ContractsPage />
-                </MainLayout>
+                <ProtectedRoute requiredPath="/contracts">
+                  <MainLayout>
+                    <ContractsPage />
+                  </MainLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/material-requests"
               element={
-                <MainLayout>
-                  <MaterialRequestsPage />
-                </MainLayout>
+                <ProtectedRoute requiredPath="/material-requests">
+                  <MainLayout>
+                    <MaterialRequestsPage />
+                  </MainLayout>
+                </ProtectedRoute>
               }
             />
             <Route path="/" element={<Navigate to="/login" replace />} />

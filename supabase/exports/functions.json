@@ -605,8 +605,8 @@
     "schema": "public",
     "name": "handle_new_user",
     "arguments": "",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  INSERT INTO public.user_profiles (id, email, full_name)\n  VALUES (\n    NEW.id,\n    NEW.email,\n    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email)\n  );\n  RETURN NEW;\nEND;\n$function$\n"
+    "comment": "Creates user profile with default role (user/id=4) when new auth user is created",
+    "sql": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  INSERT INTO public.user_profiles (id, email, full_name, role_id)\n  VALUES (\n    NEW.id,\n    NEW.email,\n    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),\n    4  -- Default role_id for 'user' role\n  );\n  RETURN NEW;\nEND;\n$function$\n"
   },
   "public.update_material_request_items_count()": {
     "schema": "public",

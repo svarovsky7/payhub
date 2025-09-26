@@ -152,6 +152,7 @@ export const AuthPage = () => {
                   prefix={<MailOutlined />}
                   placeholder="Email"
                   size="large"
+                  autoComplete="off"
                 />
               </Form.Item>
 
@@ -163,6 +164,7 @@ export const AuthPage = () => {
                   prefix={<UserOutlined />}
                   placeholder="ФИО"
                   size="large"
+                  autoComplete="off"
                 />
               </Form.Item>
 
@@ -174,6 +176,7 @@ export const AuthPage = () => {
                   prefix={<LockOutlined />}
                   placeholder="Пароль"
                   size="large"
+                  autoComplete="new-password"
                 />
               </Form.Item>
 
@@ -186,6 +189,10 @@ export const AuthPage = () => {
                   placeholder="Выберите проекты"
                   size="large"
                   suffixIcon={<ProjectOutlined />}
+                  placement="topLeft"
+                  listHeight={200}
+                  maxTagCount={2}
+                  maxTagPlaceholder={(omittedValues) => `+${omittedValues.length} проектов`}
                   options={projects.map(p => ({
                     label: p.name,
                     value: p.id

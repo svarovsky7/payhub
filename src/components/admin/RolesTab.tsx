@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Table, Space, Button, Modal, Form, Input, Switch, message, Tooltip } from 'antd'
+import { Table, Space, Button, Modal, Form, Input, Switch, message, Tooltip, Select, Tag } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { supabase, type Role } from '../../lib/supabase'
+
+// Определение доступных страниц
+const AVAILABLE_PAGES = [
+  { value: '/invoices', label: 'Счета' },
+  { value: '/material-requests', label: 'Заявки на материалы' },
+  { value: '/contracts', label: 'Договоры' },
+  { value: '/approvals', label: 'Согласования' },
+  { value: '/admin', label: 'Администрирование' },
+]
 
 export const RolesTab = () => {
   const [roles, setRoles] = useState<Role[]>([])
@@ -42,16 +51,32 @@ export const RolesTab = () => {
 
   const handleEdit = (record: Role) => {
     setEditingRole(record)
-    form.setFieldsValue(record)
+    // Парсим allowed_pages из JSON, если это строка
+    const allowedPages = record.allowed_pages
+      ? (typeof record.allowed_pages === 'string'
+          ? JSON.parse(record.allowed_pages)
+          : record.allowed_pages)
+      : []
+
+    form.setFieldsValue({
+      ...record,
+      allowed_pages: allowedPages
+    })
     setIsModalVisible(true)
   }
 
   const handleSubmit = async (values: any) => {
     try {
+      // Преобразуем allowed_pages в JSON строку для хранения в базе
+      const dataToSave = {
+        ...values,
+        allowed_pages: JSON.stringify(values.allowed_pages || [])
+      }
+
       if (editingRole) {
         const { error } = await supabase
           .from('roles')
-          .update(values)
+          .update(dataToSave)
           .eq('id', editingRole.id)
 
         if (error) throw error
@@ -59,7 +84,7 @@ export const RolesTab = () => {
       } else {
         const { error } = await supabase
           .from('roles')
-          .insert([values])
+          .insert([dataToSave])
 
         if (error) throw error
         message.success('Роль создана')
@@ -102,8 +127,7 @@ export const RolesTab = () => {
     {
       title: 'Код',
       dataIndex: 'code',
-      key: 'code',
-      width: 120
+      key: 'code'
     },
     {
       title: 'Название',
@@ -116,10 +140,45 @@ export const RolesTab = () => {
       key: 'description'
     },
     {
+      title: 'Доступные страницы',
+      dataIndex: 'allowed_pages',
+      key: 'allowed_pages',
+      render: (value: any) => {
+        const pages = value
+          ? (typeof value === 'string' ? JSON.parse(value) : value)
+          : []
+
+        if (pages.length === 0) {
+          return <Tag color="red">Нет доступа</Tag>
+        }
+
+        const pageLabels = pages.map((page: string) => {
+          const pageInfo = AVAILABLE_PAGES.find(p => p.value === page)
+          return pageInfo ? pageInfo.label : page
+        })
+
+        if (pageLabels.length > 2) {
+          return (
+            <Tooltip title={pageLabels.join(', ')}>
+              <span>
+                {pageLabels.slice(0, 2).map((label: string, index: number) => (
+                  <Tag key={index} color="blue">{label}</Tag>
+                ))}
+                <Tag color="blue">+{pageLabels.length - 2}</Tag>
+              </span>
+            </Tooltip>
+          )
+        }
+
+        return pageLabels.map((label: string, index: number) => (
+          <Tag key={index} color="blue">{label}</Tag>
+        ))
+      }
+    },
+    {
       title: 'Только свои проекты',
       dataIndex: 'own_projects_only',
       key: 'own_projects_only',
-      width: 180,
       align: 'center',
       render: (value: boolean) => (
         <Tooltip title={value ? 'Видит только данные своих проектов' : 'Видит данные всех проектов'}>
@@ -130,7 +189,6 @@ export const RolesTab = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 120,
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -205,6 +263,19 @@ export const RolesTab = () => {
 
           <Form.Item name="description" label="Описание">
             <Input.TextArea rows={3} />
+          </Form.Item>
+
+          <Form.Item
+            name="allowed_pages"
+            label="Доступные страницы"
+            rules={[{ required: false, message: 'Выберите доступные страницы' }]}
+            help="Выберите страницы, к которым будет иметь доступ роль"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите страницы"
+              options={AVAILABLE_PAGES}
+            />
           </Form.Item>
 
           <Form.Item

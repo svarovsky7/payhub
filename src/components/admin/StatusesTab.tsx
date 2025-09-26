@@ -233,8 +233,7 @@ export const StatusesTab = () => {
     {
       title: 'Код',
       dataIndex: 'code',
-      key: 'code',
-      width: 150
+      key: 'code'
     },
     {
       title: 'Название',
@@ -253,20 +252,17 @@ export const StatusesTab = () => {
       title: 'Порядок',
       dataIndex: 'sort_order',
       key: 'sort_order',
-      width: 100,
       align: 'center'
     },
     {
       title: 'Дата создания',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 120,
       render: (date) => new Date(date).toLocaleDateString('ru-RU')
     },
     {
       title: 'Действия',
       key: 'actions',
-      width: 120,
       render: (_, record) => (
         <Space size="small">
           <Button

@@ -19,6 +19,7 @@ export type Role = {
   name: string
   description?: string
   own_projects_only: boolean
+  allowed_pages?: any // JSON field for storing allowed pages array
   created_at: string
   updated_at: string
 }
@@ -98,6 +99,7 @@ export type Invoice = {
   relevance_date?: string
   contract_id?: string // новое поле для связи с договором
   material_request_id?: string // новое поле для связи с заявкой на материалы
+  employee_id?: number // новое поле для ответственного сотрудника (integer в БД)
   created_at: string
   updated_at: string
   // Связанные объекты (для JOIN запросов)
@@ -106,6 +108,22 @@ export type Invoice = {
   project?: Project
   invoice_type?: InvoiceType
   invoice_status?: InvoiceStatus
+  employee?: Employee
+}
+
+export type Employee = {
+  id: number // исправлено: integer в БД, не uuid
+  first_name: string
+  last_name: string
+  middle_name?: string
+  full_name?: string
+  email?: string
+  phone?: string
+  position_id?: number
+  department_id?: number
+  is_active?: boolean
+  created_at: string
+  updated_at: string
 }
 
 export type PaymentStatus = {

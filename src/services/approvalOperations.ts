@@ -16,14 +16,6 @@ export {
 } from './approval/approvalQueries'
 
 // Legacy type exports for backward compatibility
-export interface ApprovalRoute {
-  id: number
-  invoice_type_id: number
-  name: string
-  is_active: boolean
-  invoice_type?: any
-  stages?: WorkflowStage[]
-}
 
 export interface WorkflowStage {
   id: number

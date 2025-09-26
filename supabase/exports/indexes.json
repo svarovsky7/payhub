@@ -687,6 +687,14 @@
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX invoice_types_code_key ON public.invoice_types USING btree (code)"
   },
+  "public.invoices.idx_invoices_contract_id": {
+    "schema": "public",
+    "name": "idx_invoices_contract_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_contract_id ON public.invoices USING btree (contract_id)"
+  },
   "public.invoices.idx_invoices_created_at": {
     "schema": "public",
     "name": "idx_invoices_created_at",
@@ -694,6 +702,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_created_at ON public.invoices USING btree (created_at DESC)"
+  },
+  "public.invoices.idx_invoices_employee_id": {
+    "schema": "public",
+    "name": "idx_invoices_employee_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_employee_id ON public.invoices USING btree (employee_id)"
   },
   "public.invoices.idx_invoices_invoice_date": {
     "schema": "public",
@@ -718,6 +734,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_material_request ON public.invoices USING btree (material_request_id)"
+  },
+  "public.invoices.idx_invoices_material_request_id": {
+    "schema": "public",
+    "name": "idx_invoices_material_request_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_material_request_id ON public.invoices USING btree (material_request_id)"
   },
   "public.invoices.idx_invoices_payer_id": {
     "schema": "public",
@@ -958,6 +982,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX projects_code_key ON public.projects USING btree (code)"
+  },
+  "public.roles.idx_roles_allowed_pages": {
+    "schema": "public",
+    "name": "idx_roles_allowed_pages",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_roles_allowed_pages ON public.roles USING gin (allowed_pages)"
   },
   "public.roles.idx_roles_code": {
     "schema": "public",

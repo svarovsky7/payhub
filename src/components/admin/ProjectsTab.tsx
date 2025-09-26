@@ -143,8 +143,7 @@ export const ProjectsTab = () => {
     {
       title: 'Код',
       dataIndex: 'code',
-      key: 'code',
-      width: 100
+      key: 'code'
     },
     {
       title: 'Название',
@@ -161,13 +160,11 @@ export const ProjectsTab = () => {
       title: 'Активен',
       dataIndex: 'is_active',
       key: 'is_active',
-      width: 80,
       render: (active) => (active ? 'Да' : 'Нет')
     },
     {
       title: 'Действия',
       key: 'actions',
-      width: 120,
       render: (_, record) => (
         <Space size="small">
           <Button

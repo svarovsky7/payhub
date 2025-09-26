@@ -2,235 +2,196 @@
   {
     "from": "public.approval_routes",
     "column": "invoice_type_id",
-    "to": "public.invoice_types.id",
-    "description": "Invoice type (public.invoice_types.id) this route applies to"
+    "to": "public.invoice_types.id"
   },
   {
     "from": "public.approval_steps",
     "column": "acted_by",
-    "to": "auth.users.id",
-    "description": "User (auth.users.id) who performed the action"
+    "to": "auth.users.id"
   },
   {
     "from": "public.approval_steps",
     "column": "payment_approval_id",
-    "to": "public.payment_approvals.id",
-    "description": "Payment approval instance (public.payment_approvals.id) this entry belongs to"
+    "to": "public.payment_approvals.id"
   },
   {
     "from": "public.approval_steps",
     "column": "stage_id",
-    "to": "public.workflow_stages.id",
-    "description": "Workflow stage (public.workflow_stages.id) where the action happened"
+    "to": "public.workflow_stages.id"
   },
   {
     "from": "public.attachments",
     "column": "created_by",
-    "to": "auth.users.id",
-    "description": "User (auth.users.id) who uploaded the file"
+    "to": "auth.users.id"
   },
   {
     "from": "public.contractors",
     "column": "created_by",
-    "to": "auth.users.id",
-    "description": "User (auth.users.id) who created the contractor record"
+    "to": "auth.users.id"
   },
   {
     "from": "public.contractors",
     "column": "type_id",
-    "to": "public.contractor_types.id",
-    "description": "Contractor type (public.contractor_types.id)"
+    "to": "public.contractor_types.id"
   },
   {
     "from": "public.contracts",
     "column": "created_by",
-    "to": "auth.users.id",
-    "description": "Пользователь, создавший запись (auth.users.id)"
+    "to": "auth.users.id"
   },
   {
     "from": "public.contracts",
     "column": "payer_id",
-    "to": "public.contractors.id",
-    "description": "Ссылка на плательщика (public.contractors.id)"
+    "to": "public.contractors.id"
   },
   {
     "from": "public.contracts",
     "column": "supplier_id",
-    "to": "public.contractors.id",
-    "description": "Ссылка на поставщика (public.contractors.id)"
+    "to": "public.contractors.id"
   },
   {
     "from": "public.employees",
     "column": "created_by",
-    "to": "auth.users.id",
-    "description": "Пользователь, создавший запись (auth.users.id)"
+    "to": "auth.users.id"
   },
   {
     "from": "public.employees",
     "column": "department_id",
-    "to": "public.departments.id",
-    "description": "Ссылка на отдел (public.departments.id)"
+    "to": "public.departments.id"
   },
   {
     "from": "public.employees",
     "column": "position_id",
-    "to": "public.positions.id",
-    "description": "Ссылка на должность (public.positions.id)"
+    "to": "public.positions.id"
   },
   {
     "from": "public.invoice_attachments",
     "column": "attachment_id",
-    "to": "public.attachments.id",
-    "description": "Attachment (public.attachments.id) linked to the invoice"
+    "to": "public.attachments.id"
   },
   {
     "from": "public.invoice_attachments",
     "column": "invoice_id",
-    "to": "public.invoices.id",
-    "description": "Invoice (public.invoices.id) that the file belongs to"
+    "to": "public.invoices.id"
   },
   {
     "from": "public.invoice_payments",
     "column": "invoice_id",
-    "to": "public.invoices.id",
-    "description": "Invoice (public.invoices.id) receiving the allocation"
+    "to": "public.invoices.id"
   },
   {
     "from": "public.invoice_payments",
     "column": "payment_id",
-    "to": "public.payments.id",
-    "description": "Payment (public.payments.id) allocated to the invoice"
+    "to": "public.payments.id"
   },
   {
     "from": "public.invoices",
     "column": "invoice_type_id",
-    "to": "public.invoice_types.id",
-    "description": "Invoice type reference (public.invoice_types.id)"
+    "to": "public.invoice_types.id"
   },
   {
     "from": "public.invoices",
     "column": "payer_id",
-    "to": "public.contractors.id",
-    "description": "Contractor acting as payer (public.contractors.id)"
+    "to": "public.contractors.id"
   },
   {
     "from": "public.invoices",
     "column": "project_id",
-    "to": "public.projects.id",
-    "description": "Project associated with the invoice (public.projects.id)"
+    "to": "public.projects.id"
   },
   {
     "from": "public.invoices",
     "column": "status_id",
-    "to": "public.invoice_statuses.id",
-    "description": "Workflow status of the invoice (public.invoice_statuses.id)"
+    "to": "public.invoice_statuses.id"
   },
   {
     "from": "public.invoices",
     "column": "supplier_id",
-    "to": "public.contractors.id",
-    "description": "Contractor acting as supplier (public.contractors.id)"
+    "to": "public.contractors.id"
   },
   {
     "from": "public.payment_approvals",
     "column": "payment_id",
-    "to": "public.payments.id",
-    "description": "Payment (public.payments.id) that is being approved"
+    "to": "public.payments.id"
   },
   {
     "from": "public.payment_approvals",
     "column": "route_id",
-    "to": "public.approval_routes.id",
-    "description": "Approval route (public.approval_routes.id) used for the payment"
+    "to": "public.approval_routes.id"
   },
   {
     "from": "public.payment_approvals",
     "column": "status_id",
-    "to": "public.payment_statuses.id",
-    "description": "Current status of the approval (public.payment_statuses.id)"
+    "to": "public.payment_statuses.id"
   },
   {
     "from": "public.payment_attachments",
     "column": "attachment_id",
-    "to": "public.attachments.id",
-    "description": "Attachment (public.attachments.id) linked to the payment"
+    "to": "public.attachments.id"
   },
   {
     "from": "public.payment_attachments",
     "column": "payment_id",
-    "to": "public.payments.id",
-    "description": "Payment (public.payments.id) that the file is attached to"
+    "to": "public.payments.id"
   },
   {
     "from": "public.payments",
     "column": "created_by",
-    "to": "auth.users.id",
-    "description": "User (auth.users.id) who created the payment record"
+    "to": "auth.users.id"
   },
   {
     "from": "public.payments",
     "column": "invoice_id",
-    "to": "public.invoices.id",
-    "description": "Invoice (public.invoices.id) that the payment relates to"
+    "to": "public.invoices.id"
   },
   {
     "from": "public.payments",
     "column": "payment_type_id",
-    "to": "public.payment_types.id",
-    "description": "Payment type (public.payment_types.id)"
+    "to": "public.payment_types.id"
   },
   {
     "from": "public.payments",
     "column": "status_id",
-    "to": "public.payment_statuses.id",
-    "description": "Current payment status (public.payment_statuses.id)"
+    "to": "public.payment_statuses.id"
   },
   {
     "from": "public.projects",
     "column": "created_by",
-    "to": "auth.users.id",
-    "description": "User (auth.users.id) who created the project"
+    "to": "auth.users.id"
   },
   {
     "from": "public.user_profiles",
     "column": "id",
-    "to": "auth.users.id",
-    "description": "Primary key of the profile and foreign key to auth.users.id"
+    "to": "auth.users.id"
   },
   {
     "from": "public.user_profiles",
     "column": "role_id",
-    "to": "public.roles.id",
-    "description": "Role (public.roles.id) assigned to the user"
+    "to": "public.roles.id"
   },
   {
     "from": "public.user_projects",
     "column": "project_id",
-    "to": "public.projects.id",
-    "description": "Project (public.projects.id) granted to the user"
+    "to": "public.projects.id"
   },
   {
     "from": "public.user_projects",
     "column": "user_id",
-    "to": "auth.users.id",
-    "description": "User (auth.users.id) who receives access to the project"
+    "to": "auth.users.id"
   },
   {
     "from": "public.workflow_stages",
     "column": "payment_status_id",
-    "to": "public.payment_statuses.id",
-    "description": "Payment status (public.payment_statuses.id) applied after the stage is completed"
+    "to": "public.payment_statuses.id"
   },
   {
     "from": "public.workflow_stages",
     "column": "role_id",
-    "to": "public.roles.id",
-    "description": "Role (public.roles.id) responsible for processing the stage"
+    "to": "public.roles.id"
   },
   {
     "from": "public.workflow_stages",
     "column": "route_id",
-    "to": "public.approval_routes.id",
-    "description": "Approval route (public.approval_routes.id) the stage belongs to"
+    "to": "public.approval_routes.id"
   }
 ]

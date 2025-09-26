@@ -298,16 +298,7 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
         </Row>
 
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <h4>Перечень материалов</h4>
-            <Button
-              type="dashed"
-              onClick={handleAddItem}
-              icon={<PlusOutlined />}
-            >
-              Добавить позицию
-            </Button>
-          </div>
+          <h4 style={{ marginBottom: 8 }}>Перечень материалов</h4>
 
           <Table
             dataSource={items}
@@ -316,7 +307,17 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
             pagination={false}
             size="small"
             scroll={{ y: 300 }}
+            style={{ marginBottom: 16 }}
           />
+
+          <Button
+            type="dashed"
+            onClick={handleAddItem}
+            icon={<PlusOutlined />}
+            style={{ width: '100%' }}
+          >
+            Добавить позицию
+          </Button>
         </div>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

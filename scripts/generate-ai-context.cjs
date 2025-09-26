@@ -1,4 +1,4 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
@@ -49,6 +49,21 @@ const functionDescriptions = {
     summary: 'Seeds public.user_profiles when auth.users gains a new row.',
     details: 'Copies id, email, and derived full_name from the auth.users record into public.user_profiles for application lookups.',
     sideEffects: ['INSERT into public.user_profiles']
+  },
+  'public.update_material_request_items_count()': {
+    summary: 'Keeps material_requests.total_items in sync with child records.',
+    details: 'After INSERT or DELETE on public.material_request_items the trigger recomputes total_items for the parent request id.',
+    sideEffects: ['UPDATE public.material_requests']
+  },
+  'public.update_material_requests_updated_at()': {
+    summary: 'Refreshes updated_at on material_requests before changes commit.',
+    details: 'Sets NEW.updated_at to now() so list views reflect the latest edits.',
+    sideEffects: ['mutates NEW.updated_at']
+  },
+  'public.update_updated_at()': {
+    summary: 'Generic BEFORE UPDATE helper that sets NEW.updated_at to the current timestamp.',
+    details: 'Used on legacy tables that require CURRENT_TIMESTAMP instead of now().',
+    sideEffects: ['mutates NEW.updated_at']
   },
   'public.update_updated_at_column()': {
     summary: 'Keeps updated_at timestamps fresh on write-heavy tables.',
@@ -161,6 +176,7 @@ function buildForeignKeys(tableKey, table) {
     .filter(Boolean);
 }
 
+
 function buildTablesMin() {
   return publicTableEntries.map(([tableKey, table]) => {
     const pkSet = getPkSet(table);
@@ -179,32 +195,13 @@ function buildTablesMin() {
       if (fk) {
         columnData.fk = fk;
       }
-      if (column.comment) {
-        columnData.description = column.comment.trim();
-      }
       return columnData;
     });
 
-    const notes = [];
-    const tableTriggers = triggersByTable.get(tableKey) || [];
-    if (tableTriggers.some((trigger) => trigger.functionSignature === 'public.calculate_vat_amounts()')) {
-      notes.push('VAT totals are recalculated via calculate_vat_on_invoice before persist.');
-    }
-    if (tableTriggers.some((trigger) => trigger.functionSignature === 'public.update_updated_at_column()')) {
-      notes.push('updated_at is maintained automatically on updates.');
-    }
-
-    const payload = {
+    return {
       table: tableKey,
-      summary: table.comment ? table.comment.trim() : '',
       columns
     };
-
-    if (notes.length > 0) {
-      payload.notes = notes;
-    }
-
-    return payload;
   });
 }
 
@@ -307,8 +304,7 @@ function buildRelations() {
       relations.push({
         from: tableKey,
         column: fk.column,
-        to: fk.references,
-        description: fk.description.replace(/\.$/, '')
+        to: fk.references
       });
     }
   }
@@ -401,31 +397,39 @@ function buildManifest() {
 }
 
 function buildExamplesSql() {
-  return `-- Ensure a vendor contractor type exists
-INSERT INTO public.contractor_types (code, name, description)
-VALUES ('vendor', 'Vendor', 'Suppliers eligible for VAT invoices')
-ON CONFLICT (code) DO UPDATE
-  SET name = EXCLUDED.name,
-      description = EXCLUDED.description;
+  return `-- Keep reference dictionaries up to date for the demo flow
+INSERT INTO public.invoice_statuses (code, name)
+VALUES ('draft', 'Draft'), ('approved', 'Approved')
+ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
 
--- Register payer and supplier contractors
-WITH vendor AS (
-  SELECT id FROM public.contractor_types WHERE code = 'vendor'
+INSERT INTO public.payment_statuses (code, name)
+VALUES ('posted', 'Posted')
+ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
+
+INSERT INTO public.payment_types (code, name)
+VALUES ('wire', 'Wire transfer')
+ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
+
+INSERT INTO public.contractor_types (code, name)
+VALUES ('payer', 'Payer company'), ('supplier', 'Supplier company')
+ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
+
+-- Register counterparties used by invoices and payments
+WITH typed AS (
+  SELECT ct.code, ct.id FROM public.contractor_types ct WHERE ct.code IN ('payer', 'supplier')
 )
 INSERT INTO public.contractors (type_id, name, inn, created_by)
 VALUES
-  ((SELECT id FROM vendor), 'Acme Supplies LLC', '7701234567', '00000000-0000-0000-0000-000000000001'),
-  ((SELECT id FROM vendor), 'Orbit Trading LLC', '7712345678', '00000000-0000-0000-0000-000000000001')
+  ((SELECT id FROM typed WHERE code = 'payer'), 'Acme Facilities LLC', '7701234567', '00000000-0000-0000-0000-000000000001'),
+  ((SELECT id FROM typed WHERE code = 'supplier'), 'Orbit Trading LLC', '7712345678', '00000000-0000-0000-0000-000000000001')
 ON CONFLICT (name) DO NOTHING;
 
--- Create a draft invoice and let calculate_vat_amounts derive VAT split
+-- Create a draft invoice; calculate_vat_amounts() derives VAT fields before insert
 WITH payer AS (
-  SELECT id FROM public.contractors WHERE name = 'Acme Supplies LLC'
-),
- supplier AS (
+  SELECT id FROM public.contractors WHERE name = 'Acme Facilities LLC'
+), supplier AS (
   SELECT id FROM public.contractors WHERE name = 'Orbit Trading LLC'
-),
- status AS (
+), status AS (
   SELECT id FROM public.invoice_statuses WHERE code = 'draft'
 )
 INSERT INTO public.invoices (
@@ -450,24 +454,31 @@ VALUES (
   20,
   'Office fit-out milestone'
 )
-RETURNING id, amount_without_vat, vat_amount;
+ON CONFLICT (invoice_number) DO NOTHING
+RETURNING amount_with_vat, amount_without_vat, vat_amount;
 
--- Adjust the invoice total; BEFORE UPDATE trigger refreshes VAT and updated_at
+-- Adjust the invoice total; update_updated_at_column() refreshes updated_at automatically
 UPDATE public.invoices
 SET amount_with_vat = 150000,
     vat_rate = 10
 WHERE invoice_number = 'INV-2025-0001'
 RETURNING amount_without_vat, vat_amount, updated_at;
 
--- Record a payment against the invoice
+-- Record a payment; triggers assign payment_number and touch updated_at
 WITH inv AS (
   SELECT id FROM public.invoices WHERE invoice_number = 'INV-2025-0001'
+), status AS (
+  SELECT id FROM public.payment_statuses WHERE code = 'posted'
+), ptype AS (
+  SELECT id FROM public.payment_types WHERE code = 'wire'
 )
 INSERT INTO public.payments (
   invoice_id,
   amount,
   payment_date,
   description,
+  status_id,
+  payment_type_id,
   created_by
 )
 VALUES (
@@ -475,15 +486,16 @@ VALUES (
   80000,
   CURRENT_DATE,
   'First installment',
+  (SELECT id FROM status),
+  (SELECT id FROM ptype),
   '00000000-0000-0000-0000-000000000001'
 )
-RETURNING id, payment_number;
+RETURNING id, payment_number, updated_at;
 
--- Allocate the payment to the invoice
+-- Link the payment to the invoice allocation table
 WITH inv AS (
   SELECT id FROM public.invoices WHERE invoice_number = 'INV-2025-0001'
-),
- pay AS (
+), pay AS (
   SELECT id FROM public.payments WHERE invoice_id = (SELECT id FROM inv) ORDER BY created_at DESC LIMIT 1
 )
 INSERT INTO public.invoice_payments (invoice_id, payment_id, allocated_amount)
@@ -492,37 +504,56 @@ VALUES (
   (SELECT id FROM pay),
   80000
 )
-ON CONFLICT (invoice_id, payment_id) DO UPDATE
-  SET allocated_amount = EXCLUDED.allocated_amount;
+ON CONFLICT (invoice_id, payment_id) DO UPDATE SET allocated_amount = EXCLUDED.allocated_amount;
 
--- Quick ledger view that ties invoices to their payments
+-- Show invoice ledger view with allocations applied
 SELECT
   i.invoice_number,
   i.amount_with_vat,
   i.amount_without_vat,
-  SUM(ip.allocated_amount) AS paid_amount,
+  COALESCE(SUM(ip.allocated_amount), 0) AS paid_amount,
   i.updated_at
 FROM public.invoices i
 LEFT JOIN public.invoice_payments ip ON ip.invoice_id = i.id
-GROUP BY i.id
-ORDER BY i.invoice_date DESC;
+WHERE i.invoice_number = 'INV-2025-0001'
+GROUP BY i.id;
 
--- Remove an unused contractor type via the safety-checked helper
-WITH temp_type AS (
-  INSERT INTO public.contractor_types (code, name)
-  VALUES ('temp-type', 'Temporary type')
-  ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name
-  RETURNING id
+-- Create a material request; update_material_requests_updated_at() maintains timestamps
+INSERT INTO public.material_requests (
+  request_number,
+  request_date,
+  created_by
 )
-SELECT public.delete_contractor_type((SELECT id FROM temp_type));
+VALUES (
+  'MR-2025-0005',
+  CURRENT_DATE,
+  '00000000-0000-0000-0000-000000000001'
+)
+ON CONFLICT (request_number) DO UPDATE SET request_date = EXCLUDED.request_date
+RETURNING id, total_items, updated_at;
 
--- Clean up a project along with user assignments
-SELECT public.delete_project(p.id)
-FROM public.projects p
-WHERE p.code = 'DEMO-PROJECT';
+-- Add items: update_material_request_items_count() recalculates total_items after insert
+WITH req AS (
+  SELECT id FROM public.material_requests WHERE request_number = 'MR-2025-0005'
+)
+INSERT INTO public.material_request_items (
+  material_request_id,
+  material_name,
+  unit,
+  quantity,
+  sort_order
+)
+VALUES
+  ((SELECT id FROM req), 'Cable tray 50mm', 'pcs', 40, 1),
+  ((SELECT id FROM req), 'Mounting brackets', 'pcs', 80, 2)
+ON CONFLICT DO NOTHING;
+
+-- Verify the trigger kept the parent counter in sync
+SELECT request_number, total_items
+FROM public.material_requests
+WHERE request_number = 'MR-2025-0005';
 `;
 }
-
 function buildFunctionSignature(fn) {
   const args = fn.arguments ? `(${fn.arguments})` : '()';
   return `${fn.schema}.${fn.name}${args}`;

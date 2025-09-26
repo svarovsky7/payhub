@@ -22,17 +22,17 @@
   {
     "function": "public.update_material_request_items_count()",
     "returns": "trigger",
-    "summary": ""
+    "summary": "Keeps material_requests.total_items in sync with child records."
   },
   {
     "function": "public.update_material_requests_updated_at()",
     "returns": "trigger",
-    "summary": ""
+    "summary": "Refreshes updated_at on material_requests before changes commit."
   },
   {
     "function": "public.update_updated_at()",
     "returns": "trigger",
-    "summary": ""
+    "summary": "Generic BEFORE UPDATE helper that sets NEW.updated_at to the current timestamp."
   },
   {
     "function": "public.update_updated_at_column()",

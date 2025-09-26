@@ -291,29 +291,6 @@ export async function deleteMaterialRequestItem(itemId: string): Promise<void> {
   }
 }
 
-// Load material requests linked to invoice
-export async function loadMaterialRequestsByInvoice(
-  invoiceId: string
-): Promise<MaterialRequest[]> {
-  console.log('[materialRequestOperations.loadMaterialRequestsByInvoice] Loading for invoice:', invoiceId)
-
-  try {
-    // First get the invoice to find linked material request
-    const { data: invoice, error: invoiceError } = await supabase
-      .from('invoices')
-      .select('material_request_id')
-      .eq('id', invoiceId)
-      .single()
-
-    if (invoiceError) throw invoiceError
-    if (!invoice?.material_request_id) return []
-
-    return [await loadMaterialRequest(invoice.material_request_id)]
-  } catch (error: any) {
-    console.error('[materialRequestOperations.loadMaterialRequestsByInvoice] Error:', error)
-    throw new Error(error.message || 'Ошибка загрузки заявок для счета')
-  }
-}
 
 // Generate next request number
 export async function generateRequestNumber(): Promise<string> {
