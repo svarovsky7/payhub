@@ -13,6 +13,7 @@ import {
 import { ContractsTable } from '../components/contracts/ContractsTable'
 import { ContractViewModal } from '../components/contracts/ContractViewModal'
 import { AddContractModal } from '../components/contracts/AddContractModal'
+import { EditContractModal } from '../components/contracts/EditContractModal'
 
 const { Title } = Typography
 
@@ -25,7 +26,9 @@ export const ContractsPage = () => {
   const [loading, setLoading] = useState(false)
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false)
   const [addModalVisible, setAddModalVisible] = useState(false)
+  const [editModalVisible, setEditModalVisible] = useState(false)
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null)
+  const [editingContract, setEditingContract] = useState<Contract | null>(null)
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([])
 
   // Load data
@@ -44,6 +47,10 @@ export const ContractsPage = () => {
   }
 
   // Contract handlers
+  const handleEdit = (contract: Contract) => {
+    setEditingContract(contract)
+    setEditModalVisible(true)
+  }
 
   const handleDelete = async (id: string) => {
     try {
@@ -91,6 +98,7 @@ export const ContractsPage = () => {
           contracts={contracts}
           loading={loading}
           onDelete={handleDelete}
+          onEdit={handleEdit}
           onAddInvoice={handleAddInvoice}
           expandedRowKeys={expandedRowKeys}
           onExpandedRowsChange={setExpandedRowKeys}
@@ -110,6 +118,16 @@ export const ContractsPage = () => {
       <AddContractModal
         visible={addModalVisible}
         onCancel={() => setAddModalVisible(false)}
+        onSuccess={loadData}
+      />
+
+      <EditContractModal
+        visible={editModalVisible}
+        contract={editingContract}
+        onCancel={() => {
+          setEditModalVisible(false)
+          setEditingContract(null)
+        }}
         onSuccess={loadData}
       />
     </div>

@@ -16,7 +16,6 @@ import { InvoiceContractorFields } from './InvoiceForm/InvoiceContractorFields'
 import { InvoiceAmountFields } from './InvoiceForm/InvoiceAmountFields'
 import { InvoiceFileUpload } from './InvoiceForm/InvoiceFileUpload'
 import { InvoiceDeliveryFields } from './InvoiceForm/InvoiceDeliveryFields'
-import { InvoiceCommentsField } from './InvoiceForm/InvoiceCommentsField'
 import { InvoiceStatusField } from './InvoiceForm/InvoiceStatusField'
 
 dayjs.locale('ru')
@@ -260,7 +259,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         />
 
         {/* Comments Field */}
-        <InvoiceCommentsField />
 
         {/* Status Field (only for editing) */}
         {editingInvoice && (

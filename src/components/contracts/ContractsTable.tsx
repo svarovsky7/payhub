@@ -1,6 +1,6 @@
 import React from 'react'
 import { Table, Button, Space, Tooltip, Popconfirm, Tag, Typography } from 'antd'
-import { DeleteOutlined, LinkOutlined } from '@ant-design/icons'
+import { DeleteOutlined, LinkOutlined, EditOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import type { Contract } from '../../services/contractOperations'
@@ -12,6 +12,7 @@ interface ContractsTableProps {
   contracts: Contract[]
   loading: boolean
   onDelete: (id: string) => void
+  onEdit: (contract: Contract) => void
   onAddInvoice: (contract: Contract) => void
   expandedRowKeys: string[]
   onExpandedRowsChange: (keys: string[]) => void
@@ -22,6 +23,7 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
   contracts,
   loading,
   onDelete,
+  onEdit,
   onAddInvoice,
   expandedRowKeys,
   onExpandedRowsChange,
@@ -109,6 +111,13 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
       key: 'actions',
       render: (_, record) => (
         <Space>
+          <Tooltip title="Редактировать">
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => onEdit(record)}
+              size="small"
+            />
+          </Tooltip>
           <Tooltip title="Привязать счет">
             <Button
               icon={<LinkOutlined />}

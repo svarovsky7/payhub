@@ -14,7 +14,8 @@ import {
   Typography,
   Image,
   Space,
-  Tag
+  Tag,
+  List
 } from 'antd'
 import {
   UploadOutlined,
@@ -29,7 +30,7 @@ import {
 import dayjs from 'dayjs'
 import type { UploadFile, RcFile } from 'antd/es/upload'
 import { supabase } from '../../lib/supabase'
-import { loadContractors, loadContractStatuses } from '../../services/contractOperations'
+import { loadContractors, loadContractStatuses, loadProjects, generateContractNumber } from '../../services/contractOperations'
 
 const { TextArea } = Input
 const { Text } = Typography
@@ -52,6 +53,13 @@ interface ContractStatus {
   color?: string
 }
 
+interface Project {
+  id: number
+  code?: string
+  name: string
+  is_active: boolean
+}
+
 export const AddContractModal: React.FC<AddContractModalProps> = ({
   visible,
   onCancel,
@@ -61,9 +69,12 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [contractors, setContractors] = useState<ContractorOption[]>([])
   const [contractStatuses, setContractStatuses] = useState<ContractStatus[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [previewImage, setPreviewImage] = useState<string>('')
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewType, setPreviewType] = useState<'image' | 'pdf'>('image')
+  const [generatingNumber, setGeneratingNumber] = useState(false)
 
   useEffect(() => {
     if (visible) {
@@ -84,10 +95,14 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
       const statusesData = await loadContractStatuses()
       setContractStatuses(statusesData)
 
+      // Загружаем проекты
+      const projectsData = await loadProjects()
+      setProjects(projectsData)
+
       // Устанавливаем статус по умолчанию
-      const draftStatus = statusesData.find(s => s.code === 'draft')
-      if (draftStatus) {
-        form.setFieldsValue({ statusId: draftStatus.id })
+      const activeStatus = statusesData.find(s => s.code === 'active' || s.id === 2)
+      if (activeStatus) {
+        form.setFieldsValue({ statusId: activeStatus.id })
       }
     } catch (error) {
       console.error('[AddContractModal.loadInitialData] Error:', error)
@@ -113,14 +128,25 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
   }
 
   const handlePreview = async (file: UploadFile) => {
-    if (!file.url && !file.preview) {
-      if (file.originFileObj) {
-        const preview = await getBase64(file.originFileObj as RcFile)
-        setPreviewImage(preview)
+    console.log('[AddContractModal.handlePreview] Previewing file:', file.name)
+
+    if (file.originFileObj) {
+      const fileName = file.name.toLowerCase()
+      const isPdf = fileName.endsWith('.pdf')
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp'].some(ext => fileName.endsWith(`.${ext}`))
+
+      if (isPdf || isImage) {
+        // Create blob URL for preview
+        const url = URL.createObjectURL(file.originFileObj)
+        setPreviewImage(url)
+        setPreviewType(isPdf ? 'pdf' : 'image')
         setPreviewOpen(true)
+      } else {
+        message.info('Предпросмотр доступен только для изображений и PDF файлов')
       }
-    } else {
+    } else if (file.url || file.preview) {
       setPreviewImage(file.url || file.preview || '')
+      setPreviewType('image')
       setPreviewOpen(true)
     }
   }
@@ -140,6 +166,18 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
       return false
     }
     return false // Prevent automatic upload
+  }
+
+  const handleGenerateNumber = async () => {
+    setGeneratingNumber(true)
+    try {
+      const generatedNumber = await generateContractNumber()
+      form.setFieldsValue({ contractNumber: generatedNumber })
+    } catch (error) {
+      console.error('[AddContractModal.handleGenerateNumber] Error:', error)
+    } finally {
+      setGeneratingNumber(false)
+    }
   }
 
   const handleSubmit = async () => {
@@ -164,9 +202,11 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
           status_id: values.statusId,
           supplier_id: values.supplierId,
           payer_id: values.payerId,
+          project_id: values.projectId,
           vat_rate: values.vatRate || 20,
           payment_terms: values.paymentTerms,
           advance_percentage: values.advancePercentage || 0,
+          warranty_period_days: values.warrantyPeriodDays,
           description: values.description,
           created_by: user.id
         })
@@ -236,12 +276,6 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
     }
   }
 
-  const uploadButton = (
-    <Button icon={<UploadOutlined />}>
-      Загрузить файлы
-    </Button>
-  )
-
   return (
     <>
       <Modal
@@ -269,7 +303,21 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
                 label="Номер договора"
                 rules={[{ required: true, message: 'Введите номер договора' }]}
               >
-                <Input placeholder="Например: 2024-001" />
+                <Input
+                  placeholder="Например: Д-09/25-001"
+                  autoComplete="off"
+                  disabled={generatingNumber}
+                  addonAfter={
+                    <Button
+                      size="small"
+                      type="link"
+                      onClick={handleGenerateNumber}
+                      loading={generatingNumber}
+                    >
+                      Сгенерировать
+                    </Button>
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -381,6 +429,41 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
                 />
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="warrantyPeriodDays"
+                label="Гарантийный срок (дней)"
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  max={3650}
+                  placeholder="365"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="projectId"
+                label="Проект"
+              >
+                <Select
+                  placeholder="Выберите проект"
+                  allowClear
+                  showSearch
+                  options={projects.map(p => ({
+                    value: p.id,
+                    label: p.name
+                  }))}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                />
+              </Form.Item>
+            </Col>
           </Row>
 
           <Form.Item
@@ -395,52 +478,58 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
 
           <Form.Item label="Файлы договора">
             <Upload
-              listType="picture-card"
               fileList={fileList}
               onPreview={handlePreview}
               onChange={({ fileList }) => setFileList(fileList)}
               beforeUpload={beforeUpload}
               multiple
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true
+              }}
               itemRender={(originNode, file) => (
-                <div style={{ position: 'relative' }}>
-                  <div style={{
-                    padding: '8px',
-                    textAlign: 'center',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                  }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>
-                      {getFileIcon(file.name)}
-                    </div>
-                    <Text ellipsis style={{ maxWidth: '80px', fontSize: 11 }}>
-                      {file.name}
-                    </Text>
-                  </div>
-                  <Space style={{ position: 'absolute', top: 4, right: 4 }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '4px 0',
+                  borderBottom: '1px solid #f0f0f0'
+                }}>
+                  <Space style={{ flex: 1 }}>
+                    {getFileIcon(file.name)}
+                    <span>{file.name}</span>
+                    <span style={{ color: '#999', fontSize: '12px' }}>
+                      ({(file.size || 0) / 1024 < 1024
+                        ? `${Math.round((file.size || 0) / 1024)} KB`
+                        : `${Math.round((file.size || 0) / 1024 / 1024 * 10) / 10} MB`})
+                    </span>
+                  </Space>
+                  <Space size="small">
                     <Button
-                      size="small"
                       icon={<EyeOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handlePreview(file)
-                      }}
+                      size="small"
+                      type="text"
+                      onClick={() => handlePreview(file)}
+                      title="Просмотр"
                     />
                     <Button
-                      size="small"
-                      danger
                       icon={<DeleteOutlined />}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFileList(fileList.filter(f => f.uid !== file.uid))
+                      size="small"
+                      type="text"
+                      danger
+                      onClick={() => {
+                        const newFileList = fileList.filter(f => f.uid !== file.uid)
+                        setFileList(newFileList)
                       }}
+                      title="Удалить"
                     />
                   </Space>
                 </div>
               )}
             >
-              {fileList.length >= 8 ? null : uploadButton}
+              <Button icon={<UploadOutlined />}>
+                Загрузить файлы
+              </Button>
             </Upload>
           </Form.Item>
         </Form>
@@ -450,14 +539,34 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
         open={previewOpen}
         title="Просмотр файла"
         footer={null}
-        onCancel={() => setPreviewOpen(false)}
+        onCancel={() => {
+          setPreviewOpen(false)
+          // Clean up blob URL
+          if (previewImage.startsWith('blob:')) {
+            URL.revokeObjectURL(previewImage)
+          }
+        }}
+        width={800}
+        styles={{
+          body: { height: '600px', overflow: 'auto' }
+        }}
       >
-        <Image
-          alt="preview"
-          style={{ width: '100%' }}
-          src={previewImage}
-          fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRklEQVR42u3SMQ0AAAzDsJU/6yGFfyFpIJHQK7mlL0kgCQIBgUBAICAQCAgEAgKBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEDAJhYAAADnbvnLfwAAAABJRU5ErkJggg=="
-        />
+        {previewType === 'image' ? (
+          <Image
+            alt="preview"
+            style={{ width: '100%' }}
+            src={previewImage}
+            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRklEQVR42u3SMQ0AAAzDsJU/6yGFfyFpIJHQK7mlL0kgCQIBgUBAICAQCAgEAgKBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEDAJhYAAADnbvnLfwAAAABJRU5ErkJggg=="
+          />
+        ) : (
+          <embed
+            src={previewImage}
+            type="application/pdf"
+            width="100%"
+            height="600px"
+            style={{ border: 'none' }}
+          />
+        )}
       </Modal>
     </>
   )

@@ -82,6 +82,23 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
             </Text>
           </Form.Item>
         </Col>
+        <Col span={8}>
+          <Form.Item
+            name="delivery_cost"
+            label="Стоимость доставки"
+            initialValue={0}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+              }
+              parser={(value) => value?.replace(/\s?/g, '') as any}
+              addonAfter="₽"
+            />
+          </Form.Item>
+        </Col>
       </Row>
     </>
   )

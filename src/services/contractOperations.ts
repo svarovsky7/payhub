@@ -49,6 +49,17 @@ export interface ContractStatus {
   sort_order?: number
 }
 
+export interface Project {
+  id: number
+  code?: string
+  name: string
+  description?: string
+  is_active: boolean
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
 
 // Load contracts with related data
 export const loadContracts = async () => {
@@ -282,6 +293,28 @@ export const loadContractStatuses = async (): Promise<ContractStatus[]> => {
   }
 }
 
+// Load projects for selection
+export const loadProjects = async (): Promise<Project[]> => {
+  console.log('[ContractOperations.loadProjects] Loading projects')
+
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('is_active', true)
+      .order('name', { ascending: true })
+
+    if (error) throw error
+
+    console.log('[ContractOperations.loadProjects] Loaded projects:', data?.length || 0)
+    return data || []
+  } catch (error) {
+    console.error('[ContractOperations.loadProjects] Error:', error)
+    message.error('Ошибка загрузки проектов')
+    return []
+  }
+}
+
 // Create contract status
 export const createContractStatus = async (status: Omit<ContractStatus, 'id'>) => {
   console.log('[ContractOperations.createContractStatus] Creating status:', status)
@@ -331,6 +364,50 @@ export const updateContractStatus = async (id: number, updates: Partial<Contract
     } else {
       message.error('Ошибка обновления статуса договора')
     }
+    throw error
+  }
+}
+
+// Generate contract number
+export const generateContractNumber = async (): Promise<string> => {
+  console.log('[ContractOperations.generateContractNumber] Generating contract number')
+
+  try {
+    const now = new Date()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const year = String(now.getFullYear()).slice(-2)
+    const prefix = `Д-${month}/${year}-`
+
+    // Get the latest contract number for current month/year
+    const { data, error } = await supabase
+      .from('contracts')
+      .select('contract_number')
+      .like('contract_number', `${prefix}%`)
+      .order('contract_number', { ascending: false })
+      .limit(1)
+
+    if (error) throw error
+
+    if (!data || data.length === 0) {
+      return `${prefix}001`
+    }
+
+    // Extract the sequence number from the latest contract
+    const latestNumber = data[0].contract_number
+    const match = latestNumber.match(/(\d{3})$/)
+
+    if (!match) {
+      return `${prefix}001`
+    }
+
+    const nextSequence = (parseInt(match[1]) + 1).toString().padStart(3, '0')
+    const generatedNumber = `${prefix}${nextSequence}`
+
+    console.log('[ContractOperations.generateContractNumber] Generated number:', generatedNumber)
+    return generatedNumber
+  } catch (error) {
+    console.error('[ContractOperations.generateContractNumber] Error:', error)
+    message.error('Ошибка генерации номера договора')
     throw error
   }
 }

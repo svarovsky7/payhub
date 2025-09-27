@@ -73,8 +73,8 @@ export const InvoiceContractorFields: React.FC<InvoiceContractorFieldsProps> = (
         <Col span={12}>
           <Form.Item
             name="employee_id"
-            label="Ответственный сотрудник"
-            rules={[{ required: true, message: 'Выберите сотрудника' }]}
+            label="Ответственный менеджер снабжения"
+            rules={[{ required: true, message: 'Выберите менеджера снабжения' }]}
           >
             <Select
               placeholder="Выберите ответственного"

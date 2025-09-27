@@ -1,12 +1,12 @@
 {
-  "generated_at": "2025-09-27T03:23:27.561Z",
+  "generated_at": "2025-09-27T04:26:35.672Z",
   "source_hashes": {
     "supabase/exports/tables.json": "d541260cabe1ad8333ce939523d251b39ee7a97b17b24884429b92e6f861d701",
     "supabase/exports/indexes.json": "1924fc02cc02278e2254f6dcd6dd56dd473199e0dab6fe77c0b92e575db689c9",
     "supabase/exports/triggers.json": "0ea69f72f577c06409fcb42f81f29441f05a5377f16d554582830eb9400a6e7d",
     "supabase/exports/functions.json": "6eadcd7b068233e88d9dc37a490a5703929eca4c53ffe9f9bc66c066c43096b5",
     "supabase/exports/enums.json": "b279269c34c179cd6f5d88d3653730ad5d8731c76d3fb835f115072d297c9f4f",
-    "supabase/migrations/prod.sql": "98eb52e813615ee7bb9cf28491ab3f407708dd41bac39e29aa83b4dc64d7b54c"
+    "supabase/migrations/prod.sql": "a219a5b43479f7ef0ee5b89b2c67ecf25fffe03be3df3c551e60837cfd5fafe7"
   },
   "generator": "scripts/generate-ai-context.cjs"
 }

@@ -65,7 +65,7 @@ export const InvoiceDeliveryFields: React.FC<InvoiceDeliveryFieldsProps> = ({
         <Col span={12}>
           <Form.Item
             name="payment_deadline_date"
-            label="Срок оплаты"
+            label="Конечная дата актуальности счета"
           >
             <DatePicker
               style={{ width: '100%' }}
