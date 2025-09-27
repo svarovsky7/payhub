@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Form, Modal, Button, Space, message } from 'antd'
+import { Form, Modal, Button, Space, message, Select, Row, Col } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadProps } from 'antd'
 import type { Dayjs } from 'dayjs'
@@ -12,6 +12,8 @@ import { loadInvoiceAttachments } from './AttachmentOperations'
 import { InvoiceBasicFields } from './InvoiceForm/InvoiceBasicFields'
 import { InvoiceReferenceFields } from './InvoiceForm/InvoiceReferenceFields'
 import { InvoiceContractorFields } from './InvoiceForm/InvoiceContractorFields'
+import { InvoiceContractProjectFields } from './InvoiceForm/InvoiceContractProjectFields'
+import { InvoiceContractorFieldsEnhanced } from './InvoiceForm/InvoiceContractorFieldsEnhanced'
 import { InvoiceAmountFields } from './InvoiceForm/InvoiceAmountFields'
 import { InvoiceFileUpload } from './InvoiceForm/InvoiceFileUpload'
 import { InvoiceDeliveryFields } from './InvoiceForm/InvoiceDeliveryFields'
@@ -89,6 +91,8 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   const [originalFiles, setOriginalFiles] = useState<UploadFile[]>([])
   const [existingAttachments, setExistingAttachments] = useState<any[]>([])
   const [uploadingFile, setUploadingFile] = useState(false)
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isVisible) {
@@ -96,8 +100,17 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       setFileDescriptions({})
       setOriginalFiles([])
       setExistingAttachments([])
+      setSelectedProjectId(null)
+      setSelectedContractId(null)
     } else if (editingInvoice?.id) {
       loadExistingFiles()
+      // Устанавливаем выбранные значения при редактировании
+      if (editingInvoice.project_id) {
+        setSelectedProjectId(editingInvoice.project_id)
+      }
+      if (editingInvoice.contract_id) {
+        setSelectedContractId(editingInvoice.contract_id)
+      }
     }
   }, [isVisible, editingInvoice])
 
@@ -242,21 +255,55 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           form={form}
         />
 
-        {/* Reference Fields */}
-        <InvoiceReferenceFields
-          contracts={contracts}
-          materialRequests={materialRequests}
-          onContractSelect={onContractSelect || (() => {})}
+        {/* Project and Contract Fields with Dependencies */}
+        <InvoiceContractProjectFields
+          contracts={contracts || []}
+          projects={projects}
+          form={form}
+          onContractSelect={(contractId) => {
+            setSelectedContractId(contractId)
+            if (onContractSelect) onContractSelect(contractId)
+          }}
+          onProjectSelect={(projectId) => {
+            setSelectedProjectId(projectId)
+          }}
         />
 
-        {/* Contractor Fields */}
-        <InvoiceContractorFields
+        {/* Contractor Fields with Filtering */}
+        <InvoiceContractorFieldsEnhanced
           contractors={payers}
-          projects={projects}
           employees={employees}
           form={form}
           isNewInvoice={!editingInvoice}
+          selectedProjectId={selectedProjectId}
+          selectedContractId={selectedContractId}
+          contracts={contracts || []}
         />
+
+        {/* Material Request Field */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="material_request_id"
+              label="Заявка на материалы"
+            >
+              <Select
+                placeholder="Выберите заявку на материалы"
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={materialRequests.map((request) => ({
+                  value: request.id,
+                  label: `${request.request_number} от ${request.request_date ?
+                    new Date(request.request_date).toLocaleDateString('ru-RU') : 'без даты'}`,
+                }))}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            {/* Пустая колонка для баланса */}
+          </Col>
+        </Row>
 
         {/* Amount Fields */}
         <InvoiceAmountFields

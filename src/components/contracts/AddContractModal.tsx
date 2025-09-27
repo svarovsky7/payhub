@@ -370,12 +370,12 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="supplierId"
-                label="Поставщик"
-                rules={[{ required: true, message: 'Выберите поставщика' }]}
+                name="payerId"
+                label="Покупатель"
+                rules={[{ required: true, message: 'Выберите покупателя' }]}
               >
                 <Select
-                  placeholder="Выберите поставщика"
+                  placeholder="Выберите покупателя"
                   options={contractors}
                   showSearch
                   filterOption={(input, option) =>
@@ -386,12 +386,12 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
             </Col>
             <Col span={12}>
               <Form.Item
-                name="payerId"
-                label="Покупатель"
-                rules={[{ required: true, message: 'Выберите покупателя' }]}
+                name="supplierId"
+                label="Поставщик"
+                rules={[{ required: true, message: 'Выберите поставщика' }]}
               >
                 <Select
-                  placeholder="Выберите покупателя"
+                  placeholder="Выберите поставщика"
                   options={contractors}
                   showSearch
                   filterOption={(input, option) =>

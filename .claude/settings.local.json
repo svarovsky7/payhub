@@ -71,7 +71,11 @@
       "Bash(npm test:*)",
       "Bash(awk:*)",
       "Bash(do echo \"$file:\")",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(gh pr create:*)",
+      "Bash(knip:*)",
+      "Bash(depcheck:*)",
+      "Bash(tsc --noEmit)"
     ]
   },
   "enableAllProjectMcpServers": true,

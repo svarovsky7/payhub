@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react'
 import { Table, Space, Button, Modal, Form, Input, Select, message, App } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { supabase, type Contractor, type ContractorType } from '../../lib/supabase'
+import { supabase, type Contractor } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
 export const ContractorsTab = () => {
   const { message: messageApi, modal } = App.useApp()
   const [contractors, setContractors] = useState<Contractor[]>([])
-  const [contractorTypes, setContractorTypes] = useState<ContractorType[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingContractor, setEditingContractor] = useState<Contractor | null>(null)
@@ -17,7 +16,6 @@ export const ContractorsTab = () => {
 
   useEffect(() => {
     loadContractors()
-    loadContractorTypes()
   }, [])
 
   const loadContractors = async () => {
@@ -39,19 +37,6 @@ export const ContractorsTab = () => {
     }
   }
 
-  const loadContractorTypes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('contractor_types')
-        .select('*')
-        .order('name')
-
-      if (error) throw error
-      setContractorTypes(data || [])
-    } catch (error) {
-      console.error('[ContractorsTab.loadContractorTypes] Error:', error)
-    }
-  }
 
   const handleCreate = () => {
     setEditingContractor(null)
@@ -164,10 +149,6 @@ export const ContractorsTab = () => {
     form.validateFields(['name'])
   }
 
-  const getTypeName = (typeId: number) => {
-    const type = contractorTypes.find(t => t.id === typeId)
-    return type?.name || 'Неизвестный'
-  }
 
   const columns: ColumnsType<Contractor> = [
     {
@@ -179,12 +160,6 @@ export const ContractorsTab = () => {
       title: 'ИНН',
       dataIndex: 'inn',
       key: 'inn'
-    },
-    {
-      title: 'Тип',
-      dataIndex: 'type_id',
-      key: 'type_id',
-      render: (typeId) => getTypeName(typeId)
     },
     {
       title: 'Дата создания',
@@ -276,20 +251,6 @@ export const ContractorsTab = () => {
             </div>
           </Form.Item>
 
-
-          <Form.Item
-            name="type_id"
-            label="Тип контрагента"
-            rules={[{ required: true, message: 'Выберите тип контрагента' }]}
-          >
-            <Select placeholder="Выберите тип">
-              {contractorTypes.map(type => (
-                <Select.Option key={type.id} value={type.id}>
-                  {type.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
 
           <Form.Item
             name="inn"

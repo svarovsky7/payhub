@@ -26,16 +26,6 @@
     "events": [
       "UPDATE"
     ],
-    "function": "public.update_contract_statuses_updated_at()",
-    "purpose": ""
-  },
-  {
-    "trigger": "public.update_contractor_types_updated_at",
-    "table": "public.contractor_types",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
     "function": "public.update_updated_at_column()",
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
@@ -116,8 +106,8 @@
     "events": [
       "UPDATE"
     ],
-    "function": "public.update_updated_at()",
-    "purpose": "Generic BEFORE UPDATE helper that sets NEW.updated_at to the current timestamp."
+    "function": "public.update_updated_at_column()",
+    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
     "trigger": "public.update_material_request_items_count_trigger",
@@ -137,8 +127,8 @@
     "events": [
       "UPDATE"
     ],
-    "function": "public.update_material_requests_updated_at()",
-    "purpose": "Refreshes updated_at on material_requests before changes commit."
+    "function": "public.update_updated_at_column()",
+    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
     "trigger": "public.update_payment_approvals_updated_at",

@@ -1,9 +1,14 @@
-import { supabase } from '../lib/supabase'
+import { supabase, Contractor, Project } from '../lib/supabase'
 import { message } from 'antd'
 
-
-
-
+export interface ContractStatus {
+  id: number
+  code: string
+  name: string
+  color?: string
+  description?: string
+  sort_order?: number
+}
 
 export interface Contract {
   id: string
@@ -27,37 +32,6 @@ export interface Contract {
   status?: ContractStatus
   payment_terms?: string
   advance_percentage?: number
-}
-
-export interface Contractor {
-  id: number
-  name: string
-  inn: string
-  kpp?: string
-  ogrn?: string
-  address?: string
-  is_supplier?: boolean
-  is_payer?: boolean
-}
-
-export interface ContractStatus {
-  id: number
-  code: string
-  name: string
-  color?: string
-  description?: string
-  sort_order?: number
-}
-
-export interface Project {
-  id: number
-  code?: string
-  name: string
-  description?: string
-  is_active: boolean
-  created_by?: string
-  created_at: string
-  updated_at: string
 }
 
 

@@ -622,103 +622,6 @@
         "events": [
           "UPDATE"
         ],
-        "function": "public.update_contract_statuses_updated_at()"
-      }
-    ]
-  },
-  {
-    "table": "public.contractor_types",
-    "summary": "Reference list of contractor categories.",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "pk": true,
-        "default": "nextval('contractor_types_id_seq'::regclass)",
-        "description": "Primary key of the contractor type."
-      },
-      {
-        "name": "code",
-        "type": "varchar(50)",
-        "nullable": false,
-        "description": "Unique code used to identify the contractor type."
-      },
-      {
-        "name": "name",
-        "type": "varchar(255)",
-        "nullable": false,
-        "description": "Human readable contractor type name."
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true,
-        "description": "Optional explanation of when to use the contractor type."
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the contractor type was created."
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the contractor type was last updated."
-      }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "contractor_types_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_18391_1_not_null"
-        },
-        {
-          "name": "2200_18391_2_not_null"
-        },
-        {
-          "name": "2200_18391_3_not_null"
-        }
-      ]
-    },
-    "indexes": [
-      {
-        "name": "contractor_types_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contractor_types_code",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_contractor_types_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
         "function": "public.update_updated_at_column()"
       }
     ]
@@ -734,13 +637,6 @@
         "pk": true,
         "default": "nextval('contractors_id_seq'::regclass)",
         "description": "Primary key of the contractor."
-      },
-      {
-        "name": "type_id",
-        "type": "integer",
-        "nullable": false,
-        "fk": "public.contractor_types.id",
-        "description": "Contractor type (public.contractor_types.id)."
       },
       {
         "name": "name",
@@ -782,11 +678,6 @@
       ],
       "foreign_keys": [
         {
-          "column": "type_id",
-          "references": "public.contractor_types.id",
-          "description": "Contractor type (public.contractor_types.id)."
-        },
-        {
           "column": "created_by",
           "references": "auth.users.id",
           "description": "User (auth.users.id) who created the contractor record."
@@ -803,9 +694,6 @@
       "checks": [
         {
           "name": "2200_18404_1_not_null"
-        },
-        {
-          "name": "2200_18404_2_not_null"
         },
         {
           "name": "2200_18404_3_not_null"
@@ -828,9 +716,9 @@
         "unique": false
       },
       {
-        "name": "idx_contractors_type_id",
+        "name": "idx_contractors_updated_at",
         "columns": [
-          "type_id"
+          "updated_at DESC"
         ],
         "unique": false
       }
@@ -1023,6 +911,13 @@
         "name": "idx_contracts_supplier_id",
         "columns": [
           "supplier_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_contracts_updated_at",
+        "columns": [
+          "updated_at DESC"
         ],
         "unique": false
       }
@@ -2009,6 +1904,13 @@
         "unique": false
       },
       {
+        "name": "idx_invoices_updated_at",
+        "columns": [
+          "updated_at DESC"
+        ],
+        "unique": false
+      },
+      {
         "name": "idx_invoices_user_id",
         "columns": [
           "user_id"
@@ -2127,7 +2029,7 @@
         "events": [
           "UPDATE"
         ],
-        "function": "public.update_updated_at()"
+        "function": "public.update_updated_at_column()"
       }
     ]
   },
@@ -2347,7 +2249,7 @@
         "events": [
           "UPDATE"
         ],
-        "function": "public.update_material_requests_updated_at()"
+        "function": "public.update_updated_at_column()"
       }
     ]
   },
@@ -2939,6 +2841,13 @@
         "name": "idx_payments_status_id",
         "columns": [
           "status_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_payments_updated_at",
+        "columns": [
+          "updated_at DESC"
         ],
         "unique": false
       },

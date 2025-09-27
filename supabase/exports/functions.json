@@ -34,19 +34,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.algorithm_sign(signables text, secret text, algorithm text)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\nAS $function$\nWITH\n  alg AS (\n    SELECT CASE\n      WHEN algorithm = 'HS256' THEN 'sha256'\n      WHEN algorithm = 'HS384' THEN 'sha384'\n      WHEN algorithm = 'HS512' THEN 'sha512'\n      ELSE '' END AS id)  -- hmac throws error\nSELECT extensions.url_encode(extensions.hmac(signables, secret, alg.id)) FROM alg;\n$function$\n"
   },
-  "extensions.armor(bytea, text[], text[])": {
-    "schema": "extensions",
-    "name": "armor",
-    "arguments": "bytea, text[], text[]",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
-  },
   "extensions.armor(bytea)": {
     "schema": "extensions",
     "name": "armor",
     "arguments": "bytea",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
+  },
+  "extensions.armor(bytea, text[], text[])": {
+    "schema": "extensions",
+    "name": "armor",
+    "arguments": "bytea, text[], text[]",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
   },
   "extensions.crypt(text, text)": {
     "schema": "extensions",
@@ -118,19 +118,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.gen_random_uuid()\n RETURNS uuid\n LANGUAGE c\n PARALLEL SAFE\nAS '$libdir/pgcrypto', $function$pg_random_uuid$function$\n"
   },
-  "extensions.gen_salt(text)": {
-    "schema": "extensions",
-    "name": "gen_salt",
-    "arguments": "text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt$function$\n"
-  },
   "extensions.gen_salt(text, integer)": {
     "schema": "extensions",
     "name": "gen_salt",
     "arguments": "text, integer",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$\n"
+  },
+  "extensions.gen_salt(text)": {
+    "schema": "extensions",
+    "name": "gen_salt",
+    "arguments": "text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt$function$\n"
   },
   "extensions.grant_pg_cron_access()": {
     "schema": "extensions",
@@ -202,6 +202,13 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_key_id(bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_key_id_w$function$\n"
   },
+  "extensions.pgp_pub_decrypt(bytea, bytea, text)": {
+    "schema": "extensions",
+    "name": "pgp_pub_decrypt",
+    "arguments": "bytea, bytea, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
+  },
   "extensions.pgp_pub_decrypt(bytea, bytea)": {
     "schema": "extensions",
     "name": "pgp_pub_decrypt",
@@ -216,26 +223,12 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
   },
-  "extensions.pgp_pub_decrypt(bytea, bytea, text)": {
-    "schema": "extensions",
-    "name": "pgp_pub_decrypt",
-    "arguments": "bytea, bytea, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
-  },
   "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)": {
     "schema": "extensions",
     "name": "pgp_pub_decrypt_bytea",
     "arguments": "bytea, bytea, text, text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$\n"
-  },
-  "extensions.pgp_pub_decrypt_bytea(bytea, bytea)": {
-    "schema": "extensions",
-    "name": "pgp_pub_decrypt_bytea",
-    "arguments": "bytea, bytea",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$\n"
   },
   "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)": {
     "schema": "extensions",
@@ -244,12 +237,12 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$\n"
   },
-  "extensions.pgp_pub_encrypt(text, bytea)": {
+  "extensions.pgp_pub_decrypt_bytea(bytea, bytea)": {
     "schema": "extensions",
-    "name": "pgp_pub_encrypt",
-    "arguments": "text, bytea",
+    "name": "pgp_pub_decrypt_bytea",
+    "arguments": "bytea, bytea",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$\n"
   },
   "extensions.pgp_pub_encrypt(text, bytea, text)": {
     "schema": "extensions",
@@ -258,12 +251,12 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$\n"
   },
-  "extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)": {
+  "extensions.pgp_pub_encrypt(text, bytea)": {
     "schema": "extensions",
-    "name": "pgp_pub_encrypt_bytea",
-    "arguments": "bytea, bytea, text",
+    "name": "pgp_pub_encrypt",
+    "arguments": "text, bytea",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$\n"
   },
   "extensions.pgp_pub_encrypt_bytea(bytea, bytea)": {
     "schema": "extensions",
@@ -271,6 +264,13 @@
     "arguments": "bytea, bytea",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$\n"
+  },
+  "extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)": {
+    "schema": "extensions",
+    "name": "pgp_pub_encrypt_bytea",
+    "arguments": "bytea, bytea, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$\n"
   },
   "extensions.pgp_sym_decrypt(bytea, text)": {
     "schema": "extensions",
@@ -314,19 +314,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$\n"
   },
-  "extensions.pgp_sym_encrypt_bytea(bytea, text, text)": {
-    "schema": "extensions",
-    "name": "pgp_sym_encrypt_bytea",
-    "arguments": "bytea, text, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$\n"
-  },
   "extensions.pgp_sym_encrypt_bytea(bytea, text)": {
     "schema": "extensions",
     "name": "pgp_sym_encrypt_bytea",
     "arguments": "bytea, text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$\n"
+  },
+  "extensions.pgp_sym_encrypt_bytea(bytea, text, text)": {
+    "schema": "extensions",
+    "name": "pgp_sym_encrypt_bytea",
+    "arguments": "bytea, text, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$\n"
   },
   "extensions.pgrst_ddl_watch()": {
     "schema": "extensions",
@@ -580,13 +580,6 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION pgbouncer.get_auth(p_usename text)\n RETURNS TABLE(username text, password text)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n    RAISE WARNING 'PgBouncer auth request: %', p_usename;\n\n    RETURN QUERY\n    SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow\n    WHERE usename = p_usename;\nEND;\n$function$\n"
   },
-  "public.delete_contractor_type(type_id_param integer)": {
-    "schema": "public",
-    "name": "delete_contractor_type",
-    "arguments": "type_id_param integer",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.delete_contractor_type(type_id_param integer)\n RETURNS json\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nDECLARE\n  contractor_count INTEGER;\n  result JSON;\nBEGIN\n  -- Проверяем есть ли контрагенты с этим типом\n  SELECT COUNT(*) INTO contractor_count\n  FROM public.contractors\n  WHERE type_id = type_id_param;\n\n  IF contractor_count > 0 THEN\n    result := json_build_object(\n      'success', false,\n      'error', 'Невозможно удалить тип, так как существуют контрагенты с этим типом',\n      'contractor_count', contractor_count\n    );\n    RETURN result;\n  END IF;\n\n  -- Удаляем тип контрагента\n  DELETE FROM public.contractor_types WHERE id = type_id_param;\n\n  IF FOUND THEN\n    result := json_build_object(\n      'success', true,\n      'message', 'Тип контрагента успешно удален'\n    );\n  ELSE\n    result := json_build_object(\n      'success', false,\n      'error', 'Тип контрагента не найден'\n    );\n  END IF;\n\n  RETURN result;\nEND;\n$function$\n"
-  },
   "public.delete_project(project_id_param integer)": {
     "schema": "public",
     "name": "delete_project",
@@ -599,42 +592,21 @@
     "name": "handle_new_user",
     "arguments": "",
     "comment": "Creates user profile with default role (user/id=4) when new auth user is created",
-    "sql": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  INSERT INTO public.user_profiles (id, email, full_name, role_id)\n  VALUES (\n    NEW.id,\n    NEW.email,\n    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),\n    4  -- Default role_id for 'user' role\n  );\n  RETURN NEW;\nEND;\n$function$\n"
-  },
-  "public.update_contract_statuses_updated_at()": {
-    "schema": "public",
-    "name": "update_contract_statuses_updated_at",
-    "arguments": "",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.update_contract_statuses_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    INSERT INTO public.user_profiles (id, email, full_name, role_id)\n    VALUES (\n        NEW.id,\n        NEW.email,\n        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),\n        1 -- Роль по умолчанию\n    );\n    RETURN NEW;\nEND;\n$function$\n"
   },
   "public.update_material_request_items_count()": {
     "schema": "public",
     "name": "update_material_request_items_count",
     "arguments": "",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.update_material_request_items_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'INSERT' OR TG_OP = 'DELETE' THEN\n        UPDATE public.material_requests\n        SET total_items = (\n            SELECT COUNT(*)\n            FROM public.material_request_items\n            WHERE material_request_id = COALESCE(NEW.material_request_id, OLD.material_request_id)\n        )\n        WHERE id = COALESCE(NEW.material_request_id, OLD.material_request_id);\n    END IF;\n    RETURN NEW;\nEND;\n$function$\n"
-  },
-  "public.update_material_requests_updated_at()": {
-    "schema": "public",
-    "name": "update_material_requests_updated_at",
-    "arguments": "",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.update_material_requests_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = now();\n    RETURN NEW;\nEND;\n$function$\n"
-  },
-  "public.update_updated_at()": {
-    "schema": "public",
-    "name": "update_updated_at",
-    "arguments": "",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.update_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = CURRENT_TIMESTAMP;\n    RETURN NEW;\nEND;\n$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION public.update_material_request_items_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'INSERT' THEN\n        UPDATE material_requests\n        SET items_count = COALESCE(items_count, 0) + 1\n        WHERE id = NEW.request_id;\n    ELSIF TG_OP = 'DELETE' THEN\n        UPDATE material_requests\n        SET items_count = GREATEST(COALESCE(items_count, 0) - 1, 0)\n        WHERE id = OLD.request_id;\n    END IF;\n    RETURN NULL;\nEND;\n$function$\n"
   },
   "public.update_updated_at_column()": {
     "schema": "public",
     "name": "update_updated_at_column",
     "arguments": "",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION public.update_updated_at_column()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = CURRENT_TIMESTAMP;\n    RETURN NEW;\nEND;\n$function$\n"
   },
   "realtime.apply_rls(wal jsonb, max_record_bytes integer)": {
     "schema": "realtime",

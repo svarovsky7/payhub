@@ -3668,116 +3668,6 @@
     ],
     "sql": "-- Справочник статусов договоров\nCREATE TABLE IF NOT EXISTS public.contract_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('contract_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    color character varying(7),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    sort_order integer(32) DEFAULT 100,\n    CONSTRAINT contract_statuses_code_key UNIQUE (code),\n    CONSTRAINT contract_statuses_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_statuses IS 'Справочник статусов договоров';\nCOMMENT ON COLUMN public.contract_statuses.code IS 'Уникальный код статуса';\nCOMMENT ON COLUMN public.contract_statuses.name IS 'Название статуса';\nCOMMENT ON COLUMN public.contract_statuses.color IS 'Цвет для отображения в интерфейсе (HEX)';\nCOMMENT ON COLUMN public.contract_statuses.sort_order IS 'Порядок сортировки статусов (меньшие значения показываются первыми)';"
   },
-  "public.contractor_types": {
-    "schema": "public",
-    "name": "contractor_types",
-    "comment": "Reference list of contractor categories.",
-    "columns": [
-      {
-        "name": "id",
-        "data_type": "integer",
-        "max_length": null,
-        "numeric_precision": 32,
-        "numeric_scale": 0,
-        "is_nullable": "NO",
-        "default": "nextval('contractor_types_id_seq'::regclass)",
-        "comment": "Primary key of the contractor type."
-      },
-      {
-        "name": "code",
-        "data_type": "character varying",
-        "max_length": 50,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": "Unique code used to identify the contractor type."
-      },
-      {
-        "name": "name",
-        "data_type": "character varying",
-        "max_length": 255,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": "Human readable contractor type name."
-      },
-      {
-        "name": "description",
-        "data_type": "text",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "YES",
-        "default": null,
-        "comment": "Optional explanation of when to use the contractor type."
-      },
-      {
-        "name": "created_at",
-        "data_type": "timestamp with time zone",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "YES",
-        "default": "now()",
-        "comment": "Timestamp when the contractor type was created."
-      },
-      {
-        "name": "updated_at",
-        "data_type": "timestamp with time zone",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "YES",
-        "default": "now()",
-        "comment": "Timestamp when the contractor type was last updated."
-      }
-    ],
-    "constraints": [
-      {
-        "name": "2200_18391_1_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "2200_18391_2_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "2200_18391_3_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "contractor_types_code_key",
-        "type": "UNIQUE",
-        "column": "code",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "contractor_types_pkey",
-        "type": "PRIMARY KEY",
-        "column": "id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      }
-    ],
-    "sql": "-- Reference list of contractor categories.\nCREATE TABLE IF NOT EXISTS public.contractor_types (\n    id integer(32) NOT NULL DEFAULT nextval('contractor_types_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractor_types_code_key UNIQUE (code),\n    CONSTRAINT contractor_types_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contractor_types IS 'Reference list of contractor categories.';\nCOMMENT ON COLUMN public.contractor_types.id IS 'Primary key of the contractor type.';\nCOMMENT ON COLUMN public.contractor_types.code IS 'Unique code used to identify the contractor type.';\nCOMMENT ON COLUMN public.contractor_types.name IS 'Human readable contractor type name.';\nCOMMENT ON COLUMN public.contractor_types.description IS 'Optional explanation of when to use the contractor type.';\nCOMMENT ON COLUMN public.contractor_types.created_at IS 'Timestamp when the contractor type was created.';\nCOMMENT ON COLUMN public.contractor_types.updated_at IS 'Timestamp when the contractor type was last updated.';"
-  },
   "public.contractors": {
     "schema": "public",
     "name": "contractors",
@@ -3792,16 +3682,6 @@
         "is_nullable": "NO",
         "default": "nextval('contractors_id_seq'::regclass)",
         "comment": "Primary key of the contractor."
-      },
-      {
-        "name": "type_id",
-        "data_type": "integer",
-        "max_length": null,
-        "numeric_precision": 32,
-        "numeric_scale": 0,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": "Contractor type (public.contractor_types.id)."
       },
       {
         "name": "name",
@@ -3864,14 +3744,6 @@
         "foreign_column": null
       },
       {
-        "name": "2200_18404_2_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "2200_18404_3_not_null",
         "type": "CHECK",
         "column": null,
@@ -3902,17 +3774,9 @@
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
-      },
-      {
-        "name": "contractors_type_id_fkey",
-        "type": "FOREIGN KEY",
-        "column": "type_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
       }
     ],
-    "sql": "-- Registry of contractors linked to invoices and projects.\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    inn character varying(12),\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id),\n    CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects.';\nCOMMENT ON COLUMN public.contractors.id IS 'Primary key of the contractor.';\nCOMMENT ON COLUMN public.contractors.type_id IS 'Contractor type (public.contractor_types.id).';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name stored for invoices.';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN) of the contractor.';\nCOMMENT ON COLUMN public.contractors.created_by IS 'User (auth.users.id) who created the contractor record.';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor record was created.';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor record was last updated.';"
+    "sql": "-- Registry of contractors linked to invoices and projects.\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    inn character varying(12),\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects.';\nCOMMENT ON COLUMN public.contractors.id IS 'Primary key of the contractor.';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name stored for invoices.';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN) of the contractor.';\nCOMMENT ON COLUMN public.contractors.created_by IS 'User (auth.users.id) who created the contractor record.';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor record was created.';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor record was last updated.';"
   },
   "public.contracts": {
     "schema": "public",

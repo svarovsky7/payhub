@@ -35,18 +35,8 @@ export type Project = {
   updated_at: string
 }
 
-export type ContractorType = {
-  id: number
-  code: string
-  name: string
-  description?: string
-  created_at: string
-  updated_at: string
-}
-
 export type Contractor = {
   id: number
-  type_id: number
   name: string
   inn?: string
   created_by?: string

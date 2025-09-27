@@ -236,42 +236,6 @@
     ]
   },
   {
-    "table": "public.contractor_types",
-    "columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "nullable": false,
-        "pk": true
-      },
-      {
-        "name": "code",
-        "type": "varchar(50)",
-        "nullable": false
-      },
-      {
-        "name": "name",
-        "type": "varchar(255)",
-        "nullable": false
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
-        "nullable": true
-      }
-    ]
-  },
-  {
     "table": "public.contractors",
     "columns": [
       {
@@ -279,12 +243,6 @@
         "type": "integer",
         "nullable": false,
         "pk": true
-      },
-      {
-        "name": "type_id",
-        "type": "integer",
-        "nullable": false,
-        "fk": "public.contractor_types.id"
       },
       {
         "name": "name",

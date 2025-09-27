@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-27T10:58:23.187315
+-- Generated: 2025-09-27T15:04:33.238561
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -478,30 +478,9 @@ COMMENT ON COLUMN public.contract_statuses.name IS 'Название стату�
 COMMENT ON COLUMN public.contract_statuses.color IS 'Цвет для отображения в интерфейсе (HEX)';
 COMMENT ON COLUMN public.contract_statuses.sort_order IS 'Порядок сортировки статусов (меньшие значения показываются первыми)';
 
--- Reference list of contractor categories.
-CREATE TABLE IF NOT EXISTS public.contractor_types (
-    id integer(32) NOT NULL DEFAULT nextval('contractor_types_id_seq'::regclass),
-    code character varying(50) NOT NULL,
-    name character varying(255) NOT NULL,
-    description text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT contractor_types_code_key UNIQUE (code),
-    CONSTRAINT contractor_types_pkey PRIMARY KEY (id)
-);
-
-COMMENT ON TABLE public.contractor_types IS 'Reference list of contractor categories.';
-COMMENT ON COLUMN public.contractor_types.id IS 'Primary key of the contractor type.';
-COMMENT ON COLUMN public.contractor_types.code IS 'Unique code used to identify the contractor type.';
-COMMENT ON COLUMN public.contractor_types.name IS 'Human readable contractor type name.';
-COMMENT ON COLUMN public.contractor_types.description IS 'Optional explanation of when to use the contractor type.';
-COMMENT ON COLUMN public.contractor_types.created_at IS 'Timestamp when the contractor type was created.';
-COMMENT ON COLUMN public.contractor_types.updated_at IS 'Timestamp when the contractor type was last updated.';
-
 -- Registry of contractors linked to invoices and projects.
 CREATE TABLE IF NOT EXISTS public.contractors (
     id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),
-    type_id integer(32) NOT NULL,
     name character varying(255) NOT NULL,
     inn character varying(12),
     created_by uuid,
@@ -509,13 +488,11 @@ CREATE TABLE IF NOT EXISTS public.contractors (
     updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT contractors_inn_key UNIQUE (inn),
-    CONSTRAINT contractors_pkey PRIMARY KEY (id),
-    CONSTRAINT contractors_type_id_fkey FOREIGN KEY (type_id) REFERENCES None.None(None)
+    CONSTRAINT contractors_pkey PRIMARY KEY (id)
 );
 
 COMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects.';
 COMMENT ON COLUMN public.contractors.id IS 'Primary key of the contractor.';
-COMMENT ON COLUMN public.contractors.type_id IS 'Contractor type (public.contractor_types.id).';
 COMMENT ON COLUMN public.contractors.name IS 'Official contractor name stored for invoices.';
 COMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN) of the contractor.';
 COMMENT ON COLUMN public.contractors.created_by IS 'User (auth.users.id) who created the contractor record.';
@@ -1400,7 +1377,7 @@ $function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
+CREATE OR REPLACE FUNCTION extensions.armor(bytea)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1408,7 +1385,7 @@ AS '$libdir/pgcrypto', $function$pg_armor$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea)
+CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1496,19 +1473,19 @@ AS '$libdir/pgcrypto', $function$pg_random_uuid$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
- RETURNS text
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
  RETURNS text
  LANGUAGE c
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
+ RETURNS text
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
 
 ;
 
@@ -1708,6 +1685,14 @@ AS '$libdir/pgcrypto', $function$pgp_key_id_w$function$
 
 ;
 
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
+ RETURNS text
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
+
+;
+
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)
  RETURNS text
  LANGUAGE c
@@ -1724,23 +1709,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
- RETURNS text
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
- RETURNS bytea
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
-
-;
-
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1756,11 +1725,11 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)
  RETURNS bytea
  LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 ;
 
@@ -1772,7 +1741,15 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)
+ RETURNS bytea
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1780,7 +1757,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1836,7 +1813,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1844,7 +1821,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -2498,50 +2475,6 @@ $function$
 
 ;
 
-CREATE OR REPLACE FUNCTION public.delete_contractor_type(type_id_param integer)
- RETURNS json
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  contractor_count INTEGER;
-  result JSON;
-BEGIN
-  -- Проверяем есть ли контрагенты с этим типом
-  SELECT COUNT(*) INTO contractor_count
-  FROM public.contractors
-  WHERE type_id = type_id_param;
-
-  IF contractor_count > 0 THEN
-    result := json_build_object(
-      'success', false,
-      'error', 'Невозможно удалить тип, так как существуют контрагенты с этим типом',
-      'contractor_count', contractor_count
-    );
-    RETURN result;
-  END IF;
-
-  -- Удаляем тип контрагента
-  DELETE FROM public.contractor_types WHERE id = type_id_param;
-
-  IF FOUND THEN
-    result := json_build_object(
-      'success', true,
-      'message', 'Тип контрагента успешно удален'
-    );
-  ELSE
-    result := json_build_object(
-      'success', false,
-      'error', 'Тип контрагента не найден'
-    );
-  END IF;
-
-  RETURN result;
-END;
-$function$
-
-;
-
 CREATE OR REPLACE FUNCTION public.delete_project(project_id_param integer)
  RETURNS boolean
  LANGUAGE plpgsql
@@ -2564,29 +2497,16 @@ $function$
 CREATE OR REPLACE FUNCTION public.handle_new_user()
  RETURNS trigger
  LANGUAGE plpgsql
- SECURITY DEFINER
 AS $function$
 BEGIN
-  INSERT INTO public.user_profiles (id, email, full_name, role_id)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-    4  -- Default role_id for 'user' role
-  );
-  RETURN NEW;
-END;
-$function$
-
-;
-
-CREATE OR REPLACE FUNCTION public.update_contract_statuses_updated_at()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+    INSERT INTO public.user_profiles (id, email, full_name, role_id)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+        1 -- Роль по умолчанию
+    );
+    RETURN NEW;
 END;
 $function$
 
@@ -2597,40 +2517,16 @@ CREATE OR REPLACE FUNCTION public.update_material_request_items_count()
  LANGUAGE plpgsql
 AS $function$
 BEGIN
-    IF TG_OP = 'INSERT' OR TG_OP = 'DELETE' THEN
-        UPDATE public.material_requests
-        SET total_items = (
-            SELECT COUNT(*)
-            FROM public.material_request_items
-            WHERE material_request_id = COALESCE(NEW.material_request_id, OLD.material_request_id)
-        )
-        WHERE id = COALESCE(NEW.material_request_id, OLD.material_request_id);
+    IF TG_OP = 'INSERT' THEN
+        UPDATE material_requests
+        SET items_count = COALESCE(items_count, 0) + 1
+        WHERE id = NEW.request_id;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE material_requests
+        SET items_count = GREATEST(COALESCE(items_count, 0) - 1, 0)
+        WHERE id = OLD.request_id;
     END IF;
-    RETURN NEW;
-END;
-$function$
-
-;
-
-CREATE OR REPLACE FUNCTION public.update_material_requests_updated_at()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$function$
-
-;
-
-CREATE OR REPLACE FUNCTION public.update_updated_at()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
+    RETURN NULL;
 END;
 $function$
 
@@ -2641,7 +2537,7 @@ CREATE OR REPLACE FUNCTION public.update_updated_at_column()
  LANGUAGE plpgsql
 AS $function$
 BEGIN
-    NEW.updated_at = NOW();
+    NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $function$
@@ -4090,10 +3986,7 @@ CREATE TRIGGER update_approval_routes_updated_at BEFORE UPDATE ON public.approva
 CREATE TRIGGER update_attachments_updated_at BEFORE UPDATE ON public.attachments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
-CREATE TRIGGER update_contract_statuses_updated_at BEFORE UPDATE ON public.contract_statuses FOR EACH ROW EXECUTE FUNCTION update_contract_statuses_updated_at()
-;
-
-CREATE TRIGGER update_contractor_types_updated_at BEFORE UPDATE ON public.contractor_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+CREATE TRIGGER update_contract_statuses_updated_at BEFORE UPDATE ON public.contract_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_contractors_updated_at BEFORE UPDATE ON public.contractors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
@@ -4117,13 +4010,13 @@ CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_t
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
-CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at()
+CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_material_request_items_count_trigger AFTER INSERT OR DELETE ON public.material_request_items FOR EACH ROW EXECUTE FUNCTION update_material_request_items_count()
 ;
 
-CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.material_requests FOR EACH ROW EXECUTE FUNCTION update_material_requests_updated_at()
+CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.material_requests FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_payment_approvals_updated_at BEFORE UPDATE ON public.payment_approvals FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
@@ -4370,19 +4263,13 @@ CREATE INDEX idx_contract_statuses_code ON public.contract_statuses USING btree 
 CREATE INDEX idx_contract_statuses_sort_order ON public.contract_statuses USING btree (sort_order)
 ;
 
-CREATE UNIQUE INDEX contractor_types_code_key ON public.contractor_types USING btree (code)
-;
-
-CREATE INDEX idx_contractor_types_code ON public.contractor_types USING btree (code)
-;
-
 CREATE UNIQUE INDEX contractors_inn_key ON public.contractors USING btree (inn)
 ;
 
 CREATE INDEX idx_contractors_inn ON public.contractors USING btree (inn)
 ;
 
-CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)
+CREATE INDEX idx_contractors_updated_at ON public.contractors USING btree (updated_at DESC)
 ;
 
 CREATE INDEX idx_contracts_contract_date ON public.contracts USING btree (contract_date)
@@ -4401,6 +4288,9 @@ CREATE INDEX idx_contracts_status_id ON public.contracts USING btree (status_id)
 ;
 
 CREATE INDEX idx_contracts_supplier_id ON public.contracts USING btree (supplier_id)
+;
+
+CREATE INDEX idx_contracts_updated_at ON public.contracts USING btree (updated_at DESC)
 ;
 
 CREATE UNIQUE INDEX departments_name_key ON public.departments USING btree (name)
@@ -4484,6 +4374,9 @@ CREATE INDEX idx_invoices_status_id ON public.invoices USING btree (status_id)
 CREATE INDEX idx_invoices_supplier_id ON public.invoices USING btree (supplier_id)
 ;
 
+CREATE INDEX idx_invoices_updated_at ON public.invoices USING btree (updated_at DESC)
+;
+
 CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)
 ;
 
@@ -4545,6 +4438,9 @@ CREATE INDEX idx_payments_payment_date ON public.payments USING btree (payment_d
 ;
 
 CREATE INDEX idx_payments_status_id ON public.payments USING btree (status_id)
+;
+
+CREATE INDEX idx_payments_updated_at ON public.payments USING btree (updated_at DESC)
 ;
 
 CREATE UNIQUE INDEX payments_payment_number_key ON public.payments USING btree (payment_number)

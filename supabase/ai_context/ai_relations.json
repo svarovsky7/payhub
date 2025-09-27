@@ -30,11 +30,6 @@
     "to": "auth.users.id"
   },
   {
-    "from": "public.contractors",
-    "column": "type_id",
-    "to": "public.contractor_types.id"
-  },
-  {
     "from": "public.contracts",
     "column": "created_by",
     "to": "auth.users.id"

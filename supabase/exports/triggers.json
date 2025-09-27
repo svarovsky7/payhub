@@ -33,16 +33,7 @@
     "event": null,
     "timing": null,
     "comment": null,
-    "sql": "CREATE TRIGGER update_contract_statuses_updated_at BEFORE UPDATE ON public.contract_statuses FOR EACH ROW EXECUTE FUNCTION update_contract_statuses_updated_at()"
-  },
-  "public.contractor_types.update_contractor_types_updated_at": {
-    "schema": "public",
-    "name": "update_contractor_types_updated_at",
-    "table_name": null,
-    "event": null,
-    "timing": null,
-    "comment": null,
-    "sql": "CREATE TRIGGER update_contractor_types_updated_at BEFORE UPDATE ON public.contractor_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+    "sql": "CREATE TRIGGER update_contract_statuses_updated_at BEFORE UPDATE ON public.contract_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
   "public.contractors.update_contractors_updated_at": {
     "schema": "public",
@@ -114,7 +105,7 @@
     "event": null,
     "timing": null,
     "comment": null,
-    "sql": "CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at()"
+    "sql": "CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
   "public.material_request_items.update_material_request_items_count_trigger": {
     "schema": "public",
@@ -132,7 +123,7 @@
     "event": null,
     "timing": null,
     "comment": null,
-    "sql": "CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.material_requests FOR EACH ROW EXECUTE FUNCTION update_material_requests_updated_at()"
+    "sql": "CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.material_requests FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
   "public.payment_approvals.update_payment_approvals_updated_at": {
     "schema": "public",

@@ -503,22 +503,6 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_contract_statuses_sort_order ON public.contract_statuses USING btree (sort_order)"
   },
-  "public.contractor_types.contractor_types_code_key": {
-    "schema": "public",
-    "name": "contractor_types_code_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX contractor_types_code_key ON public.contractor_types USING btree (code)"
-  },
-  "public.contractor_types.idx_contractor_types_code": {
-    "schema": "public",
-    "name": "idx_contractor_types_code",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE INDEX idx_contractor_types_code ON public.contractor_types USING btree (code)"
-  },
   "public.contractors.contractors_inn_key": {
     "schema": "public",
     "name": "contractors_inn_key",
@@ -535,13 +519,13 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_contractors_inn ON public.contractors USING btree (inn)"
   },
-  "public.contractors.idx_contractors_type_id": {
+  "public.contractors.idx_contractors_updated_at": {
     "schema": "public",
-    "name": "idx_contractors_type_id",
+    "name": "idx_contractors_updated_at",
     "table_name": null,
     "is_unique": false,
     "is_primary": false,
-    "sql": "CREATE INDEX idx_contractors_type_id ON public.contractors USING btree (type_id)"
+    "sql": "CREATE INDEX idx_contractors_updated_at ON public.contractors USING btree (updated_at DESC)"
   },
   "public.contracts.idx_contracts_contract_date": {
     "schema": "public",
@@ -590,6 +574,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_contracts_supplier_id ON public.contracts USING btree (supplier_id)"
+  },
+  "public.contracts.idx_contracts_updated_at": {
+    "schema": "public",
+    "name": "idx_contracts_updated_at",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contracts_updated_at ON public.contracts USING btree (updated_at DESC)"
   },
   "public.departments.departments_name_key": {
     "schema": "public",
@@ -807,6 +799,14 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_supplier_id ON public.invoices USING btree (supplier_id)"
   },
+  "public.invoices.idx_invoices_updated_at": {
+    "schema": "public",
+    "name": "idx_invoices_updated_at",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_updated_at ON public.invoices USING btree (updated_at DESC)"
+  },
   "public.invoices.idx_invoices_user_id": {
     "schema": "public",
     "name": "idx_invoices_user_id",
@@ -974,6 +974,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_payments_status_id ON public.payments USING btree (status_id)"
+  },
+  "public.payments.idx_payments_updated_at": {
+    "schema": "public",
+    "name": "idx_payments_updated_at",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payments_updated_at ON public.payments USING btree (updated_at DESC)"
   },
   "public.payments.payments_payment_number_key": {
     "schema": "public",

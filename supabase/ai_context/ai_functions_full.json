@@ -1,21 +1,5 @@
 [
   {
-    "function": "public.delete_contractor_type(type_id_param integer)",
-    "returns": "json",
-    "language": "plpgsql",
-    "security": "definer",
-    "summary": "Deletes a contractor type only when it has no linked contractors.",
-    "details": "Counts rows in public.contractors; on success removes the type and returns a success payload, otherwise reports blocking usage.",
-    "touches_tables": [
-      "public.contractor_types",
-      "public.contractors"
-    ],
-    "invoked_by": [],
-    "side_effects": [
-      "DELETE from public.contractor_types"
-    ]
-  },
-  {
     "function": "public.delete_project(project_id_param integer)",
     "returns": "boolean",
     "language": "plpgsql",
@@ -36,7 +20,7 @@
     "function": "public.handle_new_user()",
     "returns": "trigger",
     "language": "plpgsql",
-    "security": "definer",
+    "security": "invoker",
     "summary": "Seeds public.user_profiles when auth.users gains a new row.",
     "details": "Copies id, email, and derived full_name from the auth.users record into public.user_profiles for application lookups.",
     "touches_tables": [
@@ -50,64 +34,18 @@
     ]
   },
   {
-    "function": "public.update_contract_statuses_updated_at()",
-    "returns": "trigger",
-    "language": "plpgsql",
-    "security": "invoker",
-    "summary": "",
-    "details": "",
-    "touches_tables": [],
-    "invoked_by": [
-      "public.update_contract_statuses_updated_at"
-    ],
-    "side_effects": []
-  },
-  {
     "function": "public.update_material_request_items_count()",
     "returns": "trigger",
     "language": "plpgsql",
     "security": "invoker",
     "summary": "Keeps material_requests.total_items in sync with child records.",
     "details": "After INSERT or DELETE on public.material_request_items the trigger recomputes total_items for the parent request id.",
-    "touches_tables": [
-      "public.material_request_items",
-      "public.material_requests"
-    ],
+    "touches_tables": [],
     "invoked_by": [
       "public.update_material_request_items_count_trigger"
     ],
     "side_effects": [
       "UPDATE public.material_requests"
-    ]
-  },
-  {
-    "function": "public.update_material_requests_updated_at()",
-    "returns": "trigger",
-    "language": "plpgsql",
-    "security": "invoker",
-    "summary": "Refreshes updated_at on material_requests before changes commit.",
-    "details": "Sets NEW.updated_at to now() so list views reflect the latest edits.",
-    "touches_tables": [],
-    "invoked_by": [
-      "public.update_material_requests_updated_at"
-    ],
-    "side_effects": [
-      "mutates NEW.updated_at"
-    ]
-  },
-  {
-    "function": "public.update_updated_at()",
-    "returns": "trigger",
-    "language": "plpgsql",
-    "security": "invoker",
-    "summary": "Generic BEFORE UPDATE helper that sets NEW.updated_at to the current timestamp.",
-    "details": "Used on legacy tables that require CURRENT_TIMESTAMP instead of now().",
-    "touches_tables": [],
-    "invoked_by": [
-      "public.update_material_classes_updated_at"
-    ],
-    "side_effects": [
-      "mutates NEW.updated_at"
     ]
   },
   {
@@ -121,7 +59,7 @@
     "invoked_by": [
       "public.update_approval_routes_updated_at",
       "public.update_attachments_updated_at",
-      "public.update_contractor_types_updated_at",
+      "public.update_contract_statuses_updated_at",
       "public.update_contractors_updated_at",
       "public.update_contracts_updated_at",
       "public.update_departments_updated_at",
@@ -129,6 +67,8 @@
       "public.update_invoice_statuses_updated_at",
       "public.update_invoice_types_updated_at",
       "public.update_invoices_updated_at",
+      "public.update_material_classes_updated_at",
+      "public.update_material_requests_updated_at",
       "public.update_payment_approvals_updated_at",
       "public.update_payment_statuses_updated_at",
       "public.update_payment_types_updated_at",

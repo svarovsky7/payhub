@@ -1,10 +1,5 @@
 [
   {
-    "function": "public.delete_contractor_type(type_id_param integer)",
-    "returns": "json",
-    "summary": "Deletes a contractor type only when it has no linked contractors."
-  },
-  {
     "function": "public.delete_project(project_id_param integer)",
     "returns": "boolean",
     "summary": "Removes a project together with all user assignments."
@@ -15,24 +10,9 @@
     "summary": "Seeds public.user_profiles when auth.users gains a new row."
   },
   {
-    "function": "public.update_contract_statuses_updated_at()",
-    "returns": "trigger",
-    "summary": ""
-  },
-  {
     "function": "public.update_material_request_items_count()",
     "returns": "trigger",
     "summary": "Keeps material_requests.total_items in sync with child records."
-  },
-  {
-    "function": "public.update_material_requests_updated_at()",
-    "returns": "trigger",
-    "summary": "Refreshes updated_at on material_requests before changes commit."
-  },
-  {
-    "function": "public.update_updated_at()",
-    "returns": "trigger",
-    "summary": "Generic BEFORE UPDATE helper that sets NEW.updated_at to the current timestamp."
   },
   {
     "function": "public.update_updated_at_column()",
