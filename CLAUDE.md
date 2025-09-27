@@ -41,13 +41,6 @@ Services are split when exceeding 600 lines:
 - **Hooks** (`src/hooks/`): React state management, UI interactions, optimistic updates
 - **Services** (`src/services/`): Pure business logic, database operations, no React dependencies
 
-Key hooks:
-- `useInvoiceManagement.ts` - Invoice CRUD with optimistic updates
-- `usePaymentManagement.ts` - Payment allocation and processing
-- `useApprovalManagement.ts` - Approval workflow state
-- `useInvoiceForm.ts` - Form state management
-- `useMaterialRequestManagement.ts` - Material request operations
-
 ### Database Schema
 
 **Critical**: All database operations must reference schema in `supabase/ai_context/`:
@@ -63,6 +56,7 @@ Core tables:
 - `approval_routes` + `workflow_stages` - Configurable approval workflows
 - `payment_approvals` + `approval_steps` - Approval instances and history
 - `attachments` + entity-specific link tables - File metadata
+- `material_requests` + `material_request_items` - Material requisitions with auto-counted items
 
 Design principles:
 - No RLS - security in application layer
@@ -86,6 +80,12 @@ Design principles:
 - `4` = paid (Оплачен)
 - `5` = cancelled (Отменён)
 
+**Contract Statuses** (use exact IDs):
+- `1` = draft (Черновик)
+- `2` = active (Действующий)
+- `3` = expired (Истёк срок)
+- `4` = terminated (Расторгнут)
+
 ### Key Patterns
 
 #### Optimistic Updates
@@ -93,6 +93,12 @@ Implemented in hooks layer:
 1. UI updates immediately
 2. Database operation in background
 3. Revert on error
+
+#### Database Triggers
+Automatic field maintenance:
+- `calculate_vat_amounts()` - Derives VAT splits on invoice rows
+- `update_updated_at_column()` - Refreshes timestamps on UPDATE
+- `update_material_request_items_count()` - Syncs parent item counts
 
 #### File Upload System
 - Storage bucket: `attachments`
@@ -113,6 +119,7 @@ Strict mode with:
 - Module: ESNext with bundler resolution
 - No unused locals/parameters
 - No unchecked side effects
+- No fallthrough in switch cases
 
 ### Environment Configuration
 

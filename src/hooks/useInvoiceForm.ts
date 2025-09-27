@@ -102,7 +102,9 @@ export const useInvoiceForm = () => {
 
   // Populate form for editing
   const populateForm = useCallback((invoice: Invoice) => {
-    form.setFieldsValue({
+    console.log('[useInvoiceForm.populateForm] Populating form with invoice:', invoice)
+
+    const formValues = {
       invoice_number: invoice.invoice_number,
       invoice_date: invoice.invoice_date ? dayjs(invoice.invoice_date) : dayjs(),
       payer_id: invoice.payer_id,
@@ -112,7 +114,18 @@ export const useInvoiceForm = () => {
       description: invoice.description,
       contract_id: invoice.contract_id,
       material_request_id: invoice.material_request_id,
-    })
+      amount_with_vat: invoice.amount_with_vat || 0,
+      vat_rate: invoice.vat_rate || 20,
+      delivery_cost: invoice.delivery_cost || 0,
+      delivery_days: invoice.delivery_days,
+      delivery_days_type: invoice.delivery_days_type || 'calendar',
+      preliminary_delivery_date: invoice.preliminary_delivery_date ? dayjs(invoice.preliminary_delivery_date) : null,
+      responsible_id: invoice.responsible_id, // Используем responsible_id напрямую
+      payment_deadline_date: invoice.payment_deadline_date ? dayjs(invoice.payment_deadline_date) : null // Конечная дата актуальности счета
+    }
+
+    console.log('[useInvoiceForm.populateForm] Setting form values:', formValues)
+    form.setFieldsValue(formValues)
 
     setAmountWithVat(invoice.amount_with_vat || 0)
     setVatRate(invoice.vat_rate || 20)

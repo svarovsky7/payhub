@@ -735,14 +735,6 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_created_at ON public.invoices USING btree (created_at DESC)"
   },
-  "public.invoices.idx_invoices_employee_id": {
-    "schema": "public",
-    "name": "idx_invoices_employee_id",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE INDEX idx_invoices_employee_id ON public.invoices USING btree (employee_id)"
-  },
   "public.invoices.idx_invoices_invoice_date": {
     "schema": "public",
     "name": "idx_invoices_invoice_date",
@@ -790,6 +782,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)"
+  },
+  "public.invoices.idx_invoices_responsible_id": {
+    "schema": "public",
+    "name": "idx_invoices_responsible_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_responsible_id ON public.invoices USING btree (responsible_id)"
   },
   "public.invoices.idx_invoices_status_id": {
     "schema": "public",

@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { message, App } from 'antd'
-import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus } from '../lib/supabase'
+import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus, UserProfile } from '../lib/supabase'
 import type { UploadFile } from 'antd/es/upload/interface'
+import { supabase } from '../lib/supabase'
 import {
   loadReferences,
   loadInvoices,
@@ -11,8 +12,6 @@ import {
   deleteInvoice,
   recalculateAllInvoiceStatuses
 } from '../services/invoiceOperations'
-import { loadEmployees } from '../services/employeeOperations'
-import type { Employee } from '../services/employeeOperations'
 import { useAuth } from '../contexts/AuthContext'
 import dayjs from 'dayjs'
 
@@ -26,7 +25,7 @@ export const useInvoiceManagement = () => {
   const [projects, setProjects] = useState<Project[]>([])
   const [invoiceTypes, setInvoiceTypes] = useState<InvoiceType[]>([])
   const [invoiceStatuses, setInvoiceStatuses] = useState<InvoiceStatus[]>([])
-  const [employees, setEmployees] = useState<Employee[]>([])
+  const [employees, setEmployees] = useState<UserProfile[]>([])
 
   // Invoice states
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -45,13 +44,17 @@ export const useInvoiceManagement = () => {
   // Load reference data
   const loadReferenceData = useCallback(async () => {
     const refs = await loadReferences()
-    const emps = await loadEmployees()
+    // Load user profiles for responsible_id field
+    const { data: userProfiles } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .order('full_name')
     setPayers(refs.payers)
     setSuppliers(refs.suppliers)
     setProjects(refs.projects)
     setInvoiceTypes(refs.invoiceTypes)
     setInvoiceStatuses(refs.invoiceStatuses)
-    setEmployees(emps)
+    setEmployees(userProfiles || [])
   }, [])
 
   // Load invoices

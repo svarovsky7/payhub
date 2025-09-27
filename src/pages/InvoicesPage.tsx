@@ -84,10 +84,16 @@ export const InvoicesPage = () => {
 
   // Populate form when editing invoice changes
   useEffect(() => {
+    console.log('[InvoicesPage] editingInvoice changed:', editingInvoice)
     if (editingInvoice) {
+      console.log('[InvoicesPage] Loading references and populating form')
       loadReferences()  // Load material requests and contracts for editing
-      populateForm(editingInvoice)
+      // Add delay to ensure form is ready
+      setTimeout(() => {
+        populateForm(editingInvoice)
+      }, 100)
     } else {
+      console.log('[InvoicesPage] Resetting form')
       resetForm()
     }
   }, [editingInvoice, populateForm, resetForm, loadReferences])
@@ -141,12 +147,19 @@ export const InvoicesPage = () => {
   const handleInvoiceFormSubmit = async (values: any, files: any, originalFiles?: any) => {
 
     // Add VAT calculation data to form values
+    // Remove VAT-related fields from form values to avoid conflicts with state values
+    const {
+      vat_rate: formVatRate,
+      amount_with_vat: formAmountWithVat,
+      ...cleanValues
+    } = values
+
     const invoiceData = {
-      ...values,
-      amount_with_vat: amountWithVat,
-      vat_rate: vatRate,
-      vat_amount: vatAmount,
-      amount_without_vat: amountWithoutVat,
+      ...cleanValues,
+      amount_with_vat: amountWithVat || 0,
+      vat_rate: vatRate || 20, // Use state value, not form value
+      vat_amount: vatAmount || 0,
+      amount_without_vat: amountWithoutVat || 0,
       delivery_days: deliveryDays,
       delivery_days_type: deliveryDaysType,
       preliminary_delivery_date: preliminaryDeliveryDate

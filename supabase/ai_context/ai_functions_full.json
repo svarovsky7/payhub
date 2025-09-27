@@ -1,21 +1,5 @@
 [
   {
-    "function": "public.calculate_vat_amounts()",
-    "returns": "trigger",
-    "language": "plpgsql",
-    "security": "invoker",
-    "summary": "Recomputes VAT totals on invoice rows before they persist.",
-    "details": "Splits amount_with_vat using vat_rate to back-fill vat_amount and amount_without_vat so downstream reads stay consistent.",
-    "touches_tables": [],
-    "invoked_by": [
-      "public.calculate_vat_on_invoice"
-    ],
-    "side_effects": [
-      "mutates NEW.vat_amount",
-      "mutates NEW.amount_without_vat"
-    ]
-  },
-  {
     "function": "public.delete_contractor_type(type_id_param integer)",
     "returns": "json",
     "language": "plpgsql",

@@ -23,6 +23,13 @@ export const ApprovalsPage = () => {
     loadPendingApprovals
   } = useApprovalManagement()
 
+  console.log('[ApprovalsPage] State:', {
+    userRole,
+    pendingApprovalsCount: pendingApprovals.length,
+    loadingApprovals,
+    pendingApprovals
+  })
+
   const [approveModalVisible, setApproveModalVisible] = useState(false)
   const [rejectModalVisible, setRejectModalVisible] = useState(false)
   const [historyModalVisible, setHistoryModalVisible] = useState(false)

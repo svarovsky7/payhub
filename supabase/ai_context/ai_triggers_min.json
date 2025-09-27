@@ -100,17 +100,6 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
-    "trigger": "public.calculate_vat_on_invoice",
-    "table": "public.invoices",
-    "timing": "BEFORE",
-    "events": [
-      "INSERT",
-      "UPDATE"
-    ],
-    "function": "public.calculate_vat_amounts()",
-    "purpose": "Recomputes VAT totals on invoice rows before they persist."
-  },
-  {
     "trigger": "public.update_invoices_updated_at",
     "table": "public.invoices",
     "timing": "BEFORE",

@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-27T07:26:31.737552
+-- Generated: 2025-09-27T10:58:23.187315
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -716,9 +716,9 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     material_request_id uuid,
     contract_id uuid,
-    employee_id integer(32),
+    responsible_id uuid,
+    CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),
     CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),
-    CONSTRAINT invoices_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES None.None(None),
     CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
     CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),
     CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),
@@ -754,7 +754,7 @@ COMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость дост�
 COMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';
 COMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';
 COMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';
-COMMENT ON COLUMN public.invoices.employee_id IS 'Ответственный сотрудник за счёт';
+COMMENT ON COLUMN public.invoices.responsible_id IS 'Ответственный менеджер снабжения (public.user_profiles.id)';
 
 CREATE TABLE IF NOT EXISTS public.material_classes (
     id bigint(64) NOT NULL,
@@ -1400,7 +1400,7 @@ $function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea)
+CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1408,7 +1408,7 @@ AS '$libdir/pgcrypto', $function$pg_armor$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
+CREATE OR REPLACE FUNCTION extensions.armor(bytea)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1448,7 +1448,7 @@ AS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.digest(text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1456,7 +1456,7 @@ AS '$libdir/pgcrypto', $function$pg_digest$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.digest(text, text)
+CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1496,19 +1496,19 @@ AS '$libdir/pgcrypto', $function$pg_random_uuid$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
- RETURNS text
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
  RETURNS text
  LANGUAGE c
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
+ RETURNS text
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
 
 ;
 
@@ -1716,14 +1716,6 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
- RETURNS text
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)
  RETURNS text
  LANGUAGE c
@@ -1732,11 +1724,11 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
- RETURNS bytea
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
+ RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
@@ -1756,7 +1748,15 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
+ RETURNS bytea
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1764,7 +1764,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1804,7 +1804,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1812,7 +1812,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1836,7 +1836,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1844,7 +1844,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -2493,28 +2493,6 @@ BEGIN
     RETURN QUERY
     SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow
     WHERE usename = p_usename;
-END;
-$function$
-
-;
-
-CREATE OR REPLACE FUNCTION public.calculate_vat_amounts()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-    -- Если указана сумма с НДС, вычисляем НДС и сумму без НДС
-    IF NEW.amount_with_vat IS NOT NULL THEN
-        IF NEW.vat_rate = 0 THEN
-            NEW.vat_amount = 0;
-            NEW.amount_without_vat = NEW.amount_with_vat;
-        ELSE
-            NEW.vat_amount = ROUND(NEW.amount_with_vat * NEW.vat_rate / (100 + NEW.vat_rate), 2);
-            NEW.amount_without_vat = NEW.amount_with_vat - NEW.vat_amount;
-        END IF;
-    END IF;
-
-    RETURN NEW;
 END;
 $function$
 
@@ -4136,9 +4114,6 @@ CREATE TRIGGER update_invoice_statuses_updated_at BEFORE UPDATE ON public.invoic
 CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
-CREATE TRIGGER calculate_vat_on_invoice BEFORE INSERT OR UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION calculate_vat_amounts()
-;
-
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -4482,9 +4457,6 @@ CREATE INDEX idx_invoices_contract_id ON public.invoices USING btree (contract_i
 CREATE INDEX idx_invoices_created_at ON public.invoices USING btree (created_at DESC)
 ;
 
-CREATE INDEX idx_invoices_employee_id ON public.invoices USING btree (employee_id)
-;
-
 CREATE INDEX idx_invoices_invoice_date ON public.invoices USING btree (invoice_date)
 ;
 
@@ -4501,6 +4473,9 @@ CREATE INDEX idx_invoices_payer_id ON public.invoices USING btree (payer_id)
 ;
 
 CREATE INDEX idx_invoices_project_id ON public.invoices USING btree (project_id)
+;
+
+CREATE INDEX idx_invoices_responsible_id ON public.invoices USING btree (responsible_id)
 ;
 
 CREATE INDEX idx_invoices_status_id ON public.invoices USING btree (status_id)

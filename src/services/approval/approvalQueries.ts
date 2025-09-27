@@ -3,12 +3,13 @@ import { message } from 'antd'
 import type { PaymentApproval, ApprovalStep } from './approvalProcess'
 
 export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
+  console.log('[loadApprovalsForRole] Starting with roleId:', roleId, 'userId:', userId)
 
   try {
     // Получаем пользователя и его проекты
     let projectIds: number[] = []
     if (userId) {
-      const { data: userProfile } = await supabase
+      const { data: userProfile, error: userError } = await supabase
         .from('user_profiles')
         .select(`
           roles (
@@ -21,8 +22,15 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
         .eq('id', userId)
         .single()
 
+      if (userError) {
+        console.error('[loadApprovalsForRole] Error loading user profile:', userError)
+      }
+
+      console.log('[loadApprovalsForRole] User profile:', userProfile)
+
       if (userProfile?.roles?.own_projects_only) {
         projectIds = userProfile.user_projects?.map(up => up.project_id) || []
+        console.log('[loadApprovalsForRole] User restricted to projects:', projectIds)
       }
     }
 
@@ -31,31 +39,31 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
       .from('payment_approvals')
       .select(`
         *,
-        payment:payments (
+        payments!inner (
           *,
-          invoice:invoices (
+          invoices!inner (
             *,
             payer:contractors!invoices_payer_id_fkey (*),
             supplier:contractors!invoices_supplier_id_fkey (*),
-            project:projects (*),
-            invoice_type:invoice_types (*)
+            projects (*),
+            invoice_types (*)
           ),
-          payment_status:payment_statuses (*)
+          payment_statuses (*)
         ),
-        route:approval_routes (
+        approval_routes!inner (
           *,
-          stages:workflow_stages (
+          workflow_stages!inner (
             *,
-            role:roles (*)
+            roles (*)
           )
         ),
-        steps:approval_steps (
+        approval_steps (
           *,
-          stage:workflow_stages (
+          workflow_stages (
             *,
-            role:roles (*)
+            roles (*)
           ),
-          actor:user_profiles (
+          acted_by:user_profiles (
             id,
             full_name,
             email
@@ -66,28 +74,74 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
 
     // Применяем фильтр по проектам если необходимо
     if (projectIds.length > 0) {
-      query = query.in('payment.invoice.project_id', projectIds)
+      // Исправляем путь к полю project_id
+      query = query.in('payments.invoices.project_id', projectIds)
     }
 
     const { data: approvals, error } = await query
 
-    if (error) throw error
+    if (error) {
+      console.error('[loadApprovalsForRole] Query error:', error)
+      throw error
+    }
+
+    console.log('[loadApprovalsForRole] Raw approvals from DB:', approvals?.length || 0)
+    console.log('[loadApprovalsForRole] Approvals data:', approvals)
 
     // Фильтруем по текущему этапу
     const filteredApprovals = (approvals || []).filter(approval => {
-      const currentStage = approval.route?.stages?.[approval.current_stage_index]
-      return currentStage?.role_id === roleId
+      // workflow_stages приходит как массив, нужно найти нужный этап по order_index
+      const stages = approval.approval_routes?.workflow_stages || []
+      const currentStage = stages.find((s: any) => s.order_index === approval.current_stage_index)
+      const matches = currentStage?.role_id === roleId
+      console.log('[loadApprovalsForRole] Checking approval:', {
+        approvalId: approval.id,
+        currentStageIndex: approval.current_stage_index,
+        stagesCount: stages.length,
+        currentStage: currentStage,
+        currentStageRoleId: currentStage?.role_id,
+        targetRoleId: roleId,
+        matches
+      })
+      return matches
     })
+
+    console.log('[loadApprovalsForRole] Filtered approvals:', filteredApprovals.length)
 
     // Добавляем информацию о текущем этапе
     const approvalsWithStage = filteredApprovals.map(approval => {
-      const currentStage = approval.route?.stages?.[approval.current_stage_index]
+      // workflow_stages приходит как массив, нужно найти нужный этап по order_index
+      const stages = approval.approval_routes?.workflow_stages || []
+      const currentStage = stages.find((s: any) => s.order_index === approval.current_stage_index)
+
+      // Логируем структуру первого approval
+      if (filteredApprovals.indexOf(approval) === 0) {
+        console.log('[loadApprovalsForRole] Mapping approval:', {
+          hasPayments: !!approval.payments,
+          paymentsData: approval.payments,
+          hasInvoices: !!approval.payments?.invoices,
+          invoicesData: approval.payments?.invoices
+        })
+      }
+
+      // Правильно мапируем данные платежа и счета
+      const paymentData = approval.payments || {}
+      const mappedPayment = {
+        ...paymentData,
+        invoice: paymentData.invoices  // invoices приходит как единичный объект, переименовываем в invoice
+      }
+      delete mappedPayment.invoices  // удаляем старое поле
+
       return {
         ...approval,
+        payment: mappedPayment,
+        route: approval.approval_routes,
+        steps: approval.approval_steps,
         current_stage: currentStage
       }
     })
 
+    console.log('[loadApprovalsForRole] Returning approvals with stage:', approvalsWithStage.length)
     return approvalsWithStage as PaymentApproval[]
   } catch (error) {
     console.error('[ApprovalOperations.loadApprovalsForRole] Error:', error)
@@ -103,13 +157,13 @@ export const loadApprovalHistory = async (paymentId: string) => {
       .from('payment_approvals')
       .select(`
         *,
-        steps:approval_steps (
+        approval_steps (
           *,
-          stage:workflow_stages (
+          workflow_stages (
             *,
-            role:roles (*)
+            roles (*)
           ),
-          actor:user_profiles (
+          acted_by:user_profiles (
             id,
             full_name,
             email
@@ -121,7 +175,17 @@ export const loadApprovalHistory = async (paymentId: string) => {
 
     if (error) throw error
 
-    return data || []
+    // Преобразуем структуру для совместимости с существующим кодом
+    const formattedData = (data || []).map(approval => ({
+      ...approval,
+      steps: approval.approval_steps?.map((step: any) => ({
+        ...step,
+        stage: step.workflow_stages,
+        actor: step.acted_by
+      })) || []
+    }))
+
+    return formattedData
   } catch (error) {
     console.error('[ApprovalOperations.loadApprovalHistory] Error:', error)
     message.error('Ошибка загрузки истории согласования')
@@ -130,6 +194,7 @@ export const loadApprovalHistory = async (paymentId: string) => {
 }
 
 export const checkPaymentApprovalStatus = async (paymentId: string) => {
+  console.log('[checkPaymentApprovalStatus] Checking status for payment:', paymentId)
 
   try {
     const { data, error } = await supabase
@@ -137,9 +202,14 @@ export const checkPaymentApprovalStatus = async (paymentId: string) => {
       .select('*')
       .eq('payment_id', paymentId)
       .eq('status_id', 2) // 2 = pending (На согласовании)
-      .single()
+      .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows
+    if (error) {
+      console.error('[checkPaymentApprovalStatus] Query error:', error)
+      throw error
+    }
+
+    console.log('[checkPaymentApprovalStatus] Result:', data)
 
     return {
       isInApproval: !!data,
@@ -147,7 +217,7 @@ export const checkPaymentApprovalStatus = async (paymentId: string) => {
       current_stage_index: data?.current_stage_index || 0
     }
   } catch (error) {
-    console.error('[ApprovalOperations.checkPaymentApprovalStatus] Error:', error)
+    console.error('[ApprovalOperations.checkPaymentApprovalStatus] Full error:', error)
     return { isInApproval: false, approvalId: null, current_stage_index: 0 }
   }
 }

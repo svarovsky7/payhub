@@ -101,6 +101,11 @@
   },
   {
     "from": "public.invoices",
+    "column": "responsible_id",
+    "to": "public.user_profiles.id"
+  },
+  {
+    "from": "public.invoices",
     "column": "status_id",
     "to": "public.invoice_statuses.id"
   },

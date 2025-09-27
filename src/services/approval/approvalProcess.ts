@@ -18,11 +18,10 @@ export interface PaymentApproval {
 
 export interface ApprovalStep {
   id: string
-  approval_id: string
+  payment_approval_id: string  // Исправлено с approval_id
   stage_id: number
-  stage_index: number
   action: 'pending' | 'approved' | 'rejected'
-  actor_id?: string
+  acted_by?: string  // Исправлено с actor_id
   acted_at?: string
   comment?: string
   stage?: any
@@ -87,12 +86,13 @@ export const startApprovalProcess = async (
     if (approvalError) throw approvalError
 
     // Создаём шаги согласования для каждого этапа
-    const steps = stages.map((stage, index) => ({
-      approval_id: approval.id,
-      stage_id: stage.id,
-      stage_index: index,
-      action: index === 0 ? 'pending' : 'waiting'
-    }))
+    // Первый этап устанавливается как 'pending', остальные пока не создаются
+    const steps = [{
+      payment_approval_id: approval.id,  // Исправлено имя поля
+      stage_id: stages[0].id,
+      action: 'pending' as const
+      // Убрали stage_index, так как его нет в таблице
+    }]
 
     const { error: stepsError } = await supabase
       .from('approval_steps')

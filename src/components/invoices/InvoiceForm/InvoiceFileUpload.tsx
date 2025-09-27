@@ -16,6 +16,7 @@ interface InvoiceFileUploadProps {
   existingAttachments?: any[]
   onDeleteExistingFile?: (fileId: string, filePath: string) => void
   onUpdateFileDescription?: (fileId: string, description: string) => void
+  fileDescriptions?: { [uid: string]: string }
 }
 
 export const InvoiceFileUpload: React.FC<InvoiceFileUploadProps> = ({
@@ -27,9 +28,11 @@ export const InvoiceFileUpload: React.FC<InvoiceFileUploadProps> = ({
   uploadingFile,
   existingAttachments = [],
   onDeleteExistingFile,
-  onUpdateFileDescription
+  onUpdateFileDescription,
+  fileDescriptions = {}
 }) => {
   const [editingDescriptions, setEditingDescriptions] = React.useState<Record<string, string>>({})
+  const [newFileDescriptions, setNewFileDescriptions] = React.useState<Record<string, string>>({})
 
   const handleDescriptionEdit = (fileId: string, description: string) => {
     setEditingDescriptions(prev => ({ ...prev, [fileId]: description }))
@@ -56,16 +59,64 @@ export const InvoiceFileUpload: React.FC<InvoiceFileUploadProps> = ({
           onPreview={onFilePreview}
           customRequest={customRequest}
           multiple
-          showUploadList={{
-            showPreviewIcon: true,
-            showRemoveIcon: true,
-            showDownloadIcon: false
-          }}
+          showUploadList={false}
         >
           <Button icon={<UploadOutlined />} loading={uploadingFile}>
             Загрузить файлы
           </Button>
         </Upload>
+        {fileList.length > 0 && (
+          <List
+            size="small"
+            dataSource={fileList}
+            style={{ marginTop: '16px' }}
+            renderItem={(file) => (
+              <List.Item
+                actions={[
+                  <Button
+                    key="preview"
+                    type="link"
+                    size="small"
+                    icon={<DownloadOutlined />}
+                    onClick={() => onFilePreview(file)}
+                  />,
+                  <Button
+                    key="delete"
+                    type="link"
+                    danger
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={() => onFileRemove(file)}
+                  />
+                ]}
+              >
+                <Space style={{ width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Space>
+                    <FileOutlined />
+                    <Space direction="vertical" size={0}>
+                      <Text>{file.name}</Text>
+                      {file.status === 'error' && <Text type="danger" style={{ fontSize: '12px' }}>(Ошибка загрузки)</Text>}
+                    </Space>
+                  </Space>
+                  <Input
+                    size="small"
+                    placeholder="Введите сюда описание файла"
+                    style={{ width: '300px' }}
+                    value={newFileDescriptions[file.uid] || fileDescriptions[file.uid] || ''}
+                    onChange={(e) => {
+                      setNewFileDescriptions(prev => ({ ...prev, [file.uid]: e.target.value }))
+                    }}
+                    onBlur={(e) => {
+                      if (onUpdateFileDescription && e.target.value !== fileDescriptions[file.uid]) {
+                        onUpdateFileDescription(file.uid, e.target.value)
+                      }
+                    }}
+                  />
+                </Space>
+              </List.Item>
+            )}
+          />
+        )}
       </Form.Item>
 
       {existingAttachments.length > 0 && (
@@ -95,31 +146,36 @@ export const InvoiceFileUpload: React.FC<InvoiceFileUploadProps> = ({
                   )
                 ].filter(Boolean)}
               >
-                <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                <Space style={{ width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Space>
                     <FileOutlined />
                     <Text>{item.original_name}</Text>
                   </Space>
                   {editingDescriptions[item.id] !== undefined ? (
-                    <Space.Compact style={{ width: '100%' }}>
+                    <Space.Compact>
                       <Input
                         size="small"
                         value={editingDescriptions[item.id]}
                         onChange={(e) => handleDescriptionEdit(item.id, e.target.value)}
-                        placeholder="Описание файла"
+                        placeholder="Введите сюда описание файла"
+                        style={{ width: '300px' }}
                       />
                       <Button size="small" onClick={() => handleDescriptionSave(item.id)}>
                         Сохранить
                       </Button>
                     </Space.Compact>
                   ) : (
-                    <Text
-                      type="secondary"
-                      style={{ fontSize: '12px', cursor: 'pointer' }}
-                      onClick={() => handleDescriptionEdit(item.id, item.description || '')}
-                    >
-                      {item.description || 'Нажмите для добавления описания'}
-                    </Text>
+                    <Input
+                      size="small"
+                      placeholder="Введите сюда описание файла"
+                      value={item.description || ''}
+                      style={{ width: '300px' }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDescriptionEdit(item.id, item.description || '')
+                      }}
+                      readOnly
+                    />
                   )}
                 </Space>
               </List.Item>

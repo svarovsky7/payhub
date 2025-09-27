@@ -1862,10 +1862,11 @@
         "description": "Ссылка на связанный договор"
       },
       {
-        "name": "employee_id",
-        "type": "integer",
+        "name": "responsible_id",
+        "type": "uuid",
         "nullable": true,
-        "description": "Ответственный сотрудник за счёт"
+        "fk": "public.user_profiles.id",
+        "description": "Ответственный менеджер снабжения (public.user_profiles.id)"
       }
     ],
     "constraints": {
@@ -1897,6 +1898,11 @@
           "column": "status_id",
           "references": "public.invoice_statuses.id",
           "description": "Workflow status of the invoice (public.invoice_statuses.id)."
+        },
+        {
+          "column": "responsible_id",
+          "references": "public.user_profiles.id",
+          "description": "Ответственный менеджер снабжения (public.user_profiles.id)"
         }
       ],
       "unique": [],
@@ -1921,9 +1927,6 @@
         },
         {
           "name": "invoices_delivery_days_type_check"
-        },
-        {
-          "name": "invoices_vat_rate_check"
         }
       ]
     },
@@ -1939,13 +1942,6 @@
         "name": "idx_invoices_created_at",
         "columns": [
           "created_at DESC"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_employee_id",
-        "columns": [
-          "employee_id"
         ],
         "unique": false
       },
@@ -1992,6 +1988,13 @@
         "unique": false
       },
       {
+        "name": "idx_invoices_responsible_id",
+        "columns": [
+          "responsible_id"
+        ],
+        "unique": false
+      },
+      {
         "name": "idx_invoices_status_id",
         "columns": [
           "status_id"
@@ -2014,15 +2017,6 @@
       }
     ],
     "triggers": [
-      {
-        "trigger": "calculate_vat_on_invoice",
-        "timing": "BEFORE",
-        "events": [
-          "INSERT",
-          "UPDATE"
-        ],
-        "function": "public.calculate_vat_amounts()"
-      },
       {
         "trigger": "update_invoices_updated_at",
         "timing": "BEFORE",

@@ -776,9 +776,10 @@
         "nullable": true
       },
       {
-        "name": "employee_id",
-        "type": "integer",
-        "nullable": true
+        "name": "responsible_id",
+        "type": "uuid",
+        "nullable": true,
+        "fk": "public.user_profiles.id"
       }
     ]
   },

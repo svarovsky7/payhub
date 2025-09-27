@@ -34,19 +34,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.algorithm_sign(signables text, secret text, algorithm text)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\nAS $function$\nWITH\n  alg AS (\n    SELECT CASE\n      WHEN algorithm = 'HS256' THEN 'sha256'\n      WHEN algorithm = 'HS384' THEN 'sha384'\n      WHEN algorithm = 'HS512' THEN 'sha512'\n      ELSE '' END AS id)  -- hmac throws error\nSELECT extensions.url_encode(extensions.hmac(signables, secret, alg.id)) FROM alg;\n$function$\n"
   },
-  "extensions.armor(bytea)": {
-    "schema": "extensions",
-    "name": "armor",
-    "arguments": "bytea",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
-  },
   "extensions.armor(bytea, text[], text[])": {
     "schema": "extensions",
     "name": "armor",
     "arguments": "bytea, text[], text[]",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
+  },
+  "extensions.armor(bytea)": {
+    "schema": "extensions",
+    "name": "armor",
+    "arguments": "bytea",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
   },
   "extensions.crypt(text, text)": {
     "schema": "extensions",
@@ -76,19 +76,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.decrypt_iv(bytea, bytea, bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$\n"
   },
-  "extensions.digest(bytea, text)": {
-    "schema": "extensions",
-    "name": "digest",
-    "arguments": "bytea, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_digest$function$\n"
-  },
   "extensions.digest(text, text)": {
     "schema": "extensions",
     "name": "digest",
     "arguments": "text, text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.digest(text, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_digest$function$\n"
+  },
+  "extensions.digest(bytea, text)": {
+    "schema": "extensions",
+    "name": "digest",
+    "arguments": "bytea, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_digest$function$\n"
   },
   "extensions.encrypt(bytea, bytea, text)": {
     "schema": "extensions",
@@ -118,19 +118,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.gen_random_uuid()\n RETURNS uuid\n LANGUAGE c\n PARALLEL SAFE\nAS '$libdir/pgcrypto', $function$pg_random_uuid$function$\n"
   },
-  "extensions.gen_salt(text, integer)": {
-    "schema": "extensions",
-    "name": "gen_salt",
-    "arguments": "text, integer",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$\n"
-  },
   "extensions.gen_salt(text)": {
     "schema": "extensions",
     "name": "gen_salt",
     "arguments": "text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt$function$\n"
+  },
+  "extensions.gen_salt(text, integer)": {
+    "schema": "extensions",
+    "name": "gen_salt",
+    "arguments": "text, integer",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$\n"
   },
   "extensions.grant_pg_cron_access()": {
     "schema": "extensions",
@@ -209,13 +209,6 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
   },
-  "extensions.pgp_pub_decrypt(bytea, bytea, text)": {
-    "schema": "extensions",
-    "name": "pgp_pub_decrypt",
-    "arguments": "bytea, bytea, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
-  },
   "extensions.pgp_pub_decrypt(bytea, bytea, text, text)": {
     "schema": "extensions",
     "name": "pgp_pub_decrypt",
@@ -223,12 +216,12 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
   },
-  "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)": {
+  "extensions.pgp_pub_decrypt(bytea, bytea, text)": {
     "schema": "extensions",
-    "name": "pgp_pub_decrypt_bytea",
+    "name": "pgp_pub_decrypt",
     "arguments": "bytea, bytea, text",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
   },
   "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)": {
     "schema": "extensions",
@@ -244,12 +237,12 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$\n"
   },
-  "extensions.pgp_pub_encrypt(text, bytea, text)": {
+  "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)": {
     "schema": "extensions",
-    "name": "pgp_pub_encrypt",
-    "arguments": "text, bytea, text",
+    "name": "pgp_pub_decrypt_bytea",
+    "arguments": "bytea, bytea, text",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$\n"
   },
   "extensions.pgp_pub_encrypt(text, bytea)": {
     "schema": "extensions",
@@ -257,6 +250,13 @@
     "arguments": "text, bytea",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$\n"
+  },
+  "extensions.pgp_pub_encrypt(text, bytea, text)": {
+    "schema": "extensions",
+    "name": "pgp_pub_encrypt",
+    "arguments": "text, bytea, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$\n"
   },
   "extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)": {
     "schema": "extensions",
@@ -286,19 +286,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_decrypt_text$function$\n"
   },
-  "extensions.pgp_sym_decrypt_bytea(bytea, text)": {
-    "schema": "extensions",
-    "name": "pgp_sym_decrypt_bytea",
-    "arguments": "bytea, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$\n"
-  },
   "extensions.pgp_sym_decrypt_bytea(bytea, text, text)": {
     "schema": "extensions",
     "name": "pgp_sym_decrypt_bytea",
     "arguments": "bytea, text, text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$\n"
+  },
+  "extensions.pgp_sym_decrypt_bytea(bytea, text)": {
+    "schema": "extensions",
+    "name": "pgp_sym_decrypt_bytea",
+    "arguments": "bytea, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$\n"
   },
   "extensions.pgp_sym_encrypt(text, text)": {
     "schema": "extensions",
@@ -314,19 +314,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$\n"
   },
-  "extensions.pgp_sym_encrypt_bytea(bytea, text)": {
-    "schema": "extensions",
-    "name": "pgp_sym_encrypt_bytea",
-    "arguments": "bytea, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$\n"
-  },
   "extensions.pgp_sym_encrypt_bytea(bytea, text, text)": {
     "schema": "extensions",
     "name": "pgp_sym_encrypt_bytea",
     "arguments": "bytea, text, text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$\n"
+  },
+  "extensions.pgp_sym_encrypt_bytea(bytea, text)": {
+    "schema": "extensions",
+    "name": "pgp_sym_encrypt_bytea",
+    "arguments": "bytea, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$\n"
   },
   "extensions.pgrst_ddl_watch()": {
     "schema": "extensions",
@@ -579,13 +579,6 @@
     "arguments": "p_usename text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION pgbouncer.get_auth(p_usename text)\n RETURNS TABLE(username text, password text)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n    RAISE WARNING 'PgBouncer auth request: %', p_usename;\n\n    RETURN QUERY\n    SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow\n    WHERE usename = p_usename;\nEND;\n$function$\n"
-  },
-  "public.calculate_vat_amounts()": {
-    "schema": "public",
-    "name": "calculate_vat_amounts",
-    "arguments": "",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.calculate_vat_amounts()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    -- Если указана сумма с НДС, вычисляем НДС и сумму без НДС\n    IF NEW.amount_with_vat IS NOT NULL THEN\n        IF NEW.vat_rate = 0 THEN\n            NEW.vat_amount = 0;\n            NEW.amount_without_vat = NEW.amount_with_vat;\n        ELSE\n            NEW.vat_amount = ROUND(NEW.amount_with_vat * NEW.vat_rate / (100 + NEW.vat_rate), 2);\n            NEW.amount_without_vat = NEW.amount_with_vat - NEW.vat_amount;\n        END IF;\n    END IF;\n\n    RETURN NEW;\nEND;\n$function$\n"
   },
   "public.delete_contractor_type(type_id_param integer)": {
     "schema": "public",

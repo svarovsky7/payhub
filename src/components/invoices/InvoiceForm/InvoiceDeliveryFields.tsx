@@ -1,5 +1,5 @@
 import React from 'react'
-import { Row, Col, Form, InputNumber, Radio, DatePicker, Typography } from 'antd'
+import { Row, Col, Form, InputNumber, Radio, Typography } from 'antd'
 import type { Dayjs } from 'dayjs'
 
 const { Text } = Typography
@@ -61,20 +61,6 @@ export const InvoiceDeliveryFields: React.FC<InvoiceDeliveryFieldsProps> = ({
         </Col>
       </Row>
 
-      <Row gutter={16}>
-        <Col span={12}>
-          <Form.Item
-            name="payment_deadline_date"
-            label="Конечная дата актуальности счета"
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              format="DD.MM.YYYY"
-              placeholder="Выберите дату"
-            />
-          </Form.Item>
-        </Col>
-      </Row>
     </>
   )
 }

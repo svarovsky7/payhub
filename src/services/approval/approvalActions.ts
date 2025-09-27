@@ -36,7 +36,9 @@ export const approvePayment = async (
     }
 
     // Проверяем права пользователя на текущий этап
-    const currentStage = approval.route?.stages?.[approval.current_stage_index]
+    // stages приходит как массив, нужно найти этап по order_index
+    const stages = approval.route?.stages || []
+    const currentStage = stages.find((s: any) => s.order_index === approval.current_stage_index)
     if (!currentStage) {
       message.error('Текущий этап не найден')
       return false
@@ -59,20 +61,20 @@ export const approvePayment = async (
       .from('approval_steps')
       .update({
         action: 'approved',
-        actor_id: userId,
+        acted_by: userId,  // Исправлено с actor_id
         acted_at: new Date().toISOString(),
         comment
       })
-      .eq('approval_id', approvalId)
-      .eq('stage_index', approval.current_stage_index)
+      .eq('payment_approval_id', approvalId)  // Исправлено с approval_id
+      .eq('stage_id', currentStage.id)  // Используем stage_id вместо stage_index
 
     if (stepError) throw stepError
 
     // Проверяем, есть ли следующий этап
     const nextStageIndex = approval.current_stage_index + 1
-    const hasNextStage = nextStageIndex < (approval.route?.stages?.length || 0)
+    const nextStage = stages.find((s: any) => s.order_index === nextStageIndex)
 
-    if (hasNextStage) {
+    if (nextStage) {
       // Переходим к следующему этапу
       const { error: approvalUpdateError } = await supabase
         .from('payment_approvals')
@@ -83,14 +85,14 @@ export const approvePayment = async (
 
       if (approvalUpdateError) throw approvalUpdateError
 
-      // Обновляем следующий шаг
+      // Создаём новый шаг для следующего этапа
       const { error: nextStepError } = await supabase
         .from('approval_steps')
-        .update({
+        .insert({
+          payment_approval_id: approvalId,
+          stage_id: nextStage.id,
           action: 'pending'
         })
-        .eq('approval_id', approvalId)
-        .eq('stage_index', nextStageIndex)
 
       if (nextStepError) throw nextStepError
 
@@ -177,7 +179,9 @@ export const rejectPayment = async (
     }
 
     // Проверяем права пользователя на текущий этап
-    const currentStage = approval.route?.stages?.[approval.current_stage_index]
+    // stages приходит как массив, нужно найти этап по order_index
+    const stages = approval.route?.stages || []
+    const currentStage = stages.find((s: any) => s.order_index === approval.current_stage_index)
     if (!currentStage) {
       message.error('Текущий этап не найден')
       return false
@@ -200,12 +204,12 @@ export const rejectPayment = async (
       .from('approval_steps')
       .update({
         action: 'rejected',
-        actor_id: userId,
+        acted_by: userId,  // Исправлено с actor_id
         acted_at: new Date().toISOString(),
         comment
       })
-      .eq('approval_id', approvalId)
-      .eq('stage_index', approval.current_stage_index)
+      .eq('payment_approval_id', approvalId)  // Исправлено с approval_id
+      .eq('stage_id', currentStage.id)  // Используем stage_id вместо stage_index
 
     if (stepError) throw stepError
 

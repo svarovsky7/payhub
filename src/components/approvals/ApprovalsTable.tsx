@@ -35,11 +35,22 @@ export const ApprovalsTable = ({
   onEditAmount,
   getCurrentStagePermissions
 }: ApprovalsTableProps) => {
+  console.log('[ApprovalsTable] Approvals data:', approvals)
+  if (approvals.length > 0) {
+    console.log('[ApprovalsTable] First approval structure:', approvals[0])
+    console.log('[ApprovalsTable] Payment data:', {
+      hasPayment: !!approvals[0].payment,
+      hasPayments: !!approvals[0].payments,
+      paymentData: approvals[0].payment,
+      paymentsData: approvals[0].payments,
+      invoice: approvals[0].payment?.invoice || approvals[0].payments?.invoices
+    })
+  }
   // Генерация фильтров
   const projectFilters = Array.from(
     new Set(
       approvals
-        .map(a => a.payment?.invoice?.project?.name)
+        .map(a => a.payment?.invoice?.projects?.name)  // projects вместо project
         .filter(Boolean)
     )
   ).map(name => ({ text: name, value: name }))
@@ -104,9 +115,9 @@ export const ApprovalsTable = ({
       ellipsis: true,
       filters: projectFilters,
       filterSearch: true,
-      onFilter: (value, record) => record.payment?.invoice?.project?.name === value,
+      onFilter: (value, record) => record.payment?.invoice?.projects?.name === value,
       render: (_, record) => {
-        const projectName = record.payment?.invoice?.project?.name
+        const projectName = record.payment?.invoice?.projects?.name
         return projectName ? (
           <Tooltip title={projectName}>
             <span style={{ fontSize: '12px' }}>{projectName}</span>

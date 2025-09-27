@@ -1,10 +1,5 @@
 [
   {
-    "function": "public.calculate_vat_amounts()",
-    "returns": "trigger",
-    "summary": "Recomputes VAT totals on invoice rows before they persist."
-  },
-  {
     "function": "public.delete_contractor_type(type_id_param integer)",
     "returns": "json",
     "summary": "Deletes a contractor type only when it has no linked contractors."

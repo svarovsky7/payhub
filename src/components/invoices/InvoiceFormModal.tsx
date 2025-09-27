@@ -5,8 +5,7 @@ import type { UploadFile, UploadProps } from 'antd'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
-import type { Contractor, Project, InvoiceType, InvoiceStatus, Invoice } from '../../lib/supabase'
-import type { Employee } from '../../services/employeeOperations'
+import type { Contractor, Project, InvoiceType, InvoiceStatus, Invoice, UserProfile } from '../../lib/supabase'
 import type { MaterialRequest } from '../../services/materialRequestOperations'
 import type { Contract } from '../../services/contractOperations'
 import { loadInvoiceAttachments } from './AttachmentOperations'
@@ -16,7 +15,6 @@ import { InvoiceContractorFields } from './InvoiceForm/InvoiceContractorFields'
 import { InvoiceAmountFields } from './InvoiceForm/InvoiceAmountFields'
 import { InvoiceFileUpload } from './InvoiceForm/InvoiceFileUpload'
 import { InvoiceDeliveryFields } from './InvoiceForm/InvoiceDeliveryFields'
-import { InvoiceStatusField } from './InvoiceForm/InvoiceStatusField'
 
 dayjs.locale('ru')
 
@@ -31,7 +29,7 @@ interface InvoiceFormModalProps {
   projects: Project[]
   invoiceTypes: InvoiceType[]
   invoiceStatuses: InvoiceStatus[]
-  employees: Employee[]
+  employees: UserProfile[]
   amountWithVat: number
   onAmountWithVatChange: (value: number) => void
   vatRate: number
@@ -114,8 +112,9 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         name: att.original_name,
         status: 'done' as const,
         url: att.storage_path,
-        response: { id: att.id, storage_path: att.storage_path }
-      }))
+        response: { id: att.id, storage_path: att.storage_path },
+        existingAttachmentId: att.id
+      } as any))
 
       setOriginalFiles(existingFileList)
       setExistingAttachments(attachments)
@@ -178,16 +177,31 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
   const handleUpdateFileDescription = (fileId: string, description: string) => {
     setFileDescriptions(prev => ({ ...prev, [fileId]: description }))
+    // Update existing attachment if it's already in database
+    const existingAttachment = existingAttachments.find(att => att.id === fileId)
+    if (existingAttachment) {
+      existingAttachment.description = description
+      // Mark the original file with the updated description
+      setOriginalFiles(prev => prev.map(f =>
+        f.uid === fileId
+          ? { ...f, description, existingAttachmentId: fileId } as any
+          : f
+      ))
+    }
     message.success('Описание обновлено')
   }
 
   const handleFinish = (values: any) => {
-    const allFiles = [...originalFiles, ...fileList]
+    // Attach descriptions to files
+    const filesWithDescriptions = fileList.map(file => ({
+      ...file,
+      description: fileDescriptions[file.uid] || ''
+    }))
+
+    const allFiles = [...originalFiles, ...filesWithDescriptions]
     const formValues = {
       ...values,
-      file_descriptions: fileDescriptions,
       invoice_date: values.invoice_date?.format('YYYY-MM-DD'),
-      payment_deadline_date: values.payment_deadline_date?.format('YYYY-MM-DD'),
       status_id: values.status_id || 1,
     }
 
@@ -225,6 +239,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         <InvoiceBasicFields
           invoiceTypes={invoiceTypes}
           onInvoiceDateChange={onInvoiceDateChange}
+          form={form}
         />
 
         {/* Reference Fields */}
@@ -236,9 +251,11 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
         {/* Contractor Fields */}
         <InvoiceContractorFields
-          contractors={[...payers, ...suppliers]}
+          contractors={payers}
           projects={projects}
           employees={employees}
+          form={form}
+          isNewInvoice={!editingInvoice}
         />
 
         {/* Amount Fields */}
@@ -247,6 +264,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           amountWithoutVat={amountWithoutVat}
           onAmountChange={handleAmountChange}
           onVatRateChange={handleVatRateChange}
+          form={form}
         />
 
         {/* Delivery Fields */}
@@ -260,11 +278,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
         {/* Comments Field */}
 
-        {/* Status Field (only for editing) */}
-        {editingInvoice && (
-          <InvoiceStatusField invoiceStatuses={invoiceStatuses} />
-        )}
-
         {/* File Upload */}
         <InvoiceFileUpload
           fileList={fileList}
@@ -276,6 +289,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           existingAttachments={existingAttachments}
           onDeleteExistingFile={handleDeleteExistingFile}
           onUpdateFileDescription={handleUpdateFileDescription}
+          fileDescriptions={fileDescriptions}
         />
 
         <Form.Item>

@@ -20,8 +20,12 @@ export const useApprovalManagement = () => {
 
   // Загрузка роли пользователя
   const loadUserRole = useCallback(async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      console.log('[useApprovalManagement.loadUserRole] No user ID')
+      return
+    }
 
+    console.log('[useApprovalManagement.loadUserRole] Loading role for user:', user.id)
 
     try {
       const { data, error } = await supabase
@@ -32,6 +36,7 @@ export const useApprovalManagement = () => {
 
       if (error) throw error
 
+      console.log('[useApprovalManagement.loadUserRole] User role loaded:', data?.role_id)
       setUserRole(data?.role_id || null)
     } catch (error) {
       console.error('[useApprovalManagement.loadUserRole] Error:', error)
@@ -40,12 +45,17 @@ export const useApprovalManagement = () => {
 
   // Загрузка платежей на согласовании для текущей роли
   const loadPendingApprovals = useCallback(async () => {
-    if (!userRole || !user?.id) return
+    if (!userRole || !user?.id) {
+      console.log('[useApprovalManagement.loadPendingApprovals] Missing data:', { userRole, userId: user?.id })
+      return
+    }
 
+    console.log('[useApprovalManagement.loadPendingApprovals] Loading approvals for role:', userRole)
     setLoadingApprovals(true)
 
     try {
       const approvals = await loadApprovalsForRole(userRole, user.id)
+      console.log('[useApprovalManagement.loadPendingApprovals] Loaded approvals:', approvals.length)
       setPendingApprovals(approvals)
     } finally {
       setLoadingApprovals(false)
