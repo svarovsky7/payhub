@@ -1,13 +1,13 @@
 import type { Dayjs } from 'dayjs'
 import { calculateDeliveryDate } from './invoiceHelpers'
 
-export interface VatCalculationResult {
+interface VatCalculationResult {
   amountWithVat: number
   vatAmount: number
   amountWithoutVat: number
 }
 
-export interface DeliveryDateCalculationParams {
+interface DeliveryDateCalculationParams {
   invoiceDate: Dayjs
   deliveryDays?: number
   deliveryDaysType: 'working' | 'calendar'
@@ -38,9 +38,11 @@ export const calculateVat = (amountWithVat: number, vatRate: number): VatCalcula
 /**
  * Calculate preliminary delivery date based on invoice date and delivery days
  */
-export const calculatePreliminaryDeliveryDate = (
-  params: DeliveryDateCalculationParams
-): Dayjs | null => {
+export const calculatePreliminaryDeliveryDate = (params: {
+  invoiceDate: Dayjs
+  deliveryDays?: number
+  deliveryDaysType: 'working' | 'calendar'
+}): Dayjs | null => {
   const { invoiceDate, deliveryDays, deliveryDaysType } = params
 
   if (!deliveryDays || deliveryDays <= 0) {

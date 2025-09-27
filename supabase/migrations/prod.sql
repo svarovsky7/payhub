@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-26T07:03:41.552639
+-- Generated: 2025-09-27T06:23:16.333403
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -458,6 +458,26 @@ CREATE TABLE IF NOT EXISTS public.contract_invoices (
 
 COMMENT ON TABLE public.contract_invoices IS 'Связь договоров со счетами';
 
+-- Справочник статусов договоров
+CREATE TABLE IF NOT EXISTS public.contract_statuses (
+    id integer(32) NOT NULL DEFAULT nextval('contract_statuses_id_seq'::regclass),
+    code character varying(50) NOT NULL,
+    name character varying(255) NOT NULL,
+    color character varying(7),
+    description text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    sort_order integer(32) DEFAULT 100,
+    CONSTRAINT contract_statuses_code_key UNIQUE (code),
+    CONSTRAINT contract_statuses_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.contract_statuses IS 'Справочник статусов договоров';
+COMMENT ON COLUMN public.contract_statuses.code IS 'Уникальный код статуса';
+COMMENT ON COLUMN public.contract_statuses.name IS 'Название статуса';
+COMMENT ON COLUMN public.contract_statuses.color IS 'Цвет для отображения в интерфейсе (HEX)';
+COMMENT ON COLUMN public.contract_statuses.sort_order IS 'Порядок сортировки статусов (меньшие значения показываются первыми)';
+
 -- Reference list of contractor categories.
 CREATE TABLE IF NOT EXISTS public.contractor_types (
     id integer(32) NOT NULL DEFAULT nextval('contractor_types_id_seq'::regclass),
@@ -516,10 +536,14 @@ CREATE TABLE IF NOT EXISTS public.contracts (
     updated_at timestamp with time zone DEFAULT now(),
     created_by uuid,
     project_id integer(32),
+    status_id integer(32),
+    payment_terms text,
+    advance_percentage numeric(5,2) DEFAULT 0,
     CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),
     CONSTRAINT contracts_pkey PRIMARY KEY (id),
     CONSTRAINT contracts_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
+    CONSTRAINT contracts_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),
     CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)
 );
 
@@ -533,6 +557,8 @@ COMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийны
 COMMENT ON COLUMN public.contracts.description IS 'Описание договора';
 COMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';
 COMMENT ON COLUMN public.contracts.project_id IS 'Проект, связанный с договором';
+COMMENT ON COLUMN public.contracts.payment_terms IS 'Условия оплаты (произвольный текст)';
+COMMENT ON COLUMN public.contracts.advance_percentage IS 'Процент аванса (от 0 до 100)';
 
 -- Организационные отделы компании
 CREATE TABLE IF NOT EXISTS public.departments (
@@ -1374,7 +1400,7 @@ $function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
+CREATE OR REPLACE FUNCTION extensions.armor(bytea)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1382,7 +1408,7 @@ AS '$libdir/pgcrypto', $function$pg_armor$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea)
+CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1422,7 +1448,7 @@ AS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.digest(text, text)
+CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1430,7 +1456,7 @@ AS '$libdir/pgcrypto', $function$pg_digest$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.digest(text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1470,19 +1496,19 @@ AS '$libdir/pgcrypto', $function$pg_random_uuid$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
- RETURNS text
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
  RETURNS text
  LANGUAGE c
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
+ RETURNS text
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
 
 ;
 
@@ -1690,6 +1716,14 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
+ RETURNS text
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
+
+;
+
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)
  RETURNS text
  LANGUAGE c
@@ -1698,11 +1732,11 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
- RETURNS text
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
+ RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 ;
 
@@ -1722,15 +1756,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
- RETURNS bytea
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
-
-;
-
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1738,7 +1764,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1778,7 +1804,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1786,7 +1812,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1810,7 +1836,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1818,7 +1844,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -2570,6 +2596,18 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
     4  -- Default role_id for 'user' role
   );
+  RETURN NEW;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.update_contract_statuses_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+  NEW.updated_at = NOW();
   RETURN NEW;
 END;
 $function$
@@ -4074,6 +4112,9 @@ CREATE TRIGGER update_approval_routes_updated_at BEFORE UPDATE ON public.approva
 CREATE TRIGGER update_attachments_updated_at BEFORE UPDATE ON public.attachments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER update_contract_statuses_updated_at BEFORE UPDATE ON public.contract_statuses FOR EACH ROW EXECUTE FUNCTION update_contract_statuses_updated_at()
+;
+
 CREATE TRIGGER update_contractor_types_updated_at BEFORE UPDATE ON public.contractor_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -4345,6 +4386,15 @@ CREATE INDEX idx_contract_invoices_contract_id ON public.contract_invoices USING
 CREATE INDEX idx_contract_invoices_invoice_id ON public.contract_invoices USING btree (invoice_id)
 ;
 
+CREATE UNIQUE INDEX contract_statuses_code_key ON public.contract_statuses USING btree (code)
+;
+
+CREATE INDEX idx_contract_statuses_code ON public.contract_statuses USING btree (code)
+;
+
+CREATE INDEX idx_contract_statuses_sort_order ON public.contract_statuses USING btree (sort_order)
+;
+
 CREATE UNIQUE INDEX contractor_types_code_key ON public.contractor_types USING btree (code)
 ;
 
@@ -4370,6 +4420,9 @@ CREATE INDEX idx_contracts_payer_id ON public.contracts USING btree (payer_id)
 ;
 
 CREATE INDEX idx_contracts_project_id ON public.contracts USING btree (project_id)
+;
+
+CREATE INDEX idx_contracts_status_id ON public.contracts USING btree (status_id)
 ;
 
 CREATE INDEX idx_contracts_supplier_id ON public.contracts USING btree (supplier_id)

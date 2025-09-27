@@ -86,7 +86,7 @@ export const loadInvoiceAttachments = async (invoiceId: string): Promise<Attachm
   }
 }
 
-export const loadPaymentsList = async (invoiceId: string) => {
+const loadPaymentsList = async (invoiceId: string) => {
   try {
 
     const { data, error } = await supabase
@@ -111,7 +111,7 @@ export const loadPaymentsList = async (invoiceId: string) => {
   }
 }
 
-export const loadPaymentReferences = async () => {
+const loadPaymentReferences = async () => {
   try {
     const results = {
       types: [] as any[],

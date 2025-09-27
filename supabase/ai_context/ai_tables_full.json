@@ -514,6 +514,119 @@
     "triggers": []
   },
   {
+    "table": "public.contract_statuses",
+    "summary": "Справочник статусов договоров",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "default": "nextval('contract_statuses_id_seq'::regclass)"
+      },
+      {
+        "name": "code",
+        "type": "varchar(50)",
+        "nullable": false,
+        "description": "Уникальный код статуса"
+      },
+      {
+        "name": "name",
+        "type": "varchar(255)",
+        "nullable": false,
+        "description": "Название статуса"
+      },
+      {
+        "name": "color",
+        "type": "varchar(7)",
+        "nullable": true,
+        "description": "Цвет для отображения в интерфейсе (HEX)"
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "default": "100",
+        "description": "Порядок сортировки статусов (меньшие значения показываются первыми)"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [
+        {
+          "name": "contract_statuses_code_key",
+          "columns": [
+            "code"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "2200_22407_1_not_null"
+        },
+        {
+          "name": "2200_22407_2_not_null"
+        },
+        {
+          "name": "2200_22407_3_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "contract_statuses_code_key",
+        "columns": [
+          "code"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_contract_statuses_code",
+        "columns": [
+          "code"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_contract_statuses_sort_order",
+        "columns": [
+          "sort_order"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": [
+      {
+        "trigger": "update_contract_statuses_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "function": "public.update_contract_statuses_updated_at()"
+      }
+    ]
+  },
+  {
     "table": "public.contractor_types",
     "summary": "Reference list of contractor categories.",
     "columns": [
@@ -813,6 +926,24 @@
         "type": "integer",
         "nullable": true,
         "description": "Проект, связанный с договором"
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": true
+      },
+      {
+        "name": "payment_terms",
+        "type": "text",
+        "nullable": true,
+        "description": "Условия оплаты (произвольный текст)"
+      },
+      {
+        "name": "advance_percentage",
+        "type": "numeric(5,2)",
+        "nullable": true,
+        "default": "0",
+        "description": "Процент аванса (от 0 до 100)"
       }
     ],
     "constraints": {
@@ -846,6 +977,9 @@
         },
         {
           "name": "2200_21052_3_not_null"
+        },
+        {
+          "name": "contracts_advance_percentage_check"
         }
       ]
     },
@@ -875,6 +1009,13 @@
         "name": "idx_contracts_project_id",
         "columns": [
           "project_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_contracts_status_id",
+        "columns": [
+          "status_id"
         ],
         "unique": false
       },

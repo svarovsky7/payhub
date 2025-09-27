@@ -1,19 +1,19 @@
-# Repository Guidelines
+﻿# Repository Guidelines
 
 ## Project Structure & Module Organization
-Source lives in `src/`, with routing screens under `src/pages/`, shared UI in `src/components/`, and hooks in `src/hooks/`. Keep assets that ship with the bundle in `src/assets/` and limit `public/` to static, client-visible files. Place Supabase schema metadata and migrations only in `supabase/ai_context` so backend state stays versioned alongside code. Co-locate tests beside the implementation as `*.test.tsx` for quick discovery.
+Source lives in `src/`. Route screens stay inside `src/pages/`, shared UI primitives in `src/components/`, and reusable logic in `src/hooks/`. Keep bundle-friendly assets in `src/assets/` and reserve `public/` for static files only. Co-locate tests beside implementations as `*.test.tsx`. Track Supabase schema and migrations exclusively in `supabase/ai_context` so backend state versioning stays in lockstep with code.
 
-## Build, Test, & Development Commands
-Use `npm run dev` to start Vite on http://localhost:5173 during feature work. `npm run build` runs `tsc -b` and emits the production bundle to `dist/`; follow with `npm run preview` for a local smoke test. Run `npm run lint` before review to satisfy ESLint rules. Execute `npm test` (optionally `npm test -- --watch`) to exercise the Vitest suite.
+## Build, Test, and Development Commands
+Use `npm run dev` to launch Vite at http://localhost:5173 during feature work. Run `npm run build` to compile via `tsc -b` and produce the `dist/` bundle, then `npm run preview` for a local production smoke test. Execute `npm run lint` to satisfy ESLint before review. Run `npm test` or `npm test -- --watch` to exercise the Vitest suite.
 
 ## Coding Style & Naming Conventions
-Stick to TypeScript with 2-space indentation, single quotes, and trailing commas; ESLint and Prettier enforce defaults. Name components in PascalCase (e.g., `PaymentPanel.tsx`), hooks and utilities in camelCase (`useInvoices.ts`). Group imports: external packages, absolute aliases, then relative paths. Avoid placing wiring logic outside `src/main.tsx` to keep entry clean.
+Write TypeScript with 2-space indentation, single quotes, and trailing commas—ESLint plus Prettier enforce defaults. Name React components in PascalCase (e.g., `PaymentPanel.tsx`) and hooks/utilities in camelCase (e.g., `useInvoices.ts`). Group imports by external packages, absolute aliases, then relatives. Avoid wiring logic outside `src/main.tsx` to keep entry clean.
 
 ## Testing Guidelines
-Favor scenario-driven Vitest cases with React Testing Library. Ensure critical flows stay above 80% coverage; add focused tests when behavior is user-facing or risky. Name files `Component.test.tsx` beside the component. Document any manual verification in the PR when automation is impractical.
+Vitest with React Testing Library powers unit and integration tests. Aim for scenario-driven coverage above 80% on critical flows. Mirror the implementation name in `Component.test.tsx` files and place them beside their components. Document any manual verification steps when automation is impractical.
 
 ## Commit & Pull Request Guidelines
-Write Conventional Commits such as `feat: add invoice filters` or `fix: correct auth redirect`. PRs should link to their task, summarize changes, call out deployment risks, and attach screenshots when UI shifts. Confirm lint and test commands pass, and note any Supabase migration touches in `supabase/ai_context`.
+Adopt Conventional Commits such as `feat: add invoice filters` or `fix: correct auth redirect`. Pull requests should link to their task, summarize changes, outline deployment risks, and attach UI screenshots when visuals shift. Confirm `npm run lint`, `npm test`, and `npm run build` succeed before requesting review.
 
 ## Security & Configuration Tips
-Keep secrets in `.env` files with the `VITE_` prefix and never log Supabase keys. After dependency updates, rerun `npm install`, then `npm run build` and `npm run lint`. Avoid ad-hoc scripts; persist all schema work inside `supabase/ai_context`.
+Store secrets in `.env` with the `VITE_` prefix and never log Supabase keys. After dependency updates, rerun install, build, and lint commands. Persist all Supabase schema updates inside `supabase/ai_context` to keep environments reproducible.

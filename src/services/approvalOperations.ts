@@ -1,5 +1,4 @@
 // Re-export all functions and types from separate modules
-export { checkApprovalRoute } from './approval/approvalRoutes'
 export {
   startApprovalProcess,
   type PaymentApproval,
@@ -17,7 +16,7 @@ export {
 
 // Legacy type exports for backward compatibility
 
-export interface WorkflowStage {
+interface WorkflowStage {
   id: number
   route_id: number
   order_index: number

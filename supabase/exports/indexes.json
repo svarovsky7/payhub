@@ -479,6 +479,30 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_contract_invoices_invoice_id ON public.contract_invoices USING btree (invoice_id)"
   },
+  "public.contract_statuses.contract_statuses_code_key": {
+    "schema": "public",
+    "name": "contract_statuses_code_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX contract_statuses_code_key ON public.contract_statuses USING btree (code)"
+  },
+  "public.contract_statuses.idx_contract_statuses_code": {
+    "schema": "public",
+    "name": "idx_contract_statuses_code",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contract_statuses_code ON public.contract_statuses USING btree (code)"
+  },
+  "public.contract_statuses.idx_contract_statuses_sort_order": {
+    "schema": "public",
+    "name": "idx_contract_statuses_sort_order",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contract_statuses_sort_order ON public.contract_statuses USING btree (sort_order)"
+  },
   "public.contractor_types.contractor_types_code_key": {
     "schema": "public",
     "name": "contractor_types_code_key",
@@ -550,6 +574,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_contracts_project_id ON public.contracts USING btree (project_id)"
+  },
+  "public.contracts.idx_contracts_status_id": {
+    "schema": "public",
+    "name": "idx_contracts_status_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contracts_status_id ON public.contracts USING btree (status_id)"
   },
   "public.contracts.idx_contracts_supplier_id": {
     "schema": "public",

@@ -3,6 +3,7 @@ import { Table, Space, Button, Modal, Form, Input, InputNumber, Select, App, Tag
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { supabase, type InvoiceStatus, type PaymentStatus } from '../../lib/supabase'
+import { type ContractStatus } from '../../services/contractOperations'
 
 export const StatusesTab = () => {
   const { message: messageApi, modal } = App.useApp()
@@ -21,9 +22,17 @@ export const StatusesTab = () => {
   const [editingPaymentStatus, setEditingPaymentStatus] = useState<PaymentStatus | null>(null)
   const [paymentForm] = Form.useForm()
 
+  // Состояния для статусов договоров
+  const [contractStatuses, setContractStatuses] = useState<ContractStatus[]>([])
+  const [loadingContract, setLoadingContract] = useState(false)
+  const [isContractModalVisible, setIsContractModalVisible] = useState(false)
+  const [editingContractStatus, setEditingContractStatus] = useState<ContractStatus | null>(null)
+  const [contractForm] = Form.useForm()
+
   useEffect(() => {
     loadInvoiceStatuses()
     loadPaymentStatuses()
+    loadContractStatuses()
   }, [])
 
   // Функции для статусов счетов
@@ -141,6 +150,27 @@ export const StatusesTab = () => {
     }
   }
 
+  // Функции для статусов договоров
+  const loadContractStatuses = async () => {
+    setLoadingContract(true)
+    try {
+      const { data, error } = await supabase
+        .from('contract_statuses')
+        .select('*')
+        .order('sort_order', { ascending: true, nullsFirst: false })
+        .order('name')
+
+      if (error) throw error
+
+      setContractStatuses(data || [])
+    } catch (error) {
+      console.error('[StatusesTab.loadContractStatuses] Error:', error)
+      messageApi.error('Ошибка загрузки статусов договоров')
+    } finally {
+      setLoadingContract(false)
+    }
+  }
+
   const handleCreatePayment = () => {
     setEditingPaymentStatus(null)
     paymentForm.resetFields()
@@ -214,6 +244,132 @@ export const StatusesTab = () => {
     })
   }
 
+  const handleCreateContract = () => {
+    setEditingContractStatus(null)
+    contractForm.resetFields()
+    contractForm.setFieldsValue({ sort_order: 100 })
+    setIsContractModalVisible(true)
+  }
+
+  const handleEditContract = (record: ContractStatus) => {
+    setEditingContractStatus(record)
+
+    // Map hex colors back to tag names for editing
+    const hexToTag: { [key: string]: string } = {
+      '#d9d9d9': 'default',
+      '#52c41a': 'success',
+      '#1890ff': 'processing',
+      '#faad14': 'warning',
+      '#f5222d': 'error',
+      '#13c2c2': 'cyan',
+      '#722ed1': 'purple',
+      '#eb2f96': 'magenta',
+      '#a0d911': 'lime'
+    }
+
+    const colorValue = record.color
+      ? (hexToTag[record.color.toLowerCase()] || 'default')
+      : 'default'
+
+    contractForm.setFieldsValue({
+      code: record.code,
+      name: record.name,
+      color: colorValue,
+      description: record.description,
+      sort_order: record.sort_order || 100
+    })
+    setIsContractModalVisible(true)
+  }
+
+  const handleSubmitContract = async (values: any) => {
+    try {
+      // Convert color from tag name to hex if needed for contract statuses
+      const colorMapping: { [key: string]: string } = {
+        'default': '#d9d9d9',
+        'success': '#52c41a',
+        'processing': '#1890ff',
+        'warning': '#faad14',
+        'error': '#f5222d',
+        'cyan': '#13c2c2',
+        'purple': '#722ed1',
+        'magenta': '#eb2f96',
+        'gold': '#faad14',
+        'lime': '#a0d911'
+      }
+
+      const submitData = {
+        ...values,
+        color: colorMapping[values.color] || values.color || '#1890ff'
+      }
+
+      if (editingContractStatus) {
+        const { error } = await supabase
+          .from('contract_statuses')
+          .update(submitData)
+          .eq('id', editingContractStatus.id)
+
+        if (error) throw error
+        messageApi.success('Статус договора обновлён')
+      } else {
+        const { error } = await supabase
+          .from('contract_statuses')
+          .insert([submitData])
+
+        if (error) throw error
+        messageApi.success('Статус договора создан')
+      }
+
+      setIsContractModalVisible(false)
+      loadContractStatuses()
+    } catch (error: any) {
+      console.error('[StatusesTab.handleSubmitContract] Error:', error)
+      if (error.code === '23505') {
+        messageApi.error('Статус с таким кодом уже существует')
+      } else {
+        messageApi.error(error.message || 'Ошибка сохранения статуса договора')
+      }
+    }
+  }
+
+  const handleDeleteContract = async (id: number) => {
+    modal.confirm({
+      title: 'Удалить статус договора?',
+      content: 'Это действие нельзя отменить.',
+      okText: 'Удалить',
+      cancelText: 'Отмена',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          // Проверяем, используется ли статус в договорах
+          const { data: contracts, error: checkError } = await supabase
+            .from('contracts')
+            .select('id')
+            .eq('status_id', id)
+            .limit(1)
+
+          if (checkError) throw checkError
+
+          if (contracts && contracts.length > 0) {
+            messageApi.error('Невозможно удалить статус, который используется в договорах')
+            return
+          }
+
+          const { error } = await supabase
+            .from('contract_statuses')
+            .delete()
+            .eq('id', id)
+
+          if (error) throw error
+          messageApi.success('Статус договора удалён')
+          loadContractStatuses()
+        } catch (error: any) {
+          console.error('[StatusesTab.handleDeleteContract] Error:', error)
+          messageApi.error('Ошибка удаления статуса договора')
+        }
+      }
+    })
+  }
+
   // Опции цветов для статусов
   const colorOptions = [
     { value: 'default', label: 'По умолчанию', color: 'default' },
@@ -228,8 +384,8 @@ export const StatusesTab = () => {
     { value: 'lime', label: 'Лайм', color: 'lime' }
   ]
 
-  // Унифицированные колонки для обеих таблиц
-  const getColumns = (type: 'invoice' | 'payment'): ColumnsType<InvoiceStatus | PaymentStatus> => [
+  // Унифицированные колонки для всех статусов
+  const getColumns = (type: 'invoice' | 'payment' | 'contract'): ColumnsType<any> => [
     {
       title: 'Код',
       dataIndex: 'code',
@@ -239,9 +395,25 @@ export const StatusesTab = () => {
       title: 'Название',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: any) => (
-        <Tag color={record.color || 'default'}>{name}</Tag>
-      )
+      render: (name: string, record: any) => {
+        // For contract statuses, map hex colors to tag colors
+        let tagColor = record.color || 'default'
+        if (type === 'contract' && record.color && record.color.startsWith('#')) {
+          const hexToTag: { [key: string]: string } = {
+            '#d9d9d9': 'default',
+            '#52c41a': 'success',
+            '#1890ff': 'processing',
+            '#faad14': 'warning',
+            '#f5222d': 'error',
+            '#13c2c2': 'cyan',
+            '#722ed1': 'purple',
+            '#eb2f96': 'magenta',
+            '#a0d911': 'lime'
+          }
+          tagColor = hexToTag[record.color.toLowerCase()] || 'default'
+        }
+        return <Tag color={tagColor}>{name}</Tag>
+      }
     },
     {
       title: 'Описание',
@@ -252,108 +424,142 @@ export const StatusesTab = () => {
       title: 'Порядок',
       dataIndex: 'sort_order',
       key: 'sort_order',
-      align: 'center'
+      align: 'center',
+      render: (sort_order) => sort_order || '-'
     },
     {
       title: 'Дата создания',
       dataIndex: 'created_at',
       key: 'created_at',
-      render: (date) => new Date(date).toLocaleDateString('ru-RU')
+      render: (date) => date ? new Date(date).toLocaleDateString('ru-RU') : '-'
     },
     {
       title: 'Действия',
       key: 'actions',
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            icon={<EditOutlined />}
-            size="small"
-            onClick={() => type === 'invoice' ? handleEditInvoice(record as InvoiceStatus) : handleEditPayment(record as PaymentStatus)}
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            danger
-            onClick={() => type === 'invoice' ? handleDeleteInvoice(record.id) : handleDeletePayment(record.id)}
-          />
-        </Space>
-      )
+      render: (_, record) => {
+        const handleEdit = () => {
+          if (type === 'invoice') handleEditInvoice(record)
+          else if (type === 'payment') handleEditPayment(record)
+          else if (type === 'contract') handleEditContract(record)
+        }
+
+        const handleDelete = () => {
+          if (type === 'invoice') handleDeleteInvoice(record.id)
+          else if (type === 'payment') handleDeletePayment(record.id)
+          else if (type === 'contract') handleDeleteContract(record.id)
+        }
+
+        // Защищаем только системные статусы договоров от удаления
+        const isProtected = false // Разрешаем удаление всех статусов
+
+        return (
+          <Space size="small">
+            <Button
+              icon={<EditOutlined />}
+              size="small"
+              onClick={handleEdit}
+            />
+            <Button
+              icon={<DeleteOutlined />}
+              size="small"
+              danger
+              disabled={isProtected}
+              onClick={handleDelete}
+            />
+          </Space>
+        )
+      }
     }
   ]
 
-  // Компонент формы статуса
-  const StatusForm = ({ form, onSubmit, isEditing, type }: any) => (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={onSubmit}
-    >
-      <Form.Item
-        name="code"
-        label="Код"
-        rules={[
-          { required: true, message: 'Укажите код статуса' },
-          { pattern: /^[a-z_]+$/, message: 'Код должен содержать только латинские буквы и подчеркивание' }
-        ]}
-      >
-        <Input placeholder="например: pending" />
-      </Form.Item>
 
-      <Form.Item
-        name="name"
-        label="Название"
-        rules={[{ required: true, message: 'Укажите название статуса' }]}
-      >
-        <Input placeholder="Название статуса" />
-      </Form.Item>
+  // Унифицированный компонент формы для всех статусов
+  const StatusForm = ({ form, onSubmit, isEditing, type }: any) => {
+    const handleCancel = () => {
+      if (type === 'invoice') setIsInvoiceModalVisible(false)
+      else if (type === 'payment') setIsPaymentModalVisible(false)
+      else if (type === 'contract') setIsContractModalVisible(false)
+    }
 
-      <Form.Item
-        name="description"
-        label="Описание"
-      >
-        <Input.TextArea rows={3} placeholder="Описание статуса" />
-      </Form.Item>
+    // Разрешаем редактирование кода для всех статусов договоров
+    const isCodeDisabled = false // Разрешаем редактирование кода для всех статусов
 
-      <Form.Item
-        name="color"
-        label="Цвет"
+    return (
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onSubmit}
       >
-        <Select placeholder="Выберите цвет для статуса">
-          {colorOptions.map(option => (
-            <Select.Option key={option.value} value={option.value}>
-              <Space>
-                <Tag color={option.color}>{option.label}</Tag>
-              </Space>
-            </Select.Option>
-          ))}
-        </Select>
-      </Form.Item>
+        <Form.Item
+          name="code"
+          label="Код"
+          rules={[
+            { required: true, message: 'Укажите код статуса' },
+            { pattern: /^[a-z_]+$/, message: 'Код должен содержать только латинские буквы и подчеркивание' }
+          ]}
+        >
+          <Input
+            placeholder="например: pending"
+            disabled={isCodeDisabled}
+          />
+        </Form.Item>
 
-      <Form.Item
-        name="sort_order"
-        label="Порядок сортировки"
-        tooltip="Статусы с меньшим числом показываются первыми"
-      >
-        <InputNumber
-          min={0}
-          max={1000}
-          style={{ width: '100%' }}
-          placeholder="100"
-        />
-      </Form.Item>
+        <Form.Item
+          name="name"
+          label="Название"
+          rules={[{ required: true, message: 'Укажите название статуса' }]}
+        >
+          <Input placeholder="Название статуса" />
+        </Form.Item>
 
-      <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-        <Space>
-          <Button onClick={() => type === 'invoice' ? setIsInvoiceModalVisible(false) : setIsPaymentModalVisible(false)}>
-            Отмена
-          </Button>
-          <Button type="primary" htmlType="submit">
-            {isEditing ? 'Обновить' : 'Создать'}
-          </Button>
-        </Space>
-      </Form.Item>
-    </Form>
-  )
+        <Form.Item
+          name="description"
+          label="Описание"
+        >
+          <Input.TextArea rows={3} placeholder="Описание статуса" />
+        </Form.Item>
+
+        <Form.Item
+          name="color"
+          label="Цвет"
+        >
+          <Select placeholder="Выберите цвет для статуса">
+            {colorOptions.map(option => (
+              <Select.Option key={option.value} value={option.value}>
+                <Space>
+                  <Tag color={option.color}>{option.label}</Tag>
+                </Space>
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          name="sort_order"
+          label="Порядок сортировки"
+          tooltip="Статусы с меньшим числом показываются первыми"
+        >
+          <InputNumber
+            min={0}
+            max={1000}
+            style={{ width: '100%' }}
+            placeholder="100"
+          />
+        </Form.Item>
+
+        <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+          <Space>
+            <Button onClick={handleCancel}>
+              Отмена
+            </Button>
+            <Button type="primary" htmlType="submit">
+              {isEditing ? 'Обновить' : 'Создать'}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    )
+  }
 
   const tabItems = [
     {
@@ -437,6 +643,49 @@ export const StatusesTab = () => {
               onSubmit={handleSubmitPayment}
               isEditing={!!editingPaymentStatus}
               type="payment"
+            />
+          </Modal>
+        </>
+      )
+    },
+    {
+      key: 'contract-statuses',
+      label: 'Статусы договоров',
+      children: (
+        <>
+          <div style={{ marginBottom: 16 }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreateContract}
+            >
+              Добавить статус договора
+            </Button>
+          </div>
+
+          <Table
+            columns={getColumns('contract')}
+            dataSource={contractStatuses}
+            loading={loadingContract}
+            rowKey="id"
+            pagination={{
+              pageSize: 10,
+              showTotal: (total) => `Всего: ${total} статусов`
+            }}
+          />
+
+          <Modal
+            title={editingContractStatus ? 'Редактировать статус договора' : 'Создать статус договора'}
+            open={isContractModalVisible}
+            onCancel={() => setIsContractModalVisible(false)}
+            footer={null}
+            width={500}
+          >
+            <StatusForm
+              form={contractForm}
+              onSubmit={handleSubmitContract}
+              isEditing={!!editingContractStatus}
+              type="contract"
             />
           </Modal>
         </>

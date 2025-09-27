@@ -67,7 +67,7 @@ export const deleteRemovedFiles = async (originalFiles: FileWithDescription[], c
   }
 }
 
-export const updateFileDescriptions = async (files: FileWithDescription[]) => {
+const updateFileDescriptions = async (files: FileWithDescription[]) => {
 
   let updatedCount = 0
   const errors: string[] = []

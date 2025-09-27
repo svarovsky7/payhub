@@ -7,5 +7,4 @@ export {
   updateInvoice,
   deleteInvoice
 } from './invoice/invoiceCrud'
-export { processInvoiceFiles } from './invoice/invoiceFiles'
 export { recalculateInvoiceStatus, recalculateAllInvoiceStatuses } from './invoice/invoiceStatus'

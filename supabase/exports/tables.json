@@ -3538,6 +3538,136 @@
     ],
     "sql": "-- Связь договоров со счетами\nCREATE TABLE IF NOT EXISTS public.contract_invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    invoice_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (contract_id),\n    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (invoice_id),\n    CONSTRAINT contract_invoices_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_invoices IS 'Связь договоров со счетами';"
   },
+  "public.contract_statuses": {
+    "schema": "public",
+    "name": "contract_statuses",
+    "comment": "Справочник статусов договоров",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('contract_statuses_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Уникальный код статуса"
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Название статуса"
+      },
+      {
+        "name": "color",
+        "data_type": "character varying",
+        "max_length": 7,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Цвет для отображения в интерфейсе (HEX)"
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "100",
+        "comment": "Порядок сортировки статусов (меньшие значения показываются первыми)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_22407_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_22407_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_22407_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_statuses_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_statuses_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Справочник статусов договоров\nCREATE TABLE IF NOT EXISTS public.contract_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('contract_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    color character varying(7),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    sort_order integer(32) DEFAULT 100,\n    CONSTRAINT contract_statuses_code_key UNIQUE (code),\n    CONSTRAINT contract_statuses_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_statuses IS 'Справочник статусов договоров';\nCOMMENT ON COLUMN public.contract_statuses.code IS 'Уникальный код статуса';\nCOMMENT ON COLUMN public.contract_statuses.name IS 'Название статуса';\nCOMMENT ON COLUMN public.contract_statuses.color IS 'Цвет для отображения в интерфейсе (HEX)';\nCOMMENT ON COLUMN public.contract_statuses.sort_order IS 'Порядок сортировки статусов (меньшие значения показываются первыми)';"
+  },
   "public.contractor_types": {
     "schema": "public",
     "name": "contractor_types",
@@ -3908,6 +4038,36 @@
         "is_nullable": "YES",
         "default": null,
         "comment": "Проект, связанный с договором"
+      },
+      {
+        "name": "status_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "payment_terms",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Условия оплаты (произвольный текст)"
+      },
+      {
+        "name": "advance_percentage",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 5,
+        "numeric_scale": 2,
+        "is_nullable": "YES",
+        "default": "0",
+        "comment": "Процент аванса (от 0 до 100)"
       }
     ],
     "constraints": [
@@ -3929,6 +4089,14 @@
       },
       {
         "name": "2200_21052_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contracts_advance_percentage_check",
         "type": "CHECK",
         "column": null,
         "foreign_table_schema": null,
@@ -3968,6 +4136,14 @@
         "foreign_column": null
       },
       {
+        "name": "contracts_status_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "status_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
         "name": "contracts_supplier_id_fkey",
         "type": "FOREIGN KEY",
         "column": "supplier_id",
@@ -3976,7 +4152,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Договоры с контрагентами\nCREATE TABLE IF NOT EXISTS public.contracts (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_number character varying(255) NOT NULL,\n    contract_date date NOT NULL,\n    payer_id integer(32),\n    supplier_id integer(32),\n    vat_rate numeric(5,2) DEFAULT 20,\n    warranty_period_days integer(32),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    project_id integer(32),\n    CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_pkey PRIMARY KEY (id),\n    CONSTRAINT contracts_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';\nCOMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';\nCOMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';\nCOMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';\nCOMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';\nCOMMENT ON COLUMN public.contracts.description IS 'Описание договора';\nCOMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';\nCOMMENT ON COLUMN public.contracts.project_id IS 'Проект, связанный с договором';"
+    "sql": "-- Договоры с контрагентами\nCREATE TABLE IF NOT EXISTS public.contracts (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_number character varying(255) NOT NULL,\n    contract_date date NOT NULL,\n    payer_id integer(32),\n    supplier_id integer(32),\n    vat_rate numeric(5,2) DEFAULT 20,\n    warranty_period_days integer(32),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    project_id integer(32),\n    status_id integer(32),\n    payment_terms text,\n    advance_percentage numeric(5,2) DEFAULT 0,\n    CONSTRAINT contracts_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contracts_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_pkey PRIMARY KEY (id),\n    CONSTRAINT contracts_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';\nCOMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';\nCOMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';\nCOMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';\nCOMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';\nCOMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';\nCOMMENT ON COLUMN public.contracts.description IS 'Описание договора';\nCOMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';\nCOMMENT ON COLUMN public.contracts.project_id IS 'Проект, связанный с договором';\nCOMMENT ON COLUMN public.contracts.payment_terms IS 'Условия оплаты (произвольный текст)';\nCOMMENT ON COLUMN public.contracts.advance_percentage IS 'Процент аванса (от 0 до 100)';"
   },
   "public.departments": {
     "schema": "public",

@@ -5,7 +5,7 @@ const EPS = 10
 
 // ID статусов счетов
 // Используйте только эти официальные определения статусов!
-export const INVOICE_STATUSES = {
+const INVOICE_STATUSES = {
   DRAFT: 1,      // draft (Черновик)
   PENDING: 2,    // pending (На согласовании)
   PARTIAL: 3,    // partial (Частично оплачен)
@@ -15,7 +15,7 @@ export const INVOICE_STATUSES = {
 
 // ID статусов платежей
 // Используйте только эти официальные определения статусов!
-export const PAYMENT_STATUSES = {
+const PAYMENT_STATUSES = {
   CREATED: 1,    // created (Создан)
   PENDING: 2,    // pending (На согласовании)
   APPROVED: 3,   // approved (В оплате)

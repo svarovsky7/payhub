@@ -20,6 +20,16 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.update_contract_statuses_updated_at",
+    "table": "public.contract_statuses",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "function": "public.update_contract_statuses_updated_at()",
+    "purpose": ""
+  },
+  {
     "trigger": "public.update_contractor_types_updated_at",
     "table": "public.contractor_types",
     "timing": "BEFORE",

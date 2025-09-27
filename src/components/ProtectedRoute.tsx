@@ -77,9 +77,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   // Show loading spinner while checking access
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Spin size="large" tip="Проверка доступа..." />
-      </div>
+      <Spin
+        size="large"
+        spinning={true}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          width: '100%'
+        }}
+      />
     )
   }
 

@@ -1,45 +1,9 @@
 import { supabase } from '../lib/supabase'
 import { message } from 'antd'
-import type { Project } from '../lib/supabase'
 
-// Load contractors for select lists
-export const loadContractors = async () => {
 
-  try {
-    const { data, error } = await supabase
-      .from('contractors')
-      .select('*')
-      .order('name')
 
-    if (error) throw error
 
-    return data || []
-  } catch (error) {
-    console.error('[ContractOperations.loadContractors] Error:', error)
-    message.error('Ошибка загрузки контрагентов')
-    return []
-  }
-}
-
-// Load projects for select lists
-export const loadProjects = async (): Promise<Project[]> => {
-
-  try {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-
-    if (error) throw error
-
-    return data || []
-  } catch (error) {
-    console.error('[ContractOperations.loadProjects] Error:', error)
-    message.error('Ошибка загрузки проектов')
-    return []
-  }
-}
 
 export interface Contract {
   id: string
@@ -59,6 +23,30 @@ export interface Contract {
   project?: any
   invoices?: any[]
   attachments?: any[]
+  status_id?: number
+  status?: ContractStatus
+  payment_terms?: string
+  advance_percentage?: number
+}
+
+export interface Contractor {
+  id: number
+  name: string
+  inn: string
+  kpp?: string
+  ogrn?: string
+  address?: string
+  is_supplier?: boolean
+  is_payer?: boolean
+}
+
+export interface ContractStatus {
+  id: number
+  code: string
+  name: string
+  color?: string
+  description?: string
+  sort_order?: number
 }
 
 
@@ -73,6 +61,7 @@ export const loadContracts = async () => {
         payer:contractors!contracts_payer_id_fkey(*),
         supplier:contractors!contracts_supplier_id_fkey(*),
         project:projects(*),
+        status:contract_statuses(*),
         contract_invoices(
           *,
           invoice:invoices(*)
@@ -94,69 +83,6 @@ export const loadContracts = async () => {
   }
 }
 
-// Create contract
-export const createContract = async (contract: Partial<Contract>, userId: string) => {
-
-  try {
-    const { data, error } = await supabase
-      .from('contracts')
-      .insert({
-        ...contract,
-        created_by: userId
-      })
-      .select(`
-        *,
-        payer:contractors!contracts_payer_id_fkey(*),
-        supplier:contractors!contracts_supplier_id_fkey(*),
-        project:projects(*)
-      `)
-      .single()
-
-    if (error) throw error
-
-    message.success('Договор успешно создан')
-    return data
-  } catch (error: any) {
-    console.error('[ContractOperations.createContract] Error:', error)
-    if (error.code === '23505') {
-      message.error('Договор с таким номером уже существует')
-    } else {
-      message.error('Ошибка создания договора')
-    }
-    throw error
-  }
-}
-
-// Update contract
-export const updateContract = async (id: string, contract: Partial<Contract>) => {
-
-  try {
-    const { data, error } = await supabase
-      .from('contracts')
-      .update(contract)
-      .eq('id', id)
-      .select(`
-        *,
-        payer:contractors!contracts_payer_id_fkey(*),
-        supplier:contractors!contracts_supplier_id_fkey(*),
-        project:projects(*)
-      `)
-      .single()
-
-    if (error) throw error
-
-    message.success('Договор успешно обновлен')
-    return data
-  } catch (error: any) {
-    console.error('[ContractOperations.updateContract] Error:', error)
-    if (error.code === '23505') {
-      message.error('Договор с таким номером уже существует')
-    } else {
-      message.error('Ошибка обновления договора')
-    }
-    throw error
-  }
-}
 
 // Delete contract
 export const deleteContract = async (id: string) => {
@@ -273,117 +199,6 @@ export const removeInvoiceFromContract = async (contractId: string, invoiceId: s
 }
 
 
-// Upload file to storage and create attachment record
-export const uploadContractFile = async (file: File, contractId: string, userId: string) => {
-
-  try {
-    // Generate unique file name
-    const timestamp = Date.now()
-    const fileName = `${timestamp}_${file.name}`
-    const filePath = `contracts/${contractId}/${fileName}`
-
-    // Upload file to storage
-    const { error: uploadError } = await supabase.storage
-      .from('attachments')
-      .upload(filePath, file)
-
-    if (uploadError) throw uploadError
-
-    // Create attachment record
-    const { data: attachment, error: attachmentError } = await supabase
-      .from('attachments')
-      .insert({
-        original_name: file.name,
-        storage_path: filePath,
-        size_bytes: file.size,
-        mime_type: file.type,
-        created_by: userId
-      })
-      .select()
-      .single()
-
-    if (attachmentError) throw attachmentError
-
-    // Link attachment to contract
-    const { error: linkError } = await supabase
-      .from('contract_attachments')
-      .insert({
-        contract_id: contractId,
-        attachment_id: attachment.id
-      })
-
-    if (linkError) {
-      // If linking fails, delete the attachment record
-      await supabase.from('attachments').delete().eq('id', attachment.id)
-      throw linkError
-    }
-
-    message.success(`Файл "${file.name}" успешно загружен`)
-    return attachment
-  } catch (error) {
-    console.error('[ContractOperations.uploadContractFile] Error:', error)
-    message.error('Ошибка загрузки файла')
-    throw error
-  }
-}
-
-// Get file URL for preview/download
-export const getFileUrl = (storagePath: string) => {
-  const { data } = supabase.storage
-    .from('attachments')
-    .getPublicUrl(storagePath)
-
-  return data.publicUrl
-}
-
-// Delete attachment completely (from storage and database)
-export const deleteAttachment = async (attachmentId: string, storagePath: string) => {
-
-  try {
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from('attachments')
-      .remove([storagePath])
-
-    if (storageError) throw storageError
-
-    // Delete attachment record (will cascade to contract_attachments)
-    const { error: dbError } = await supabase
-      .from('attachments')
-      .delete()
-      .eq('id', attachmentId)
-
-    if (dbError) throw dbError
-
-    message.success('Файл успешно удален')
-  } catch (error) {
-    console.error('[ContractOperations.deleteAttachment] Error:', error)
-    message.error('Ошибка удаления файла')
-    throw error
-  }
-}
-
-// Load attachments for contract
-export const loadContractAttachments = async (contractId: string) => {
-
-  try {
-    const { data, error } = await supabase
-      .from('contract_attachments')
-      .select(`
-        *,
-        attachment:attachments(*)
-      `)
-      .eq('contract_id', contractId)
-
-    if (error) throw error
-
-    return data || []
-  } catch (error) {
-    console.error('[ContractOperations.loadContractAttachments] Error:', error)
-    message.error('Ошибка загрузки файлов')
-    return []
-  }
-}
 
 // Load available invoices (not linked to any contract)
 export const loadAvailableInvoices = async () => {
@@ -421,5 +236,138 @@ export const loadAvailableInvoices = async () => {
     console.error('[ContractOperations.loadAvailableInvoices] Error:', error)
     message.error('Ошибка загрузки доступных счетов')
     return []
+  }
+}
+
+// Load contractors for selection
+export const loadContractors = async (): Promise<Contractor[]> => {
+  console.log('[ContractOperations.loadContractors] Loading contractors')
+
+  try {
+    const { data, error } = await supabase
+      .from('contractors')
+      .select('*')
+      .order('name', { ascending: true })
+
+    if (error) throw error
+
+    console.log('[ContractOperations.loadContractors] Loaded contractors:', data?.length || 0)
+    return data || []
+  } catch (error) {
+    console.error('[ContractOperations.loadContractors] Error:', error)
+    message.error('Ошибка загрузки контрагентов')
+    return []
+  }
+}
+
+// Load contract statuses for selection
+export const loadContractStatuses = async (): Promise<ContractStatus[]> => {
+  console.log('[ContractOperations.loadContractStatuses] Loading contract statuses')
+
+  try {
+    const { data, error } = await supabase
+      .from('contract_statuses')
+      .select('*')
+      .order('sort_order', { ascending: true, nullsFirst: false })
+      .order('name')
+
+    if (error) throw error
+
+    console.log('[ContractOperations.loadContractStatuses] Loaded statuses:', data?.length || 0)
+    return data || []
+  } catch (error) {
+    console.error('[ContractOperations.loadContractStatuses] Error:', error)
+    message.error('Ошибка загрузки статусов договоров')
+    return []
+  }
+}
+
+// Create contract status
+export const createContractStatus = async (status: Omit<ContractStatus, 'id'>) => {
+  console.log('[ContractOperations.createContractStatus] Creating status:', status)
+
+  try {
+    const { data, error } = await supabase
+      .from('contract_statuses')
+      .insert(status)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    message.success('Статус договора успешно создан')
+    return data
+  } catch (error: any) {
+    console.error('[ContractOperations.createContractStatus] Error:', error)
+    if (error.code === '23505') {
+      message.error('Статус с таким кодом уже существует')
+    } else {
+      message.error('Ошибка создания статуса договора')
+    }
+    throw error
+  }
+}
+
+// Update contract status
+export const updateContractStatus = async (id: number, updates: Partial<ContractStatus>) => {
+  console.log('[ContractOperations.updateContractStatus] Updating status:', id, updates)
+
+  try {
+    const { data, error } = await supabase
+      .from('contract_statuses')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    message.success('Статус договора успешно обновлён')
+    return data
+  } catch (error: any) {
+    console.error('[ContractOperations.updateContractStatus] Error:', error)
+    if (error.code === '23505') {
+      message.error('Статус с таким кодом уже существует')
+    } else {
+      message.error('Ошибка обновления статуса договора')
+    }
+    throw error
+  }
+}
+
+// Delete contract status
+export const deleteContractStatus = async (id: number) => {
+  console.log('[ContractOperations.deleteContractStatus] Deleting status:', id)
+
+  try {
+    // Проверяем, используется ли статус в договорах
+    const { data: contracts, error: checkError } = await supabase
+      .from('contracts')
+      .select('id')
+      .eq('status_id', id)
+      .limit(1)
+
+    if (checkError) throw checkError
+
+    if (contracts && contracts.length > 0) {
+      message.error('Невозможно удалить статус, который используется в договорах')
+      throw new Error('Status is in use')
+    }
+
+    // Удаляем статус
+    const { error } = await supabase
+      .from('contract_statuses')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+
+    message.success('Статус договора успешно удалён')
+  } catch (error: any) {
+    console.error('[ContractOperations.deleteContractStatus] Error:', error)
+    if (error.message !== 'Status is in use') {
+      message.error('Ошибка удаления статуса договора')
+    }
+    throw error
   }
 }

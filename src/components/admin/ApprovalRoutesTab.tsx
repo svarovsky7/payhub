@@ -1,72 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Card,
-  Button,
-  Form,
-  Input,
-  Select,
-  Space,
-  Switch,
-  message,
-  Tag,
-  Row,
-  Col,
-  List,
-  Empty,
-  Popconfirm,
-  Typography,
-  Checkbox
-} from 'antd'
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SaveOutlined,
-  CheckCircleOutlined,
-  FileAddOutlined,
-  DollarOutlined,
-  FileTextOutlined
-} from '@ant-design/icons'
+import { Row, Col, Form, message } from 'antd'
 import { supabase } from '../../lib/supabase'
 import type { InvoiceType } from '../../lib/supabase'
-
-const { Title, Text } = Typography
-
-interface Role {
-  id: number
-  code: string
-  name: string
-}
-
-interface StagePermissions {
-  can_edit_invoice?: boolean
-  can_add_files?: boolean
-  can_edit_amount?: boolean
-  [key: string]: boolean | undefined // Для будущих разрешений
-}
-
-interface WorkflowStage {
-  id?: number
-  route_id?: number
-  order_index: number
-  role_id: number
-  name: string
-  payment_status_id?: number
-  role?: Role
-  payment_status?: any
-  permissions?: StagePermissions
-}
-
-interface ApprovalRoute {
-  id: number
-  invoice_type_id: number
-  name: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  invoice_type?: InvoiceType
-  stages?: WorkflowStage[]
-}
+import { RoutesList } from './approval-routes/RoutesList'
+import { NewRouteForm } from './approval-routes/NewRouteForm'
+import { StagesEditor } from './approval-routes/StagesEditor'
+import type {
+  ApprovalRoute,
+  Role,
+  WorkflowStage
+} from './approval-routes/types'
 
 export const ApprovalRoutesTab = () => {
   const [routes, setRoutes] = useState<ApprovalRoute[]>([])
@@ -405,428 +348,42 @@ export const ApprovalRoutesTab = () => {
     <Row gutter={16} style={{ height: 'calc(100vh - 200px)' }}>
       {/* Левая часть - список маршрутов */}
       <Col span={8}>
-        <Card
-          title="Маршруты согласования"
-          style={{ height: '100%' }}
-          extra={
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              size="small"
-              onClick={() => setIsAddingRoute(true)}
-            >
-              Добавить
-            </Button>
-          }
-        >
-          {isAddingRoute && (
-            <Card size="small" style={{ marginBottom: 16, backgroundColor: '#f6ffed' }} styles={{ body: { padding: '12px' } }}>
-              <Form
-                form={newRouteForm}
-                layout="vertical"
-                onFinish={handleCreateRoute}
-                size="small"
-              >
-                <Form.Item
-                  name="invoice_type_id"
-                  label="Тип счёта"
-                  rules={[{ required: true, message: 'Выберите тип' }]}
-                  style={{ marginBottom: 8 }}
-                >
-                  <Select placeholder="Выберите тип счёта">
-                    {invoiceTypes.map(type => (
-                      <Select.Option key={type.id} value={type.id}>
-                        {type.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
+        <NewRouteForm
+          form={newRouteForm}
+          invoiceTypes={invoiceTypes}
+          loading={loading}
+          isAddingRoute={isAddingRoute}
+          setIsAddingRoute={setIsAddingRoute}
+          onCreateRoute={handleCreateRoute}
+        />
 
-                <Form.Item
-                  name="name"
-                  label="Название"
-                  rules={[{ required: true, message: 'Введите название' }]}
-                  style={{ marginBottom: 8 }}
-                >
-                  <Input placeholder="Название маршрута" />
-                </Form.Item>
-
-                <Form.Item
-                  name="is_active"
-                  label="Активен"
-                  valuePropName="checked"
-                  initialValue={true}
-                  style={{ marginBottom: 8 }}
-                >
-                  <Switch />
-                </Form.Item>
-
-                <Space>
-                  <Button type="primary" htmlType="submit" size="small" icon={<SaveOutlined />}>
-                    Создать
-                  </Button>
-                  <Button size="small" onClick={() => {
-                    setIsAddingRoute(false)
-                    newRouteForm.resetFields()
-                  }}>
-                    Отмена
-                  </Button>
-                </Space>
-              </Form>
-            </Card>
-          )}
-
-          <List
+        <div style={{ marginTop: isAddingRoute ? 16 : 0 }}>
+          <RoutesList
+            routes={routes}
             loading={loading}
-            dataSource={routes}
-            renderItem={route => (
-              <List.Item
-                key={route.id}
-                style={{
-                  padding: '12px',
-                  cursor: 'pointer',
-                  backgroundColor: selectedRoute?.id === route.id ? '#e6f7ff' : 'transparent',
-                  borderRadius: 4,
-                  marginBottom: 8
-                }}
-                onClick={() => handleSelectRoute(route)}
-                actions={editingRoute === route.id ? [
-                  <Button
-                    key="save"
-                    type="link"
-                    size="small"
-                    icon={<SaveOutlined />}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      form.submit()
-                    }}
-                  >
-                    Сохранить
-                  </Button>,
-                  <Button
-                    key="cancel"
-                    type="link"
-                    size="small"
-                    danger
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setEditingRoute(null)
-                      form.resetFields()
-                    }}
-                  >
-                    Отмена
-                  </Button>
-                ] : [
-                  <Button
-                    key="edit"
-                    type="text"
-                    size="small"
-                    icon={<EditOutlined />}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setEditingRoute(route.id)
-                      form.setFieldsValue({
-                        name: route.name,
-                        invoice_type_id: route.invoice_type_id,
-                        is_active: route.is_active
-                      })
-                    }}
-                  />,
-                  <Popconfirm
-                    key="delete"
-                    title="Удалить маршрут?"
-                    description="Все этапы будут удалены"
-                    onConfirm={(e) => {
-                      e?.stopPropagation()
-                      handleDeleteRoute(route.id)
-                    }}
-                    onCancel={(e) => e?.stopPropagation()}
-                    okText="Удалить"
-                    cancelText="Отмена"
-                  >
-                    <Button
-                      type="text"
-                      size="small"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Popconfirm>
-                ]}
-              >
-                {editingRoute === route.id ? (
-                  <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={(values) => handleUpdateRoute(route.id, values)}
-                    size="small"
-                    style={{ width: '100%' }}
-                  >
-                    <Form.Item
-                      name="name"
-                      style={{ marginBottom: 8 }}
-                      rules={[{ required: true, message: 'Введите название' }]}
-                    >
-                      <Input placeholder="Название маршрута" />
-                    </Form.Item>
-                    <Form.Item
-                      name="invoice_type_id"
-                      style={{ marginBottom: 8 }}
-                      rules={[{ required: true, message: 'Выберите тип' }]}
-                    >
-                      <Select placeholder="Тип счёта">
-                        {invoiceTypes.map(type => (
-                          <Select.Option key={type.id} value={type.id}>
-                            {type.name}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                    <Form.Item
-                      name="is_active"
-                      valuePropName="checked"
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Switch checkedChildren="Активен" unCheckedChildren="Неактивен" />
-                    </Form.Item>
-                  </Form>
-                ) : (
-                  <List.Item.Meta
-                    title={
-                      <Space>
-                        {route.name}
-                        <Tag color={route.is_active ? 'green' : 'default'} style={{ marginLeft: 8 }}>
-                          {route.is_active ? 'Активен' : 'Неактивен'}
-                        </Tag>
-                      </Space>
-                    }
-                    description={
-                      <Space direction="vertical" size={0}>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          {route.invoice_type?.name || 'Тип не указан'}
-                        </Text>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          Этапов: {route.stages?.length || 0}
-                        </Text>
-                      </Space>
-                    }
-                  />
-                )}
-              </List.Item>
-            )}
-            locale={{
-              emptyText: <Empty description="Нет маршрутов" />
-            }}
+            selectedRoute={selectedRoute}
+            onSelectRoute={handleSelectRoute}
+            onUpdateRoute={handleUpdateRoute}
+            onDeleteRoute={handleDeleteRoute}
+            setEditingRoute={setEditingRoute}
+            editingRoute={editingRoute}
           />
-        </Card>
+        </div>
       </Col>
 
       {/* Правая часть - конструктор этапов */}
       <Col span={16}>
-        <Card
-          title={
-            selectedRoute ? (
-              <Space>
-                <Text>Настройка этапов:</Text>
-                <Text strong>{selectedRoute.name}</Text>
-              </Space>
-            ) : (
-              'Выберите маршрут для настройки этапов'
-            )
-          }
-          style={{ height: '100%' }}
-          extra={
-            selectedRoute && (
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  onClick={handleSaveStages}
-                  loading={savingStages}
-                >
-                  Сохранить этапы
-                </Button>
-                <Button
-                  icon={<PlusOutlined />}
-                  onClick={handleAddStage}
-                >
-                  Добавить этап
-                </Button>
-              </Space>
-            )
-          }
-        >
-          {!selectedRoute ? (
-            <Empty
-              description="Выберите маршрут из списка слева для настройки этапов согласования"
-              style={{ marginTop: 100 }}
-            />
-          ) : (
-            <div style={{ height: 'calc(100% - 50px)', overflowY: 'auto' }}>
-              {editingStages.length === 0 ? (
-                <Empty
-                  description="Нет этапов согласования"
-                  style={{ marginTop: 100 }}
-                >
-                  <Button type="primary" onClick={handleAddStage}>
-                    Добавить первый этап
-                  </Button>
-                </Empty>
-              ) : (
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  {editingStages.map((stage, index) => (
-                    <Card
-                      key={index}
-                      size="small"
-                      style={{ backgroundColor: '#fafafa' }}
-                      styles={{ body: { padding: '12px 16px' } }}
-                    >
-                      <Space direction="vertical" style={{ width: '100%' }} size={12}>
-                        <Row gutter={12} align="middle">
-                          <Col span={1}>
-                            <div
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: '50%',
-                                backgroundColor: '#1890ff',
-                                color: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontWeight: 600
-                              }}
-                            >
-                              {index + 1}
-                            </div>
-                          </Col>
-                          <Col span={5}>
-                            <Input
-                              value={stage.name}
-                              onChange={(e) => handleStageChange(index, 'name', e.target.value)}
-                              placeholder="Название этапа"
-                              size="middle"
-                            />
-                          </Col>
-                          <Col span={6}>
-                            <Select
-                              value={stage.role_id || undefined}
-                              onChange={(value) => handleStageChange(index, 'role_id', value)}
-                              placeholder="Выберите роль"
-                              size="middle"
-                              style={{ width: '100%' }}
-                            >
-                              {roles.map(role => (
-                                <Select.Option key={role.id} value={role.id}>
-                                  {role.name}
-                                </Select.Option>
-                              ))}
-                            </Select>
-                          </Col>
-                          <Col span={6}>
-                            <Select
-                              value={stage.payment_status_id || undefined}
-                              onChange={(value) => handleStageChange(index, 'payment_status_id', value)}
-                              placeholder="Статус платежа (опционально)"
-                              size="middle"
-                              style={{ width: '100%' }}
-                              allowClear
-                            >
-                              {paymentStatuses.map(status => (
-                                <Select.Option key={status.id} value={status.id}>
-                                  {status.name}
-                                </Select.Option>
-                              ))}
-                            </Select>
-                          </Col>
-                          <Col span={2}>
-                            <Popconfirm
-                              title="Удалить этап?"
-                              onConfirm={() => handleRemoveStage(index)}
-                              okText="Удалить"
-                              cancelText="Отмена"
-                            >
-                              <Button
-                                icon={<DeleteOutlined />}
-                                size="middle"
-                                danger
-                                type="text"
-                              />
-                            </Popconfirm>
-                          </Col>
-                        </Row>
-                        <Row gutter={12}>
-                          <Col span={1}></Col>
-                          <Col span={22}>
-                            <Card size="small" style={{ backgroundColor: '#f9f9f9' }}>
-                              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                  Дополнительные разрешения на этом этапе:
-                                </Text>
-                                <Space wrap>
-                                  <Checkbox
-                                    checked={stage.permissions?.can_edit_invoice || false}
-                                    onChange={(e) => handleStageChange(index, 'permissions', {
-                                      ...stage.permissions,
-                                      can_edit_invoice: e.target.checked
-                                    })}
-                                  >
-                                    <Space size={4}>
-                                      <FileTextOutlined style={{ color: '#1890ff' }} />
-                                      <Text style={{ fontSize: 13 }}>Редактировать счёт и файлы</Text>
-                                    </Space>
-                                  </Checkbox>
-                                  <Checkbox
-                                    checked={stage.permissions?.can_add_files || false}
-                                    onChange={(e) => handleStageChange(index, 'permissions', {
-                                      ...stage.permissions,
-                                      can_add_files: e.target.checked
-                                    })}
-                                  >
-                                    <Space size={4}>
-                                      <FileAddOutlined style={{ color: '#52c41a' }} />
-                                      <Text style={{ fontSize: 13 }}>Добавлять файлы</Text>
-                                    </Space>
-                                  </Checkbox>
-                                  <Checkbox
-                                    checked={stage.permissions?.can_edit_amount || false}
-                                    onChange={(e) => handleStageChange(index, 'permissions', {
-                                      ...stage.permissions,
-                                      can_edit_amount: e.target.checked
-                                    })}
-                                  >
-                                    <Space size={4}>
-                                      <DollarOutlined style={{ color: '#fa8c16' }} />
-                                      <Text style={{ fontSize: 13 }}>Редактировать сумму платежа</Text>
-                                    </Space>
-                                  </Checkbox>
-                                </Space>
-                              </Space>
-                            </Card>
-                          </Col>
-                        </Row>
-                      </Space>
-                    </Card>
-                  ))}
-
-                  {editingStages.length > 0 && (
-                    <Card size="small" style={{ backgroundColor: '#f6ffed', marginTop: 16 }}>
-                      <Space direction="vertical" size={4}>
-                        <Text strong style={{ color: '#52c41a' }}>
-                          <CheckCircleOutlined /> Настроено этапов: {editingStages.length}
-                        </Text>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          Каждый этап может автоматически изменять статус платежа при прохождении.
-                          Не забудьте сохранить изменения после настройки этапов.
-                        </Text>
-                      </Space>
-                    </Card>
-                  )}
-                </Space>
-              )}
-            </div>
-          )}
-        </Card>
+        <StagesEditor
+          selectedRoute={selectedRoute}
+          editingStages={editingStages}
+          roles={roles}
+          paymentStatuses={paymentStatuses}
+          savingStages={savingStages}
+          onAddStage={handleAddStage}
+          onRemoveStage={handleRemoveStage}
+          onStageChange={handleStageChange}
+          onSaveStages={handleSaveStages}
+        />
       </Col>
     </Row>
   )

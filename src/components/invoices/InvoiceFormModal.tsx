@@ -214,7 +214,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       onCancel={onClose}
       width={900}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}

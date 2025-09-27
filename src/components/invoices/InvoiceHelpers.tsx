@@ -75,7 +75,7 @@ export const handleDownloadFile = async (attachment: any) => {
   }
 }
 
-export const handleDeleteAttachmentFile = async (attachment: any, invoiceId: string, loadAttachments: () => void, messageApi: any) => {
+const handleDeleteAttachmentFile = async (attachment: any, invoiceId: string, loadAttachments: () => void, messageApi: any) => {
   try {
 
     // Сначала удаляем файл из Storage
@@ -123,7 +123,7 @@ export const handleDeleteAttachmentFile = async (attachment: any, invoiceId: str
 }
 
 // Payment operations
-export const loadPaymentFiles = async (paymentId: string): Promise<any[]> => {
+const loadPaymentFiles = async (paymentId: string): Promise<any[]> => {
   try {
     const { data, error } = await supabase
       .from('payment_attachments')
@@ -169,7 +169,7 @@ export const loadPaymentFiles = async (paymentId: string): Promise<any[]> => {
 }
 
 // Calculate payment totals
-export const calculatePaymentTotals = (payments: Payment[]) => {
+const calculatePaymentTotals = (payments: Payment[]) => {
   const totalPaid = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
   return totalPaid
 }

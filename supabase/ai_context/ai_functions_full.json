@@ -66,6 +66,19 @@
     ]
   },
   {
+    "function": "public.update_contract_statuses_updated_at()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [
+      "public.update_contract_statuses_updated_at"
+    ],
+    "side_effects": []
+  },
+  {
     "function": "public.update_material_request_items_count()",
     "returns": "trigger",
     "language": "plpgsql",
