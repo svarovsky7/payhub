@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Table, Space, Button, Modal, Form, Input, Select, message, App } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Table, Space, Button, Modal, Form, Input, message, App } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
 import { supabase, type Contractor } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { ImportContractorsModal } from './ImportContractorsModal'
 
 export const ContractorsTab = () => {
   const { message: messageApi, modal } = App.useApp()
@@ -11,6 +13,7 @@ export const ContractorsTab = () => {
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingContractor, setEditingContractor] = useState<Contractor | null>(null)
+  const [importModalVisible, setImportModalVisible] = useState(false)
   const [form] = Form.useForm()
   const { user } = useAuth()
 
@@ -149,27 +152,79 @@ export const ContractorsTab = () => {
     form.validateFields(['name'])
   }
 
+  // Функция для создания фильтра поиска
+  const getColumnSearchProps = (dataIndex: string) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          placeholder={`Поиск ${dataIndex === 'name' ? 'по названию' : 'по ИНН'}`}
+          value={selectedKeys[0]}
+          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => confirm()}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => confirm()}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Найти
+          </Button>
+          <Button
+            onClick={() => {
+              clearFilters()
+              confirm()
+            }}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Сброс
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value: string, record: Contractor) =>
+      record[dataIndex as keyof Contractor]
+        ?.toString()
+        .toLowerCase()
+        .includes(value.toLowerCase()) ?? false
+  })
 
   const columns: ColumnsType<Contractor> = [
     {
       title: 'Название',
       dataIndex: 'name',
-      key: 'name'
+      key: 'name',
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      ...getColumnSearchProps('name'),
+      width: '40%'
     },
     {
       title: 'ИНН',
       dataIndex: 'inn',
-      key: 'inn'
+      key: 'inn',
+      sorter: (a, b) => (a.inn || '').localeCompare(b.inn || ''),
+      ...getColumnSearchProps('inn'),
+      width: '25%'
     },
     {
       title: 'Дата создания',
       dataIndex: 'created_at',
       key: 'created_at',
-      render: (date) => new Date(date).toLocaleDateString('ru-RU')
+      sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      render: (date) => new Date(date).toLocaleDateString('ru-RU'),
+      width: '20%'
     },
     {
       title: 'Действия',
       key: 'actions',
+      width: '15%',
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -191,13 +246,21 @@ export const ContractorsTab = () => {
   return (
     <>
       <div style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleCreate}
-        >
-          Добавить контрагента
-        </Button>
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+          >
+            Добавить контрагента
+          </Button>
+          <Button
+            icon={<UploadOutlined />}
+            onClick={() => setImportModalVisible(true)}
+          >
+            Импорт из CSV
+          </Button>
+        </Space>
       </div>
 
       <Table
@@ -206,8 +269,12 @@ export const ContractorsTab = () => {
         loading={loading}
         rowKey="id"
         pagination={{
-          pageSize: 10,
-          showTotal: (total) => `Всего: ${total} контрагентов`
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} контрагентов`,
+          showQuickJumper: true,
+          position: ['bottomRight']
         }}
       />
 
@@ -287,6 +354,15 @@ export const ContractorsTab = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <ImportContractorsModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onSuccess={() => {
+          loadContractors()
+          setImportModalVisible(false)
+        }}
+      />
     </>
   )
 }

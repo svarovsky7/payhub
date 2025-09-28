@@ -1,4 +1,5 @@
-import { supabase, Contractor, Project } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
+import type { Contractor, Project } from '../lib/supabase'
 import { message } from 'antd'
 
 export interface ContractStatus {

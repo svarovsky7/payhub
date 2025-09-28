@@ -6,34 +6,21 @@ import {
   DatePicker,
   Select,
   InputNumber,
-  Upload,
   Button,
   message,
   Row,
   Col,
-  Typography,
-  Image,
   Space,
-  Tag,
-  List
+  Tag
 } from 'antd'
-import {
-  UploadOutlined,
-  EyeOutlined,
-  DeleteOutlined,
-  FileTextOutlined,
-  FilePdfOutlined,
-  FileImageOutlined,
-  FileExcelOutlined,
-  FileWordOutlined
-} from '@ant-design/icons'
 import dayjs from 'dayjs'
-import type { UploadFile, RcFile } from 'antd/es/upload'
 import { supabase } from '../../lib/supabase'
 import { loadContractors, loadContractStatuses, loadProjects, generateContractNumber } from '../../services/contractOperations'
+import { FileUploadBlock } from '../common/FileUploadBlock'
+import { useFileAttachment } from '../../hooks/useFileAttachment'
+import { useAuth } from '../../contexts/AuthContext'
 
 const { TextArea } = Input
-const { Text } = Typography
 
 interface AddContractModalProps {
   visible: boolean
@@ -65,16 +52,27 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
   onCancel,
   onSuccess
 }) => {
+  const { user } = useAuth()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [contractors, setContractors] = useState<ContractorOption[]>([])
   const [contractStatuses, setContractStatuses] = useState<ContractStatus[]>([])
   const [projects, setProjects] = useState<Project[]>([])
-  const [fileList, setFileList] = useState<UploadFile[]>([])
-  const [previewImage, setPreviewImage] = useState<string>('')
-  const [previewOpen, setPreviewOpen] = useState(false)
-  const [previewType, setPreviewType] = useState<'image' | 'pdf'>('image')
   const [generatingNumber, setGeneratingNumber] = useState(false)
+
+  // Используем хук для управления файлами
+  const {
+    fileList,
+    fileDescriptions,
+    uploading,
+    handleFileListChange,
+    handleFileDescriptionChange,
+    reset: resetFiles
+  } = useFileAttachment({
+    entityType: 'contract',
+    entityId: undefined, // Договор еще не создан
+    autoLoad: false
+  })
 
   useEffect(() => {
     if (visible) {
@@ -110,63 +108,6 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
     }
   }
 
-  const getFileIcon = (fileName: string) => {
-    const ext = fileName.split('.').pop()?.toLowerCase()
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext || '')) {
-      return <FileImageOutlined />
-    }
-    if (ext === 'pdf') {
-      return <FilePdfOutlined />
-    }
-    if (['doc', 'docx'].includes(ext || '')) {
-      return <FileWordOutlined />
-    }
-    if (['xls', 'xlsx'].includes(ext || '')) {
-      return <FileExcelOutlined />
-    }
-    return <FileTextOutlined />
-  }
-
-  const handlePreview = async (file: UploadFile) => {
-    console.log('[AddContractModal.handlePreview] Previewing file:', file.name)
-
-    if (file.originFileObj) {
-      const fileName = file.name.toLowerCase()
-      const isPdf = fileName.endsWith('.pdf')
-      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp'].some(ext => fileName.endsWith(`.${ext}`))
-
-      if (isPdf || isImage) {
-        // Create blob URL for preview
-        const url = URL.createObjectURL(file.originFileObj)
-        setPreviewImage(url)
-        setPreviewType(isPdf ? 'pdf' : 'image')
-        setPreviewOpen(true)
-      } else {
-        message.info('Предпросмотр доступен только для изображений и PDF файлов')
-      }
-    } else if (file.url || file.preview) {
-      setPreviewImage(file.url || file.preview || '')
-      setPreviewType('image')
-      setPreviewOpen(true)
-    }
-  }
-
-  const getBase64 = (file: RcFile): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = error => reject(error)
-    })
-
-  const beforeUpload = (file: RcFile) => {
-    const isLt10M = file.size / 1024 / 1024 < 10
-    if (!isLt10M) {
-      message.error('Файл должен быть меньше 10MB!')
-      return false
-    }
-    return false // Prevent automatic upload
-  }
 
   const handleGenerateNumber = async () => {
     setGeneratingNumber(true)
@@ -187,8 +128,6 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
 
       console.log('[AddContractModal.handleSubmit] Creating contract:', values)
 
-      // Получаем текущего пользователя
-      const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         throw new Error('Пользователь не авторизован')
       }
@@ -217,55 +156,28 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
 
       // Загружаем файлы, если есть
       if (fileList.length > 0) {
+        const { uploadAndLinkFile } = await import('../../services/fileAttachmentService')
+
         for (const file of fileList) {
           if (file.originFileObj) {
-            const timestamp = Date.now()
-            const fileName = `${timestamp}_${file.name}`
-            const filePath = `contracts/${contract.id}/${fileName}`
-
-            // Загружаем файл в storage
-            const { error: uploadError } = await supabase.storage
-              .from('attachments')
-              .upload(filePath, file.originFileObj)
-
-            if (uploadError) {
-              console.error('[AddContractModal.handleSubmit] Upload error:', uploadError)
-              continue
-            }
-
-            // Создаём запись в таблице attachments
-            const { data: attachment, error: attachmentError } = await supabase
-              .from('attachments')
-              .insert({
-                original_name: file.name,
-                storage_path: filePath,
-                size_bytes: file.size || 0,
-                mime_type: file.type || 'application/octet-stream',
-                created_by: user.id,
-                description: `Файл договора ${values.contractNumber}`
+            try {
+              await uploadAndLinkFile({
+                file: file.originFileObj,
+                entityType: 'contract',
+                entityId: contract.id,
+                description: fileDescriptions[file.uid] || `Файл договора ${values.contractNumber}`,
+                userId: user.id
               })
-              .select()
-              .single()
-
-            if (attachmentError) {
-              console.error('[AddContractModal.handleSubmit] Attachment error:', attachmentError)
-              continue
+            } catch (error) {
+              console.error('[AddContractModal] File upload error:', error)
             }
-
-            // Связываем файл с договором
-            await supabase
-              .from('contract_attachments')
-              .insert({
-                contract_id: contract.id,
-                attachment_id: attachment.id
-              })
           }
         }
       }
 
       message.success('Договор успешно создан')
       form.resetFields()
-      setFileList([])
+      resetFiles()
       onSuccess()
       onCancel()
     } catch (error) {
@@ -477,96 +389,18 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
           </Form.Item>
 
           <Form.Item label="Файлы договора">
-            <Upload
+            <FileUploadBlock
+              entityType="contract"
               fileList={fileList}
-              onPreview={handlePreview}
-              onChange={({ fileList }) => setFileList(fileList)}
-              beforeUpload={beforeUpload}
-              multiple
-              showUploadList={{
-                showPreviewIcon: true,
-                showRemoveIcon: true
-              }}
-              itemRender={(originNode, file) => (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '4px 0',
-                  borderBottom: '1px solid #f0f0f0'
-                }}>
-                  <Space style={{ flex: 1 }}>
-                    {getFileIcon(file.name)}
-                    <span>{file.name}</span>
-                    <span style={{ color: '#999', fontSize: '12px' }}>
-                      ({(file.size || 0) / 1024 < 1024
-                        ? `${Math.round((file.size || 0) / 1024)} KB`
-                        : `${Math.round((file.size || 0) / 1024 / 1024 * 10) / 10} MB`})
-                    </span>
-                  </Space>
-                  <Space size="small">
-                    <Button
-                      icon={<EyeOutlined />}
-                      size="small"
-                      type="text"
-                      onClick={() => handlePreview(file)}
-                      title="Просмотр"
-                    />
-                    <Button
-                      icon={<DeleteOutlined />}
-                      size="small"
-                      type="text"
-                      danger
-                      onClick={() => {
-                        const newFileList = fileList.filter(f => f.uid !== file.uid)
-                        setFileList(newFileList)
-                      }}
-                      title="Удалить"
-                    />
-                  </Space>
-                </div>
-              )}
-            >
-              <Button icon={<UploadOutlined />}>
-                Загрузить файлы
-              </Button>
-            </Upload>
+              onFileListChange={handleFileListChange}
+              fileDescriptions={fileDescriptions}
+              onFileDescriptionChange={handleFileDescriptionChange}
+              multiple={true}
+              maxSize={10}
+              disabled={loading || uploading}
+            />
           </Form.Item>
         </Form>
-      </Modal>
-
-      <Modal
-        open={previewOpen}
-        title="Просмотр файла"
-        footer={null}
-        onCancel={() => {
-          setPreviewOpen(false)
-          // Clean up blob URL
-          if (previewImage.startsWith('blob:')) {
-            URL.revokeObjectURL(previewImage)
-          }
-        }}
-        width={800}
-        styles={{
-          body: { height: '600px', overflow: 'auto' }
-        }}
-      >
-        {previewType === 'image' ? (
-          <Image
-            alt="preview"
-            style={{ width: '100%' }}
-            src={previewImage}
-            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRklEQVR42u3SMQ0AAAzDsJU/6yGFfyFpIJHQK7mlL0kgCQIBgUBAICAQCAgEAgKBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEDAJhYAAADnbvnLfwAAAABJRU5ErkJggg=="
-          />
-        ) : (
-          <embed
-            src={previewImage}
-            type="application/pdf"
-            width="100%"
-            height="600px"
-            style={{ border: 'none' }}
-          />
-        )}
       </Modal>
     </>
   )

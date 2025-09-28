@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Row, Col, Form, Select } from 'antd'
-import type { Contract, Project } from '../../../lib/supabase'
+import type { Project } from '../../../lib/supabase'
+import type { Contract } from '../../../services/contractOperations'
 
 interface InvoiceContractProjectFieldsProps {
   contracts: Contract[]

@@ -16,6 +16,8 @@ npm run preview   # Preview production build locally
 node scripts/generate-ai-context.cjs  # Regenerate database AI context from supabase/exports/
 ```
 
+**Critical**: Always run `npm run lint` and `npm run build` before committing changes to ensure code quality and TypeScript compilation.
+
 **Note**: No test framework is currently configured. Tests referenced in AGENTS.md (`npm test`, Vitest) are not yet implemented.
 
 ## Architecture
@@ -29,6 +31,20 @@ node scripts/generate-ai-context.cjs  # Regenerate database AI context from supa
 - **Day.js** for date handling (Russian locale)
 
 ### Core Application Structure
+
+#### Directory Layout
+```
+src/
+├── components/     # Reusable UI components grouped by feature
+├── contexts/       # React context providers
+├── hooks/          # Custom React hooks for state management
+├── lib/           # External integrations (Supabase client)
+├── pages/         # Route-level page components
+├── services/      # Business logic and database operations
+├── styles/        # Global styles and CSS modules
+├── types/         # TypeScript type definitions
+└── utils/         # Shared utility functions
+```
 
 #### Service Layer Pattern
 Services are split when exceeding 600 lines:
@@ -48,6 +64,13 @@ Services are split when exceeding 600 lines:
 - `ai_functions_*.json` - Database functions
 - `ai_relations.json` - Foreign key relationships
 - `ai_manifest.json` - Schema metadata
+- `ai_enums_*.json` - Database enumerations
+- `ai_triggers_*.json` - Database triggers
+
+To regenerate AI context after database schema changes:
+```bash
+node scripts/generate-ai-context.cjs
+```
 
 Core tables:
 - `invoices` - Main invoice records with status_id (FK to invoice_statuses)
@@ -94,6 +117,17 @@ Implemented in hooks layer:
 2. Database operation in background
 3. Revert on error
 
+Example pattern in hooks:
+```typescript
+setData(optimisticData);
+try {
+  await serviceOperation();
+} catch (error) {
+  setData(previousData);
+  throw error;
+}
+```
+
 #### Database Triggers
 Automatic field maintenance:
 - `calculate_vat_amounts()` - Derives VAT splits on invoice rows
@@ -106,11 +140,18 @@ Automatic field maintenance:
 - Metadata in `attachments` table
 - Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`
 - Cascade deletion removes both storage and database records
+- Service: `fileAttachmentService.ts`, Hook: `useFileAttachment.ts`
 
 #### Console Logging
 ```javascript
 console.log('[ComponentName.methodName] Action:', { data });
 ```
+
+#### Component Naming
+- Pages: `{Feature}Page.tsx` (e.g., `InvoicesPage.tsx`)
+- Modals: `{Action}{Entity}Modal.tsx` (e.g., `AddContractModal.tsx`)
+- Forms: `{Entity}Form.tsx` (e.g., `InvoiceForm.tsx`)
+- Tables: `{Entity}Table.tsx` (e.g., `PaymentsTable.tsx`)
 
 ### TypeScript Configuration
 
@@ -128,4 +169,35 @@ Required `.env`:
 VITE_SUPABASE_URL=http://31.128.51.210:8001
 VITE_SUPABASE_ANON_KEY=[your_key]
 VITE_STORAGE_BUCKET=http://31.128.51.210:8001/storage/v1
+```
+
+### Code Quality Checks
+
+Always run before committing:
+```bash
+npm run lint      # Check for linting errors
+npm run build     # Verify TypeScript compilation and production build
+```
+
+### Common Development Patterns
+
+#### Supabase Query Pattern
+```typescript
+const { data, error } = await supabase
+  .from('table_name')
+  .select('*, related_table(*)')
+  .eq('field', value);
+
+if (error) throw error;
+return data;
+```
+
+#### Status Updates
+Always use exact status IDs from the Status Management section. Never hardcode status names or create new status values without updating the database enums.
+
+#### Date Handling
+Use Day.js with Russian locale for all date operations:
+```typescript
+import dayjs from 'dayjs';
+dayjs(date).format('DD.MM.YYYY');
 ```

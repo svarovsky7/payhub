@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, Form, message } from 'antd'
 import dayjs from 'dayjs'
-import type { UploadFile } from 'antd/es/upload'
 import { supabase } from '../../lib/supabase'
 import {
   loadContractors,
@@ -10,8 +9,9 @@ import {
   type Contract
 } from '../../services/contractOperations'
 import { ContractFormFields } from './EditContract/ContractFormFields'
-import { ContractFileManager } from './EditContract/ContractFileManager'
-import { ContractFileUpload } from './EditContract/ContractFileUpload'
+import { FileUploadBlock } from '../common/FileUploadBlock'
+import { useFileAttachment } from '../../hooks/useFileAttachment'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface EditContractModalProps {
   visible: boolean
@@ -45,21 +45,37 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
   onCancel,
   onSuccess
 }) => {
+  const { user } = useAuth()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [contractors, setContractors] = useState<ContractorOption[]>([])
   const [contractStatuses, setContractStatuses] = useState<ContractStatus[]>([])
   const [projects, setProjects] = useState<Project[]>([])
-  const [fileList, setFileList] = useState<UploadFile[]>([])
-  const [existingFiles, setExistingFiles] = useState<any[]>([])
-  const [loadingFiles, setLoadingFiles] = useState(false)
+
+  // Используем хук для управления файлами
+  const {
+    fileList,
+    existingFiles,
+    fileDescriptions,
+    loading: filesLoading,
+    uploading,
+    handleFileListChange,
+    handleFileDescriptionChange,
+    loadFiles,
+    uploadAllFiles,
+    reset: resetFiles
+  } = useFileAttachment({
+    entityType: 'contract',
+    entityId: contract?.id,
+    autoLoad: false // Загружаем вручную при открытии
+  })
 
   useEffect(() => {
     if (visible && contract) {
       loadInitialData()
-      loadContractFiles()
+      loadFiles() // Используем метод из хука
     }
-  }, [visible, contract])
+  }, [visible, contract, loadFiles])
 
   const loadInitialData = async () => {
     try {
@@ -96,37 +112,6 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
     }
   }
 
-  const loadContractFiles = async () => {
-    if (!contract) return
-
-    setLoadingFiles(true)
-    try {
-      const { data, error } = await supabase
-        .from('contract_attachments')
-        .select(`
-          id,
-          attachment_id,
-          attachments (
-            id,
-            original_name,
-            storage_path,
-            size_bytes,
-            mime_type,
-            created_at
-          )
-        `)
-        .eq('contract_id', contract.id)
-
-      if (error) throw error
-
-      setExistingFiles(data || [])
-    } catch (error) {
-      console.error('[EditContractModal.loadContractFiles] Error:', error)
-      message.error('Ошибка загрузки файлов')
-    } finally {
-      setLoadingFiles(false)
-    }
-  }
 
   const handleSubmit = async () => {
     try {
@@ -157,58 +142,14 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
 
       if (error) throw error
 
+      // Загружаем новые файлы через универсальный сервис
       if (fileList.length > 0) {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          throw new Error('Пользователь не авторизован')
-        }
-
-        for (const file of fileList) {
-          if (file.originFileObj) {
-            const timestamp = Date.now()
-            const fileName = `${timestamp}_${file.name}`
-            const filePath = `contracts/${contract.id}/${fileName}`
-
-            const { error: uploadError } = await supabase.storage
-              .from('attachments')
-              .upload(filePath, file.originFileObj)
-
-            if (uploadError) {
-              console.error('[EditContractModal.handleSubmit] Upload error:', uploadError)
-              continue
-            }
-
-            const { data: attachment, error: attachmentError } = await supabase
-              .from('attachments')
-              .insert({
-                original_name: file.name,
-                storage_path: filePath,
-                size_bytes: file.size || 0,
-                mime_type: file.type || 'application/octet-stream',
-                created_by: user.id,
-                description: `Файл договора ${values.contractNumber}`
-              })
-              .select()
-              .single()
-
-            if (attachmentError) {
-              console.error('[EditContractModal.handleSubmit] Attachment error:', attachmentError)
-              continue
-            }
-
-            await supabase
-              .from('contract_attachments')
-              .insert({
-                contract_id: contract.id,
-                attachment_id: attachment.id
-              })
-          }
-        }
+        await uploadAllFiles()
       }
 
       message.success('Договор успешно обновлен')
       form.resetFields()
-      setFileList([])
+      resetFiles()
       onSuccess()
       onCancel()
     } catch (error) {
@@ -237,18 +178,19 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
           projects={projects}
         />
 
-        <Form.Item label="Существующие файлы">
-          <ContractFileManager
-            existingFiles={existingFiles}
-            loadingFiles={loadingFiles}
-            onFilesChange={loadContractFiles}
-          />
-        </Form.Item>
-
-        <Form.Item label="Добавить новые файлы">
-          <ContractFileUpload
+        <Form.Item label="Файлы договора">
+          <FileUploadBlock
+            entityType="contract"
+            entityId={contract?.id}
             fileList={fileList}
-            onChange={setFileList}
+            onFileListChange={handleFileListChange}
+            existingFiles={existingFiles}
+            onExistingFilesChange={loadFiles}
+            fileDescriptions={fileDescriptions}
+            onFileDescriptionChange={handleFileDescriptionChange}
+            multiple={true}
+            maxSize={10}
+            disabled={loading || uploading}
           />
         </Form.Item>
       </Form>
