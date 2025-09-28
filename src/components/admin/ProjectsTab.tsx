@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react'
-import { Table, Space, Button, Modal, Form, Input, Switch, message, Popconfirm } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import { Table, Space, Button, Modal, Form, Input, Switch, message, Popconfirm, Tag } from 'antd'
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  UploadOutlined,
+  SearchOutlined,
+  ClearOutlined
+} from '@ant-design/icons'
+import type { ColumnsType, FilterDropdownProps, FilterValue } from 'antd/es/table/interface'
 import { supabase, type Project } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { ImportProjectsModal } from './ImportProjectsModal'
 
 export const ProjectsTab = () => {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [importModalVisible, setImportModalVisible] = useState(false)
+  const [filteredInfo, setFilteredInfo] = useState<Record<string, FilterValue | null>>({})
   const [form] = Form.useForm()
   const { user } = useAuth()
 
@@ -49,7 +59,7 @@ export const ProjectsTab = () => {
     setIsModalVisible(true)
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Partial<Project>) => {
     try {
       if (editingProject) {
         const { error } = await supabase
@@ -70,9 +80,9 @@ export const ProjectsTab = () => {
 
       setIsModalVisible(false)
       loadProjects()
-    } catch (error: any) {
+    } catch (error) {
       console.error('[ProjectsTab.handleSubmit] Error:', error)
-      message.error(error.message || 'Ошибка сохранения проекта')
+      message.error(error instanceof Error ? error.message : 'Ошибка сохранения проекта')
     }
   }
 
@@ -98,7 +108,7 @@ export const ProjectsTab = () => {
 
       // Удаляем все связи пользователей с этим проектом
       if (associations && associations.length > 0) {
-        const { data: deleteData, error: userProjectsError } = await supabase
+        const { error: userProjectsError } = await supabase
           .from('user_projects')
           .delete()
           .eq('project_id', id)
@@ -130,41 +140,109 @@ export const ProjectsTab = () => {
 
       message.success('Проект удален')
       await loadProjects()
-    } catch (error: any) {
+    } catch (error) {
       console.error('[ProjectsTab.handleDeleteWithPopconfirm] Full error object:', error)
-      message.error(error.message || 'Ошибка удаления проекта')
+      message.error(error instanceof Error ? error.message : 'Ошибка удаления проекта')
     }
   }
 
   // Старая функция handleDelete удалена - используем handleDeleteWithPopconfirm
   // Modal.confirm не работает корректно с React 19, используем Popconfirm
 
+  // Функция для создания поискового фильтра
+  const getColumnSearchProps = (dataIndex: keyof Project) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: FilterDropdownProps) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          placeholder={`Поиск`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => confirm()}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => confirm()}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Найти
+          </Button>
+          <Button
+            onClick={() => {
+              if (clearFilters) clearFilters()
+              confirm()
+            }}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Сброс
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value: boolean | React.Key, record: Project) => {
+      const fieldValue = record[dataIndex]
+      if (fieldValue === null || fieldValue === undefined) return false
+      return fieldValue.toString().toLowerCase().includes(value.toString().toLowerCase())
+    },
+  })
+
   const columns: ColumnsType<Project> = [
     {
       title: 'Код',
       dataIndex: 'code',
-      key: 'code'
+      key: 'code',
+      width: 120,
+      sorter: (a, b) => {
+        const codeA = a.code || ''
+        const codeB = b.code || ''
+        return codeA.localeCompare(codeB)
+      },
+      ...getColumnSearchProps('code'),
     },
     {
       title: 'Название',
       dataIndex: 'name',
-      key: 'name'
+      key: 'name',
+      width: 250,
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      ...getColumnSearchProps('name'),
     },
     {
       title: 'Описание',
       dataIndex: 'description',
       key: 'description',
-      ellipsis: true
+      ellipsis: true,
+      ...getColumnSearchProps('description'),
     },
     {
-      title: 'Активен',
+      title: 'Статус',
       dataIndex: 'is_active',
       key: 'is_active',
-      render: (active) => (active ? 'Да' : 'Нет')
+      width: 100,
+      sorter: (a, b) => Number(b.is_active) - Number(a.is_active),
+      filters: [
+        { text: 'Активные', value: true },
+        { text: 'Неактивные', value: false },
+      ],
+      onFilter: (value: boolean | React.Key, record) => record.is_active === value,
+      render: (active: boolean) => (
+        <Tag color={active ? 'green' : 'red'}>
+          {active ? 'Активен' : 'Неактивен'}
+        </Tag>
+      )
     },
     {
       title: 'Действия',
       key: 'actions',
+      width: 120,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -197,16 +275,38 @@ export const ProjectsTab = () => {
     }
   ]
 
+  // Функция для сброса всех фильтров
+  const handleClearFilters = () => {
+    setFilteredInfo({})
+    message.info('Все фильтры сброшены')
+  }
+
   return (
     <>
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleCreate}
-        >
-          Добавить проект
-        </Button>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+          >
+            Добавить проект
+          </Button>
+          <Button
+            icon={<UploadOutlined />}
+            onClick={() => setImportModalVisible(true)}
+          >
+            Импорт из Excel
+          </Button>
+        </Space>
+        {Object.keys(filteredInfo).length > 0 && (
+          <Button
+            icon={<ClearOutlined />}
+            onClick={handleClearFilters}
+          >
+            Сбросить фильтры
+          </Button>
+        )}
       </div>
 
       <Table
@@ -214,9 +314,16 @@ export const ProjectsTab = () => {
         dataSource={projects}
         loading={loading}
         rowKey="id"
+        scroll={{ x: 1200 }}
+        onChange={(_, filters) => {
+          setFilteredInfo(filters)
+        }}
         pagination={{
-          pageSize: 10,
-          showTotal: (total) => `Всего: ${total} проектов`
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} проектов`,
+          showQuickJumper: true,
         }}
       />
 
@@ -272,6 +379,15 @@ export const ProjectsTab = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <ImportProjectsModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onSuccess={() => {
+          loadProjects()
+          setImportModalVisible(false)
+        }}
+      />
     </>
   )
 }

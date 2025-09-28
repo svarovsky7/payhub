@@ -1,5 +1,16 @@
 [
   {
+    "function": "public.calculate_material_class_level()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [],
+    "side_effects": []
+  },
+  {
     "function": "public.delete_project(project_id_param integer)",
     "returns": "boolean",
     "language": "plpgsql",
@@ -15,6 +26,17 @@
       "DELETE from public.user_projects",
       "DELETE from public.projects"
     ]
+  },
+  {
+    "function": "public.get_material_class_path(class_id bigint)",
+    "returns": "text",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [],
+    "side_effects": []
   },
   {
     "function": "public.handle_new_user()",
@@ -68,6 +90,7 @@
       "public.update_invoice_types_updated_at",
       "public.update_invoices_updated_at",
       "public.update_material_classes_updated_at",
+      "public.update_material_nomenclature_updated_at",
       "public.update_material_requests_updated_at",
       "public.update_payment_approvals_updated_at",
       "public.update_payment_statuses_updated_at",

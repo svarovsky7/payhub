@@ -23,7 +23,19 @@ export const MaterialRequestItemsTable: React.FC<MaterialRequestItemsTableProps>
       title: 'Наименование материала',
       dataIndex: 'material_name',
       key: 'material_name',
-      ellipsis: true
+      ellipsis: true,
+      render: (material_name: string, record: MaterialRequestItem) => (
+        <div>
+          <Text>{material_name}</Text>
+          {record.nomenclature && record.nomenclature.name !== material_name && (
+            <div>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                Номенклатура: {record.nomenclature.name}
+              </Text>
+            </div>
+          )}
+        </div>
+      )
     },
     {
       title: 'Ед. изм.',

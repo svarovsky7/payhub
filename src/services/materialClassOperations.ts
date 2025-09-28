@@ -3,25 +3,41 @@ import { message } from 'antd'
 
 export interface MaterialClass {
   id: number
-  code: string
   name: string
+  parent_id?: number | null
+  level?: number
+  parent_name?: string
   is_active: boolean
   created_at: string
   updated_at: string
 }
 
-// Load all material classes
+// Load all material classes with hierarchy
 export const loadMaterialClasses = async () => {
 
   try {
     const { data, error } = await supabase
       .from('material_classes')
-      .select('*')
-      .order('code')
+      .select(`
+        *,
+        parent:parent_id (
+          id,
+          name
+        )
+      `)
+      .order('level')
+      .order('name')
 
     if (error) throw error
 
-    return data || []
+    // Transform data to include parent_name
+    const transformedData = (data || []).map(item => ({
+      ...item,
+      parent_name: item.parent?.name || null,
+      parent: undefined // Remove nested parent object
+    }))
+
+    return transformedData
   } catch (error) {
     console.error('[MaterialClassOperations.loadMaterialClasses] Error:', error)
     message.error('Ошибка загрузки классификатора материалов')
@@ -36,8 +52,8 @@ export const createMaterialClass = async (materialClass: Partial<MaterialClass>)
     const { data, error } = await supabase
       .from('material_classes')
       .insert({
-        code: materialClass.code,
         name: materialClass.name,
+        parent_id: materialClass.parent_id || null,
         is_active: materialClass.is_active ?? true
       })
       .select()
@@ -50,9 +66,7 @@ export const createMaterialClass = async (materialClass: Partial<MaterialClass>)
   } catch (error: any) {
     console.error('[MaterialClassOperations.createMaterialClass] Error:', error)
     if (error.code === '23505') {
-      if (error.message.includes('code')) {
-        message.error('Класс материалов с таким кодом уже существует')
-      } else if (error.message.includes('name')) {
+      if (error.message.includes('name')) {
         message.error('Класс материалов с таким названием уже существует')
       } else {
         message.error('Такой класс материалов уже существует')
@@ -71,8 +85,8 @@ export const updateMaterialClass = async (id: number, materialClass: Partial<Mat
     const { data, error } = await supabase
       .from('material_classes')
       .update({
-        code: materialClass.code,
         name: materialClass.name,
+        parent_id: materialClass.parent_id,
         is_active: materialClass.is_active
       })
       .eq('id', id)
@@ -86,9 +100,7 @@ export const updateMaterialClass = async (id: number, materialClass: Partial<Mat
   } catch (error: any) {
     console.error('[MaterialClassOperations.updateMaterialClass] Error:', error)
     if (error.code === '23505') {
-      if (error.message.includes('code')) {
-        message.error('Класс материалов с таким кодом уже существует')
-      } else if (error.message.includes('name')) {
+      if (error.message.includes('name')) {
         message.error('Класс материалов с таким названием уже существует')
       } else {
         message.error('Такой класс материалов уже существует')
@@ -138,5 +150,43 @@ export const toggleMaterialClassActive = async (id: number, is_active: boolean) 
     console.error('[MaterialClassOperations.toggleMaterialClassActive] Error:', error)
     message.error('Ошибка изменения статуса класса материалов')
     throw error
+  }
+}
+
+// Load root material classes (no parent)
+export const loadRootMaterialClasses = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('material_classes')
+      .select('*')
+      .is('parent_id', null)
+      .eq('is_active', true)
+      .order('name')
+
+    if (error) throw error
+
+    return data || []
+  } catch (error) {
+    console.error('[MaterialClassOperations.loadRootMaterialClasses] Error:', error)
+    return []
+  }
+}
+
+// Load subclasses of a specific class
+export const loadSubclasses = async (parentId: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('material_classes')
+      .select('*')
+      .eq('parent_id', parentId)
+      .eq('is_active', true)
+      .order('name')
+
+    if (error) throw error
+
+    return data || []
+  } catch (error) {
+    console.error('[MaterialClassOperations.loadSubclasses] Error:', error)
+    return []
   }
 }

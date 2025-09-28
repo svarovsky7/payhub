@@ -1,18 +1,10 @@
 import React, { useState } from 'react'
-import { Modal, Button, Upload, Table, message, Space, Typography, Tag, Alert } from 'antd'
-import { UploadOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined } from '@ant-design/icons'
-import type { UploadFile } from 'antd/es/upload'
+import { Modal, Button, Upload, message, Alert, Space } from 'antd'
+import { UploadOutlined } from '@ant-design/icons'
 import { supabase } from '../../lib/supabase'
-
-const { Text, Title } = Typography
-
-interface ImportResult {
-  line: number
-  name: string
-  inn: string
-  status: 'success' | 'skip' | 'error'
-  message?: string
-}
+import { parseCSVContent, type ParsedContractor } from './ImportContractorsUtils'
+import { ImportContractorsPreview } from './ImportContractorsPreview'
+import { ImportContractorsResult, type ImportResult } from './ImportContractorsResult'
 
 interface ImportContractorsModalProps {
   visible: boolean
@@ -25,42 +17,10 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
   onClose,
   onSuccess
 }) => {
-  const [fileContent, setFileContent] = useState<string>('')
-  const [parsedData, setParsedData] = useState<any[]>([])
+  const [parsedData, setParsedData] = useState<ParsedContractor[]>([])
   const [importing, setImporting] = useState(false)
   const [importResults, setImportResults] = useState<ImportResult[]>([])
   const [step, setStep] = useState<'upload' | 'preview' | 'result'>('upload')
-
-  // Функция для обработки ИНН в научной нотации
-  const processINN = (innValue: string): string => {
-    console.log('[ImportContractorsModal.processINN] Input:', innValue)
-
-    // Если значение содержит 'E+', это научная нотация
-    if (innValue.includes('E+') || innValue.includes('e+')) {
-      console.log('[ImportContractorsModal.processINN] Scientific notation detected')
-      // Преобразуем научную нотацию в обычное число
-      const num = parseFloat(innValue)
-      const result = Math.round(num).toString()
-      console.log('[ImportContractorsModal.processINN] Converted from scientific:', result)
-      return result
-    }
-
-    // Убираем все пробелы и нечисловые символы кроме цифр
-    const cleaned = innValue.replace(/[^\d]/g, '')
-    console.log('[ImportContractorsModal.processINN] Cleaned:', cleaned)
-    return cleaned
-  }
-
-  // Функция для очистки названия компании
-  const cleanCompanyName = (name: string): string => {
-    return name
-      .replace(/^\uFEFF/, '') // Убираем BOM (Byte Order Mark)
-      .replace(/^["'«»""]|["'«»""]$/g, '') // Убираем кавычки в начале и конце
-      .trim()
-      .replace(/\s+/g, ' ') // Заменяем множественные пробелы на один
-      .replace(/;/g, '') // Убираем точки с запятой
-      .trim()
-  }
 
   // Обработка загруженного файла
   const handleFileUpload = (file: any) => {
@@ -104,6 +64,13 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
 
       console.log('[ImportContractorsModal.handleFileUpload] Will read file:', fileToRead)
 
+      if (!fileToRead) {
+        console.error('[ImportContractorsModal.handleFileUpload] No file to read')
+        hideLoading()
+        message.error('Не удалось прочитать файл')
+        return false
+      }
+
       const reader = new FileReader()
 
       reader.onload = (e) => {
@@ -122,8 +89,20 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
             return
           }
 
-          setFileContent(content)
-          parseCSV(content)
+          try {
+            const contractors = parseCSVContent(content)
+            setParsedData(contractors)
+            setStep('preview')
+
+            if (contractors.filter(c => c.valid).length === 0) {
+              message.error('Нет корректных данных для импорта')
+            } else {
+              message.success(`Распознано ${contractors.filter(c => c.valid).length} корректных записей`)
+            }
+          } catch (error) {
+            console.error('[ImportContractorsModal.handleFileUpload] Parse error:', error)
+            message.error('Ошибка при разборе файла: ' + (error as Error).message)
+          }
         } catch (err) {
           console.error('[ImportContractorsModal.handleFileUpload] Error in onload:', err)
           hideLoading()
@@ -154,100 +133,6 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
     }
 
     return false // Prevent automatic upload
-  }
-
-  // Парсинг CSV
-  const parseCSV = (content: string) => {
-    console.log('[ImportContractorsModal.parseCSV] Starting parse, content length:', content?.length)
-
-    try {
-      if (!content) {
-        console.error('[ImportContractorsModal.parseCSV] Content is empty!')
-        message.error('Файл пустой')
-        return
-      }
-
-      // Убираем BOM из начала файла, если он есть
-      const cleanContent = content.replace(/^\uFEFF/, '')
-      console.log('[ImportContractorsModal.parseCSV] BOM removed, clean content starts with:', cleanContent.substring(0, 50))
-
-      const lines = cleanContent.split('\n')
-      console.log('[ImportContractorsModal.parseCSV] Lines count:', lines.length)
-
-      if (lines.length < 2) {
-        console.error('[ImportContractorsModal.parseCSV] Not enough lines in file')
-        message.error('Файл не содержит данных')
-        return
-      }
-
-      const headers = lines[0].split(';').map(h => h.trim())
-      console.log('[ImportContractorsModal.parseCSV] Headers:', headers)
-
-      const contractors = []
-      const errors = []
-
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim()
-        if (!line) {
-          console.log(`[ImportContractorsModal.parseCSV] Line ${i + 1} is empty, skipping`)
-          continue
-        }
-
-        const values = line.split(';')
-        console.log(`[ImportContractorsModal.parseCSV] Line ${i + 1} values:`, values)
-
-        if (values.length < 2) {
-          console.warn(`[ImportContractorsModal.parseCSV] Line ${i + 1} has insufficient values:`, values)
-          continue
-        }
-
-        const name = cleanCompanyName(values[0])
-        const originalInn = values[1]
-        const inn = processINN(values[1])
-
-        console.log(`[ImportContractorsModal.parseCSV] Line ${i + 1} processed:`, {
-          name,
-          originalInn,
-          processedInn: inn
-        })
-
-        // Валидация ИНН
-        let error = null
-        if (!inn || (inn.length !== 10 && inn.length !== 12)) {
-          error = `Некорректный ИНН (должен быть 10 или 12 цифр, получено: ${inn ? inn.length : 0})`
-          console.warn(`[ImportContractorsModal.parseCSV] Line ${i + 1} validation error:`, error)
-        }
-
-        contractors.push({
-          key: i,
-          line: i + 1,
-          name: name,
-          inn: inn,
-          originalInn: originalInn,
-          error: error,
-          valid: !error
-        })
-      }
-
-      console.log('[ImportContractorsModal.parseCSV] Parsed contractors:', {
-        total: contractors.length,
-        valid: contractors.filter(c => c.valid).length,
-        invalid: contractors.filter(c => !c.valid).length,
-        contractors
-      })
-
-      setParsedData(contractors)
-      setStep('preview')
-
-      if (contractors.filter(c => c.valid).length === 0) {
-        message.error('Нет корректных данных для импорта')
-      } else {
-        message.success(`Распознано ${contractors.filter(c => c.valid).length} корректных записей`)
-      }
-    } catch (error) {
-      console.error('[ImportContractorsModal.parseCSV] Parse error:', error)
-      message.error('Ошибка при разборе файла: ' + (error as Error).message)
-    }
   }
 
   // Импорт в базу данных
@@ -342,7 +227,6 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
 
   // Сброс состояния
   const handleReset = () => {
-    setFileContent('')
     setParsedData([])
     setImportResults([])
     setStep('upload')
@@ -353,109 +237,6 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
     handleReset()
     onClose()
   }
-
-  // Колонки для таблицы предпросмотра
-  const previewColumns = [
-    {
-      title: '№',
-      dataIndex: 'line',
-      key: 'line',
-      width: 60
-    },
-    {
-      title: 'Наименование',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'ИНН',
-      dataIndex: 'inn',
-      key: 'inn',
-      width: 150,
-      render: (text: string, record: any) => (
-        <Space direction="vertical" size={0}>
-          <Text>{text}</Text>
-          {record.originalInn !== text && (
-            <Text type="secondary" style={{ fontSize: 11 }}>
-              Исходный: {record.originalInn}
-            </Text>
-          )}
-        </Space>
-      )
-    },
-    {
-      title: 'Статус',
-      dataIndex: 'valid',
-      key: 'valid',
-      width: 120,
-      render: (valid: boolean, record: any) => (
-        valid ? (
-          <Tag color="success" icon={<CheckCircleOutlined />}>
-            Корректно
-          </Tag>
-        ) : (
-          <Tag color="error" icon={<CloseCircleOutlined />}>
-            Ошибка
-          </Tag>
-        )
-      )
-    },
-    {
-      title: 'Примечание',
-      dataIndex: 'error',
-      key: 'error',
-      render: (error: string) => error && (
-        <Text type="danger" style={{ fontSize: 12 }}>{error}</Text>
-      )
-    }
-  ]
-
-  // Колонки для таблицы результатов
-  const resultColumns = [
-    {
-      title: '№',
-      dataIndex: 'line',
-      key: 'line',
-      width: 60
-    },
-    {
-      title: 'Наименование',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'ИНН',
-      dataIndex: 'inn',
-      key: 'inn',
-      width: 150
-    },
-    {
-      title: 'Результат',
-      dataIndex: 'status',
-      key: 'status',
-      width: 120,
-      render: (status: string) => {
-        switch (status) {
-          case 'success':
-            return <Tag color="success" icon={<CheckCircleOutlined />}>Импортирован</Tag>
-          case 'skip':
-            return <Tag color="warning" icon={<WarningOutlined />}>Пропущен</Tag>
-          case 'error':
-            return <Tag color="error" icon={<CloseCircleOutlined />}>Ошибка</Tag>
-          default:
-            return null
-        }
-      }
-    },
-    {
-      title: 'Сообщение',
-      dataIndex: 'message',
-      key: 'message',
-      render: (message: string) => (
-        <Text style={{ fontSize: 12 }}>{message}</Text>
-      )
-    }
-  ]
 
   return (
     <Modal
@@ -563,52 +344,9 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
         </Space>
       )}
 
-      {step === 'preview' && (
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <div>
-            <Text>Всего записей: {parsedData.length}</Text>
-            <br />
-            <Text type="success">Корректных: {parsedData.filter(c => c.valid).length}</Text>
-            <br />
-            <Text type="danger">С ошибками: {parsedData.filter(c => !c.valid).length}</Text>
-          </div>
+      {step === 'preview' && <ImportContractorsPreview data={parsedData} />}
 
-          <Table
-            columns={previewColumns}
-            dataSource={parsedData}
-            size="small"
-            scroll={{ y: 400 }}
-            pagination={false}
-          />
-        </Space>
-      )}
-
-      {step === 'result' && (
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <div>
-            <Title level={5}>Результаты импорта</Title>
-            <Space>
-              <Tag color="success">
-                Импортировано: {importResults.filter(r => r.status === 'success').length}
-              </Tag>
-              <Tag color="warning">
-                Пропущено: {importResults.filter(r => r.status === 'skip').length}
-              </Tag>
-              <Tag color="error">
-                Ошибок: {importResults.filter(r => r.status === 'error').length}
-              </Tag>
-            </Space>
-          </div>
-
-          <Table
-            columns={resultColumns}
-            dataSource={importResults}
-            size="small"
-            scroll={{ y: 400 }}
-            pagination={false}
-          />
-        </Space>
-      )}
+      {step === 'result' && <ImportContractorsResult results={importResults} />}
     </Modal>
   )
 }

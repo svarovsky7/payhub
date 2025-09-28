@@ -386,15 +386,7 @@
         "id"
       ],
       "foreign_keys": [],
-      "unique": [
-        {
-          "name": "contract_attachments_contract_id_attachment_id_key",
-          "columns": [
-            "attachment_id",
-            "contract_id"
-          ]
-        }
-      ],
+      "unique": [],
       "checks": [
         {
           "name": "2200_21097_1_not_null"
@@ -408,14 +400,6 @@
       ]
     },
     "indexes": [
-      {
-        "name": "contract_attachments_contract_id_attachment_id_key",
-        "columns": [
-          "contract_id",
-          "attachment_id"
-        ],
-        "unique": false
-      },
       {
         "name": "idx_contract_attachments_attachment_id",
         "columns": [
@@ -466,15 +450,7 @@
         "id"
       ],
       "foreign_keys": [],
-      "unique": [
-        {
-          "name": "contract_invoices_contract_id_invoice_id_key",
-          "columns": [
-            "contract_id",
-            "invoice_id"
-          ]
-        }
-      ],
+      "unique": [],
       "checks": [
         {
           "name": "2200_21078_1_not_null"
@@ -488,14 +464,6 @@
       ]
     },
     "indexes": [
-      {
-        "name": "contract_invoices_contract_id_invoice_id_key",
-        "columns": [
-          "contract_id",
-          "invoice_id"
-        ],
-        "unique": false
-      },
       {
         "name": "idx_contract_invoices_contract_id",
         "columns": [
@@ -1225,15 +1193,7 @@
           "description": "Attachment (public.attachments.id) linked to the invoice."
         }
       ],
-      "unique": [
-        {
-          "name": "invoice_attachments_invoice_id_attachment_id_key",
-          "columns": [
-            "attachment_id",
-            "invoice_id"
-          ]
-        }
-      ],
+      "unique": [],
       "checks": [
         {
           "name": "2200_19379_1_not_null"
@@ -1258,14 +1218,6 @@
         "name": "idx_invoice_attachments_invoice_id",
         "columns": [
           "invoice_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "invoice_attachments_invoice_id_attachment_id_key",
-        "columns": [
-          "invoice_id",
-          "attachment_id"
         ],
         "unique": false
       }
@@ -1328,15 +1280,7 @@
           "description": "Payment (public.payments.id) allocated to the invoice."
         }
       ],
-      "unique": [
-        {
-          "name": "invoice_payments_invoice_id_payment_id_key",
-          "columns": [
-            "invoice_id",
-            "payment_id"
-          ]
-        }
-      ],
+      "unique": [],
       "checks": [
         {
           "name": "2200_19891_1_not_null"
@@ -1366,14 +1310,6 @@
       {
         "name": "idx_invoice_payments_payment_id",
         "columns": [
-          "payment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "invoice_payments_invoice_id_payment_id_key",
-        "columns": [
-          "invoice_id",
           "payment_id"
         ],
         "unique": false
@@ -1940,11 +1876,6 @@
         "pk": true
       },
       {
-        "name": "code",
-        "type": "text",
-        "nullable": false
-      },
-      {
         "name": "name",
         "type": "text",
         "nullable": false
@@ -1966,6 +1897,17 @@
         "type": "timestamptz",
         "nullable": true,
         "default": "CURRENT_TIMESTAMP"
+      },
+      {
+        "name": "parent_id",
+        "type": "bigint",
+        "nullable": true
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "nullable": true,
+        "default": "0"
       }
     ],
     "constraints": {
@@ -1974,12 +1916,6 @@
       ],
       "foreign_keys": [],
       "unique": [
-        {
-          "name": "material_classes_code_key",
-          "columns": [
-            "code"
-          ]
-        },
         {
           "name": "material_classes_name_key",
           "columns": [
@@ -1990,9 +1926,6 @@
       "checks": [
         {
           "name": "2200_21264_1_not_null"
-        },
-        {
-          "name": "2200_21264_2_not_null"
         },
         {
           "name": "2200_21264_3_not_null"
@@ -2008,9 +1941,24 @@
         "unique": false
       },
       {
-        "name": "material_classes_code_key",
+        "name": "idx_material_classes_level",
         "columns": [
-          "code"
+          "level"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_classes_parent",
+        "columns": [
+          "parent_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_classes_parent_active",
+        "columns": [
+          "parent_id",
+          "is_active"
         ],
         "unique": false
       },
@@ -2032,6 +1980,175 @@
         "function": "public.update_updated_at_column()"
       }
     ]
+  },
+  {
+    "table": "public.material_nomenclature",
+    "summary": "",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "default": "nextval('material_nomenclature_id_seq'::regclass)"
+      },
+      {
+        "name": "name",
+        "type": "varchar(500)",
+        "nullable": false
+      },
+      {
+        "name": "unit",
+        "type": "varchar(50)",
+        "nullable": false
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "default": "true"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [],
+      "checks": [
+        {
+          "name": "2200_23111_1_not_null"
+        },
+        {
+          "name": "2200_23111_2_not_null"
+        },
+        {
+          "name": "2200_23111_3_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_material_nomenclature_active",
+        "columns": [
+          "is_active"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_nomenclature_name",
+        "columns": [
+          "name"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": [
+      {
+        "trigger": "update_material_nomenclature_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "function": "public.update_updated_at_column()"
+      }
+    ]
+  },
+  {
+    "table": "public.material_request_attachments",
+    "summary": "Связь заявок на материалы с приложенными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()",
+        "description": "Уникальный идентификатор связи"
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": false,
+        "description": "ID заявки на материалы"
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "description": "ID вложенного файла"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "description": "Время создания связи"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [
+        {
+          "name": "material_request_attachments_unique",
+          "columns": [
+            "attachment_id",
+            "material_request_id"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "2200_23552_1_not_null"
+        },
+        {
+          "name": "2200_23552_2_not_null"
+        },
+        {
+          "name": "2200_23552_3_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_material_request_attachments_attachment_id",
+        "columns": [
+          "attachment_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_request_attachments_request_id",
+        "columns": [
+          "material_request_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "material_request_attachments_unique",
+        "columns": [
+          "material_request_id",
+          "attachment_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": []
   },
   {
     "table": "public.material_request_items",
@@ -2081,6 +2198,11 @@
         "type": "timestamptz",
         "nullable": true,
         "default": "now()"
+      },
+      {
+        "name": "nomenclature_id",
+        "type": "integer",
+        "nullable": true
       }
     ],
     "constraints": {
@@ -2111,6 +2233,13 @@
       ]
     },
     "indexes": [
+      {
+        "name": "idx_material_request_items_nomenclature",
+        "columns": [
+          "nomenclature_id"
+        ],
+        "unique": false
+      },
       {
         "name": "idx_material_request_items_request",
         "columns": [
@@ -2439,15 +2568,7 @@
           "description": "Attachment (public.attachments.id) linked to the payment."
         }
       ],
-      "unique": [
-        {
-          "name": "payment_attachments_payment_id_attachment_id_key",
-          "columns": [
-            "attachment_id",
-            "payment_id"
-          ]
-        }
-      ],
+      "unique": [],
       "checks": [
         {
           "name": "2200_19998_1_not_null"
@@ -2472,14 +2593,6 @@
         "name": "idx_payment_attachments_payment_id",
         "columns": [
           "payment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "payment_attachments_payment_id_attachment_id_key",
-        "columns": [
-          "payment_id",
-          "attachment_id"
         ],
         "unique": false
       }

@@ -1,6 +1,15 @@
 import { supabase } from '../../lib/supabase'
-import { message } from 'antd'
 import { calculateInvoiceStatus, shouldUpdateInvoiceStatus } from '../../utils/invoiceStatusCalculator'
+
+interface InvoicePaymentWithDetails {
+  payment_id: string
+  allocated_amount: number
+  payments: {
+    id: string
+    status_id: number
+    amount: number
+  } | null
+}
 
 export const recalculateInvoiceStatus = async (invoiceId: string) => {
 
@@ -28,11 +37,17 @@ export const recalculateInvoiceStatus = async (invoiceId: string) => {
     if (invoiceError) throw invoiceError
     if (!invoice) throw new Error('Invoice not found')
 
+    // Извлекаем вложенные данные платежей
+    const payments = ((invoice.invoice_payments || []) as unknown as InvoicePaymentWithDetails[]).map(ip => ({
+      status_id: ip.payments?.status_id || 0,
+      amount: ip.allocated_amount || 0
+    }))
+
     // Рассчитываем новый статус
     const newStatusId = calculateInvoiceStatus(
       invoice.amount_with_vat || 0,
       invoice.status_id,
-      invoice.invoice_payments || []
+      payments
     )
 
     // Проверяем, нужно ли обновлять статус
@@ -85,10 +100,16 @@ export const recalculateAllInvoiceStatuses = async () => {
     // Обновляем статусы счетов
     for (const invoice of invoices) {
       try {
+        // Извлекаем вложенные данные платежей
+        const payments = ((invoice.invoice_payments || []) as unknown as InvoicePaymentWithDetails[]).map(ip => ({
+          status_id: ip.payments?.status_id || 0,
+          amount: ip.allocated_amount || 0
+        }))
+
         const newStatusId = calculateInvoiceStatus(
           invoice.amount_with_vat || 0,
           invoice.status_id,
-          invoice.invoice_payments || []
+          payments
         )
 
         if (shouldUpdateInvoiceStatus(invoice.status_id, newStatusId)) {

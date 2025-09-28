@@ -25,8 +25,15 @@ export interface MaterialRequestItem {
   material_name: string
   unit: string
   quantity: number
+  nomenclature_id?: number | null
   sort_order: number
   created_at: string
+  // Relations
+  nomenclature?: {
+    id: number
+    name: string
+    unit: string
+  }
 }
 
 export interface CreateMaterialRequestInput {
@@ -108,10 +115,13 @@ export async function loadMaterialRequest(requestId: string): Promise<MaterialRe
     if (requestError) throw requestError
     if (!request) throw new Error('Заявка не найдена')
 
-    // Load items
+    // Load items with nomenclature
     const { data: items, error: itemsError } = await supabase
       .from('material_request_items')
-      .select('*')
+      .select(`
+        *,
+        nomenclature:material_nomenclature(id, name, unit)
+      `)
       .eq('material_request_id', requestId)
       .order('sort_order', { ascending: true })
 
@@ -138,7 +148,7 @@ export async function loadMaterialRequests(): Promise<MaterialRequest[]> {
         *,
         project:projects(*),
         employee:employees(*),
-        items:material_request_items(*)
+        items:material_request_items(*, nomenclature:material_nomenclature(id, name, unit))
       `)
       .order('request_date', { ascending: false })
       .order('created_at', { ascending: false })
@@ -199,9 +209,9 @@ export async function deleteMaterialRequest(requestId: string): Promise<void> {
       .eq('id', requestId)
 
     if (error) throw error
-  } catch (error: any) {
+  } catch (error) {
     console.error('[materialRequestOperations.deleteMaterialRequest] Error:', error)
-    throw new Error(error.message || 'Ошибка удаления заявки на материалы')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка удаления заявки на материалы')
   }
 }
 

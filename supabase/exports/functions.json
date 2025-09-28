@@ -580,12 +580,26 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION pgbouncer.get_auth(p_usename text)\n RETURNS TABLE(username text, password text)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n    RAISE WARNING 'PgBouncer auth request: %', p_usename;\n\n    RETURN QUERY\n    SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow\n    WHERE usename = p_usename;\nEND;\n$function$\n"
   },
+  "public.calculate_material_class_level()": {
+    "schema": "public",
+    "name": "calculate_material_class_level",
+    "arguments": "",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.calculate_material_class_level()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF NEW.parent_id IS NULL THEN\n        NEW.level = 0;\n    ELSE\n        SELECT level + 1 INTO NEW.level\n        FROM material_classes\n        WHERE id = NEW.parent_id;\n    END IF;\n    RETURN NEW;\nEND;\n$function$\n"
+  },
   "public.delete_project(project_id_param integer)": {
     "schema": "public",
     "name": "delete_project",
     "arguments": "project_id_param integer",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION public.delete_project(project_id_param integer)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n  -- Удаляем все связи с пользователями\n  DELETE FROM public.user_projects WHERE project_id = project_id_param;\n\n  -- Удаляем сам проект\n  DELETE FROM public.projects WHERE id = project_id_param;\n\n  -- Возвращаем true если удаление прошло успешно\n  RETURN FOUND;\nEND;\n$function$\n"
+  },
+  "public.get_material_class_path(class_id bigint)": {
+    "schema": "public",
+    "name": "get_material_class_path",
+    "arguments": "class_id bigint",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.get_material_class_path(class_id bigint)\n RETURNS text\n LANGUAGE plpgsql\nAS $function$\nDECLARE\n    path_text TEXT;\nBEGIN\n    WITH RECURSIVE class_path AS (\n        SELECT id, name, parent_id, name::TEXT as path\n        FROM material_classes\n        WHERE id = class_id\n\n        UNION ALL\n\n        SELECT c.id, c.name, c.parent_id,\n               p.name || ' → ' || cp.path\n        FROM material_classes c\n        INNER JOIN class_path cp ON c.id = cp.parent_id\n        INNER JOIN material_classes p ON p.id = c.id\n    )\n    SELECT path INTO path_text\n    FROM class_path\n    WHERE parent_id IS NULL;\n\n    RETURN COALESCE(path_text, (SELECT name FROM material_classes WHERE id = class_id));\nEND;\n$function$\n"
   },
   "public.handle_new_user()": {
     "schema": "public",
@@ -599,7 +613,7 @@
     "name": "update_material_request_items_count",
     "arguments": "",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION public.update_material_request_items_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'INSERT' THEN\n        UPDATE material_requests\n        SET items_count = COALESCE(items_count, 0) + 1\n        WHERE id = NEW.request_id;\n    ELSIF TG_OP = 'DELETE' THEN\n        UPDATE material_requests\n        SET items_count = GREATEST(COALESCE(items_count, 0) - 1, 0)\n        WHERE id = OLD.request_id;\n    END IF;\n    RETURN NULL;\nEND;\n$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION public.update_material_request_items_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'INSERT' THEN\n        -- При добавлении элемента увеличиваем счетчик\n        UPDATE material_requests\n        SET total_items = COALESCE(total_items, 0) + 1\n        WHERE id = NEW.material_request_id;\n    ELSIF TG_OP = 'DELETE' THEN\n        -- При удалении элемента уменьшаем счетчик\n        UPDATE material_requests\n        SET total_items = GREATEST(COALESCE(total_items, 0) - 1, 0)\n        WHERE id = OLD.material_request_id;\n    END IF;\n    RETURN NULL;\nEND;\n$function$\n"
   },
   "public.update_updated_at_column()": {
     "schema": "public",

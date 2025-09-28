@@ -1,54 +1,13 @@
 import React, { useState } from 'react'
-import {
-  Upload,
-  Button,
-  List,
-  Space,
-  Input,
-  Modal,
-  Image,
-  Typography,
-  Tooltip,
-  Popconfirm,
-  message,
-} from 'antd'
-import {
-  UploadOutlined,
-  DeleteOutlined,
-  DownloadOutlined,
-  EyeOutlined,
-  EditOutlined,
-  SaveOutlined,
-  CloseOutlined,
-  FileTextOutlined,
-  FilePdfOutlined,
-  FileImageOutlined,
-  FileExcelOutlined,
-  FileWordOutlined
-} from '@ant-design/icons'
+import { Upload, Button, List, Typography, message } from 'antd'
+import { UploadOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadProps, RcFile } from 'antd/es/upload'
 import { supabase } from '../../lib/supabase'
-import dayjs from 'dayjs'
+import { FilePreviewModal } from './FilePreviewModal'
+import { NewFileListItem, ExistingFileListItem } from './FileListItem'
+import { getBase64, getFileType } from './FileUploadUtils'
 
-const { Text, Title } = Typography
-
-// Типы файлов для определения иконки
-const getFileIcon = (fileName: string) => {
-  const ext = fileName.split('.').pop()?.toLowerCase()
-  if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '')) {
-    return <FileImageOutlined />
-  }
-  if (ext === 'pdf') {
-    return <FilePdfOutlined />
-  }
-  if (['doc', 'docx'].includes(ext || '')) {
-    return <FileWordOutlined />
-  }
-  if (['xls', 'xlsx'].includes(ext || '')) {
-    return <FileExcelOutlined />
-  }
-  return <FileTextOutlined />
-}
+const { Title } = Typography
 
 // Интерфейс для существующих файлов
 export interface ExistingFile {
@@ -112,7 +71,6 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
   onPreview
 }) => {
   const [uploadingFile, setUploadingFile] = useState(false)
-  const [editingDescriptions, setEditingDescriptions] = useState<Record<string, string>>({})
   const [previewModal, setPreviewModal] = useState<{
     open: boolean
     title: string
@@ -173,19 +131,13 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
     try {
       let fileName: string
       let fileUrl: string
-      let fileType: 'image' | 'pdf' | 'other' = 'other'
+      let fileType: 'image' | 'pdf' | 'other'
 
       // Определяем, новый это файл или существующий
       if ('originFileObj' in file) {
         // Новый файл
         fileName = file.name
-        const ext = fileName.split('.').pop()?.toLowerCase()
-
-        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '')) {
-          fileType = 'image'
-        } else if (ext === 'pdf') {
-          fileType = 'pdf'
-        }
+        fileType = getFileType(fileName)
 
         if (file.originFileObj) {
           fileUrl = await getBase64(file.originFileObj as RcFile)
@@ -198,13 +150,7 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
       } else {
         // Существующий файл
         fileName = (file as ExistingFile).original_name
-        const ext = fileName.split('.').pop()?.toLowerCase()
-
-        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '')) {
-          fileType = 'image'
-        } else if (ext === 'pdf') {
-          fileType = 'pdf'
-        }
+        fileType = getFileType(fileName)
 
         // Загружаем файл из storage
         const { data, error } = await supabase.storage
@@ -300,45 +246,6 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
     }
   }
 
-  // Сохранение описания существующего файла
-  const handleSaveDescription = async (fileId: string) => {
-    try {
-      const description = editingDescriptions[fileId]
-
-      const { error } = await supabase
-        .from('attachments')
-        .update({ description })
-        .eq('id', fileId)
-
-      if (error) throw error
-
-      message.success('Описание сохранено')
-
-      // Убираем из режима редактирования
-      setEditingDescriptions(prev => {
-        const newState = { ...prev }
-        delete newState[fileId]
-        return newState
-      })
-
-      // Обновляем список файлов
-      if (onExistingFilesChange) {
-        await onExistingFilesChange()
-      }
-    } catch (error) {
-      console.error('[FileUploadBlock] Save description error:', error)
-      message.error('Ошибка сохранения описания')
-    }
-  }
-
-  // Вспомогательная функция для получения base64
-  const getBase64 = (file: RcFile): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = error => reject(error)
-    })
 
   return (
     <div className="file-upload-block">
@@ -372,51 +279,14 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
             size="small"
             dataSource={fileList}
             renderItem={(file) => (
-              <List.Item
-                actions={[
-                  <Tooltip title="Просмотреть" key="preview">
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<EyeOutlined />}
-                      onClick={() => handlePreviewFile(file)}
-                      disabled={disabled}
-                    />
-                  </Tooltip>,
-                  <Tooltip title="Удалить" key="delete">
-                    <Button
-                      type="text"
-                      danger
-                      size="small"
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleRemove(file)}
-                      disabled={disabled}
-                    />
-                  </Tooltip>
-                ]}
-              >
-                <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: 18 }}>{getFileIcon(file.name)}</span>
-                  <div style={{ flex: 1 }}>
-                    <div>{file.name}</div>
-                    {file.status === 'error' && (
-                      <Text type="danger" style={{ fontSize: 12 }}>Ошибка загрузки</Text>
-                    )}
-                  </div>
-                  <Input
-                    size="small"
-                    placeholder="Описание файла"
-                    style={{ width: 300, textAlign: 'right' }}
-                    value={fileDescriptions[file.uid] || ''}
-                    onChange={(e) => {
-                      if (onFileDescriptionChange) {
-                        onFileDescriptionChange(file.uid, e.target.value)
-                      }
-                    }}
-                    disabled={disabled}
-                  />
-                </div>
-              </List.Item>
+              <NewFileListItem
+                file={file}
+                description={fileDescriptions[file.uid]}
+                disabled={disabled}
+                onPreview={handlePreviewFile}
+                onRemove={handleRemove}
+                onDescriptionChange={onFileDescriptionChange}
+              />
             )}
           />
         </div>
@@ -429,236 +299,28 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
           <List
             size="small"
             dataSource={existingFiles}
-            renderItem={(file) => {
-              const isEditingDescription = editingDescriptions[file.id] !== undefined
-
-              return (
-                <List.Item
-                  actions={[
-                    <Tooltip title="Просмотреть" key="preview">
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<EyeOutlined />}
-                        onClick={() => handlePreviewFile(file)}
-                      />
-                    </Tooltip>,
-                    <Tooltip title="Скачать" key="download">
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<DownloadOutlined />}
-                        onClick={() => handleDownloadFile(file)}
-                      />
-                    </Tooltip>,
-                    !disabled && (
-                      <Popconfirm
-                        key="delete"
-                        title="Удалить файл?"
-                        description="Файл будет удален безвозвратно"
-                        onConfirm={() => handleDeleteExistingFile(file)}
-                        okText="Удалить"
-                        cancelText="Отмена"
-                      >
-                        <Tooltip title="Удалить">
-                          <Button
-                            type="text"
-                            danger
-                            size="small"
-                            icon={<DeleteOutlined />}
-                          />
-                        </Tooltip>
-                      </Popconfirm>
-                    )
-                  ].filter(Boolean)}
-                >
-                  <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: 18 }}>{getFileIcon(file.original_name)}</span>
-                    <div style={{ flex: 1 }}>
-                      <div>{file.original_name}</div>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        {(file.size_bytes / 1024).toFixed(1)} KB •
-                        {dayjs(file.created_at).format('DD.MM.YYYY HH:mm')}
-                      </Text>
-                    </div>
-                    {isEditingDescription ? (
-                      <Space.Compact>
-                        <Input
-                          size="small"
-                          value={editingDescriptions[file.id]}
-                          onChange={(e) => setEditingDescriptions(prev => ({
-                            ...prev,
-                            [file.id]: e.target.value
-                          }))}
-                          placeholder="Описание файла"
-                          style={{ width: 250, textAlign: 'right' }}
-                        />
-                        <Button
-                          size="small"
-                          icon={<SaveOutlined />}
-                          onClick={() => handleSaveDescription(file.id)}
-                        />
-                        <Button
-                          size="small"
-                          icon={<CloseOutlined />}
-                          onClick={() => setEditingDescriptions(prev => {
-                            const newState = { ...prev }
-                            delete newState[file.id]
-                            return newState
-                          })}
-                        />
-                      </Space.Compact>
-                    ) : (
-                      <div
-                        style={{
-                          width: 300,
-                          cursor: disabled ? 'default' : 'pointer',
-                          padding: '4px 8px',
-                          border: '1px solid transparent',
-                          borderRadius: '4px',
-                          transition: 'all 0.2s',
-                          textAlign: 'right'
-                        }}
-                        onClick={() => {
-                          if (!disabled) {
-                            setEditingDescriptions(prev => ({
-                              ...prev,
-                              [file.id]: file.description || ''
-                            }))
-                          }
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!disabled) {
-                            e.currentTarget.style.border = '1px solid #d9d9d9'
-                            e.currentTarget.style.background = '#fafafa'
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.border = '1px solid transparent'
-                          e.currentTarget.style.background = 'transparent'
-                        }}
-                      >
-                        {file.description ? (
-                          <Text>{file.description}</Text>
-                        ) : (
-                          <Text type="secondary">
-                            {disabled ? 'Нет описания' : 'Нажмите для добавления описания'}
-                          </Text>
-                        )}
-                        {!disabled && (
-                          <EditOutlined style={{ marginLeft: 8, fontSize: 12, opacity: 0.5 }} />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </List.Item>
-              )
-            }}
+            renderItem={(file) => (
+              <ExistingFileListItem
+                file={file}
+                disabled={disabled}
+                onPreview={handlePreviewFile}
+                onDownload={handleDownloadFile}
+                onDelete={handleDeleteExistingFile}
+                onUpdate={onExistingFilesChange}
+              />
+            )}
           />
         </div>
       )}
 
       {/* Модальное окно просмотра */}
-      <Modal
+      <FilePreviewModal
         open={previewModal.open}
-        title={`Просмотр: ${previewModal.title}`}
-        footer={
-          previewModal.type === 'pdf' ? (
-            <Space>
-              <Button
-                icon={<DownloadOutlined />}
-                onClick={() => {
-                  const link = document.createElement('a')
-                  link.href = previewModal.url
-                  link.download = previewModal.title
-                  document.body.appendChild(link)
-                  link.click()
-                  document.body.removeChild(link)
-                }}
-              >
-                Скачать PDF
-              </Button>
-              <Button onClick={handleClosePreview}>
-                Закрыть
-              </Button>
-            </Space>
-          ) : (
-            <Button onClick={handleClosePreview}>
-              Закрыть
-            </Button>
-          )
-        }
-        onCancel={handleClosePreview}
-        width={previewModal.type === 'pdf' ? 1000 : 800}
-        style={{ top: 20 }}
-        styles={{
-          body: previewModal.type === 'pdf' ? {
-            padding: 0,
-            height: '75vh',
-            overflow: 'hidden'
-          } : undefined
-        }}
-      >
-        {previewModal.type === 'image' ? (
-          <div style={{ textAlign: 'center' }}>
-            <Image
-              alt="preview"
-              style={{ maxWidth: '100%', maxHeight: '70vh' }}
-              src={previewModal.url}
-              fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRklEQVR42u3SMQ0AAAzDsJU/6yGFfyFpIJHQK7mlL0kgCQIBgUBAICAQCAgEAgKBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEAgIBAICAQCAgGBgEDAJhYAAADnbvnLfwAAAABJRU5ErkJggg=="
-            />
-          </div>
-        ) : previewModal.type === 'pdf' ? (
-          <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-            <embed
-              src={previewModal.url}
-              type="application/pdf"
-              width="100%"
-              height="100%"
-              style={{ border: 'none' }}
-            />
-            <div style={{
-              position: 'absolute',
-              bottom: 10,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: 'rgba(255,255,255,0.9)',
-              padding: '5px 10px',
-              borderRadius: '4px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Если PDF не отображается, используйте кнопку "Скачать PDF"
-              </Text>
-            </div>
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <div style={{ fontSize: 64, color: '#bfbfbf', marginBottom: 16 }}>
-              {getFileIcon(previewModal.title)}
-            </div>
-            <Title level={4}>{previewModal.title}</Title>
-            <Text type="secondary">
-              Предварительный просмотр недоступен для этого типа файла
-            </Text>
-            <div style={{ marginTop: 24 }}>
-              <Button
-                icon={<DownloadOutlined />}
-                onClick={() => {
-                  const link = document.createElement('a')
-                  link.href = previewModal.url
-                  link.download = previewModal.title
-                  document.body.appendChild(link)
-                  link.click()
-                  document.body.removeChild(link)
-                }}
-              >
-                Скачать файл
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+        title={previewModal.title}
+        url={previewModal.url}
+        type={previewModal.type}
+        onClose={handleClosePreview}
+      />
     </div>
   )
 }

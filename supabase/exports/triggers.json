@@ -98,6 +98,15 @@
     "comment": null,
     "sql": "CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
+  "public.material_classes.trigger_calculate_material_class_level": {
+    "schema": "public",
+    "name": "trigger_calculate_material_class_level",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER trigger_calculate_material_class_level BEFORE INSERT OR UPDATE OF parent_id ON public.material_classes FOR EACH ROW EXECUTE FUNCTION calculate_material_class_level()"
+  },
   "public.material_classes.update_material_classes_updated_at": {
     "schema": "public",
     "name": "update_material_classes_updated_at",
@@ -106,6 +115,15 @@
     "timing": null,
     "comment": null,
     "sql": "CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.material_nomenclature.update_material_nomenclature_updated_at": {
+    "schema": "public",
+    "name": "update_material_nomenclature_updated_at",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER update_material_nomenclature_updated_at BEFORE UPDATE ON public.material_nomenclature FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
   "public.material_request_items.update_material_request_items_count_trigger": {
     "schema": "public",

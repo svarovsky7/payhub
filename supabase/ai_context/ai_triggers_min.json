@@ -110,6 +110,16 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.update_material_nomenclature_updated_at",
+    "table": "public.material_nomenclature",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "function": "public.update_updated_at_column()",
+    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  },
+  {
     "trigger": "public.update_material_request_items_count_trigger",
     "table": "public.material_request_items",
     "timing": "AFTER",

@@ -3390,22 +3390,6 @@
         "foreign_column": null
       },
       {
-        "name": "contract_attachments_contract_id_attachment_id_key",
-        "type": "UNIQUE",
-        "column": "attachment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "contract_attachments_contract_id_attachment_id_key",
-        "type": "UNIQUE",
-        "column": "contract_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "contract_attachments_contract_id_fkey",
         "type": "FOREIGN KEY",
         "column": "contract_id",
@@ -3422,7 +3406,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Связь договоров с приложенными файлами\nCREATE TABLE IF NOT EXISTS public.contract_attachments (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT contract_attachments_contract_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT contract_attachments_contract_id_attachment_id_key UNIQUE (contract_id),\n    CONSTRAINT contract_attachments_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_attachments IS 'Связь договоров с приложенными файлами';"
+    "sql": "-- Связь договоров с приложенными файлами\nCREATE TABLE IF NOT EXISTS public.contract_attachments (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT contract_attachments_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_attachments IS 'Связь договоров с приложенными файлами';"
   },
   "public.contract_invoices": {
     "schema": "public",
@@ -3504,22 +3488,6 @@
         "foreign_column": null
       },
       {
-        "name": "contract_invoices_contract_id_invoice_id_key",
-        "type": "UNIQUE",
-        "column": "contract_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "contract_invoices_contract_id_invoice_id_key",
-        "type": "UNIQUE",
-        "column": "invoice_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "contract_invoices_invoice_id_fkey",
         "type": "FOREIGN KEY",
         "column": "invoice_id",
@@ -3536,7 +3504,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Связь договоров со счетами\nCREATE TABLE IF NOT EXISTS public.contract_invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    invoice_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (contract_id),\n    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (invoice_id),\n    CONSTRAINT contract_invoices_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_invoices IS 'Связь договоров со счетами';"
+    "sql": "-- Связь договоров со счетами\nCREATE TABLE IF NOT EXISTS public.contract_invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    invoice_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_invoices IS 'Связь договоров со счетами';"
   },
   "public.contract_statuses": {
     "schema": "public",
@@ -4394,22 +4362,6 @@
         "foreign_column": null
       },
       {
-        "name": "invoice_attachments_invoice_id_attachment_id_key",
-        "type": "UNIQUE",
-        "column": "attachment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "invoice_attachments_invoice_id_attachment_id_key",
-        "type": "UNIQUE",
-        "column": "invoice_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "invoice_attachments_invoice_id_fkey",
         "type": "FOREIGN KEY",
         "column": "invoice_id",
@@ -4426,7 +4378,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Associates invoices with stored attachments.\nCREATE TABLE IF NOT EXISTS public.invoice_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_attachments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_attachments IS 'Associates invoices with stored attachments.';\nCOMMENT ON COLUMN public.invoice_attachments.id IS 'Primary key of the invoice-attachment relation.';\nCOMMENT ON COLUMN public.invoice_attachments.invoice_id IS 'Invoice (public.invoices.id) that the file belongs to.';\nCOMMENT ON COLUMN public.invoice_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the invoice.';\nCOMMENT ON COLUMN public.invoice_attachments.created_at IS 'Timestamp when the attachment was linked to the invoice.';"
+    "sql": "-- Associates invoices with stored attachments.\nCREATE TABLE IF NOT EXISTS public.invoice_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_attachments IS 'Associates invoices with stored attachments.';\nCOMMENT ON COLUMN public.invoice_attachments.id IS 'Primary key of the invoice-attachment relation.';\nCOMMENT ON COLUMN public.invoice_attachments.invoice_id IS 'Invoice (public.invoices.id) that the file belongs to.';\nCOMMENT ON COLUMN public.invoice_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the invoice.';\nCOMMENT ON COLUMN public.invoice_attachments.created_at IS 'Timestamp when the attachment was linked to the invoice.';"
   },
   "public.invoice_payments": {
     "schema": "public",
@@ -4526,22 +4478,6 @@
         "foreign_column": null
       },
       {
-        "name": "invoice_payments_invoice_id_payment_id_key",
-        "type": "UNIQUE",
-        "column": "invoice_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "invoice_payments_invoice_id_payment_id_key",
-        "type": "UNIQUE",
-        "column": "payment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "invoice_payments_payment_id_fkey",
         "type": "FOREIGN KEY",
         "column": "payment_id",
@@ -4566,7 +4502,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Allocation of payments to invoices.\nCREATE TABLE IF NOT EXISTS public.invoice_payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_id uuid NOT NULL,\n    allocated_amount numeric(15,2) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (invoice_id),\n    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT invoice_payments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_payments IS 'Allocation of payments to invoices.';\nCOMMENT ON COLUMN public.invoice_payments.id IS 'Primary key of the invoice-payment allocation.';\nCOMMENT ON COLUMN public.invoice_payments.invoice_id IS 'Invoice (public.invoices.id) receiving the allocation.';\nCOMMENT ON COLUMN public.invoice_payments.payment_id IS 'Payment (public.payments.id) allocated to the invoice.';\nCOMMENT ON COLUMN public.invoice_payments.allocated_amount IS 'Portion of the payment applied to the invoice.';\nCOMMENT ON COLUMN public.invoice_payments.created_at IS 'Timestamp when the allocation was recorded.';"
+    "sql": "-- Allocation of payments to invoices.\nCREATE TABLE IF NOT EXISTS public.invoice_payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_id uuid NOT NULL,\n    allocated_amount numeric(15,2) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT invoice_payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.invoice_payments IS 'Allocation of payments to invoices.';\nCOMMENT ON COLUMN public.invoice_payments.id IS 'Primary key of the invoice-payment allocation.';\nCOMMENT ON COLUMN public.invoice_payments.invoice_id IS 'Invoice (public.invoices.id) receiving the allocation.';\nCOMMENT ON COLUMN public.invoice_payments.payment_id IS 'Payment (public.payments.id) allocated to the invoice.';\nCOMMENT ON COLUMN public.invoice_payments.allocated_amount IS 'Portion of the payment applied to the invoice.';\nCOMMENT ON COLUMN public.invoice_payments.created_at IS 'Timestamp when the allocation was recorded.';"
   },
   "public.invoice_statuses": {
     "schema": "public",
@@ -5220,16 +5156,6 @@
         "comment": null
       },
       {
-        "name": "code",
-        "data_type": "text",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": null
-      },
-      {
         "name": "name",
         "data_type": "text",
         "max_length": null,
@@ -5268,19 +5194,31 @@
         "is_nullable": "YES",
         "default": "CURRENT_TIMESTAMP",
         "comment": null
+      },
+      {
+        "name": "parent_id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "level",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "0",
+        "comment": null
       }
     ],
     "constraints": [
       {
         "name": "2200_21264_1_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "2200_21264_2_not_null",
         "type": "CHECK",
         "column": null,
         "foreign_table_schema": null,
@@ -5296,9 +5234,9 @@
         "foreign_column": null
       },
       {
-        "name": "material_classes_code_key",
-        "type": "UNIQUE",
-        "column": "code",
+        "name": "fk_material_classes_parent",
+        "type": "FOREIGN KEY",
+        "column": "parent_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
@@ -5320,7 +5258,241 @@
         "foreign_column": null
       }
     ],
-    "sql": "CREATE TABLE IF NOT EXISTS public.material_classes (\n    id bigint(64) NOT NULL,\n    code text NOT NULL,\n    name text NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    CONSTRAINT material_classes_code_key UNIQUE (code),\n    CONSTRAINT material_classes_name_key UNIQUE (name),\n    CONSTRAINT material_classes_pkey PRIMARY KEY (id)\n);"
+    "sql": "CREATE TABLE IF NOT EXISTS public.material_classes (\n    id bigint(64) NOT NULL,\n    name text NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,\n    parent_id bigint(64),\n    level integer(32) DEFAULT 0,\n    CONSTRAINT fk_material_classes_parent FOREIGN KEY (parent_id) REFERENCES None.None(None),\n    CONSTRAINT material_classes_name_key UNIQUE (name),\n    CONSTRAINT material_classes_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.material_nomenclature": {
+    "schema": "public",
+    "name": "material_nomenclature",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('material_nomenclature_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "character varying",
+        "max_length": 500,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "unit",
+        "data_type": "character varying",
+        "max_length": 50,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "is_active",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "true",
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "material_class_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_23111_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_23111_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_23111_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "fk_material_nomenclature_class",
+        "type": "FOREIGN KEY",
+        "column": "material_class_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_nomenclature_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.material_nomenclature (\n    id integer(32) NOT NULL DEFAULT nextval('material_nomenclature_id_seq'::regclass),\n    name character varying(500) NOT NULL,\n    unit character varying(50) NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    material_class_id integer(32),\n    CONSTRAINT fk_material_nomenclature_class FOREIGN KEY (material_class_id) REFERENCES None.None(None),\n    CONSTRAINT material_nomenclature_pkey PRIMARY KEY (id)\n);"
+  },
+  "public.material_request_attachments": {
+    "schema": "public",
+    "name": "material_request_attachments",
+    "comment": "Связь заявок на материалы с приложенными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": "Уникальный идентификатор связи"
+      },
+      {
+        "name": "material_request_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "ID заявки на материалы"
+      },
+      {
+        "name": "attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "ID вложенного файла"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": "Время создания связи"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_23552_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_23552_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_23552_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_attachments_attachment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_attachments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_attachments_request_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "material_request_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_attachments_unique",
+        "type": "UNIQUE",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "material_request_attachments_unique",
+        "type": "UNIQUE",
+        "column": "material_request_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Связь заявок на материалы с приложенными файлами\nCREATE TABLE IF NOT EXISTS public.material_request_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    material_request_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT material_request_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_attachments_pkey PRIMARY KEY (id),\n    CONSTRAINT material_request_attachments_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_attachments_unique UNIQUE (attachment_id),\n    CONSTRAINT material_request_attachments_unique UNIQUE (material_request_id)\n);\n\nCOMMENT ON TABLE public.material_request_attachments IS 'Связь заявок на материалы с приложенными файлами';\nCOMMENT ON COLUMN public.material_request_attachments.id IS 'Уникальный идентификатор связи';\nCOMMENT ON COLUMN public.material_request_attachments.material_request_id IS 'ID заявки на материалы';\nCOMMENT ON COLUMN public.material_request_attachments.attachment_id IS 'ID вложенного файла';\nCOMMENT ON COLUMN public.material_request_attachments.created_at IS 'Время создания связи';"
   },
   "public.material_request_items": {
     "schema": "public",
@@ -5396,6 +5568,16 @@
         "is_nullable": "YES",
         "default": "now()",
         "comment": null
+      },
+      {
+        "name": "nomenclature_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
       }
     ],
     "constraints": [
@@ -5440,6 +5622,14 @@
         "foreign_column": null
       },
       {
+        "name": "fk_material_request_items_nomenclature",
+        "type": "FOREIGN KEY",
+        "column": "nomenclature_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
         "name": "material_request_items_material_request_id_fkey",
         "type": "FOREIGN KEY",
         "column": "material_request_id",
@@ -5464,7 +5654,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Позиции в заявках на материалы\nCREATE TABLE IF NOT EXISTS public.material_request_items (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    material_request_id uuid NOT NULL,\n    material_name character varying(500) NOT NULL,\n    unit character varying(50) NOT NULL,\n    quantity numeric(15,3) NOT NULL,\n    sort_order integer(32) DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT material_request_items_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_items_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.material_request_items IS 'Позиции в заявках на материалы';\nCOMMENT ON COLUMN public.material_request_items.id IS 'Уникальный идентификатор позиции';\nCOMMENT ON COLUMN public.material_request_items.material_request_id IS 'Ссылка на заявку';\nCOMMENT ON COLUMN public.material_request_items.material_name IS 'Наименование материала';\nCOMMENT ON COLUMN public.material_request_items.unit IS 'Единица измерения (шт, кг, м, м2, м3, л и т.д.)';\nCOMMENT ON COLUMN public.material_request_items.quantity IS 'Количество';\nCOMMENT ON COLUMN public.material_request_items.sort_order IS 'Порядок сортировки позиций';"
+    "sql": "-- Позиции в заявках на материалы\nCREATE TABLE IF NOT EXISTS public.material_request_items (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    material_request_id uuid NOT NULL,\n    material_name character varying(500) NOT NULL,\n    unit character varying(50) NOT NULL,\n    quantity numeric(15,3) NOT NULL,\n    sort_order integer(32) DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    nomenclature_id integer(32),\n    CONSTRAINT fk_material_request_items_nomenclature FOREIGN KEY (nomenclature_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_items_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_items_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.material_request_items IS 'Позиции в заявках на материалы';\nCOMMENT ON COLUMN public.material_request_items.id IS 'Уникальный идентификатор позиции';\nCOMMENT ON COLUMN public.material_request_items.material_request_id IS 'Ссылка на заявку';\nCOMMENT ON COLUMN public.material_request_items.material_name IS 'Наименование материала';\nCOMMENT ON COLUMN public.material_request_items.unit IS 'Единица измерения (шт, кг, м, м2, м3, л и т.д.)';\nCOMMENT ON COLUMN public.material_request_items.quantity IS 'Количество';\nCOMMENT ON COLUMN public.material_request_items.sort_order IS 'Порядок сортировки позиций';"
   },
   "public.material_requests": {
     "schema": "public",
@@ -5862,22 +6052,6 @@
         "foreign_column": null
       },
       {
-        "name": "payment_attachments_payment_id_attachment_id_key",
-        "type": "UNIQUE",
-        "column": "attachment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "payment_attachments_payment_id_attachment_id_key",
-        "type": "UNIQUE",
-        "column": "payment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "payment_attachments_payment_id_fkey",
         "type": "FOREIGN KEY",
         "column": "payment_id",
@@ -5894,7 +6068,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Associates payments with stored attachments.\nCREATE TABLE IF NOT EXISTS public.payment_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_attachments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.payment_attachments IS 'Associates payments with stored attachments.';\nCOMMENT ON COLUMN public.payment_attachments.id IS 'Primary key of the payment-attachment relation.';\nCOMMENT ON COLUMN public.payment_attachments.payment_id IS 'Payment (public.payments.id) that the file is attached to.';\nCOMMENT ON COLUMN public.payment_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the payment.';\nCOMMENT ON COLUMN public.payment_attachments.created_at IS 'Timestamp when the attachment was linked to the payment.';"
+    "sql": "-- Associates payments with stored attachments.\nCREATE TABLE IF NOT EXISTS public.payment_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.payment_attachments IS 'Associates payments with stored attachments.';\nCOMMENT ON COLUMN public.payment_attachments.id IS 'Primary key of the payment-attachment relation.';\nCOMMENT ON COLUMN public.payment_attachments.payment_id IS 'Payment (public.payments.id) that the file is attached to.';\nCOMMENT ON COLUMN public.payment_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the payment.';\nCOMMENT ON COLUMN public.payment_attachments.created_at IS 'Timestamp when the attachment was linked to the payment.';"
   },
   "public.payment_statuses": {
     "schema": "public",

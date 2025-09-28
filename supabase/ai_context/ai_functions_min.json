@@ -1,8 +1,18 @@
 [
   {
+    "function": "public.calculate_material_class_level()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
     "function": "public.delete_project(project_id_param integer)",
     "returns": "boolean",
     "summary": "Removes a project together with all user assignments."
+  },
+  {
+    "function": "public.get_material_class_path(class_id bigint)",
+    "returns": "text",
+    "summary": ""
   },
   {
     "function": "public.handle_new_user()",

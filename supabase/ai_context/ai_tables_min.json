@@ -751,11 +751,6 @@
         "pk": true
       },
       {
-        "name": "code",
-        "type": "text",
-        "nullable": false
-      },
-      {
         "name": "name",
         "type": "text",
         "nullable": false
@@ -772,6 +767,78 @@
       },
       {
         "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "parent_id",
+        "type": "bigint",
+        "nullable": true
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "nullable": true
+      }
+    ]
+  },
+  {
+    "table": "public.material_nomenclature",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "name",
+        "type": "varchar(500)",
+        "nullable": false
+      },
+      {
+        "name": "unit",
+        "type": "varchar(50)",
+        "nullable": false
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ]
+  },
+  {
+    "table": "public.material_request_attachments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
         "type": "timestamptz",
         "nullable": true
       }
@@ -814,6 +881,11 @@
       {
         "name": "created_at",
         "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "nomenclature_id",
+        "type": "integer",
         "nullable": true
       }
     ]

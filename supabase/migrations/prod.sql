@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-27T15:04:33.238561
+-- Generated: 2025-09-28T20:04:55.066062
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -435,8 +435,6 @@ CREATE TABLE IF NOT EXISTS public.contract_attachments (
     attachment_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT contract_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
-    CONSTRAINT contract_attachments_contract_id_attachment_id_key UNIQUE (attachment_id),
-    CONSTRAINT contract_attachments_contract_id_attachment_id_key UNIQUE (contract_id),
     CONSTRAINT contract_attachments_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),
     CONSTRAINT contract_attachments_pkey PRIMARY KEY (id)
 );
@@ -450,8 +448,6 @@ CREATE TABLE IF NOT EXISTS public.contract_invoices (
     invoice_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT contract_invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),
-    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (contract_id),
-    CONSTRAINT contract_invoices_contract_id_invoice_id_key UNIQUE (invoice_id),
     CONSTRAINT contract_invoices_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
     CONSTRAINT contract_invoices_pkey PRIMARY KEY (id)
 );
@@ -590,8 +586,6 @@ CREATE TABLE IF NOT EXISTS public.invoice_attachments (
     attachment_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT invoice_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
-    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (attachment_id),
-    CONSTRAINT invoice_attachments_invoice_id_attachment_id_key UNIQUE (invoice_id),
     CONSTRAINT invoice_attachments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
     CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)
 );
@@ -610,8 +604,6 @@ CREATE TABLE IF NOT EXISTS public.invoice_payments (
     allocated_amount numeric(15,2) NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT invoice_payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
-    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (invoice_id),
-    CONSTRAINT invoice_payments_invoice_id_payment_id_key UNIQUE (payment_id),
     CONSTRAINT invoice_payments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),
     CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)
 );
@@ -735,15 +727,47 @@ COMMENT ON COLUMN public.invoices.responsible_id IS 'Ответственный 
 
 CREATE TABLE IF NOT EXISTS public.material_classes (
     id bigint(64) NOT NULL,
-    code text NOT NULL,
     name text NOT NULL,
     is_active boolean DEFAULT true,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT material_classes_code_key UNIQUE (code),
+    parent_id bigint(64),
+    level integer(32) DEFAULT 0,
+    CONSTRAINT fk_material_classes_parent FOREIGN KEY (parent_id) REFERENCES None.None(None),
     CONSTRAINT material_classes_name_key UNIQUE (name),
     CONSTRAINT material_classes_pkey PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS public.material_nomenclature (
+    id integer(32) NOT NULL DEFAULT nextval('material_nomenclature_id_seq'::regclass),
+    name character varying(500) NOT NULL,
+    unit character varying(50) NOT NULL,
+    is_active boolean DEFAULT true,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    material_class_id integer(32),
+    CONSTRAINT fk_material_nomenclature_class FOREIGN KEY (material_class_id) REFERENCES None.None(None),
+    CONSTRAINT material_nomenclature_pkey PRIMARY KEY (id)
+);
+
+-- Связь заявок на материалы с приложенными файлами
+CREATE TABLE IF NOT EXISTS public.material_request_attachments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    material_request_id uuid NOT NULL,
+    attachment_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT material_request_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
+    CONSTRAINT material_request_attachments_pkey PRIMARY KEY (id),
+    CONSTRAINT material_request_attachments_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),
+    CONSTRAINT material_request_attachments_unique UNIQUE (attachment_id),
+    CONSTRAINT material_request_attachments_unique UNIQUE (material_request_id)
+);
+
+COMMENT ON TABLE public.material_request_attachments IS 'Связь заявок на материалы с приложенными файлами';
+COMMENT ON COLUMN public.material_request_attachments.id IS 'Уникальный идентификатор связи';
+COMMENT ON COLUMN public.material_request_attachments.material_request_id IS 'ID заявки на материалы';
+COMMENT ON COLUMN public.material_request_attachments.attachment_id IS 'ID вложенного файла';
+COMMENT ON COLUMN public.material_request_attachments.created_at IS 'Время создания связи';
 
 -- Позиции в заявках на материалы
 CREATE TABLE IF NOT EXISTS public.material_request_items (
@@ -754,6 +778,8 @@ CREATE TABLE IF NOT EXISTS public.material_request_items (
     quantity numeric(15,3) NOT NULL,
     sort_order integer(32) DEFAULT 0,
     created_at timestamp with time zone DEFAULT now(),
+    nomenclature_id integer(32),
+    CONSTRAINT fk_material_request_items_nomenclature FOREIGN KEY (nomenclature_id) REFERENCES None.None(None),
     CONSTRAINT material_request_items_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),
     CONSTRAINT material_request_items_pkey PRIMARY KEY (id)
 );
@@ -824,8 +850,6 @@ CREATE TABLE IF NOT EXISTS public.payment_attachments (
     attachment_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT payment_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
-    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (attachment_id),
-    CONSTRAINT payment_attachments_payment_id_attachment_id_key UNIQUE (payment_id),
     CONSTRAINT payment_attachments_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),
     CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)
 );
@@ -1287,6 +1311,19 @@ CREATE OR REPLACE VIEW extensions.pg_stat_statements_info AS
  SELECT pg_stat_statements_info.dealloc,
     pg_stat_statements_info.stats_reset
    FROM pg_stat_statements_info() pg_stat_statements_info(dealloc, stats_reset);
+
+CREATE OR REPLACE VIEW public.material_classes_hierarchy AS
+ SELECT c.id,
+    c.name,
+    c.parent_id,
+    c.level,
+    c.is_active,
+    p.name AS parent_name,
+    c.created_at,
+    c.updated_at
+   FROM (material_classes c
+     LEFT JOIN material_classes p ON ((c.parent_id = p.id)))
+  ORDER BY COALESCE(c.parent_id, c.id), c.id;
 
 CREATE OR REPLACE VIEW vault.decrypted_secrets AS
  SELECT s.id,
@@ -2475,6 +2512,24 @@ $function$
 
 ;
 
+CREATE OR REPLACE FUNCTION public.calculate_material_class_level()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    IF NEW.parent_id IS NULL THEN
+        NEW.level = 0;
+    ELSE
+        SELECT level + 1 INTO NEW.level
+        FROM material_classes
+        WHERE id = NEW.parent_id;
+    END IF;
+    RETURN NEW;
+END;
+$function$
+
+;
+
 CREATE OR REPLACE FUNCTION public.delete_project(project_id_param integer)
  RETURNS boolean
  LANGUAGE plpgsql
@@ -2489,6 +2544,36 @@ BEGIN
 
   -- Возвращаем true если удаление прошло успешно
   RETURN FOUND;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.get_material_class_path(class_id bigint)
+ RETURNS text
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    path_text TEXT;
+BEGIN
+    WITH RECURSIVE class_path AS (
+        SELECT id, name, parent_id, name::TEXT as path
+        FROM material_classes
+        WHERE id = class_id
+
+        UNION ALL
+
+        SELECT c.id, c.name, c.parent_id,
+               p.name || ' → ' || cp.path
+        FROM material_classes c
+        INNER JOIN class_path cp ON c.id = cp.parent_id
+        INNER JOIN material_classes p ON p.id = c.id
+    )
+    SELECT path INTO path_text
+    FROM class_path
+    WHERE parent_id IS NULL;
+
+    RETURN COALESCE(path_text, (SELECT name FROM material_classes WHERE id = class_id));
 END;
 $function$
 
@@ -2518,13 +2603,15 @@ CREATE OR REPLACE FUNCTION public.update_material_request_items_count()
 AS $function$
 BEGIN
     IF TG_OP = 'INSERT' THEN
+        -- При добавлении элемента увеличиваем счетчик
         UPDATE material_requests
-        SET items_count = COALESCE(items_count, 0) + 1
-        WHERE id = NEW.request_id;
+        SET total_items = COALESCE(total_items, 0) + 1
+        WHERE id = NEW.material_request_id;
     ELSIF TG_OP = 'DELETE' THEN
+        -- При удалении элемента уменьшаем счетчик
         UPDATE material_requests
-        SET items_count = GREATEST(COALESCE(items_count, 0) - 1, 0)
-        WHERE id = OLD.request_id;
+        SET total_items = GREATEST(COALESCE(total_items, 0) - 1, 0)
+        WHERE id = OLD.material_request_id;
     END IF;
     RETURN NULL;
 END;
@@ -4010,7 +4097,13 @@ CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_t
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER trigger_calculate_material_class_level BEFORE INSERT OR UPDATE OF parent_id ON public.material_classes FOR EACH ROW EXECUTE FUNCTION calculate_material_class_level()
+;
+
 CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER update_material_nomenclature_updated_at BEFORE UPDATE ON public.material_nomenclature FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_material_request_items_count_trigger AFTER INSERT OR DELETE ON public.material_request_items FOR EACH ROW EXECUTE FUNCTION update_material_request_items_count()
@@ -4236,16 +4329,10 @@ CREATE INDEX idx_approval_steps_approval ON public.approval_steps USING btree (p
 CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)
 ;
 
-CREATE UNIQUE INDEX contract_attachments_contract_id_attachment_id_key ON public.contract_attachments USING btree (contract_id, attachment_id)
-;
-
 CREATE INDEX idx_contract_attachments_attachment_id ON public.contract_attachments USING btree (attachment_id)
 ;
 
 CREATE INDEX idx_contract_attachments_contract_id ON public.contract_attachments USING btree (contract_id)
-;
-
-CREATE UNIQUE INDEX contract_invoices_contract_id_invoice_id_key ON public.contract_invoices USING btree (contract_id, invoice_id)
 ;
 
 CREATE INDEX idx_contract_invoices_contract_id ON public.contract_invoices USING btree (contract_id)
@@ -4314,16 +4401,10 @@ CREATE INDEX idx_invoice_attachments_attachment_id ON public.invoice_attachments
 CREATE INDEX idx_invoice_attachments_invoice_id ON public.invoice_attachments USING btree (invoice_id)
 ;
 
-CREATE UNIQUE INDEX invoice_attachments_invoice_id_attachment_id_key ON public.invoice_attachments USING btree (invoice_id, attachment_id)
-;
-
 CREATE INDEX idx_invoice_payments_invoice_id ON public.invoice_payments USING btree (invoice_id)
 ;
 
 CREATE INDEX idx_invoice_payments_payment_id ON public.invoice_payments USING btree (payment_id)
-;
-
-CREATE UNIQUE INDEX invoice_payments_invoice_id_payment_id_key ON public.invoice_payments USING btree (invoice_id, payment_id)
 ;
 
 CREATE INDEX idx_invoice_statuses_code ON public.invoice_statuses USING btree (code)
@@ -4383,10 +4464,37 @@ CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)
 CREATE INDEX idx_material_classes_is_active ON public.material_classes USING btree (is_active)
 ;
 
-CREATE UNIQUE INDEX material_classes_code_key ON public.material_classes USING btree (code)
+CREATE INDEX idx_material_classes_level ON public.material_classes USING btree (level)
+;
+
+CREATE INDEX idx_material_classes_parent ON public.material_classes USING btree (parent_id)
+;
+
+CREATE INDEX idx_material_classes_parent_active ON public.material_classes USING btree (parent_id, is_active)
 ;
 
 CREATE UNIQUE INDEX material_classes_name_key ON public.material_classes USING btree (name)
+;
+
+CREATE INDEX idx_material_nomenclature_active ON public.material_nomenclature USING btree (is_active)
+;
+
+CREATE INDEX idx_material_nomenclature_class ON public.material_nomenclature USING btree (material_class_id)
+;
+
+CREATE INDEX idx_material_nomenclature_name ON public.material_nomenclature USING btree (name)
+;
+
+CREATE INDEX idx_material_request_attachments_attachment_id ON public.material_request_attachments USING btree (attachment_id)
+;
+
+CREATE INDEX idx_material_request_attachments_request_id ON public.material_request_attachments USING btree (material_request_id)
+;
+
+CREATE UNIQUE INDEX material_request_attachments_unique ON public.material_request_attachments USING btree (material_request_id, attachment_id)
+;
+
+CREATE INDEX idx_material_request_items_nomenclature ON public.material_request_items USING btree (nomenclature_id)
 ;
 
 CREATE INDEX idx_material_request_items_request ON public.material_request_items USING btree (material_request_id)
@@ -4417,9 +4525,6 @@ CREATE INDEX idx_payment_attachments_attachment_id ON public.payment_attachments
 ;
 
 CREATE INDEX idx_payment_attachments_payment_id ON public.payment_attachments USING btree (payment_id)
-;
-
-CREATE UNIQUE INDEX payment_attachments_payment_id_attachment_id_key ON public.payment_attachments USING btree (payment_id, attachment_id)
 ;
 
 CREATE UNIQUE INDEX payment_statuses_code_key ON public.payment_statuses USING btree (code)

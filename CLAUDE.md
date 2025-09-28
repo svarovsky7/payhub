@@ -80,6 +80,8 @@ Core tables:
 - `payment_approvals` + `approval_steps` - Approval instances and history
 - `attachments` + entity-specific link tables - File metadata
 - `material_requests` + `material_request_items` - Material requisitions with auto-counted items
+- `material_classes` - Material classification hierarchy
+- `material_nomenclature` - Material catalog and specifications
 
 Design principles:
 - No RLS - security in application layer

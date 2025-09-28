@@ -1,12 +1,13 @@
 import { Form, Modal, Input, DatePicker, Select, Row, Col, Space, Button, Table, InputNumber, message } from 'antd'
 import { useState, useEffect } from 'react'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
-import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
-import type { MaterialRequest, MaterialRequestItem } from '../../services/materialRequestOperations'
+import type { MaterialRequest } from '../../services/materialRequestOperations'
 import type { Project } from '../../lib/supabase'
 import type { Employee } from '../../services/employeeOperations'
+import { loadMaterialNomenclature } from '../../services/materialNomenclatureOperations'
+import type { MaterialNomenclature } from '../../services/materialNomenclatureOperations'
 
 dayjs.locale('ru')
 
@@ -25,6 +26,7 @@ interface EditableItem {
   material_name: string
   unit: string
   quantity: number
+  nomenclature_id?: number | null
 }
 
 export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> = ({
@@ -39,6 +41,18 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
   const [form] = Form.useForm()
   const [items, setItems] = useState<EditableItem[]>([])
   const [generatingNumber, setGeneratingNumber] = useState(false)
+  const [allNomenclature, setAllNomenclature] = useState<MaterialNomenclature[]>([])
+
+  // Load nomenclature when modal opens
+  useEffect(() => {
+    if (isVisible) {
+      loadMaterialNomenclature(true).then(data => {
+        setAllNomenclature(data)
+      }).catch(error => {
+        console.error('[MaterialRequestFormModal] Error loading nomenclature:', error)
+      })
+    }
+  }, [isVisible])
 
   // Initialize form when modal opens
   useEffect(() => {
@@ -57,7 +71,8 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
           key: item.id || `item-${index}`,
           material_name: item.material_name,
           unit: item.unit,
-          quantity: item.quantity
+          quantity: item.quantity,
+          nomenclature_id: item.nomenclature_id
         }))
         setItems(editableItems)
       } else {
@@ -72,7 +87,8 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
           key: `item-${Date.now()}`,
           material_name: '',
           unit: 'шт',
-          quantity: 1
+          quantity: 1,
+          nomenclature_id: null
         }])
 
         // Generate request number
@@ -98,7 +114,8 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
       key: `item-${Date.now()}`,
       material_name: '',
       unit: 'шт',
-      quantity: 1
+      quantity: 1,
+      nomenclature_id: null
     }
     setItems([...items, newItem])
   }
@@ -129,7 +146,8 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
         items: validItems.map(item => ({
           material_name: item.material_name,
           unit: item.unit,
-          quantity: item.quantity
+          quantity: item.quantity,
+          nomenclature_id: item.nomenclature_id
         }))
       }
 
@@ -139,10 +157,46 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
 
   const columns = [
     {
+      title: 'Номенклатура',
+      key: 'nomenclature',
+      width: '25%',
+      render: (_: any, record: EditableItem) => (
+        <Select
+          value={record.nomenclature_id}
+          onChange={value => {
+            if (value) {
+              const selectedNom = allNomenclature.find(n => n.id === value)
+              if (selectedNom) {
+                setItems(items.map(item =>
+                  item.key === record.key ? {
+                    ...item,
+                    nomenclature_id: selectedNom.id,
+                    material_name: selectedNom.name,
+                    unit: selectedNom.unit
+                  } : item
+                ))
+              }
+            } else {
+              handleItemChange(record.key, 'nomenclature_id', null)
+            }
+          }}
+          showSearch
+          allowClear
+          placeholder="Выберите номенклатуру"
+          optionFilterProp="label"
+          style={{ width: '100%' }}
+          options={allNomenclature.map(nom => ({
+            value: nom.id,
+            label: `${nom.name} (${nom.unit})`
+          }))}
+        />
+      )
+    },
+    {
       title: 'Наименование материала',
       dataIndex: 'material_name',
       key: 'material_name',
-      width: '40%',
+      width: '30%',
       render: (_: any, record: EditableItem) => (
         <Input
           value={record.material_name}
@@ -155,7 +209,7 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
       title: 'Ед. изм.',
       dataIndex: 'unit',
       key: 'unit',
-      width: '15%',
+      width: '12%',
       render: (_: any, record: EditableItem) => (
         <Select
           value={record.unit}
@@ -178,7 +232,7 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
       title: 'Количество',
       dataIndex: 'quantity',
       key: 'quantity',
-      width: '15%',
+      width: '12%',
       render: (_: any, record: EditableItem) => (
         <InputNumber
           value={record.quantity}

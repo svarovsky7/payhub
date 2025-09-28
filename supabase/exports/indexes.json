@@ -431,14 +431,6 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)"
   },
-  "public.contract_attachments.contract_attachments_contract_id_attachment_id_key": {
-    "schema": "public",
-    "name": "contract_attachments_contract_id_attachment_id_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX contract_attachments_contract_id_attachment_id_key ON public.contract_attachments USING btree (contract_id, attachment_id)"
-  },
   "public.contract_attachments.idx_contract_attachments_attachment_id": {
     "schema": "public",
     "name": "idx_contract_attachments_attachment_id",
@@ -454,14 +446,6 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_contract_attachments_contract_id ON public.contract_attachments USING btree (contract_id)"
-  },
-  "public.contract_invoices.contract_invoices_contract_id_invoice_id_key": {
-    "schema": "public",
-    "name": "contract_invoices_contract_id_invoice_id_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX contract_invoices_contract_id_invoice_id_key ON public.contract_invoices USING btree (contract_id, invoice_id)"
   },
   "public.contract_invoices.idx_contract_invoices_contract_id": {
     "schema": "public",
@@ -639,14 +623,6 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoice_attachments_invoice_id ON public.invoice_attachments USING btree (invoice_id)"
   },
-  "public.invoice_attachments.invoice_attachments_invoice_id_attachment_id_key": {
-    "schema": "public",
-    "name": "invoice_attachments_invoice_id_attachment_id_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX invoice_attachments_invoice_id_attachment_id_key ON public.invoice_attachments USING btree (invoice_id, attachment_id)"
-  },
   "public.invoice_payments.idx_invoice_payments_invoice_id": {
     "schema": "public",
     "name": "idx_invoice_payments_invoice_id",
@@ -662,14 +638,6 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoice_payments_payment_id ON public.invoice_payments USING btree (payment_id)"
-  },
-  "public.invoice_payments.invoice_payments_invoice_id_payment_id_key": {
-    "schema": "public",
-    "name": "invoice_payments_invoice_id_payment_id_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX invoice_payments_invoice_id_payment_id_key ON public.invoice_payments USING btree (invoice_id, payment_id)"
   },
   "public.invoice_statuses.idx_invoice_statuses_code": {
     "schema": "public",
@@ -823,13 +791,29 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_material_classes_is_active ON public.material_classes USING btree (is_active)"
   },
-  "public.material_classes.material_classes_code_key": {
+  "public.material_classes.idx_material_classes_level": {
     "schema": "public",
-    "name": "material_classes_code_key",
+    "name": "idx_material_classes_level",
     "table_name": null,
     "is_unique": false,
     "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX material_classes_code_key ON public.material_classes USING btree (code)"
+    "sql": "CREATE INDEX idx_material_classes_level ON public.material_classes USING btree (level)"
+  },
+  "public.material_classes.idx_material_classes_parent": {
+    "schema": "public",
+    "name": "idx_material_classes_parent",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_classes_parent ON public.material_classes USING btree (parent_id)"
+  },
+  "public.material_classes.idx_material_classes_parent_active": {
+    "schema": "public",
+    "name": "idx_material_classes_parent_active",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_classes_parent_active ON public.material_classes USING btree (parent_id, is_active)"
   },
   "public.material_classes.material_classes_name_key": {
     "schema": "public",
@@ -838,6 +822,62 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX material_classes_name_key ON public.material_classes USING btree (name)"
+  },
+  "public.material_nomenclature.idx_material_nomenclature_active": {
+    "schema": "public",
+    "name": "idx_material_nomenclature_active",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_nomenclature_active ON public.material_nomenclature USING btree (is_active)"
+  },
+  "public.material_nomenclature.idx_material_nomenclature_class": {
+    "schema": "public",
+    "name": "idx_material_nomenclature_class",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_nomenclature_class ON public.material_nomenclature USING btree (material_class_id)"
+  },
+  "public.material_nomenclature.idx_material_nomenclature_name": {
+    "schema": "public",
+    "name": "idx_material_nomenclature_name",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_nomenclature_name ON public.material_nomenclature USING btree (name)"
+  },
+  "public.material_request_attachments.idx_material_request_attachments_attachment_id": {
+    "schema": "public",
+    "name": "idx_material_request_attachments_attachment_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_request_attachments_attachment_id ON public.material_request_attachments USING btree (attachment_id)"
+  },
+  "public.material_request_attachments.idx_material_request_attachments_request_id": {
+    "schema": "public",
+    "name": "idx_material_request_attachments_request_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_request_attachments_request_id ON public.material_request_attachments USING btree (material_request_id)"
+  },
+  "public.material_request_attachments.material_request_attachments_unique": {
+    "schema": "public",
+    "name": "material_request_attachments_unique",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX material_request_attachments_unique ON public.material_request_attachments USING btree (material_request_id, attachment_id)"
+  },
+  "public.material_request_items.idx_material_request_items_nomenclature": {
+    "schema": "public",
+    "name": "idx_material_request_items_nomenclature",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_material_request_items_nomenclature ON public.material_request_items USING btree (nomenclature_id)"
   },
   "public.material_request_items.idx_material_request_items_request": {
     "schema": "public",
@@ -918,14 +958,6 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_payment_attachments_payment_id ON public.payment_attachments USING btree (payment_id)"
-  },
-  "public.payment_attachments.payment_attachments_payment_id_attachment_id_key": {
-    "schema": "public",
-    "name": "payment_attachments_payment_id_attachment_id_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX payment_attachments_payment_id_attachment_id_key ON public.payment_attachments USING btree (payment_id, attachment_id)"
   },
   "public.payment_statuses.payment_statuses_code_key": {
     "schema": "public",
