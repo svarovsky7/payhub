@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Table, Button, Modal, Form, Input, Switch, Space, message, Popconfirm, Select } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import type { FilterValue } from 'antd/es/table/interface'
+import { debounce } from 'lodash'
+import { useLocation } from 'react-router-dom'
 import {
-  loadMaterialNomenclature,
+  loadMaterialNomenclaturePaginated,
   createMaterialNomenclature,
   updateMaterialNomenclature,
   deleteMaterialNomenclature
@@ -18,6 +21,7 @@ import type { MaterialClass } from '../../services/materialClassOperations'
 import { ImportNomenclatureModal } from './ImportNomenclatureModal'
 
 export default function MaterialNomenclatureTab() {
+  const location = useLocation()
   const [nomenclatures, setNomenclatures] = useState<MaterialNomenclature[]>([])
   const [materialClasses, setMaterialClasses] = useState<MaterialClass[]>([])
   const [selectedParentClass, setSelectedParentClass] = useState<number | null>(null)
@@ -26,29 +30,63 @@ export default function MaterialNomenclatureTab() {
   const [modalVisible, setModalVisible] = useState(false)
   const [editingItem, setEditingItem] = useState<MaterialNomenclature | null>(null)
   const [searchText, setSearchText] = useState('')
+  const [selectedClassFilter, setSelectedClassFilter] = useState<number | null>(null)
   const [importModalVisible, setImportModalVisible] = useState(false)
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 50,
+    total: 0,
+    showSizeChanger: true,
+    showTotal: (total: number) => `Всего: ${total}`,
+    pageSizeOptions: ['30', '50', '100', '200']
+  })
   const [form] = Form.useForm()
 
-  useEffect(() => {
-    loadData()
-    loadClasses()
-  }, [])
-
-  const loadData = async () => {
-    console.log('[MaterialNomenclatureTab.loadData] Loading nomenclature data')
+  // Загрузка данных с пагинацией
+  const loadData = useCallback(async (
+    page: number = pagination.current,
+    pageSize: number = pagination.pageSize,
+    search: string = searchText,
+    classId: number | null = selectedClassFilter
+  ) => {
+    console.log('[MaterialNomenclatureTab.loadData] Loading nomenclature data:', {
+      page, pageSize, search, classId
+    })
     setLoading(true)
     try {
-      const data = await loadMaterialNomenclature()
-      setNomenclatures(data)
+      const result = await loadMaterialNomenclaturePaginated({
+        page,
+        pageSize,
+        searchText: search,
+        classId,
+        activeOnly: false
+      })
+
+      setNomenclatures(result.data)
+      setPagination(prev => ({
+        ...prev,
+        current: result.page,
+        pageSize: result.pageSize,
+        total: result.total
+      }))
     } catch (error) {
       console.error('[MaterialNomenclatureTab.loadData] Error:', error)
       message.error(`Ошибка загрузки номенклатуры: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
     } finally {
       setLoading(false)
     }
-  }
+  }, [pagination.current, pagination.pageSize, searchText, selectedClassFilter])
 
-  const loadClasses = async () => {
+  // Дебаунсированный поиск
+  const debouncedSearch = useCallback(
+    debounce((search: string) => {
+      setPagination(prev => ({ ...prev, current: 1 })) // Сброс на первую страницу при поиске
+      loadData(1, pagination.pageSize, search, selectedClassFilter)
+    }, 500),
+    [pagination.pageSize, selectedClassFilter]
+  )
+
+  const loadClasses = useCallback(async () => {
     console.log('[MaterialNomenclatureTab.loadClasses] Loading material classes')
     try {
       const data = await loadMaterialClasses()
@@ -56,14 +94,27 @@ export default function MaterialNomenclatureTab() {
     } catch (error) {
       console.error('[MaterialNomenclatureTab.loadClasses] Error:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+    loadClasses()
+  }, [])
+
+  // Перезагрузка классов при переключении на эту вкладку
+  useEffect(() => {
+    if (location.pathname === '/admin/material-nomenclature') {
+      console.log('[MaterialNomenclatureTab] Tab activated, reloading classes')
+      loadClasses()
+    }
+  }, [location.pathname, loadClasses])
 
   const handleParentClassChange = async (parentId: number | null) => {
     setSelectedParentClass(parentId)
     if (parentId) {
       const subs = await loadSubclasses(parentId)
       setSubclasses(subs)
-      form.setFieldValue('material_class_id', null) // Reset subclass selection
+      form.setFieldValue('material_class_id', null)
     } else {
       setSubclasses([])
     }
@@ -83,20 +134,16 @@ export default function MaterialNomenclatureTab() {
     console.log('[MaterialNomenclatureTab.handleEdit] Editing:', record)
     setEditingItem(record)
 
-    // Find the material class and its parent if it exists
     if (record.material_class_id) {
       const materialClass = materialClasses.find(c => c.id === record.material_class_id)
       if (materialClass?.parent_id) {
-        // It's a subclass
         setSelectedParentClass(materialClass.parent_id)
         const subs = await loadSubclasses(materialClass.parent_id)
         setSubclasses(subs)
       } else if (materialClass && !materialClass.parent_id) {
-        // It's a root class - treat it as parent for selection
         setSelectedParentClass(materialClass.id)
         const subs = await loadSubclasses(materialClass.id)
         setSubclasses(subs)
-        // Don't set material_class_id in this case as it's the parent
         form.setFieldsValue({
           ...record,
           material_class_id: null
@@ -171,21 +218,36 @@ export default function MaterialNomenclatureTab() {
     setSubclasses([])
   }
 
-  const filteredData = nomenclatures.filter(item => {
-    if (!searchText) return true
-    const search = searchText.toLowerCase()
-    return (
-      item.name.toLowerCase().includes(search) ||
-      item.unit.toLowerCase().includes(search)
+  const handleTableChange = (
+    paginationConfig: TablePaginationConfig,
+    filters: Record<string, FilterValue | null>
+  ) => {
+    const classFilter = filters.material_class_id as number | null
+    setSelectedClassFilter(classFilter)
+    setPagination(prev => ({
+      ...prev,
+      current: paginationConfig.current || 1,
+      pageSize: paginationConfig.pageSize || 50
+    }))
+    loadData(
+      paginationConfig.current || 1,
+      paginationConfig.pageSize || 50,
+      searchText,
+      classFilter
     )
-  })
+  }
+
+  const handleSearch = (value: string) => {
+    setSearchText(value)
+    debouncedSearch(value)
+  }
 
   const columns: ColumnsType<MaterialNomenclature> = [
     {
       title: 'Наименование',
       dataIndex: 'name',
       key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: false, // Отключаем сортировку на клиенте, сортировка на сервере
     },
     {
       title: 'Класс материалов',
@@ -197,7 +259,7 @@ export default function MaterialNomenclatureTab() {
         return materialClass ? materialClass.name : '-'
       },
       filters: materialClasses.map(cls => ({ text: cls.name, value: cls.id })),
-      onFilter: (value, record) => record.material_class_id === value,
+      filteredValue: selectedClassFilter ? [selectedClassFilter] : null,
     },
     {
       title: 'Ед. изм.',
@@ -263,7 +325,7 @@ export default function MaterialNomenclatureTab() {
           placeholder="Поиск..."
           prefix={<SearchOutlined />}
           value={searchText}
-          onChange={e => setSearchText(e.target.value)}
+          onChange={e => handleSearch(e.target.value)}
           style={{ width: 300 }}
           allowClear
         />
@@ -271,13 +333,11 @@ export default function MaterialNomenclatureTab() {
 
       <Table
         columns={columns}
-        dataSource={filteredData}
+        dataSource={nomenclatures}
         rowKey="id"
         loading={loading}
-        pagination={{
-          showSizeChanger: true,
-          showTotal: (total) => `Всего: ${total}`,
-        }}
+        pagination={pagination}
+        onChange={handleTableChange}
       />
 
       <Modal

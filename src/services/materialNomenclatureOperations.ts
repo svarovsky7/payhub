@@ -24,6 +24,99 @@ export interface UpdateMaterialNomenclatureData {
   is_active?: boolean
 }
 
+export interface PaginationParams {
+  page?: number
+  pageSize?: number
+  searchText?: string
+  classId?: number | null
+  activeOnly?: boolean
+}
+
+export interface PaginatedResult {
+  data: MaterialNomenclature[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+// Загрузка номенклатуры с пагинацией
+export async function loadMaterialNomenclaturePaginated({
+  page = 1,
+  pageSize = 50,
+  searchText = '',
+  classId = null,
+  activeOnly = false
+}: PaginationParams = {}): Promise<PaginatedResult> {
+  console.log('[materialNomenclatureOperations.loadMaterialNomenclaturePaginated] Loading:', {
+    page, pageSize, searchText, classId, activeOnly
+  })
+
+  try {
+    // Сначала получаем общее количество записей
+    let countQuery = supabase
+      .from('material_nomenclature')
+      .select('*', { count: 'exact', head: true })
+
+    if (activeOnly) {
+      countQuery = countQuery.eq('is_active', true)
+    }
+
+    if (classId !== null) {
+      countQuery = countQuery.eq('material_class_id', classId)
+    }
+
+    if (searchText) {
+      countQuery = countQuery.or(`name.ilike.%${searchText}%,unit.ilike.%${searchText}%`)
+    }
+
+    const { count, error: countError } = await countQuery
+
+    if (countError) throw countError
+
+    // Теперь загружаем данные с пагинацией
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    let query = supabase
+      .from('material_nomenclature')
+      .select('*')
+      .range(from, to)
+      .order('name', { ascending: true })
+
+    if (activeOnly) {
+      query = query.eq('is_active', true)
+    }
+
+    if (classId !== null) {
+      query = query.eq('material_class_id', classId)
+    }
+
+    if (searchText) {
+      query = query.or(`name.ilike.%${searchText}%,unit.ilike.%${searchText}%`)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    console.log('[materialNomenclatureOperations.loadMaterialNomenclaturePaginated] Loaded:', {
+      count: data?.length,
+      total: count
+    })
+
+    return {
+      data: data || [],
+      total: count || 0,
+      page,
+      pageSize
+    }
+  } catch (error: any) {
+    console.error('[materialNomenclatureOperations.loadMaterialNomenclaturePaginated] Error:', error)
+    throw error
+  }
+}
+
+// Загрузка всей номенклатуры (для обратной совместимости, но ограничена 1000 записей)
 export async function loadMaterialNomenclature(activeOnly: boolean = false) {
   console.log('[materialNomenclatureOperations.loadMaterialNomenclature] Loading nomenclature:', { activeOnly })
 
@@ -31,6 +124,7 @@ export async function loadMaterialNomenclature(activeOnly: boolean = false) {
     .from('material_nomenclature')
     .select('*')
     .order('name', { ascending: true })
+    .limit(1000) // Ограничиваем для безопасности
 
   if (activeOnly) {
     query = query.eq('is_active', true)

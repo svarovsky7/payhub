@@ -2019,6 +2019,11 @@
         "type": "timestamptz",
         "nullable": true,
         "default": "now()"
+      },
+      {
+        "name": "material_class_id",
+        "type": "integer",
+        "nullable": true
       }
     ],
     "constraints": {
@@ -2044,6 +2049,13 @@
         "name": "idx_material_nomenclature_active",
         "columns": [
           "is_active"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_material_nomenclature_class",
+        "columns": [
+          "material_class_id"
         ],
         "unique": false
       },

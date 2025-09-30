@@ -47,11 +47,13 @@ src/
 ```
 
 #### Service Layer Pattern
-Services are split when exceeding 600 lines:
+**Critical**: Services **must** be split when exceeding 600 lines:
 - Main service file (e.g., `invoiceOperations.ts`) re-exports from modules
-- Subdirectory modules handle specific concerns:
+- Create subdirectory with split modules by concern
+- Examples:
   - `services/invoice/`: `invoiceCrud.ts`, `invoiceStatus.ts`, `invoiceFiles.ts`, `invoiceReferences.ts`
   - `services/approval/`: `approvalRoutes.ts`, `approvalActions.ts`, `approvalProcess.ts`, `approvalQueries.ts`
+- Keep service files focused and maintainable
 
 #### Hook-Service Separation
 - **Hooks** (`src/hooks/`): React state management, UI interactions, optimistic updates
@@ -144,6 +146,25 @@ Automatic field maintenance:
 - Cascade deletion removes both storage and database records
 - Service: `fileAttachmentService.ts`, Hook: `useFileAttachment.ts`
 
+#### Bulk Data Import Pattern
+Multi-step import modals for JSON/CSV data:
+1. **Upload Step**: File selection and parsing
+2. **Preview Step**: Display parsed data in table with validation
+3. **Import Step**: Batch processing with progress bar
+4. **Result Step**: Success/error summary
+
+Example implementations:
+- `ImportContractorsModal` - CSV contractor import
+- `ImportNomenclatureModal` - JSON material nomenclature
+- `ImportProjectsModal` - Bulk project creation
+
+Common pattern:
+- Parse file client-side
+- Deduplicate records
+- Check for existing records before insert
+- Show progress during batch operations
+- Report detailed results (created/skipped/errors)
+
 #### Console Logging
 ```javascript
 console.log('[ComponentName.methodName] Action:', { data });
@@ -172,6 +193,15 @@ VITE_SUPABASE_URL=http://31.128.51.210:8001
 VITE_SUPABASE_ANON_KEY=[your_key]
 VITE_STORAGE_BUCKET=http://31.128.51.210:8001/storage/v1
 ```
+
+### Windows Development Notes
+
+This project is developed on Windows. Important considerations:
+- Use forward slashes in file paths when possible for cross-platform compatibility
+- Git line endings: Repository uses LF (`core.autocrlf=input` recommended)
+- File operations: Use Node.js path utilities for path manipulation
+- Bash scripts: May require Git Bash or WSL for execution
+- Database connection: Direct IP connection to remote Supabase (no localhost)
 
 ### Code Quality Checks
 

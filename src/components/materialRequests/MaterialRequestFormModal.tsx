@@ -157,6 +157,19 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
 
   const columns = [
     {
+      title: 'Наименование материала',
+      dataIndex: 'material_name',
+      key: 'material_name',
+      width: '30%',
+      render: (_: any, record: EditableItem) => (
+        <Input
+          value={record.material_name}
+          onChange={e => handleItemChange(record.key, 'material_name', e.target.value)}
+          placeholder="Введите наименование"
+        />
+      )
+    },
+    {
       title: 'Номенклатура',
       key: 'nomenclature',
       width: '25%',
@@ -171,7 +184,6 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
                   item.key === record.key ? {
                     ...item,
                     nomenclature_id: selectedNom.id,
-                    material_name: selectedNom.name,
                     unit: selectedNom.unit
                   } : item
                 ))
@@ -193,39 +205,16 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
       )
     },
     {
-      title: 'Наименование материала',
-      dataIndex: 'material_name',
-      key: 'material_name',
-      width: '30%',
-      render: (_: any, record: EditableItem) => (
-        <Input
-          value={record.material_name}
-          onChange={e => handleItemChange(record.key, 'material_name', e.target.value)}
-          placeholder="Введите наименование"
-        />
-      )
-    },
-    {
       title: 'Ед. изм.',
       dataIndex: 'unit',
       key: 'unit',
       width: '12%',
       render: (_: any, record: EditableItem) => (
-        <Select
+        <Input
           value={record.unit}
-          onChange={value => handleItemChange(record.key, 'unit', value)}
-          style={{ width: '100%' }}
-        >
-          <Select.Option value="шт">шт</Select.Option>
-          <Select.Option value="кг">кг</Select.Option>
-          <Select.Option value="т">т</Select.Option>
-          <Select.Option value="м">м</Select.Option>
-          <Select.Option value="м2">м²</Select.Option>
-          <Select.Option value="м3">м³</Select.Option>
-          <Select.Option value="л">л</Select.Option>
-          <Select.Option value="упак">упак</Select.Option>
-          <Select.Option value="компл">компл</Select.Option>
-        </Select>
+          disabled
+          style={{ width: '100%', backgroundColor: '#f5f5f5' }}
+        />
       )
     },
     {
@@ -243,7 +232,7 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
           style={{ width: '100%' }}
         />
       )
-},
+    },
     {
       title: '',
       key: 'actions',
@@ -333,10 +322,10 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
           <Col span={12}>
             <Form.Item
               name="employee_id"
-              label="Ответственный сотрудник"
+              label="Получатель материалов"
             >
               <Select
-                placeholder="Выберите сотрудника"
+                placeholder="Выберите получателя"
                 showSearch
                 optionFilterProp="label"
                 allowClear

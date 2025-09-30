@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Table, Button, Modal, Form, Input, Switch, Space, Popconfirm, Select } from 'antd'
+import { Table, Button, Modal, Form, Input, Switch, Space, Popconfirm, Select, Tooltip, Badge } from 'antd'
 import {
   PlusOutlined,
   EditOutlined,
@@ -7,7 +7,10 @@ import {
   FolderOutlined,
   FileOutlined,
   ExpandOutlined,
-  CompressOutlined
+  CompressOutlined,
+  FolderOpenOutlined,
+  MinusSquareOutlined,
+  PlusSquareOutlined
 } from '@ant-design/icons'
 import type { MaterialClass } from '../../services/materialClassOperations'
 import {
@@ -67,7 +70,7 @@ export const MaterialClassesTab = () => {
       if (cls.parent_id === null) {
         rootNodes.push(node)
       } else if (cls.parent_id !== null) {
-        const parent = classMap.get(cls.parent_id)
+        const parent = classMap.get(cls.parent_id!)
         if (parent) {
           if (!parent.children) parent.children = []
           parent.children.push(node)
@@ -157,22 +160,76 @@ export const MaterialClassesTab = () => {
     setModalVisible(true)
   }
 
+  // Handle expand/collapse for single row
+  const handleToggleExpand = (recordId: number) => {
+    if (expandedRowKeys.includes(recordId)) {
+      setExpandedRowKeys(expandedRowKeys.filter(key => key !== recordId))
+    } else {
+      setExpandedRowKeys([...expandedRowKeys, recordId])
+    }
+  }
+
   // Table columns
   const columns = [
+    {
+      title: '',
+      key: 'expand',
+      width: 40,
+      render: (_: unknown, record: MaterialClassTreeNode) => {
+        const hasChildren = record.children && record.children.length > 0
+        const isExpanded = expandedRowKeys.includes(record.id)
+
+        if (!hasChildren) return null
+
+        return (
+          <Tooltip title={isExpanded ? 'Свернуть' : 'Развернуть'}>
+            <Button
+              type="text"
+              size="small"
+              icon={isExpanded ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleToggleExpand(record.id)
+              }}
+              style={{ padding: 0, width: 24, height: 24 }}
+            />
+          </Tooltip>
+        )
+      },
+    },
     {
       title: 'Наименование',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: MaterialClassTreeNode) => (
-        <Space>
-          {record.children && record.children.length > 0 ? (
-            <FolderOutlined style={{ color: '#1890ff' }} />
-          ) : (
-            <FileOutlined style={{ color: '#8c8c8c' }} />
-          )}
-          <span>{name}</span>
-        </Space>
-      ),
+      render: (name: string, record: MaterialClassTreeNode) => {
+        const hasChildren = record.children && record.children.length > 0
+        const isExpanded = expandedRowKeys.includes(record.id)
+
+        return (
+          <Space>
+            {hasChildren ? (
+              isExpanded ? (
+                <FolderOpenOutlined style={{ color: '#1890ff' }} />
+              ) : (
+                <FolderOutlined style={{ color: '#1890ff' }} />
+              )
+            ) : (
+              <FileOutlined style={{ color: '#8c8c8c' }} />
+            )}
+            <span style={{ fontWeight: !record.parent_id ? 500 : 400 }}>{name}</span>
+            {hasChildren && (
+              <Badge
+                count={record.children!.length}
+                style={{
+                  backgroundColor: '#f0f0f0',
+                  color: '#595959',
+                  boxShadow: 'none'
+                }}
+              />
+            )}
+          </Space>
+        )
+      },
     },
     {
       title: 'Статус',
@@ -253,7 +310,7 @@ export const MaterialClassesTab = () => {
 
   return (
     <>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Space>
           <Button
             type="primary"
@@ -262,20 +319,33 @@ export const MaterialClassesTab = () => {
           >
             Добавить класс материалов
           </Button>
+          <span style={{ color: '#8c8c8c', marginLeft: 16 }}>
+            Всего классов: {materialClasses.length}
+            {' '}
+            (основных: {treeData.length}, подклассов: {materialClasses.length - treeData.length})
+          </span>
         </Space>
         <Space>
-          <Button
-            icon={<ExpandOutlined />}
-            onClick={handleExpandAll}
-          >
-            Развернуть все
-          </Button>
-          <Button
-            icon={<CompressOutlined />}
-            onClick={handleCollapseAll}
-          >
-            Свернуть все
-          </Button>
+          <Tooltip title="Развернуть все подклассы">
+            <Button
+              icon={<ExpandOutlined />}
+              onClick={handleExpandAll}
+              disabled={getAllExpandableKeys().length === 0}
+              type={expandedRowKeys.length === 0 ? "default" : "text"}
+            >
+              Развернуть все
+            </Button>
+          </Tooltip>
+          <Tooltip title="Свернуть все подклассы">
+            <Button
+              icon={<CompressOutlined />}
+              onClick={handleCollapseAll}
+              disabled={expandedRowKeys.length === 0}
+              type={expandedRowKeys.length > 0 ? "default" : "text"}
+            >
+              Свернуть все
+            </Button>
+          </Tooltip>
         </Space>
       </div>
 
@@ -327,18 +397,23 @@ export const MaterialClassesTab = () => {
           <Form.Item
             name="parent_id"
             label="Родительский класс"
+            help="Оставьте пустым для создания основного класса. Выберите класс для создания подкласса."
           >
             <Select
-              placeholder="Выберите родительский класс (оставьте пустым для основного класса)"
+              placeholder="Не выбрано (будет основной класс)"
               allowClear
               showSearch
               optionFilterProp="label"
             >
               {materialClasses
-                .filter(cls => cls.is_active && cls.id !== editingClass?.id)
+                .filter(cls =>
+                  cls.is_active &&
+                  cls.id !== editingClass?.id &&
+                  cls.parent_id === null // Только корневые классы (level 0) могут быть родителями
+                )
                 .map(cls => (
                   <Select.Option key={cls.id} value={cls.id} label={cls.name}>
-                    {cls.parent_id ? `↳ ${cls.name}` : cls.name}
+                    {cls.name}
                   </Select.Option>
                 ))}
             </Select>

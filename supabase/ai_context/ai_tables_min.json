@@ -815,6 +815,11 @@
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true
+      },
+      {
+        "name": "material_class_id",
+        "type": "integer",
+        "nullable": true
       }
     ]
   },

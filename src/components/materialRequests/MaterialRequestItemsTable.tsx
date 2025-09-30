@@ -24,18 +24,33 @@ export const MaterialRequestItemsTable: React.FC<MaterialRequestItemsTableProps>
       dataIndex: 'material_name',
       key: 'material_name',
       ellipsis: true,
-      render: (material_name: string, record: MaterialRequestItem) => (
-        <div>
-          <Text>{material_name}</Text>
-          {record.nomenclature && record.nomenclature.name !== material_name && (
-            <div>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                Номенклатура: {record.nomenclature.name}
-              </Text>
-            </div>
-          )}
-        </div>
-      )
+      render: (material_name: string, record: MaterialRequestItem) => {
+        const materialClass = record.nomenclature?.material_class
+        let classPath = ''
+
+        if (materialClass) {
+          if (materialClass.parent_id && materialClass.parent) {
+            // Это подкласс
+            classPath = `${materialClass.parent.name} / ${materialClass.name}`
+          } else {
+            // Это основной класс
+            classPath = materialClass.name
+          }
+        }
+
+        return (
+          <div>
+            <Text>{material_name}</Text>
+            {classPath && (
+              <div>
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {classPath} / {record.nomenclature?.name || 'Номенклатура'}
+                </Text>
+              </div>
+            )}
+          </div>
+        )
+      }
     },
     {
       title: 'Ед. изм.',

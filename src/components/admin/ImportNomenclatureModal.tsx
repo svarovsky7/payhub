@@ -1,17 +1,15 @@
 import { useState } from 'react'
-import { Modal, Upload, Button, Table, Result, Steps, message, Progress, Tag } from 'antd'
-import { UploadOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { Modal, Upload, Button, Table, Steps, message, Progress, Tag } from 'antd'
+import { FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import type { UploadFile, RcFile } from 'antd/es/upload/interface'
 import type { ColumnsType } from 'antd/es/table'
 import {
   loadMaterialClasses,
   createMaterialClass,
-  type MaterialClass
 } from '../../services/materialClassOperations'
 import {
   loadMaterialNomenclature,
   createMaterialNomenclature,
-  type MaterialNomenclature
 } from '../../services/materialNomenclatureOperations'
 
 interface ImportModalProps {
@@ -145,7 +143,7 @@ export const ImportNomenclatureModal = ({ visible, onClose, onSuccess }: ImportM
               is_active: true
             })
             classId = newClass.id
-            classMap.set(item.class.toLowerCase(), classId)
+            classMap.set(item.class.toLowerCase(), classId!)
             processedItem.classId = classId
           } else {
             processedItem.classId = classId
@@ -167,7 +165,7 @@ export const ImportNomenclatureModal = ({ visible, onClose, onSuccess }: ImportM
                 is_active: true
               })
               subclassId = newSubclass.id
-              subclassMap.set(subclassKey, subclassId)
+              subclassMap.set(subclassKey, subclassId!)
               processedItem.subclassId = subclassId
             } else {
               processedItem.subclassId = subclassId

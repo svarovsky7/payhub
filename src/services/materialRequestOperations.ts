@@ -33,6 +33,15 @@ export interface MaterialRequestItem {
     id: number
     name: string
     unit: string
+    material_class?: {
+      id: number
+      name: string
+      parent_id?: number | null
+      parent?: {
+        id: number
+        name: string
+      }
+    }
   }
 }
 
@@ -115,12 +124,22 @@ export async function loadMaterialRequest(requestId: string): Promise<MaterialRe
     if (requestError) throw requestError
     if (!request) throw new Error('Заявка не найдена')
 
-    // Load items with nomenclature
+    // Load items with nomenclature and material class
     const { data: items, error: itemsError } = await supabase
       .from('material_request_items')
       .select(`
         *,
-        nomenclature:material_nomenclature(id, name, unit)
+        nomenclature:material_nomenclature(
+          id,
+          name,
+          unit,
+          material_class:material_classes(
+            id,
+            name,
+            parent_id,
+            parent:parent_id(id, name)
+          )
+        )
       `)
       .eq('material_request_id', requestId)
       .order('sort_order', { ascending: true })
@@ -148,7 +167,20 @@ export async function loadMaterialRequests(): Promise<MaterialRequest[]> {
         *,
         project:projects(*),
         employee:employees(*),
-        items:material_request_items(*, nomenclature:material_nomenclature(id, name, unit))
+        items:material_request_items(
+          *,
+          nomenclature:material_nomenclature(
+            id,
+            name,
+            unit,
+            material_class:material_classes(
+              id,
+              name,
+              parent_id,
+              parent:parent_id(id, name)
+            )
+          )
+        )
       `)
       .order('request_date', { ascending: false })
       .order('created_at', { ascending: false })

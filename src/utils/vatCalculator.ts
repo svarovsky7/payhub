@@ -25,8 +25,9 @@ export const calculateVat = (amountWithVat: number, vatRate: number): VatCalcula
     }
   }
 
-  const vatAmount = Math.round((amountWithVat * vatRate / (100 + vatRate)) * 100) / 100
-  const amountWithoutVat = Math.round((amountWithVat - vatAmount) * 100) / 100
+  // Правильная формула: сумма без НДС = сумма с НДС / (1 + ставка НДС / 100)
+  const amountWithoutVat = Math.round((amountWithVat / (1 + vatRate / 100)) * 100) / 100
+  const vatAmount = Math.round((amountWithVat - amountWithoutVat) * 100) / 100
 
   return {
     amountWithVat,

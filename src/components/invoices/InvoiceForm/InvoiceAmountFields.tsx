@@ -1,7 +1,7 @@
 import React from 'react'
 import { Row, Col, Form, InputNumber, Typography, Divider } from 'antd'
 
-const { Text, Title } = Typography
+const { Text } = Typography
 
 interface InvoiceAmountFieldsProps {
   vatRate: number
@@ -19,10 +19,15 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
   form
 }) => {
   console.log('[InvoiceAmountFields] Props:', { vatRate, amountWithoutVat })
-  const vatAmount = amountWithoutVat * (vatRate / (100 + vatRate))
-  const amountWithoutVatDisplay = amountWithoutVat - vatAmount
+
+  // Получаем сумму с НДС из формы
+  const amountWithVat = Form.useWatch('amount_with_vat', form) || 0
+
+  // Рассчитываем НДС
+  const vatAmount = amountWithVat - amountWithoutVat
+
   const deliveryCost = Form.useWatch('delivery_cost', form) || 0
-  const totalAmount = amountWithoutVat + deliveryCost
+  const totalAmount = amountWithVat + deliveryCost
 
   return (
     <>
@@ -114,7 +119,7 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
             <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text type="secondary" style={{ fontSize: '13px' }}>Сумма без НДС:</Text>
               <Text strong style={{ fontSize: '14px' }}>
-                {amountWithoutVatDisplay.toLocaleString('ru-RU', {
+                {amountWithoutVat.toLocaleString('ru-RU', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}{' '}
@@ -136,7 +141,7 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
             <div style={{ marginBottom: deliveryCost > 0 ? '8px' : '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text type="secondary" style={{ fontSize: '13px' }}>Сумма с НДС:</Text>
               <Text strong style={{ fontSize: '14px' }}>
-                {amountWithoutVat.toLocaleString('ru-RU', {
+                {amountWithVat.toLocaleString('ru-RU', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}{' '}

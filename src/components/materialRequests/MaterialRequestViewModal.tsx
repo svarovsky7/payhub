@@ -1,6 +1,6 @@
 import { Modal, Descriptions, Tag, Table, Typography, Space } from 'antd'
 import dayjs from 'dayjs'
-import type { MaterialRequest } from '../../services/materialRequestOperations'
+import type { MaterialRequest, MaterialRequestItem } from '../../services/materialRequestOperations'
 import type { Project } from '../../lib/supabase'
 import type { Employee } from '../../services/employeeOperations'
 
@@ -36,7 +36,34 @@ export const MaterialRequestViewModal: React.FC<MaterialRequestViewModalProps> =
     {
       title: 'Наименование материала',
       dataIndex: 'material_name',
-      key: 'material_name'
+      key: 'material_name',
+      render: (material_name: string, record: MaterialRequestItem) => {
+        const materialClass = record.nomenclature?.material_class
+        let classPath = ''
+
+        if (materialClass) {
+          if (materialClass.parent_id && materialClass.parent) {
+            // Это подкласс
+            classPath = `${materialClass.parent.name} / ${materialClass.name}`
+          } else {
+            // Это основной класс
+            classPath = materialClass.name
+          }
+        }
+
+        return (
+          <div>
+            <Text>{material_name}</Text>
+            {classPath && (
+              <div>
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {classPath} / {record.nomenclature?.name || 'Номенклатура'}
+                </Text>
+              </div>
+            )}
+          </div>
+        )
+      }
     },
     {
       title: 'Ед. изм.',
@@ -76,7 +103,7 @@ export const MaterialRequestViewModal: React.FC<MaterialRequestViewModalProps> =
           <Descriptions.Item label="Проект">
             {project?.name || '—'}
           </Descriptions.Item>
-          <Descriptions.Item label="Ответственный">
+          <Descriptions.Item label="Получатель материалов">
             {employee?.full_name || '—'}
           </Descriptions.Item>
           <Descriptions.Item label="Позиций">
