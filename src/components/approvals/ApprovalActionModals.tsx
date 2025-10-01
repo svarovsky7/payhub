@@ -26,10 +26,8 @@ interface ApprovalActionModalsProps {
 
 export const ApprovalActionModals = ({
   approveModalVisible,
-  setApproveModalVisible,
   onApprove,
   rejectModalVisible,
-  setRejectModalVisible,
   onReject,
   selectedApproval,
   comment,

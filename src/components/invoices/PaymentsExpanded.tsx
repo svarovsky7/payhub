@@ -1,11 +1,13 @@
 import { Table, Space, Button, Typography, Empty, Spin, Tag, Tooltip } from 'antd'
-import { EditOutlined, DeleteOutlined, SendOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, SendOutlined, ClockCircleOutlined, HistoryOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import type { Invoice, Payment, PaymentType, PaymentStatus } from '../../lib/supabase'
 import { formatAmount } from '../../utils/invoiceHelpers'
 import dayjs from 'dayjs'
 import { useApprovalManagement } from '../../hooks/useApprovalManagement'
+import { ApprovalHistoryModal } from '../approvals/ApprovalHistoryModal'
 import { useEffect, useState, useMemo, memo } from 'react'
+import type { PaymentApproval } from '../../services/approvalOperations'
 
 const { Text } = Typography
 
@@ -30,9 +32,11 @@ export const PaymentsExpanded = memo(({
   onDeletePayment,
   onApprovalStarted
 }: PaymentsExpandedProps) => {
-  const { handleStartApproval, checkApprovalStatus } = useApprovalManagement()
+  const { handleStartApproval, checkApprovalStatus, getApprovalHistory } = useApprovalManagement()
   const [approvalStatuses, setApprovalStatuses] = useState<Record<string, any>>({})
   const [loadingApproval, setLoadingApproval] = useState<string | null>(null)
+  const [historyModalVisible, setHistoryModalVisible] = useState(false)
+  const [selectedApproval, setSelectedApproval] = useState<PaymentApproval | null>(null)
 
   // Load approval statuses for payments
   useEffect(() => {
@@ -88,6 +92,33 @@ export const PaymentsExpanded = memo(({
     }
   }
 
+  // Handle history view
+  const handleHistoryClick = async (payment: Payment) => {
+    console.log('[PaymentsExpanded.handleHistoryClick] Loading history for payment:', payment.id)
+
+    // Загружаем полную историю
+    const history = await getApprovalHistory(payment.id)
+    console.log('[PaymentsExpanded.handleHistoryClick] History loaded:', history)
+
+    if (history && history.length > 0) {
+      setSelectedApproval(history[0])
+    } else {
+      // Если истории нет, создаём минимальный объект для отображения
+      setSelectedApproval({
+        id: '',
+        payment_id: payment.id,
+        route_id: 0,
+        current_stage_index: 0,
+        status_id: payment.status_id || 1,
+        created_at: '',
+        payment: payment,
+        route: null,
+        steps: []
+      } as PaymentApproval)
+    }
+
+    setHistoryModalVisible(true)
+  }
 
   // Define columns for payments table
   const columns: ColumnsType<Payment> = useMemo(() => [
@@ -165,11 +196,6 @@ export const PaymentsExpanded = memo(({
       render: (notes: string | null) => notes || '-'
     },
     {
-      title: 'Файлы',
-      key: 'attachments',
-      render: () => '-'
-    },
-    {
       title: 'Действия',
       key: 'actions',
       render: (_, record) => {
@@ -190,6 +216,14 @@ export const PaymentsExpanded = memo(({
                 />
               </Tooltip>
             )}
+            <Tooltip title="История согласования">
+              <Button
+                type="text"
+                icon={<HistoryOutlined />}
+                onClick={() => handleHistoryClick(record)}
+                size="small"
+              />
+            </Tooltip>
             <Button
               type="text"
               icon={<EditOutlined />}
@@ -214,6 +248,7 @@ export const PaymentsExpanded = memo(({
     getPaymentTypeName,
     getPaymentStatusName,
     handleSendToApproval,
+    handleHistoryClick,
     loadingApproval,
     onEditPayment,
     onDeletePayment,
@@ -266,6 +301,15 @@ export const PaymentsExpanded = memo(({
         size="small"
         pagination={false}
         tableLayout="auto"
+      />
+
+      <ApprovalHistoryModal
+        visible={historyModalVisible}
+        onClose={() => {
+          setHistoryModalVisible(false)
+          setSelectedApproval(null)
+        }}
+        approval={selectedApproval}
       />
     </div>
   )

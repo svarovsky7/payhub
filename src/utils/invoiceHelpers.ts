@@ -53,22 +53,23 @@ const addWorkingDays = (startDate: Dayjs, days: number): Dayjs => {
 
 // Функция расчета предварительной даты поставки
 export const calculateDeliveryDate = (
-  invoiceDate: Dayjs,
+  _invoiceDate: Dayjs, // Не используется, расчет идет от текущей даты
   deliveryDays: number,
   deliveryType: 'working' | 'calendar'
 ): Dayjs => {
-  // Начинаем со следующего рабочего дня после даты счета
-  let startDate = invoiceDate.add(1, 'day')
+  // ВАЖНО: Начинаем с текущей даты (сегодня), а не с даты счета
+  const today = dayjs()
 
-  // Если следующий день - выходной, переносим на понедельник
-  while (startDate.day() === 0 || startDate.day() === 6) {
-    startDate = startDate.add(1, 'day')
+  // Шаг 1: Находим следующий рабочий день от сегодня
+  let nextWorkingDay = today.add(1, 'day')
+  while (nextWorkingDay.day() === 0 || nextWorkingDay.day() === 6) {
+    nextWorkingDay = nextWorkingDay.add(1, 'day')
   }
 
-  // Добавляем указанное количество дней
+  // Шаг 2: От следующего рабочего дня добавляем указанное количество дней
   if (deliveryType === 'working') {
-    return addWorkingDays(startDate, deliveryDays - 1) // -1 так как уже перешли на следующий рабочий день
+    return addWorkingDays(nextWorkingDay, deliveryDays)
   } else {
-    return startDate.add(deliveryDays - 1, 'day')
+    return nextWorkingDay.add(deliveryDays, 'day')
   }
 }

@@ -1,7 +1,6 @@
-import { Table, Button, Space, Modal, App, Empty } from 'antd'
+import { Table, Button, Space, App, Empty } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ExpandableConfig } from 'antd/es/table/interface'
-import { useAuth } from '../contexts/AuthContext'
 import { useMaterialRequestManagement } from '../hooks/useMaterialRequestManagement'
 import { getMaterialRequestTableColumns } from '../components/materialRequests/MaterialRequestTableColumns'
 import { MaterialRequestFormModal } from '../components/materialRequests/MaterialRequestFormModal'
@@ -10,7 +9,6 @@ import { MaterialRequestItemsTable } from '../components/materialRequests/Materi
 import type { MaterialRequest } from '../services/materialRequestOperations'
 
 export const MaterialRequestsPage = () => {
-  const { user } = useAuth()
   const { modal } = App.useApp()
 
   const {
@@ -82,7 +80,7 @@ export const MaterialRequestsPage = () => {
     ),
     rowExpandable: (record) => (record.items?.length || 0) > 0, // Only show expand if has items
     expandedRowKeys: Array.from(expandedRows),
-    onExpand: (expanded, record) => {
+    onExpand: (_expanded, record) => {
       handleExpandRow(record.id)
     },
     expandRowByClick: true,

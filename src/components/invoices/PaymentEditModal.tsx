@@ -20,7 +20,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   visible,
   payment,
   paymentTypes,
-  paymentStatuses,
   onCancel,
   onSave
 }) => {
@@ -28,7 +27,6 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [existingFiles, setExistingFiles] = useState<UploadFile[]>([])
   const [fileDescriptions, setFileDescriptions] = useState<{ [uid: string]: string }>({})
-  const [loading, setLoading] = useState(false)
   const [previewVisible, setPreviewVisible] = useState(false)
   const [previewUrl, setPreviewUrl] = useState('')
   const [previewTitle, setPreviewTitle] = useState('')
@@ -67,7 +65,8 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
             original_name,
             storage_path,
             size_bytes,
-            created_at
+            created_at,
+            description
           )
         `)
         .eq('payment_id', paymentId)
@@ -82,8 +81,18 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           size: item.attachments.size_bytes,
           existingAttachmentId: item.attachments.id,
           storagePath: item.attachments.storage_path,
+          description: item.attachments.description || '',
           url: ''  // We'll use signed URLs for actual preview/download
         }))
+
+        // Set file descriptions
+        const descriptions = files.reduce((acc: any, file: any) => {
+          if (file.description) {
+            acc[file.uid] = file.description
+          }
+          return acc
+        }, {})
+        setFileDescriptions(descriptions)
 
         setExistingFiles(files as UploadFile[])
       }
@@ -186,10 +195,18 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   }
 
   const uploadProps = {
-    beforeUpload: (file: any) => {
-      setFileList(prev => [...prev, file])
+    beforeUpload: (file: File) => {
+      const uploadFile: UploadFile = {
+        uid: file.uid || `rc-upload-${Date.now()}-${Math.random()}`,
+        name: file.name,
+        status: 'done',
+        size: file.size,
+        type: file.type,
+        originFileObj: file as any
+      }
+      setFileList(prev => [...prev, uploadFile])
       // Инициализируем пустое описание для нового файла
-      setFileDescriptions(prev => ({ ...prev, [file.uid]: '' }))
+      setFileDescriptions(prev => ({ ...prev, [uploadFile.uid]: '' }))
       return false // Prevent auto upload
     },
     onRemove: (file: UploadFile) => {
@@ -296,38 +313,52 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
                 </div>
                 {existingFiles.map(file => (
                   <div key={file.uid} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '4px 8px',
-                    marginBottom: 4,
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: 4
+                    marginBottom: 8,
+                    padding: 8,
+                    background: '#fafafa',
+                    borderRadius: 4,
+                    border: '1px solid #d9d9d9'
                   }}>
-                    <Space size="small">
-                      {getFileIcon(file.name)}
-                      <span style={{ fontSize: '13px' }}>{file.name}</span>
-                      <span style={{ fontSize: '12px', color: '#888' }}>
-                        {file.size ? `(${(file.size / 1024).toFixed(1)} KB)` : ''}
-                      </span>
-                    </Space>
-                    <Space size="small">
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<EyeOutlined />}
-                        onClick={() => handlePreview(file)}
-                        title="Просмотр"
-                      />
-                      <Button
-                        type="text"
-                        danger
-                        size="small"
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleRemoveExistingFile(file)}
-                        title="Удалить"
-                      />
-                    </Space>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 4
+                    }}>
+                      <Space size="small">
+                        {getFileIcon(file.name)}
+                        <span style={{ fontSize: '13px' }}>{file.name}</span>
+                        <span style={{ fontSize: '12px', color: '#888' }}>
+                          {file.size ? `(${(file.size / 1024).toFixed(1)} KB)` : ''}
+                        </span>
+                      </Space>
+                      <Space size="small">
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<EyeOutlined />}
+                          onClick={() => handlePreview(file)}
+                          title="Просмотр"
+                        />
+                        <Button
+                          type="text"
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleRemoveExistingFile(file)}
+                          title="Удалить"
+                        />
+                      </Space>
+                    </div>
+                    <Input
+                      placeholder="Описание файла (опционально)"
+                      value={fileDescriptions[file.uid] || ''}
+                      onChange={(e) => setFileDescriptions(prev => ({
+                        ...prev,
+                        [file.uid]: e.target.value
+                      }))}
+                      size="small"
+                    />
                   </div>
                 ))}
               </div>

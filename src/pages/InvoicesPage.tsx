@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react'
-import { Table, Button, Space, App } from 'antd'
+import { Table, Button, Space } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ExpandableConfig } from 'antd/es/table/interface'
 import dayjs from 'dayjs'
@@ -20,7 +20,6 @@ import '../styles/compact-table.css'
 
 export const InvoicesPage = () => {
   const { user } = useAuth()
-  const { } = App.useApp()
 
   // Use invoice form hook
   const {
@@ -191,10 +190,6 @@ export const InvoicesPage = () => {
     expandedRows
   })
 
-  // Debug expanded rows
-  useEffect(() => {
-  }, [expandedRows])
-
   // Expandable configuration
   const expandable: ExpandableConfig<Invoice> = {
     expandedRowRender: (record) => {
@@ -215,7 +210,7 @@ export const InvoicesPage = () => {
     },
     rowExpandable: () => true,
     expandedRowKeys: Array.from(expandedRows),
-    onExpand: (expanded, record) => {
+    onExpand: (_expanded, record) => {
       handleExpandRow(record.id)
     },
     expandRowByClick: true, // Включаем раскрытие по клику на строку

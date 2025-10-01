@@ -43,12 +43,26 @@ export const recalculateInvoiceStatus = async (invoiceId: string) => {
       amount: ip.allocated_amount || 0
     }))
 
+    console.log('[InvoiceStatus.recalculateInvoiceStatus] Invoice data:', {
+      invoiceId,
+      currentStatusId: invoice.status_id,
+      amountWithVat: invoice.amount_with_vat,
+      paymentsCount: payments.length,
+      payments
+    })
+
     // Рассчитываем новый статус
     const newStatusId = calculateInvoiceStatus(
       invoice.amount_with_vat || 0,
       invoice.status_id,
       payments
     )
+
+    console.log('[InvoiceStatus.recalculateInvoiceStatus] Calculated new status:', {
+      currentStatusId: invoice.status_id,
+      newStatusId,
+      willUpdate: shouldUpdateInvoiceStatus(invoice.status_id, newStatusId)
+    })
 
     // Проверяем, нужно ли обновлять статус
     if (shouldUpdateInvoiceStatus(invoice.status_id, newStatusId)) {

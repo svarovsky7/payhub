@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import { Card, Row, Col, Typography, message, Button } from 'antd'
+import { useState, useEffect } from 'react'
+import { Card, Row, Col, Typography, Button } from 'antd'
 import { FileTextOutlined, PlusOutlined } from '@ant-design/icons'
-import { useAuth } from '../contexts/AuthContext'
 import {
   loadContracts,
   deleteContract,
   loadAvailableInvoices,
-  addInvoiceToContract,
-  removeInvoiceFromContract,
   type Contract
 } from '../services/contractOperations'
 import { ContractsTable } from '../components/contracts/ContractsTable'
@@ -18,7 +15,6 @@ import { EditContractModal } from '../components/contracts/EditContractModal'
 const { Title } = Typography
 
 export const ContractsPage = () => {
-  const { user } = useAuth()
 
   // State
   const [contracts, setContracts] = useState<Contract[]>([])

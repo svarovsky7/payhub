@@ -1,7 +1,6 @@
-import { Space, Tag } from 'antd'
-import { DollarOutlined } from '@ant-design/icons'
+import { Tag } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus, Payment } from '../../lib/supabase'
+import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus } from '../../lib/supabase'
 import { formatAmount } from '../../utils/invoiceHelpers'
 import { PaymentStatusIndicator } from './PaymentStatusIndicator'
 import { QuickActionsColumn } from './QuickActionsColumn'
@@ -37,7 +36,6 @@ export const getInvoiceTableColumns = ({
   projects,
   getPaymentTotals,
   handleQuickPayment,
-  handleViewPayments,
   handleViewInvoice,
   handleEditInvoice,
   handleDeleteInvoice,
@@ -216,6 +214,18 @@ export const getInvoiceTableColumns = ({
       sortDirections: ['ascend', 'descend'],
     },
     {
+      title: 'Предполагаемая дата поставки',
+      dataIndex: 'preliminary_delivery_date',
+      key: 'preliminary_delivery_date',
+      render: (date: string | null) => (date ? dayjs(date).format('DD.MM.YYYY') : '-'),
+      sorter: (a, b) => {
+        const dateA = a.preliminary_delivery_date ? dayjs(a.preliminary_delivery_date).valueOf() : 0
+        const dateB = b.preliminary_delivery_date ? dayjs(b.preliminary_delivery_date).valueOf() : 0
+        return dateA - dateB
+      },
+      sortDirections: ['ascend', 'descend'],
+    },
+    {
       title: 'Статус',
       key: 'status',
       sorter: (a, b) => {
@@ -262,7 +272,6 @@ export const getInvoiceTableColumns = ({
             paymentCount={paymentTotals.paymentCount}
             remainingAmount={paymentTotals.remainingAmount}
             onQuickPayment={handleQuickPayment}
-            onViewPayments={handleViewPayments}
             onViewInvoice={handleViewInvoice}
             onEditInvoice={handleEditInvoice}
             onDeleteInvoice={handleDeleteInvoice}

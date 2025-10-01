@@ -86,7 +86,7 @@ export const useApprovalManagement = () => {
     }
 
 
-    const approval = await startApprovalProcess(paymentId, invoiceTypeId, user.id)
+    const approval = await startApprovalProcess(paymentId, invoiceTypeId)
 
     if (approval) {
       await loadPendingApprovals()

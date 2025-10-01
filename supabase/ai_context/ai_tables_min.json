@@ -720,7 +720,7 @@
       },
       {
         "name": "relevance_date",
-        "type": "timestamptz",
+        "type": "date",
         "nullable": false
       },
       {

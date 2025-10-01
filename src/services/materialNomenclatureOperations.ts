@@ -24,7 +24,7 @@ export interface UpdateMaterialNomenclatureData {
   is_active?: boolean
 }
 
-export interface PaginationParams {
+interface PaginationParams {
   page?: number
   pageSize?: number
   searchText?: string
@@ -32,7 +32,7 @@ export interface PaginationParams {
   activeOnly?: boolean
 }
 
-export interface PaginatedResult {
+interface PaginatedResult {
   data: MaterialNomenclature[]
   total: number
   page: number
@@ -141,30 +141,6 @@ export async function loadMaterialNomenclature(activeOnly: boolean = false) {
   return data || []
 }
 
-export async function searchMaterialNomenclature(searchTerm: string) {
-  console.log('[materialNomenclatureOperations.searchMaterialNomenclature] Searching:', { searchTerm })
-
-  if (!searchTerm || searchTerm.length < 2) {
-    return []
-  }
-
-  const { data, error } = await supabase
-    .from('material_nomenclature')
-    .select('*')
-    .eq('is_active', true)
-    .ilike('name', `%${searchTerm}%`)
-    .order('name', { ascending: true })
-    .limit(20)
-
-  if (error) {
-    console.error('[materialNomenclatureOperations.searchMaterialNomenclature] Error:', error)
-    throw error
-  }
-
-  console.log('[materialNomenclatureOperations.searchMaterialNomenclature] Found:', { count: data?.length })
-  return data || []
-}
-
 export async function createMaterialNomenclature(nomenclatureData: CreateMaterialNomenclatureData) {
   console.log('[materialNomenclatureOperations.createMaterialNomenclature] Creating:', nomenclatureData)
 
@@ -219,22 +195,4 @@ export async function deleteMaterialNomenclature(id: number) {
   }
 
   console.log('[materialNomenclatureOperations.deleteMaterialNomenclature] Deleted successfully')
-}
-
-export async function getMaterialNomenclatureById(id: number) {
-  console.log('[materialNomenclatureOperations.getMaterialNomenclatureById] Getting:', { id })
-
-  const { data, error } = await supabase
-    .from('material_nomenclature')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (error) {
-    console.error('[materialNomenclatureOperations.getMaterialNomenclatureById] Error:', error)
-    throw error
-  }
-
-  console.log('[materialNomenclatureOperations.getMaterialNomenclatureById] Found:', data)
-  return data
 }

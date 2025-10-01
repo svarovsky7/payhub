@@ -32,7 +32,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [roles, setRoles] = useState<Role[]>([])
   const [changingRole, setChangingRole] = useState(false)
-  const [currentRole, setCurrentRole] = useState<Role | null>(null)
   const [allowedPages, setAllowedPages] = useState<string[]>([])
   const navigate = useNavigate()
   const location = useLocation()
@@ -61,7 +60,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         if (currentRoleId) {
           const role = rolesData?.find(r => r.id === currentRoleId)
           if (role) {
-            setCurrentRole(role)
             // Parse allowed_pages from JSON string if needed
             const pages = role.allowed_pages
               ? (typeof role.allowed_pages === 'string'
@@ -72,7 +70,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }
         } else {
           // No role selected, allow all pages
-          setCurrentRole(null)
           setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/admin'])
         }
 
@@ -104,7 +101,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       if (roleId) {
         const role = roles.find(r => r.id === roleId)
         if (role) {
-          setCurrentRole(role)
           const pages = role.allowed_pages
             ? (typeof role.allowed_pages === 'string'
                 ? JSON.parse(role.allowed_pages)
@@ -121,7 +117,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }
       } else {
         // No role selected, allow all pages
-        setCurrentRole(null)
         setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/admin'])
       }
 

@@ -290,58 +290,6 @@ export const loadProjects = async (): Promise<Project[]> => {
   }
 }
 
-// Create contract status
-export const createContractStatus = async (status: Omit<ContractStatus, 'id'>) => {
-  console.log('[ContractOperations.createContractStatus] Creating status:', status)
-
-  try {
-    const { data, error } = await supabase
-      .from('contract_statuses')
-      .insert(status)
-      .select()
-      .single()
-
-    if (error) throw error
-
-    message.success('Статус договора успешно создан')
-    return data
-  } catch (error: any) {
-    console.error('[ContractOperations.createContractStatus] Error:', error)
-    if (error.code === '23505') {
-      message.error('Статус с таким кодом уже существует')
-    } else {
-      message.error('Ошибка создания статуса договора')
-    }
-    throw error
-  }
-}
-
-// Update contract status
-export const updateContractStatus = async (id: number, updates: Partial<ContractStatus>) => {
-  console.log('[ContractOperations.updateContractStatus] Updating status:', id, updates)
-
-  try {
-    const { data, error } = await supabase
-      .from('contract_statuses')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) throw error
-
-    message.success('Статус договора успешно обновлён')
-    return data
-  } catch (error: any) {
-    console.error('[ContractOperations.updateContractStatus] Error:', error)
-    if (error.code === '23505') {
-      message.error('Статус с таким кодом уже существует')
-    } else {
-      message.error('Ошибка обновления статуса договора')
-    }
-    throw error
-  }
-}
 
 // Generate contract number
 export const generateContractNumber = async (): Promise<string> => {
@@ -387,39 +335,3 @@ export const generateContractNumber = async (): Promise<string> => {
   }
 }
 
-// Delete contract status
-export const deleteContractStatus = async (id: number) => {
-  console.log('[ContractOperations.deleteContractStatus] Deleting status:', id)
-
-  try {
-    // Проверяем, используется ли статус в договорах
-    const { data: contracts, error: checkError } = await supabase
-      .from('contracts')
-      .select('id')
-      .eq('status_id', id)
-      .limit(1)
-
-    if (checkError) throw checkError
-
-    if (contracts && contracts.length > 0) {
-      message.error('Невозможно удалить статус, который используется в договорах')
-      throw new Error('Status is in use')
-    }
-
-    // Удаляем статус
-    const { error } = await supabase
-      .from('contract_statuses')
-      .delete()
-      .eq('id', id)
-
-    if (error) throw error
-
-    message.success('Статус договора успешно удалён')
-  } catch (error: any) {
-    console.error('[ContractOperations.deleteContractStatus] Error:', error)
-    if (error.message !== 'Status is in use') {
-      message.error('Ошибка удаления статуса договора')
-    }
-    throw error
-  }
-}

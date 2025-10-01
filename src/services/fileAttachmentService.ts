@@ -24,7 +24,7 @@ interface LinkFileParams {
 /**
  * Загружает файл в storage и создает запись в таблице attachments
  */
-export const uploadFile = async ({
+const uploadFile = async ({
   file,
   entityType,
   entityId,
@@ -91,7 +91,7 @@ export const uploadFile = async ({
 /**
  * Привязывает файл к конкретной сущности
  */
-export const linkFileToEntity = async ({
+const linkFileToEntity = async ({
   attachmentId,
   entityType,
   entityId
@@ -329,107 +329,3 @@ export const updateFileDescription = async (
   }
 }
 
-/**
- * Копирует файлы от одной сущности к другой
- */
-export const copyFiles = async (
-  sourceEntityType: EntityType,
-  sourceEntityId: string,
-  targetEntityType: EntityType,
-  targetEntityId: string
-): Promise<void> => {
-  try {
-    console.log('[fileAttachmentService.copyFiles] Copying files:', {
-      from: { type: sourceEntityType, id: sourceEntityId },
-      to: { type: targetEntityType, id: targetEntityId }
-    })
-
-    // Загружаем файлы исходной сущности
-    const sourceFiles = await loadEntityFiles(sourceEntityType, sourceEntityId)
-
-    // Привязываем каждый файл к целевой сущности
-    for (const file of sourceFiles) {
-      await linkFileToEntity({
-        attachmentId: file.id,
-        entityType: targetEntityType,
-        entityId: targetEntityId
-      })
-    }
-
-    console.log('[fileAttachmentService.copyFiles] Files copied successfully:', sourceFiles.length)
-  } catch (error) {
-    console.error('[fileAttachmentService.copyFiles] Error:', error)
-    throw error
-  }
-}
-
-/**
- * Перемещает файлы от одной сущности к другой
- */
-export const moveFiles = async (
-  sourceEntityType: EntityType,
-  sourceEntityId: string,
-  targetEntityType: EntityType,
-  targetEntityId: string
-): Promise<void> => {
-  try {
-    console.log('[fileAttachmentService.moveFiles] Moving files:', {
-      from: { type: sourceEntityType, id: sourceEntityId },
-      to: { type: targetEntityType, id: targetEntityId }
-    })
-
-    // Загружаем файлы исходной сущности
-    const sourceFiles = await loadEntityFiles(sourceEntityType, sourceEntityId)
-
-    // Для каждого файла: удаляем старую связь и создаем новую
-    for (const file of sourceFiles) {
-      // Удаляем старую связь
-      let sourceTableName: string
-      let sourceFilterColumn: string
-
-      switch (sourceEntityType) {
-        case 'invoice':
-          sourceTableName = 'invoice_attachments'
-          sourceFilterColumn = 'invoice_id'
-          break
-        case 'payment':
-          sourceTableName = 'payment_attachments'
-          sourceFilterColumn = 'payment_id'
-          break
-        case 'contract':
-          sourceTableName = 'contract_attachments'
-          sourceFilterColumn = 'contract_id'
-          break
-        case 'material_request':
-          sourceTableName = 'material_request_attachments'
-          sourceFilterColumn = 'material_request_id'
-          break
-        default:
-          throw new Error(`Unknown entity type: ${sourceEntityType}`)
-      }
-
-      const { error: deleteError } = await supabase
-        .from(sourceTableName)
-        .delete()
-        .eq(sourceFilterColumn, sourceEntityId)
-        .eq('attachment_id', file.id)
-
-      if (deleteError) {
-        console.error('[fileAttachmentService.moveFiles] Delete link error:', deleteError)
-        throw deleteError
-      }
-
-      // Создаем новую связь
-      await linkFileToEntity({
-        attachmentId: file.id,
-        entityType: targetEntityType,
-        entityId: targetEntityId
-      })
-    }
-
-    console.log('[fileAttachmentService.moveFiles] Files moved successfully:', sourceFiles.length)
-  } catch (error) {
-    console.error('[fileAttachmentService.moveFiles] Error:', error)
-    throw error
-  }
-}

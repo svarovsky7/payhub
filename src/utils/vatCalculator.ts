@@ -7,12 +7,6 @@ interface VatCalculationResult {
   amountWithoutVat: number
 }
 
-interface DeliveryDateCalculationParams {
-  invoiceDate: Dayjs
-  deliveryDays?: number
-  deliveryDaysType: 'working' | 'calendar'
-}
-
 /**
  * Calculate VAT amounts based on total amount with VAT and VAT rate
  */

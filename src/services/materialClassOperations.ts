@@ -153,25 +153,6 @@ export const toggleMaterialClassActive = async (id: number, is_active: boolean) 
   }
 }
 
-// Load root material classes (no parent)
-export const loadRootMaterialClasses = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('material_classes')
-      .select('*')
-      .is('parent_id', null)
-      .eq('is_active', true)
-      .order('name')
-
-    if (error) throw error
-
-    return data || []
-  } catch (error) {
-    console.error('[MaterialClassOperations.loadRootMaterialClasses] Error:', error)
-    return []
-  }
-}
-
 // Load subclasses of a specific class
 export const loadSubclasses = async (parentId: number) => {
   try {

@@ -1675,10 +1675,10 @@
       },
       {
         "name": "relevance_date",
-        "type": "timestamptz",
+        "type": "date",
         "nullable": false,
         "default": "CURRENT_TIMESTAMP",
-        "description": "Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем"
+        "description": "Конечная дата актуальности счёта"
       },
       {
         "name": "material_request_id",

@@ -34,7 +34,6 @@ export const RoutesList = ({
   onSelectRoute,
   onUpdateRoute,
   onDeleteRoute,
-  setEditingRoute,
   editingRoute
 }: RoutesListProps) => {
   const handleToggleActive = async (route: ApprovalRoute) => {

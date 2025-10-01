@@ -1,6 +1,6 @@
 import { supabase } from '../../lib/supabase'
 import { message } from 'antd'
-import type { PaymentApproval, ApprovalStep } from './approvalProcess'
+import type { PaymentApproval } from './approvalProcess'
 
 export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
   console.log('[loadApprovalsForRole] Starting with roleId:', roleId, 'userId:', userId)
@@ -120,7 +120,10 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
           hasPayments: !!approval.payments,
           paymentsData: approval.payments,
           hasInvoices: !!approval.payments?.invoices,
-          invoicesData: approval.payments?.invoices
+          invoicesData: approval.payments?.invoices,
+          stages: stages,
+          currentStageIndex: approval.current_stage_index,
+          currentStage: currentStage
         })
       }
 
@@ -132,10 +135,16 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
       }
       delete mappedPayment.invoices  // удаляем старое поле
 
+      // Добавляем stages в route для доступа из компонентов
+      const mappedRoute = {
+        ...approval.approval_routes,
+        stages: stages
+      }
+
       return {
         ...approval,
         payment: mappedPayment,
-        route: approval.approval_routes,
+        route: mappedRoute,
         steps: approval.approval_steps,
         current_stage: currentStage
       }
@@ -151,17 +160,35 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
 }
 
 export const loadApprovalHistory = async (paymentId: string) => {
+  console.log('[loadApprovalHistory] Loading history for payment:', paymentId)
 
   try {
     const { data, error } = await supabase
       .from('payment_approvals')
       .select(`
         *,
+        payments!inner (
+          *,
+          payment_number,
+          payment_date,
+          amount
+        ),
+        approval_routes (
+          *,
+          name
+        ),
         approval_steps (
           *,
+          stage_id,
           workflow_stages (
-            *,
-            roles (*)
+            id,
+            name,
+            order_index,
+            role_id,
+            roles (
+              id,
+              name
+            )
           ),
           acted_by:user_profiles (
             id,
@@ -175,15 +202,31 @@ export const loadApprovalHistory = async (paymentId: string) => {
 
     if (error) throw error
 
+    console.log('[loadApprovalHistory] Raw data:', data)
+
     // Преобразуем структуру для совместимости с существующим кодом
-    const formattedData = (data || []).map(approval => ({
-      ...approval,
-      steps: approval.approval_steps?.map((step: any) => ({
+    const formattedData = (data || []).map(approval => {
+      const steps = approval.approval_steps?.map((step: any) => ({
         ...step,
         stage: step.workflow_stages,
         actor: step.acted_by
       })) || []
-    }))
+
+      console.log('[loadApprovalHistory] Formatted approval:', {
+        id: approval.id,
+        payment: approval.payments,
+        route: approval.approval_routes,
+        stepsCount: steps.length,
+        steps: steps
+      })
+
+      return {
+        ...approval,
+        payment: approval.payments,
+        route: approval.approval_routes,
+        steps: steps
+      }
+    })
 
     return formattedData
   } catch (error) {

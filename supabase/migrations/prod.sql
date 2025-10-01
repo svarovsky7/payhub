@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-09-30T21:04:57.928841
+-- Generated: 2025-10-01T06:55:37.247995
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -682,7 +682,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     preliminary_delivery_date date,
     status_id integer(32) NOT NULL,
     delivery_cost numeric(12,2) DEFAULT 0,
-    relevance_date timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    relevance_date date NOT NULL DEFAULT CURRENT_TIMESTAMP,
     material_request_id uuid,
     contract_id uuid,
     responsible_id uuid,
@@ -720,7 +720,7 @@ COMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of deliv
 COMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';
 COMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';
 COMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';
-COMMENT ON COLUMN public.invoices.relevance_date IS 'Дата актуальности счета. Автоматически устанавливается при создании и может обновляться пользователем';
+COMMENT ON COLUMN public.invoices.relevance_date IS 'Конечная дата актуальности счёта';
 COMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';
 COMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';
 COMMENT ON COLUMN public.invoices.responsible_id IS 'Ответственный менеджер снабжения (public.user_profiles.id)';

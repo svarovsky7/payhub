@@ -138,15 +138,28 @@ export const createPayment = async (
     throw new Error('Default payment status not found')
   }
 
+  // Parse amount correctly - handle both string and number input
+  const amount = typeof values.amount === 'number'
+    ? values.amount
+    : parseAmount(values.amount)
+
+  console.log('[PaymentOperations.createPayment] Amount parsing:', {
+    rawAmount: values.amount,
+    typeOfAmount: typeof values.amount,
+    parsedAmount: amount
+  })
+
   const paymentData = {
     payment_date: values.payment_date ? values.payment_date.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
-    amount: parseAmount(values.amount) || 0,
+    amount: amount || 0,
     payment_type_id: values.payment_type_id,
     status_id: defaultStatus.id,
     description: values.description || '',
     invoice_id: invoiceId,
     created_by: userId
   }
+
+  console.log('[PaymentOperations.createPayment] Payment data:', paymentData)
 
   const { data: payment, error: paymentError } = await supabase
     .from('payments')
@@ -162,7 +175,7 @@ export const createPayment = async (
     .insert([{
       invoice_id: invoiceId,
       payment_id: payment.id,
-      allocated_amount: parseAmount(values.amount) || 0
+      allocated_amount: amount || 0
     }])
 
   if (linkError) throw linkError
@@ -180,8 +193,7 @@ export const createPayment = async (
 
 export const updatePayment = async (
   paymentId: string,
-  values: any,
-  files: UploadFile[]
+  values: any
 ) => {
 
   // Get invoice_id from the payment

@@ -1,8 +1,5 @@
-import { useState } from 'react'
 import { Modal, Form, Input, Select, DatePicker, InputNumber, Row, Col, Radio, Typography } from 'antd'
 import { formatAmount } from '../../utils/invoiceHelpers'
-import dayjs from 'dayjs'
-import type { PaymentApproval } from '../../services/approvalOperations'
 
 const { Text } = Typography
 
@@ -39,8 +36,6 @@ export const EditInvoiceModal = ({
   setVatRate,
   amountWithVat,
   setAmountWithVat,
-  deliveryDaysType,
-  setDeliveryDaysType,
   calculateVatAmounts
 }: EditInvoiceModalProps) => {
   return (

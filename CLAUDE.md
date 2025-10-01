@@ -96,16 +96,16 @@ Design principles:
 **Invoice Statuses** (use exact IDs):
 - `1` = draft (Черновик)
 - `2` = pending (На согласовании)
-- `3` = partial (Частично оплачен)
-- `4` = paid (Оплачен)
+- `3` = paid (Оплачен)
+- `4` = partial (Частично оплачен)
 - `5` = cancelled (Отменен)
 
 **Payment Statuses** (use exact IDs):
 - `1` = created (Создан)
 - `2` = pending (На согласовании)
-- `3` = approved (В оплате)
-- `4` = paid (Оплачен)
-- `5` = cancelled (Отменён)
+- `3` = paid (Оплачен)
+- `4` = cancelled (Отменён)
+- `5` = approved (В оплате)
 
 **Contract Statuses** (use exact IDs):
 - `1` = draft (Черновик)

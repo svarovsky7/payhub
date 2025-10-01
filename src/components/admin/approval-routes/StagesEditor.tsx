@@ -19,7 +19,7 @@ import {
 import { StagePermissions } from './StagePermissions'
 import type { ApprovalRoute, Role, WorkflowStage } from './types'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 interface StagesEditorProps {
   selectedRoute: ApprovalRoute | null

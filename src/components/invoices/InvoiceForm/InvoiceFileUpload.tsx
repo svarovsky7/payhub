@@ -4,7 +4,6 @@ import { UploadOutlined, FileOutlined, DeleteOutlined, DownloadOutlined } from '
 import type { UploadFile, UploadProps } from 'antd'
 
 const { Text } = Typography
-const { TextArea } = Input
 
 interface InvoiceFileUploadProps {
   fileList: UploadFile[]

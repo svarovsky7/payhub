@@ -7,7 +7,7 @@ export interface PaymentApproval {
   payment_id: string
   route_id: number
   current_stage_index: number
-  status_id: number // 1=Создан, 2=На согласовании, 3=Согласован, 4=Отклонен
+  status_id: number // 1=Создан, 2=На согласовании, 3=Оплачен, 4=Отменён, 5=В оплате
   created_at: string
   updated_at?: string
   payment?: any
@@ -30,8 +30,7 @@ export interface ApprovalStep {
 
 export const startApprovalProcess = async (
   paymentId: string,
-  invoiceTypeId: number,
-  userId: string
+  invoiceTypeId: number
 ) => {
 
   try {

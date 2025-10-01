@@ -19,11 +19,6 @@ interface InvoiceViewModalProps {
 export const InvoiceViewModal: React.FC<InvoiceViewModalProps> = ({
   isVisible,
   invoice,
-  payers,
-  suppliers,
-  projects,
-  invoiceTypes,
-  invoiceStatuses,
   onClose
 }) => {
   const [attachments, setAttachments] = useState<AttachmentData[]>([])

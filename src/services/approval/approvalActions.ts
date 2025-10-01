@@ -74,6 +74,21 @@ export const approvePayment = async (
     const nextStageIndex = approval.current_stage_index + 1
     const nextStage = stages.find((s: any) => s.order_index === nextStageIndex)
 
+    // Обновляем статус платежа согласно настройкам текущего этапа
+    if (currentStage.payment_status_id) {
+      console.log('[ApprovalActions.approvePayment] Updating payment status to:', currentStage.payment_status_id, 'for payment_id:', approval.payment_id)
+      const { error: paymentStatusError } = await supabase
+        .from('payments')
+        .update({ status_id: currentStage.payment_status_id })
+        .eq('id', approval.payment_id)
+
+      if (paymentStatusError) {
+        console.error('[ApprovalActions.approvePayment] Error updating payment status:', paymentStatusError)
+        throw paymentStatusError
+      }
+      console.log('[ApprovalActions.approvePayment] Payment status successfully updated to:', currentStage.payment_status_id)
+    }
+
     if (nextStage) {
       // Переходим к следующему этапу
       const { error: approvalUpdateError } = await supabase
@@ -102,33 +117,25 @@ export const approvePayment = async (
       const { error: approvalCompleteError } = await supabase
         .from('payment_approvals')
         .update({
-          status_id: 3 // approved (В оплате)
+          status_id: 5 // approved (В оплате)
         })
         .eq('id', approvalId)
 
       if (approvalCompleteError) throw approvalCompleteError
 
-      // Обновляем статус платежа
-      const { error: paymentError } = await supabase
-        .from('payments')
-        .update({ status_id: 3 }) // approved (В оплате)
-        .eq('id', approval.payment_id)
-
-      if (paymentError) throw paymentError
-
-      // Пересчитываем статус счета
-      const { data: payment } = await supabase
-        .from('payments')
-        .select('invoice_id')
-        .eq('id', approval.payment_id)
-        .single()
-
-      if (payment?.invoice_id) {
-        const { recalculateInvoiceStatus } = await import('../invoiceOperations')
-        await recalculateInvoiceStatus(payment.invoice_id)
-      }
-
       message.success('Платёж полностью согласован')
+    }
+
+    // Пересчитываем статус счета
+    const { data: payment } = await supabase
+      .from('payments')
+      .select('invoice_id')
+      .eq('id', approval.payment_id)
+      .single()
+
+    if (payment?.invoice_id) {
+      const { recalculateInvoiceStatus } = await import('../invoiceOperations')
+      await recalculateInvoiceStatus(payment.invoice_id)
     }
 
     return true
@@ -217,33 +224,42 @@ export const rejectPayment = async (
     const { error: approvalRejectError } = await supabase
       .from('payment_approvals')
       .update({
-        status_id: 5 // cancelled (Отменён)
+        status_id: 4 // cancelled (Отменён)
       })
       .eq('id', approvalId)
 
     if (approvalRejectError) throw approvalRejectError
 
     // Обновляем статус платежа
+    console.log('[ApprovalActions.rejectPayment] Updating payment status to 4 (Отменён) for payment_id:', approval.payment_id)
     const { error: paymentError } = await supabase
       .from('payments')
-      .update({ status_id: 5 }) // cancelled (Отменён)
+      .update({ status_id: 4 }) // cancelled (Отменён)
       .eq('id', approval.payment_id)
 
-    if (paymentError) throw paymentError
+    if (paymentError) {
+      console.error('[ApprovalActions.rejectPayment] Error updating payment status:', paymentError)
+      throw paymentError
+    }
+    console.log('[ApprovalActions.rejectPayment] Payment status successfully updated to 4 (Отменён)')
 
     // Пересчитываем статус счета
     const { data: payment } = await supabase
       .from('payments')
-      .select('invoice_id')
+      .select('invoice_id, status_id')
       .eq('id', approval.payment_id)
       .single()
 
+    console.log('[ApprovalActions.rejectPayment] Payment after status update:', payment)
+
     if (payment?.invoice_id) {
       const { recalculateInvoiceStatus } = await import('../invoiceOperations')
+      console.log('[ApprovalActions.rejectPayment] Recalculating invoice status for invoice_id:', payment.invoice_id)
       await recalculateInvoiceStatus(payment.invoice_id)
     }
 
     message.success('Платёж отклонён')
+    console.log('[ApprovalActions.rejectPayment] Payment rejection completed successfully')
     return true
   } catch (error) {
     console.error('[ApprovalOperations.rejectPayment] Error:', error)

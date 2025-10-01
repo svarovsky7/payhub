@@ -20,7 +20,8 @@ export const ApprovalsPage = () => {
     userRole,
     handleApprove,
     handleReject,
-    loadPendingApprovals
+    loadPendingApprovals,
+    getApprovalHistory
   } = useApprovalManagement()
 
   console.log('[ApprovalsPage] State:', {
@@ -64,8 +65,19 @@ export const ApprovalsPage = () => {
   }
 
   // Handle history view
-  const handleHistoryClick = (approval: PaymentApproval) => {
-    setSelectedApproval(approval)
+  const handleHistoryClick = async (approval: PaymentApproval) => {
+    console.log('[ApprovalsPage.handleHistoryClick] Loading history for payment:', approval.payment_id)
+
+    // Загружаем полную историю
+    const history = await getApprovalHistory(approval.payment_id)
+    console.log('[ApprovalsPage.handleHistoryClick] History loaded:', history)
+
+    if (history && history.length > 0) {
+      setSelectedApproval(history[0])
+    } else {
+      setSelectedApproval(approval)
+    }
+
     setHistoryModalVisible(true)
   }
 

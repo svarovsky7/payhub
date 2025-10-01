@@ -123,7 +123,7 @@ export const createInvoice = async (
     const formattedData = {
       ...cleanData,
       invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : null,
-      due_date: invoiceData.payment_deadline_date ? dayjs(invoiceData.payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to due_date
+      relevance_date: invoiceData.payment_deadline_date ? dayjs(invoiceData.payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
       preliminary_delivery_date: invoiceData.preliminary_delivery_date ? dayjs(invoiceData.preliminary_delivery_date).format('YYYY-MM-DD') : null,
       user_id: userId, // Используем user_id вместо created_by (согласно структуре таблицы)
       status_id: 1, // draft (Черновик) по умолчанию
@@ -177,7 +177,7 @@ export const updateInvoice = async (
     const formattedData = {
       ...cleanData,
       invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : null,
-      due_date: invoiceData.payment_deadline_date ? dayjs(invoiceData.payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to due_date
+      relevance_date: invoiceData.payment_deadline_date ? dayjs(invoiceData.payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
       preliminary_delivery_date: invoiceData.preliminary_delivery_date ? dayjs(invoiceData.preliminary_delivery_date).format('YYYY-MM-DD') : null,
       vat_rate: vatRateValue // Use the properly parsed VAT rate value
     }

@@ -121,7 +121,7 @@ export const useInvoiceForm = () => {
       delivery_days_type: invoice.delivery_days_type || 'calendar',
       preliminary_delivery_date: invoice.preliminary_delivery_date ? dayjs(invoice.preliminary_delivery_date) : null,
       responsible_id: invoice.responsible_id, // Используем responsible_id напрямую
-      payment_deadline_date: invoice.payment_deadline_date ? dayjs(invoice.payment_deadline_date) : null // Конечная дата актуальности счета
+      payment_deadline_date: invoice.relevance_date ? dayjs(invoice.relevance_date) : null // Конечная дата актуальности счета
     }
 
     console.log('[useInvoiceForm.populateForm] Setting form values:', formValues)

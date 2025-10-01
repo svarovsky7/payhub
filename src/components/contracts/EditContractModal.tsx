@@ -11,7 +11,6 @@ import {
 import { ContractFormFields } from './EditContract/ContractFormFields'
 import { FileUploadBlock } from '../common/FileUploadBlock'
 import { useFileAttachment } from '../../hooks/useFileAttachment'
-import { useAuth } from '../../contexts/AuthContext'
 
 interface EditContractModalProps {
   visible: boolean
@@ -45,7 +44,6 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
   onCancel,
   onSuccess
 }) => {
-  const { user } = useAuth()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [contractors, setContractors] = useState<ContractorOption[]>([])
@@ -57,7 +55,6 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
     fileList,
     existingFiles,
     fileDescriptions,
-    loading: filesLoading,
     uploading,
     handleFileListChange,
     handleFileDescriptionChange,

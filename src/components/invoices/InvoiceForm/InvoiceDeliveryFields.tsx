@@ -1,6 +1,8 @@
 import React from 'react'
-import { Row, Col, Form, InputNumber, Radio, Typography } from 'antd'
+import { Row, Col, Form, InputNumber, Radio, Typography, Tooltip } from 'antd'
+import { QuestionCircleOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 
 const { Text } = Typography
 
@@ -19,6 +21,39 @@ export const InvoiceDeliveryFields: React.FC<InvoiceDeliveryFieldsProps> = ({
   onDeliveryDaysChange,
   onDeliveryDaysTypeChange
 }) => {
+  // Расчет для подсказки
+  const today = dayjs()
+  let nextWorkingDay = today.add(1, 'day')
+  while (nextWorkingDay.day() === 0 || nextWorkingDay.day() === 6) {
+    nextWorkingDay = nextWorkingDay.add(1, 'day')
+  }
+
+  const tooltipContent = deliveryDays && deliveryDays > 0 ? (
+    <div>
+      <strong>Текущий расчет:</strong>
+      <br />
+      • Сегодня: {today.format('DD.MM.YYYY')} ({['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'][today.day()]})
+      <br />
+      • Следующий рабочий день: {nextWorkingDay.format('DD.MM.YYYY')}
+      <br />
+      • Срок поставки: {deliveryDays} {deliveryDaysType === 'working' ? 'рабочих' : 'календарных'} {deliveryDays === 1 ? 'день' : deliveryDays < 5 ? 'дня' : 'дней'}
+      <br />
+      • Предполагаемая дата: {preliminaryDeliveryDate?.format('DD.MM.YYYY') || 'не рассчитана'}
+      <br /><br />
+      <strong>Формула:</strong>
+      <br />
+      Сегодня + 1 рабочий день + Срок поставки
+    </div>
+  ) : (
+    <div>
+      <strong>Формула расчета:</strong>
+      <br />
+      Сегодня + 1 рабочий день + Срок поставки
+      <br /><br />
+      <em>Укажите срок поставки для расчета даты</em>
+    </div>
+  )
+
   return (
     <>
       <Row gutter={16}>
@@ -31,7 +66,7 @@ export const InvoiceDeliveryFields: React.FC<InvoiceDeliveryFieldsProps> = ({
               style={{ width: '100%' }}
               min={0}
               placeholder="Количество дней"
-              onChange={onDeliveryDaysChange}
+              onChange={(value) => onDeliveryDaysChange(value ?? undefined)}
               addonAfter="дней"
             />
           </Form.Item>
@@ -40,7 +75,7 @@ export const InvoiceDeliveryFields: React.FC<InvoiceDeliveryFieldsProps> = ({
           <Form.Item
             name="delivery_days_type"
             label="Тип дней"
-            initialValue="working"
+            initialValue="calendar"
           >
             <Radio.Group onChange={(e) => onDeliveryDaysTypeChange(e.target.value)}>
               <Radio value="working">Рабочие</Radio>
@@ -49,7 +84,20 @@ export const InvoiceDeliveryFields: React.FC<InvoiceDeliveryFieldsProps> = ({
           </Form.Item>
         </Col>
         <Col span={8}>
-          <Form.Item label="Предполагаемая дата поставки">
+          <Form.Item
+            label={
+              <span>
+                Предполагаемая дата поставки{' '}
+                <Tooltip
+                  title={tooltipContent}
+                  placement="topLeft"
+                  overlayStyle={{ maxWidth: '400px' }}
+                >
+                  <QuestionCircleOutlined style={{ color: '#999', cursor: 'help' }} />
+                </Tooltip>
+              </span>
+            }
+          >
             {preliminaryDeliveryDate ? (
               <Text strong style={{ fontSize: '16px' }}>
                 {preliminaryDeliveryDate.format('DD.MM.YYYY')}

@@ -10,8 +10,6 @@ import type { MaterialRequest } from '../../services/materialRequestOperations'
 import type { Contract } from '../../services/contractOperations'
 import { loadInvoiceAttachments } from './AttachmentOperations'
 import { InvoiceBasicFields } from './InvoiceForm/InvoiceBasicFields'
-import { InvoiceReferenceFields } from './InvoiceForm/InvoiceReferenceFields'
-import { InvoiceContractorFields } from './InvoiceForm/InvoiceContractorFields'
 import { InvoiceContractProjectFields } from './InvoiceForm/InvoiceContractProjectFields'
 import { InvoiceContractorFieldsEnhanced } from './InvoiceForm/InvoiceContractorFieldsEnhanced'
 import { InvoiceAmountFields } from './InvoiceForm/InvoiceAmountFields'
@@ -60,26 +58,19 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   onSubmit,
   form,
   payers,
-  suppliers,
   projects,
   invoiceTypes,
-  invoiceStatuses,
   employees,
-  amountWithVat,
   onAmountWithVatChange,
   vatRate,
   onVatRateChange,
-  vatAmount,
   amountWithoutVat,
   deliveryDays,
   onDeliveryDaysChange,
   deliveryDaysType,
   onDeliveryDaysTypeChange,
-  invoiceDate,
   onInvoiceDateChange,
   preliminaryDeliveryDate,
-  formatAmount,
-  parseAmount,
   materialRequests = [],
   contracts = [],
   onContractSelect,
@@ -87,12 +78,12 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [fileDescriptions, setFileDescriptions] = useState<{ [uid: string]: string }>({})
-  const [loadingFiles, setLoadingFiles] = useState(false)
   const [originalFiles, setOriginalFiles] = useState<UploadFile[]>([])
   const [existingAttachments, setExistingAttachments] = useState<any[]>([])
   const [uploadingFile, setUploadingFile] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!isVisible) {
@@ -102,6 +93,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       setExistingAttachments([])
       setSelectedProjectId(null)
       setSelectedContractId(null)
+      setSubmitting(false)
     } else if (editingInvoice?.id) {
       loadExistingFiles()
       // Устанавливаем выбранные значения при редактировании
@@ -117,7 +109,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   const loadExistingFiles = async () => {
     if (!editingInvoice?.id) return
 
-    setLoadingFiles(true)
     try {
       const attachments = await loadInvoiceAttachments(editingInvoice.id)
       const existingFileList: UploadFile[] = attachments.map(att => ({
@@ -142,8 +133,6 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     } catch (error) {
       console.error('[InvoiceFormModal.loadExistingFiles] Error:', error)
       message.error('Ошибка при загрузке файлов')
-    } finally {
-      setLoadingFiles(false)
     }
   }
 
@@ -183,7 +172,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }
   }
 
-  const handleDeleteExistingFile = (fileId: string, filePath: string) => {
+  const handleDeleteExistingFile = (fileId: string) => {
     setExistingAttachments(prev => prev.filter(att => att.id !== fileId))
     message.success('Файл удален')
   }
@@ -204,21 +193,34 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     message.success('Описание обновлено')
   }
 
-  const handleFinish = (values: any) => {
-    // Attach descriptions to files
-    const filesWithDescriptions = fileList.map(file => ({
-      ...file,
-      description: fileDescriptions[file.uid] || ''
-    }))
+  const handleFinish = async (values: any) => {
+    if (submitting) return // Предотвращаем повторную отправку
 
-    const allFiles = [...originalFiles, ...filesWithDescriptions]
-    const formValues = {
-      ...values,
-      invoice_date: values.invoice_date?.format('YYYY-MM-DD'),
-      status_id: values.status_id || 1,
+    setSubmitting(true)
+
+    try {
+      // Attach descriptions to files
+      const filesWithDescriptions = fileList.map(file => ({
+        ...file,
+        description: fileDescriptions[file.uid] || ''
+      }))
+
+      const allFiles = [...originalFiles, ...filesWithDescriptions]
+      const formValues = {
+        ...values,
+        invoice_number: values.invoice_number || 'б/н',
+        invoice_date: values.invoice_date?.format('YYYY-MM-DD'),
+        status_id: values.status_id || 1,
+      }
+
+      // Закрываем форму сразу
+      onClose()
+
+      // Отправляем данные
+      await onSubmit(formValues, allFiles, originalFiles)
+    } finally {
+      setSubmitting(false)
     }
-
-    onSubmit(formValues, allFiles, originalFiles)
   }
 
   const handleAmountChange = useCallback((value: number | null) => {
@@ -233,12 +235,52 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }
   }, [onVatRateChange])
 
+  const handleClearForm = () => {
+    Modal.confirm({
+      title: 'Очистить форму?',
+      content: 'Все введенные данные будут удалены',
+      okText: 'Очистить',
+      cancelText: 'Отмена',
+      onOk: () => {
+        form.resetFields()
+        setFileList([])
+        setFileDescriptions({})
+        setSelectedProjectId(null)
+        setSelectedContractId(null)
+        onAmountWithVatChange(0)
+        onVatRateChange(20)
+        onDeliveryDaysChange(undefined)
+        onDeliveryDaysTypeChange('calendar')
+        onInvoiceDateChange(dayjs())
+      }
+    })
+  }
+
+  // Фильтрация заявок по проекту
+  const filteredMaterialRequests = materialRequests.filter(request => {
+    if (!selectedProjectId) return true
+    return request.project_id === selectedProjectId
+  })
+
   return (
     <Modal
-      title={editingInvoice ? 'Редактировать счет' : 'Новый счет'}
+      title={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: 40 }}>
+          <span>{editingInvoice ? 'Редактировать счет' : 'Новый счет'}</span>
+          {!editingInvoice && (
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleClearForm}
+              size="small"
+            >
+              Очистить
+            </Button>
+          )}
+        </div>
+      }
       open={isVisible}
       onCancel={onClose}
-      width={900}
+      width={1100}
       footer={null}
       destroyOnHidden
     >
@@ -285,18 +327,37 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
           <Col span={12}>
             <Form.Item
               name="material_request_id"
-              label="Заявка на материалы"
+              label={
+                <span>
+                  Заявка на материалы
+                  {selectedProjectId && filteredMaterialRequests.length < materialRequests.length && (
+                    <span style={{ marginLeft: 8, fontSize: '12px', color: '#999' }}>
+                      (отфильтровано по проекту: {filteredMaterialRequests.length} из {materialRequests.length})
+                    </span>
+                  )}
+                </span>
+              }
             >
               <Select
                 placeholder="Выберите заявку на материалы"
                 allowClear
                 showSearch
                 optionFilterProp="label"
-                options={materialRequests.map((request) => ({
+                options={filteredMaterialRequests.map((request) => ({
                   value: request.id,
                   label: `${request.request_number} от ${request.request_date ?
                     new Date(request.request_date).toLocaleDateString('ru-RU') : 'без даты'}`,
                 }))}
+                onChange={(value) => {
+                  // Если выбрана заявка, автоматически устанавливаем проект из нее
+                  if (value) {
+                    const selectedRequest = materialRequests.find(r => r.id === value)
+                    if (selectedRequest?.project_id && !selectedProjectId) {
+                      form.setFieldValue('project_id', selectedRequest.project_id)
+                      setSelectedProjectId(selectedRequest.project_id)
+                    }
+                  }
+                }}
               />
             </Form.Item>
           </Col>
@@ -341,10 +402,15 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
         <Form.Item>
           <Space>
-            <Button type="primary" htmlType="submit">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={submitting}
+              disabled={submitting}
+            >
               {editingInvoice ? 'Сохранить' : 'Создать'}
             </Button>
-            <Button onClick={onClose}>
+            <Button onClick={onClose} disabled={submitting}>
               Отмена
             </Button>
             {loadingReferences && (

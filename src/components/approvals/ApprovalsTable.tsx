@@ -40,10 +40,8 @@ export const ApprovalsTable = ({
     console.log('[ApprovalsTable] First approval structure:', approvals[0])
     console.log('[ApprovalsTable] Payment data:', {
       hasPayment: !!approvals[0].payment,
-      hasPayments: !!approvals[0].payments,
       paymentData: approvals[0].payment,
-      paymentsData: approvals[0].payments,
-      invoice: approvals[0].payment?.invoice || approvals[0].payments?.invoices
+      invoice: approvals[0].payment?.invoice
     })
   }
   // Генерация фильтров

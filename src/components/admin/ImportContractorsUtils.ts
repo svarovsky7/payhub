@@ -1,5 +1,5 @@
 // Функция для обработки ИНН в научной нотации
-export const processINN = (innValue: string): string => {
+const processINN = (innValue: string): string => {
   console.log('[ImportContractorsUtils.processINN] Input:', innValue)
 
   // Если значение содержит 'E+', это научная нотация
@@ -19,7 +19,7 @@ export const processINN = (innValue: string): string => {
 }
 
 // Функция для очистки названия компании
-export const cleanCompanyName = (name: string): string => {
+const cleanCompanyName = (name: string): string => {
   return name
     .replace(/^\uFEFF/, '') // Убираем BOM (Byte Order Mark)
     .replace(/^["'«»""]|["'«»""]$/g, '') // Убираем кавычки в начале и конце

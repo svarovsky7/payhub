@@ -8,8 +8,8 @@ const EPS = 10
 const INVOICE_STATUSES = {
   DRAFT: 1,      // draft (Черновик)
   PENDING: 2,    // pending (На согласовании)
-  PARTIAL: 3,    // partial (Частично оплачен)
-  PAID: 4,       // paid (Оплачен)
+  PAID: 3,       // paid (Оплачен)
+  PARTIAL: 4,    // partial (Частично оплачен)
   CANCELLED: 5   // cancelled (Отменен)
 }
 
@@ -18,9 +18,9 @@ const INVOICE_STATUSES = {
 const PAYMENT_STATUSES = {
   CREATED: 1,    // created (Создан)
   PENDING: 2,    // pending (На согласовании)
-  APPROVED: 3,   // approved (В оплате)
-  PAID: 4,       // paid (Оплачен)
-  CANCELLED: 5   // cancelled (Отменён)
+  PAID: 3,       // paid (Оплачен)
+  CANCELLED: 4,  // cancelled (Отменён)
+  APPROVED: 5    // approved (В оплате)
 }
 
 interface Payment {

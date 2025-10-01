@@ -242,23 +242,60 @@ export default function MaterialNomenclatureTab() {
     debouncedSearch(value)
   }
 
+  // Получаем корневые классы и подклассы для отображения
+  const rootClasses = materialClasses.filter(c => c.level === 0)
+  const getParentClass = (classId: number | null) => {
+    if (!classId) return null
+    const cls = materialClasses.find(c => c.id === classId)
+    if (!cls) return null
+
+    // Если это подкласс, найти родительский класс
+    if (cls.parent_id) {
+      return materialClasses.find(c => c.id === cls.parent_id)
+    }
+    // Если это корневой класс
+    return cls
+  }
+
   const columns: ColumnsType<MaterialNomenclature> = [
     {
       title: 'Наименование',
       dataIndex: 'name',
       key: 'name',
       sorter: false, // Отключаем сортировку на клиенте, сортировка на сервере
+      ellipsis: true,
     },
     {
       title: 'Класс материалов',
       dataIndex: 'material_class_id',
-      key: 'material_class_id',
-      width: 200,
+      key: 'parent_class',
+      width: 'auto',
+      ellipsis: true,
       render: (classId: number | null) => {
-        const materialClass = materialClasses.find(c => c.id === classId)
-        return materialClass ? materialClass.name : '-'
+        const parentClass = getParentClass(classId)
+        return parentClass ? parentClass.name : '-'
       },
-      filters: materialClasses.map(cls => ({ text: cls.name, value: cls.id })),
+      filters: rootClasses.map(cls => ({ text: cls.name, value: cls.id })),
+      onFilter: (value, record) => {
+        const parentClass = getParentClass(record.material_class_id ?? null)
+        return parentClass ? parentClass.id === value : false
+      },
+    },
+    {
+      title: 'Подкласс материалов',
+      dataIndex: 'material_class_id',
+      key: 'material_class_id',
+      width: 'auto',
+      ellipsis: true,
+      render: (classId: number | null) => {
+        if (!classId) return '-'
+        const cls = materialClasses.find(c => c.id === classId)
+        // Показываем имя подкласса, только если это действительно подкласс
+        return (cls && cls.parent_id) ? cls.name : '-'
+      },
+      filters: materialClasses
+        .filter(c => c.parent_id !== null)
+        .map(cls => ({ text: cls.name, value: cls.id })),
       filteredValue: selectedClassFilter ? [selectedClassFilter] : null,
     },
     {
@@ -272,6 +309,7 @@ export default function MaterialNomenclatureTab() {
       dataIndex: 'is_active',
       key: 'is_active',
       width: 100,
+      align: 'center',
       render: (active: boolean) => (
         <Switch checked={active} disabled />
       ),
@@ -280,6 +318,7 @@ export default function MaterialNomenclatureTab() {
       title: 'Действия',
       key: 'actions',
       width: 120,
+      align: 'center',
       render: (_, record) => (
         <Space size="small">
           <Button

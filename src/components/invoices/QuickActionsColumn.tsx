@@ -1,6 +1,5 @@
 import { Button, Space, Tooltip, Badge } from 'antd'
 import {
-  DollarOutlined,
   PaperClipOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -14,7 +13,6 @@ interface QuickActionsColumnProps {
   paymentCount: number
   remainingAmount: number
   onQuickPayment: (invoice: Invoice) => void
-  onViewPayments: (invoice: Invoice) => void
   onViewInvoice: (invoice: Invoice) => void
   onEditInvoice: (invoice: Invoice) => void
   onDeleteInvoice: (invoiceId: string) => void
@@ -27,7 +25,6 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
   paymentCount,
   remainingAmount,
   onQuickPayment,
-  onViewPayments,
   onViewInvoice,
   onEditInvoice,
   onDeleteInvoice,

@@ -1,5 +1,4 @@
-import { Progress, Tag, Tooltip, Space } from 'antd'
-import { DollarOutlined, CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
+import { Progress, Tooltip } from 'antd'
 import { formatAmount } from '../../utils/invoiceHelpers'
 
 interface PaymentStatusIndicatorProps {
@@ -28,35 +27,6 @@ export const PaymentStatusIndicator: React.FC<PaymentStatusIndicatorProps> = ({
     progressColor = '#faad14' // оранжевый для переплаты
   } else if (isPartiallyPaid) {
     progressColor = '#722ed1' // фиолетовый для частичной оплаты
-  }
-
-  // Определяем статус для бейджа
-  const getPaymentStatusBadge = () => {
-    if (isOverpaid) {
-      return (
-        <Tag color="warning" icon={<ExclamationCircleOutlined />}>
-          Переплата
-        </Tag>
-      )
-    } else if (isFullyPaid) {
-      return (
-        <Tag color="success" icon={<CheckCircleOutlined />}>
-          Оплачен
-        </Tag>
-      )
-    } else if (isPartiallyPaid) {
-      return (
-        <Tag color="processing" icon={<ClockCircleOutlined />}>
-          Частично
-        </Tag>
-      )
-    } else {
-      return (
-        <Tag color="default" icon={<DollarOutlined />}>
-          Не оплачен
-        </Tag>
-      )
-    }
   }
 
   const progressTooltip = (

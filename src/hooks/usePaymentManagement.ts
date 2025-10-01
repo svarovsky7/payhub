@@ -79,11 +79,17 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
     values: any,
     files: UploadFile[] = []
   ) => {
-    if (!user?.id || !selectedInvoiceForPayment) return
+    if (!user?.id) return
+
+    console.log('[usePaymentManagement.handleQuickPaymentSubmit] Received params:', {
+      invoiceId,
+      values,
+      filesCount: files.length
+    })
 
     try {
       await createPayment(
-        selectedInvoiceForPayment.id,
+        invoiceId,
         values,
         files,
         user.id,
@@ -93,7 +99,7 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
       message.success('Платеж добавлен успешно')
 
       // Reload payments
-      await loadPayments(selectedInvoiceForPayment.id)
+      await loadPayments(invoiceId)
       await loadSummaries(invoices.map(inv => inv.id))
 
       // Force state update
@@ -107,7 +113,7 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
       console.error('[usePaymentManagement.handleQuickPaymentSubmit] Error:', error)
       message.error(error.message || 'Ошибка создания платежа')
     }
-  }, [user, selectedInvoiceForPayment, paymentStatuses, invoices, loadPayments, loadSummaries])
+  }, [user, paymentStatuses, invoices, loadPayments, loadSummaries, setQuickPaymentDrawerOpen, setSelectedInvoiceForPayment, setInvoicePayments])
 
   // Handle edit payment
   const handleEditPayment = useCallback((payment: Payment) => {
@@ -135,7 +141,7 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
 
 
       // Update payment
-      await updatePayment(paymentId, values, files)
+      await updatePayment(paymentId, values)
 
       // Process files
       await processPaymentFiles(paymentId, files, user.id)
