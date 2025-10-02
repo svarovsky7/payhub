@@ -76,7 +76,11 @@
       "Bash(knip:*)",
       "Bash(depcheck:*)",
       "Bash(tsc --noEmit)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(move \"scripts/apply-fixes.js\" \"scripts/apply-fixes.cjs\")",
+      "Bash(while read file)",
+      "Bash(do if ! grep -q \"import.*FormValues\" \"$file\")",
+      "Bash(then echo \"$file needs FormValues import\" fi done)"
     ]
   },
   "enableAllProjectMcpServers": true,

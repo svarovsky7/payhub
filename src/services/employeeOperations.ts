@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { message } from 'antd'
+import { isErrorWithCode } from '../types/common'
 
 export interface Department {
   id: number
@@ -67,9 +68,9 @@ export const createDepartment = async (name: string, description?: string) => {
 
     message.success('Отдел успешно создан')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[EmployeeOperations.createDepartment] Error:', error)
-    if (error.code === '23505') {
+    if (isErrorWithCode(error) && error.code === '23505') {
       message.error('Отдел с таким названием уже существует')
     } else {
       message.error('Ошибка создания отдела')
@@ -92,9 +93,9 @@ export const updateDepartment = async (id: number, name: string, description?: s
 
     message.success('Отдел успешно обновлен')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[EmployeeOperations.updateDepartment] Error:', error)
-    if (error.code === '23505') {
+    if (isErrorWithCode(error) && error.code === '23505') {
       message.error('Отдел с таким названием уже существует')
     } else {
       message.error('Ошибка обновления отдела')
@@ -153,9 +154,9 @@ export const createPosition = async (name: string, description?: string) => {
 
     message.success('Должность успешно создана')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[EmployeeOperations.createPosition] Error:', error)
-    if (error.code === '23505') {
+    if (isErrorWithCode(error) && error.code === '23505') {
       message.error('Должность с таким названием уже существует')
     } else {
       message.error('Ошибка создания должности')
@@ -178,9 +179,9 @@ export const updatePosition = async (id: number, name: string, description?: str
 
     message.success('Должность успешно обновлена')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[EmployeeOperations.updatePosition] Error:', error)
-    if (error.code === '23505') {
+    if (isErrorWithCode(error) && error.code === '23505') {
       message.error('Должность с таким названием уже существует')
     } else {
       message.error('Ошибка обновления должности')
@@ -250,9 +251,9 @@ export const createEmployee = async (employee: Partial<Employee>, userId: string
 
     message.success('Сотрудник успешно добавлен')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[EmployeeOperations.createEmployee] Error:', error)
-    if (error.code === '23505') {
+    if (isErrorWithCode(error) && error.code === '23505') {
       message.error('Сотрудник с таким email уже существует')
     } else {
       message.error('Ошибка добавления сотрудника')
@@ -279,9 +280,9 @@ export const updateEmployee = async (id: number, employee: Partial<Employee>) =>
 
     message.success('Данные сотрудника успешно обновлены')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[EmployeeOperations.updateEmployee] Error:', error)
-    if (error.code === '23505') {
+    if (isErrorWithCode(error) && error.code === '23505') {
       message.error('Сотрудник с таким email уже существует')
     } else {
       message.error('Ошибка обновления данных сотрудника')

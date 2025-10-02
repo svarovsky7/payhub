@@ -2,12 +2,13 @@ import React from 'react'
 import { Table, Button, Space, Tag } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import type { Status } from '../../../types/statuses'
 
 interface StatusTableProps {
-  dataSource: any[]
+  dataSource: Status[]
   loading: boolean
   type: 'invoice' | 'payment' | 'contract'
-  onEdit: (record: any) => void
+  onEdit: (record: Status) => void
   onDelete: (id: number) => void
 }
 
@@ -30,7 +31,7 @@ export const StatusTable: React.FC<StatusTableProps> = ({
   onEdit,
   onDelete
 }) => {
-  const getColumns = (): ColumnsType<any> => [
+  const getColumns = (): ColumnsType<Status> => [
     {
       title: 'Код',
       dataIndex: 'code',
@@ -40,7 +41,7 @@ export const StatusTable: React.FC<StatusTableProps> = ({
       title: 'Название',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: any) => {
+      render: (name: string, record: Status) => {
         let tagColor = record.color || 'default'
         if (type === 'contract' && record.color && record.color.startsWith('#')) {
           tagColor = hexToTag[record.color.toLowerCase()] || 'default'

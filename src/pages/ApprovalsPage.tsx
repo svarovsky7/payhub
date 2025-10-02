@@ -536,7 +536,7 @@ export const ApprovalsPage = () => {
           setHistoryModalVisible(false)
           setSelectedApproval(null)
         }}
-        approval={selectedApproval}
+        approvals={selectedApproval ? [selectedApproval] : []}
       />
 
       <EditInvoiceModal

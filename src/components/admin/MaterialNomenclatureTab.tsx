@@ -75,6 +75,7 @@ export default function MaterialNomenclatureTab() {
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.current, pagination.pageSize, searchText, selectedClassFilter])
 
   // Дебаунсированный поиск
@@ -83,7 +84,8 @@ export default function MaterialNomenclatureTab() {
       setPagination(prev => ({ ...prev, current: 1 })) // Сброс на первую страницу при поиске
       loadData(1, pagination.pageSize, search, selectedClassFilter)
     }, 500),
-    [pagination.pageSize, selectedClassFilter]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loadData, pagination.pageSize, selectedClassFilter]
   )
 
   const loadClasses = useCallback(async () => {
@@ -99,7 +101,7 @@ export default function MaterialNomenclatureTab() {
   useEffect(() => {
     loadData()
     loadClasses()
-  }, [])
+  }, [loadData, loadClasses])
 
   // Перезагрузка классов при переключении на эту вкладку
   useEffect(() => {

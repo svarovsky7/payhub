@@ -1,10 +1,11 @@
 import React from 'react'
+import type { FormValues } from '../../../types/common'
 import { Form, Input, Select, Button, Space } from 'antd'
 import type { FormInstance } from 'antd'
 
 interface TypeFormProps {
   form: FormInstance
-  onSubmit: (values: any) => void
+  onSubmit: (values: FormValues) => void
   onCancel: () => void
   isEditing: boolean
   typeCategory: 'invoice' | 'payment'

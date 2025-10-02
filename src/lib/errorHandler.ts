@@ -1,44 +1,53 @@
 // Centralized error handling for PayHub application
 import { message } from 'antd'
 
-export enum ErrorCode {
+export const ErrorCode = {
   // Authentication errors
-  AUTH_FAILED = 'AUTH_FAILED',
-  AUTH_UNAUTHORIZED = 'AUTH_UNAUTHORIZED',
-  AUTH_FORBIDDEN = 'AUTH_FORBIDDEN',
+  AUTH_FAILED: 'AUTH_FAILED',
+  AUTH_UNAUTHORIZED: 'AUTH_UNAUTHORIZED',
+  AUTH_FORBIDDEN: 'AUTH_FORBIDDEN',
 
   // Database errors
-  DB_CONNECTION_ERROR = 'DB_CONNECTION_ERROR',
-  DB_QUERY_ERROR = 'DB_QUERY_ERROR',
-  DB_CONSTRAINT_ERROR = 'DB_CONSTRAINT_ERROR',
+  DB_CONNECTION_ERROR: 'DB_CONNECTION_ERROR',
+  DB_QUERY_ERROR: 'DB_QUERY_ERROR',
+  DB_CONSTRAINT_ERROR: 'DB_CONSTRAINT_ERROR',
 
   // Business logic errors
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  NOT_FOUND = 'NOT_FOUND',
-  DUPLICATE_ERROR = 'DUPLICATE_ERROR',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  DUPLICATE_ERROR: 'DUPLICATE_ERROR',
 
   // File upload errors
-  FILE_TOO_LARGE = 'FILE_TOO_LARGE',
-  FILE_INVALID_TYPE = 'FILE_INVALID_TYPE',
-  FILE_UPLOAD_ERROR = 'FILE_UPLOAD_ERROR',
+  FILE_TOO_LARGE: 'FILE_TOO_LARGE',
+  FILE_INVALID_TYPE: 'FILE_INVALID_TYPE',
+  FILE_UPLOAD_ERROR: 'FILE_UPLOAD_ERROR',
 
   // Approval errors
-  APPROVAL_STAGE_ERROR = 'APPROVAL_STAGE_ERROR',
-  APPROVAL_PERMISSION_ERROR = 'APPROVAL_PERMISSION_ERROR',
+  APPROVAL_STAGE_ERROR: 'APPROVAL_STAGE_ERROR',
+  APPROVAL_PERMISSION_ERROR: 'APPROVAL_PERMISSION_ERROR',
 
   // Unknown errors
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
-}
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR'
+} as const
+
+export type ErrorCode = typeof ErrorCode[keyof typeof ErrorCode]
 
 export class AppError extends Error {
+  code: ErrorCode
+  statusCode: number
+  details?: unknown
+
   constructor(
     message: string,
-    public code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
-    public statusCode: number = 500,
-    public details?: unknown
+    code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
+    statusCode: number = 500,
+    details?: unknown
   ) {
     super(message)
     this.name = 'AppError'
+    this.code = code
+    this.statusCode = statusCode
+    this.details = details
     Object.setPrototypeOf(this, AppError.prototype)
   }
 }

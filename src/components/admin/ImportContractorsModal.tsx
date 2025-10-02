@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { parseCSVContent, type ParsedContractor } from './ImportContractorsUtils'
 import { ImportContractorsPreview } from './ImportContractorsPreview'
 import { ImportContractorsResult, type ImportResult } from './ImportContractorsResult'
+import { isErrorWithCode } from '../../types/common'
 
 interface ImportContractorsModalProps {
   visible: boolean
@@ -186,13 +187,13 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
             message: 'Успешно импортирован'
           })
 
-        } catch (error: any) {
+        } catch (error: unknown) {
           results.push({
             line: contractor.line,
             name: contractor.name,
             inn: contractor.inn,
             status: 'error',
-            message: error.message
+            message: isErrorWithCode(error) && error.message ? error.message : 'Неизвестная ошибка'
           })
         }
       }

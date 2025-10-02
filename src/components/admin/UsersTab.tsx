@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { FormValues } from '../../types/common'
 import { Table, Space, Button, Modal, Form, Input, Select, message, Tag } from 'antd'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -121,7 +122,7 @@ export const UsersTab = () => {
     setIsModalVisible(true)
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: FormValues) => {
     if (!editingUser) return
 
     try {
@@ -146,8 +147,9 @@ export const UsersTab = () => {
       if (deleteError) throw deleteError
 
       // Добавляем новые проекты
-      if (values.projectIds && values.projectIds.length > 0) {
-        const userProjects = values.projectIds.map((projectId: number) => ({
+      const projectIds = values.projectIds as number[] | undefined
+      if (projectIds && projectIds.length > 0) {
+        const userProjects = projectIds.map((projectId: number) => ({
           user_id: editingUser.id,
           project_id: projectId
         }))

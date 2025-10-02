@@ -1,11 +1,12 @@
 import React from 'react'
+import type { FormValues } from '../../../types/common'
 import { Modal, Form, Input, Button, Space } from 'antd'
 import type { Department } from '../../../services/employeeOperations'
 
 interface DepartmentModalProps {
   visible: boolean
   onCancel: () => void
-  onSubmit: (values: any) => Promise<void>
+  onSubmit: (values: FormValues) => Promise<void>
   editingDepartment: Department | null
   form: any
 }

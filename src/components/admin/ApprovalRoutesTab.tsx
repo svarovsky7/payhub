@@ -10,6 +10,7 @@ import type {
   Role,
   WorkflowStage
 } from './approval-routes/types'
+import type { FormValues } from '../../types/common'
 
 export const ApprovalRoutesTab = () => {
   const [routes, setRoutes] = useState<ApprovalRoute[]>([])
@@ -103,7 +104,7 @@ export const ApprovalRoutesTab = () => {
   useEffect(() => {
     loadReferences()
     loadRoutes()
-  }, [])
+  }, [loadReferences, loadRoutes])
 
   // Выбор маршрута
   const handleSelectRoute = (route: ApprovalRoute) => {
@@ -118,7 +119,7 @@ export const ApprovalRoutesTab = () => {
   }
 
   // Создание нового маршрута
-  const handleCreateRoute = async (values: any) => {
+  const handleCreateRoute = async (values: FormValues) => {
 
     try {
       const { data, error } = await supabase
@@ -142,9 +143,9 @@ export const ApprovalRoutesTab = () => {
       if (data) {
         handleSelectRoute(data as ApprovalRoute)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[ApprovalRoutesTab.handleCreateRoute] Error:', error)
-      message.error(error.message || 'Ошибка создания маршрута')
+      message.error(error instanceof Error ? error.message : 'Ошибка создания маршрута')
     }
   }
 
@@ -167,9 +168,9 @@ export const ApprovalRoutesTab = () => {
       setEditingRoute(null)
       form.resetFields()
       loadRoutes()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[ApprovalRoutesTab.handleUpdateRoute] Error:', error)
-      message.error(error.message || 'Ошибка обновления маршрута')
+      message.error(error instanceof Error ? error.message : 'Ошибка обновления маршрута')
     }
   }
 
@@ -193,9 +194,9 @@ export const ApprovalRoutesTab = () => {
       }
 
       loadRoutes()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[ApprovalRoutesTab.handleDeleteRoute] Error:', error)
-      message.error(error.message || 'Ошибка удаления маршрута')
+      message.error(error instanceof Error ? error.message : 'Ошибка удаления маршрута')
     }
   }
 
@@ -296,9 +297,9 @@ export const ApprovalRoutesTab = () => {
 
       message.success('Этапы сохранены')
       loadRoutes()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[ApprovalRoutesTab.handleSaveStages] Error:', error)
-      message.error(error.message || 'Ошибка сохранения этапов')
+      message.error(error instanceof Error ? error.message : 'Ошибка сохранения этапов')
     } finally {
       setSavingStages(false)
     }

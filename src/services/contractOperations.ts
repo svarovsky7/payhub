@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase'
 import type { Contractor, Project, Contract, ContractStatus } from '../lib/supabase'
 import { message } from 'antd'
+import { isErrorWithCode } from '../types/common'
 
 export type { Contract, ContractStatus }
 
@@ -122,9 +123,9 @@ export const addInvoiceToContract = async (contractId: string, invoiceId: string
 
     message.success('Счет успешно привязан к договору')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[ContractOperations.addInvoiceToContract] Error:', error)
-    if (error.code === '23505') {
+    if (isErrorWithCode(error) && error.code === '23505') {
       message.error('Этот счет уже привязан к договору')
     } else {
       message.error('Ошибка привязки счета к договору')

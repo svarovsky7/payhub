@@ -1,3 +1,4 @@
+import type { FormValues } from '../../../types/common'
 import {
   Card,
   Form,
@@ -23,7 +24,7 @@ interface NewRouteFormProps {
   loading: boolean
   isAddingRoute: boolean
   setIsAddingRoute: (adding: boolean) => void
-  onCreateRoute: (values: any) => void
+  onCreateRoute: (values: FormValues) => void
 }
 
 export const NewRouteForm = ({
@@ -34,7 +35,7 @@ export const NewRouteForm = ({
   setIsAddingRoute,
   onCreateRoute
 }: NewRouteFormProps) => {
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: FormValues) => {
     await onCreateRoute(values)
   }
 

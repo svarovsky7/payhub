@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button, Modal, Form, App } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { supabase } from '../../../lib/supabase'
 import { StatusTable } from './StatusTable'
 import { StatusForm } from './StatusForm'
+import type { Status } from '../../../types/statuses'
 
 interface StatusManagerProps {
   type: 'invoice' | 'payment' | 'contract'
@@ -18,16 +19,12 @@ export const StatusManager: React.FC<StatusManagerProps> = ({
 }) => {
   const { message: messageApi, modal } = App.useApp()
   const [form] = Form.useForm()
-  const [statuses, setStatuses] = useState<any[]>([])
+  const [statuses, setStatuses] = useState<Status[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [editingStatus, setEditingStatus] = useState<any | null>(null)
+  const [editingStatus, setEditingStatus] = useState<Status | null>(null)
 
-  useEffect(() => {
-    loadStatuses()
-  }, [])
-
-  const loadStatuses = async () => {
+  const loadStatuses = useCallback(async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -45,7 +42,11 @@ export const StatusManager: React.FC<StatusManagerProps> = ({
     } finally {
       setLoading(false)
     }
-  }
+  }, [tableName, type, title, messageApi])
+
+  useEffect(() => {
+    loadStatuses()
+  }, [loadStatuses])
 
   const handleCreate = () => {
     setEditingStatus(null)
@@ -54,7 +55,7 @@ export const StatusManager: React.FC<StatusManagerProps> = ({
     setIsModalVisible(true)
   }
 
-  const handleEdit = (record: any) => {
+  const handleEdit = (record: Status) => {
     setEditingStatus(record)
 
     // Special handling for contract statuses color mapping
@@ -86,7 +87,7 @@ export const StatusManager: React.FC<StatusManagerProps> = ({
     setIsModalVisible(true)
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Partial<Status> & Record<string, unknown>) => {
     try {
       // Special handling for contract statuses color mapping
       let submitData = values
@@ -104,9 +105,10 @@ export const StatusManager: React.FC<StatusManagerProps> = ({
           'lime': '#a0d911'
         }
 
+        const colorKey = values.color as string | undefined
         submitData = {
           ...values,
-          color: colorMapping[values.color] || values.color || '#1890ff'
+          color: (colorKey && colorMapping[colorKey]) || colorKey || '#1890ff'
         }
       }
 
@@ -129,12 +131,15 @@ export const StatusManager: React.FC<StatusManagerProps> = ({
 
       setIsModalVisible(false)
       loadStatuses()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`[StatusManager.handleSubmit] Error saving ${type} status:`, error)
-      if (error.code === '23505') {
+      if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
         messageApi.error('Статус с таким кодом уже существует')
       } else {
-        messageApi.error(error.message || `Ошибка сохранения статуса ${title}`)
+        const errorMessage = error && typeof error === 'object' && 'message' in error
+          ? String(error.message)
+          : `Ошибка сохранения статуса ${title}`
+        messageApi.error(errorMessage)
       }
     }
   }
@@ -174,9 +179,9 @@ export const StatusManager: React.FC<StatusManagerProps> = ({
           if (error) throw error
           messageApi.success(`Статус ${title} удалён`)
           loadStatuses()
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error(`[StatusManager.handleDelete] Error deleting ${type} status:`, error)
-          if (error.code === '23503') {
+          if (error && typeof error === 'object' && 'code' in error && error.code === '23503') {
             const entityName = type === 'invoice' ? 'счетах' : type === 'payment' ? 'платежах' : 'договорах'
             messageApi.error(`Невозможно удалить статус, так как он используется в ${entityName}`)
           } else {

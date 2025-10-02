@@ -113,7 +113,7 @@ export const createInvoice = async (
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
-    const { payment_deadline_date, vat_rate: providedVatRate, ...cleanData } = invoiceData
+    const { vat_rate: providedVatRate, ...cleanData } = invoiceData
 
     // Ensure VAT rate is valid - use the provided value from state
     const vatRateValue = providedVatRate !== undefined && providedVatRate !== null
@@ -167,7 +167,7 @@ export const updateInvoice = async (
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
-    const { payment_deadline_date, vat_rate: providedVatRate, ...cleanData } = invoiceData
+    const { vat_rate: providedVatRate, ...cleanData } = invoiceData
 
     // Ensure VAT rate is valid - use the provided value from state
     const vatRateValue = providedVatRate !== undefined && providedVatRate !== null

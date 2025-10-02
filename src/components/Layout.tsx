@@ -25,7 +25,7 @@ interface Role {
   id: number
   code: string
   name: string
-  allowed_pages?: any // JSON field for storing allowed pages array
+  allowed_pages?: string[] | null // JSON field for storing allowed pages array
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -126,9 +126,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       if (location.pathname === '/approvals') {
         window.location.reload()
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[Layout.handleRoleChange] Error:', error)
-      message.error(error.message || 'Ошибка изменения роли')
+      const errorMessage = error instanceof Error ? error.message : 'Ошибка изменения роли'
+      message.error(errorMessage)
     } finally {
       setChangingRole(false)
     }

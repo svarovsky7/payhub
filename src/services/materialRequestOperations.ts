@@ -99,9 +99,9 @@ export async function createMaterialRequest(
 
     // Load full request with relations
     return await loadMaterialRequest(request.id)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.createMaterialRequest] Error:', error)
-    throw new Error(error.message || 'Ошибка создания заявки на материалы')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка создания заявки на материалы')
   }
 }
 
@@ -150,9 +150,9 @@ export async function loadMaterialRequest(requestId: string): Promise<MaterialRe
       ...request,
       items: items || []
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.loadMaterialRequest] Error:', error)
-    throw new Error(error.message || 'Ошибка загрузки заявки на материалы')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка загрузки заявки на материалы')
   }
 }
 
@@ -196,9 +196,9 @@ export async function loadMaterialRequests(): Promise<MaterialRequest[]> {
     }))
 
     return requestsWithSortedItems
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.loadMaterialRequests] Error:', error)
-    throw new Error(error.message || 'Ошибка загрузки заявок на материалы')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка загрузки заявок на материалы')
   }
 }
 
@@ -224,9 +224,9 @@ export async function updateMaterialRequest(
     if (!request) throw new Error('Заявка не найдена')
 
     return await loadMaterialRequest(requestId)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.updateMaterialRequest] Error:', error)
-    throw new Error(error.message || 'Ошибка обновления заявки на материалы')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка обновления заявки на материалы')
   }
 }
 
@@ -282,9 +282,9 @@ export async function addMaterialRequestItems(
     if (error) throw error
 
     return data || []
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.addMaterialRequestItems] Error:', error)
-    throw new Error(error.message || 'Ошибка добавления позиций в заявку')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка добавления позиций в заявку')
   }
 }
 
@@ -310,9 +310,9 @@ export async function updateMaterialRequestItem(
     if (!data) throw new Error('Позиция не найдена')
 
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.updateMaterialRequestItem] Error:', error)
-    throw new Error(error.message || 'Ошибка обновления позиции')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка обновления позиции')
   }
 }
 
@@ -327,9 +327,9 @@ export async function deleteMaterialRequestItem(itemId: string): Promise<void> {
       .eq('id', itemId)
 
     if (error) throw error
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.deleteMaterialRequestItem] Error:', error)
-    throw new Error(error.message || 'Ошибка удаления позиции')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка удаления позиции')
   }
 }
 
@@ -361,7 +361,7 @@ export async function generateRequestNumber(): Promise<string> {
     const nextNumber = (currentNumber + 1).toString().padStart(3, '0')
 
     return `${prefix}${nextNumber}`
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.generateRequestNumber] Error:', error)
     // Return a timestamp-based number as fallback
     return `МТ-${new Date().getTime()}`
@@ -393,8 +393,8 @@ export async function loadMaterialRequestReferences() {
       projects: projectsResult.data || [],
       employees: employeesResult.data || []
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialRequestOperations.loadMaterialRequestReferences] Error:', error)
-    throw new Error(error.message || 'Ошибка загрузки справочников')
+    throw new Error(error instanceof Error ? error.message : 'Ошибка загрузки справочников')
   }
 }

@@ -1,11 +1,12 @@
 import React from 'react'
+import type { FormValues } from '../../../types/common'
 import { Modal, Form, Input, Button, Space } from 'antd'
 import type { Position } from '../../../services/employeeOperations'
 
 interface PositionModalProps {
   visible: boolean
   onCancel: () => void
-  onSubmit: (values: any) => Promise<void>
+  onSubmit: (values: FormValues) => Promise<void>
   editingPosition: Position | null
   form: any
 }

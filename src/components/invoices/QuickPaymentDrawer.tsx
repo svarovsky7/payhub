@@ -33,7 +33,7 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
   onSubmit,
   paymentTypes,
   paymentStatuses,
-  totalPaid,
+  // totalPaid, // Not used in component
   remainingAmount,
   paymentsByStatus
 }) => {

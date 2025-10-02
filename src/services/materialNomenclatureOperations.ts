@@ -110,7 +110,7 @@ export async function loadMaterialNomenclaturePaginated({
       page,
       pageSize
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[materialNomenclatureOperations.loadMaterialNomenclaturePaginated] Error:', error)
     throw error
   }

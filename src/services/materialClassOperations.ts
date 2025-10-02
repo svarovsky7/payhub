@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { message } from 'antd'
+import { isErrorWithCode } from '../types/common'
 
 export interface MaterialClass {
   id: number
@@ -63,10 +64,10 @@ export const createMaterialClass = async (materialClass: Partial<MaterialClass>)
 
     message.success('Класс материалов успешно создан')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[MaterialClassOperations.createMaterialClass] Error:', error)
-    if (error.code === '23505') {
-      if (error.message.includes('name')) {
+    if (isErrorWithCode(error) && error.code === '23505') {
+      if (error.message && error.message.includes('name')) {
         message.error('Класс материалов с таким названием уже существует')
       } else {
         message.error('Такой класс материалов уже существует')
@@ -97,10 +98,10 @@ export const updateMaterialClass = async (id: number, materialClass: Partial<Mat
 
     message.success('Класс материалов успешно обновлен')
     return data
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[MaterialClassOperations.updateMaterialClass] Error:', error)
-    if (error.code === '23505') {
-      if (error.message.includes('name')) {
+    if (isErrorWithCode(error) && error.code === '23505') {
+      if (error.message && error.message.includes('name')) {
         message.error('Класс материалов с таким названием уже существует')
       } else {
         message.error('Такой класс материалов уже существует')

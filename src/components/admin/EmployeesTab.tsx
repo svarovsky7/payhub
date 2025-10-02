@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { FormValues } from '../../types/common'
 import { Button, Tabs, Form } from 'antd'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import {
@@ -73,12 +74,12 @@ export const EmployeesTab = () => {
   }
 
   // Employee handlers
-  const handleEmployeeSubmit = async (values: any) => {
+  const handleEmployeeSubmit = async (values: FormValues) => {
     try {
-      const employeeData = {
+      const employeeData: Partial<Employee> = {
         ...values,
-        is_active: values.is_active ?? true
-      }
+        is_active: (values.is_active as boolean | undefined) ?? true
+      } as Partial<Employee>
 
       if (editingEmployee) {
         await updateEmployee(editingEmployee.id, employeeData)
@@ -122,12 +123,12 @@ export const EmployeesTab = () => {
   }
 
   // Department handlers
-  const handleDepartmentSubmit = async (values: any) => {
+  const handleDepartmentSubmit = async (values: FormValues) => {
     try {
       if (editingDepartment) {
-        await updateDepartment(editingDepartment.id, values.name, values.description)
+        await updateDepartment(editingDepartment.id, values.name as string, values.description as string | undefined)
       } else {
-        await createDepartment(values.name, values.description)
+        await createDepartment(values.name as string, values.description as string | undefined)
       }
 
       await loadAllData()
@@ -155,12 +156,12 @@ export const EmployeesTab = () => {
   }
 
   // Position handlers
-  const handlePositionSubmit = async (values: any) => {
+  const handlePositionSubmit = async (values: FormValues) => {
     try {
       if (editingPosition) {
-        await updatePosition(editingPosition.id, values.name, values.description)
+        await updatePosition(editingPosition.id, values.name as string, values.description as string | undefined)
       } else {
-        await createPosition(values.name, values.description)
+        await createPosition(values.name as string, values.description as string | undefined)
       }
 
       await loadAllData()

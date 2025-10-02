@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Table, Space, Button, Modal, Form, Input, App } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { supabase, type Contractor } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { ImportContractorsModal } from './ImportContractorsModal'
+import type { FormValues } from '../../types/common'
 
 export const ContractorsTab = () => {
   const { message: messageApi, modal } = App.useApp()
@@ -16,11 +17,7 @@ export const ContractorsTab = () => {
   const [form] = Form.useForm()
   const { user } = useAuth()
 
-  useEffect(() => {
-    loadContractors()
-  }, [])
-
-  const loadContractors = async () => {
+  const loadContractors = useCallback(async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -37,8 +34,11 @@ export const ContractorsTab = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [messageApi])
 
+  useEffect(() => {
+    loadContractors()
+  }, [loadContractors])
 
   const handleCreate = () => {
     setEditingContractor(null)
@@ -52,7 +52,7 @@ export const ContractorsTab = () => {
     setIsModalVisible(true)
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: FormValues) => {
     try {
       // Проверяем, существует ли контрагент с таким ИНН
       if (values.inn) {
@@ -97,9 +97,10 @@ export const ContractorsTab = () => {
 
       setIsModalVisible(false)
       loadContractors()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[ContractorsTab.handleSubmit] Error:', error)
-      messageApi.error(error.message || 'Ошибка сохранения контрагента')
+      const errorMessage = error instanceof Error ? error.message : 'Ошибка сохранения контрагента'
+      messageApi.error(errorMessage)
     }
   }
 
@@ -153,7 +154,12 @@ export const ContractorsTab = () => {
 
   // Функция для создания фильтра поиска
   const getColumnSearchProps = (dataIndex: string) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: {
+      setSelectedKeys: (keys: React.Key[]) => void
+      selectedKeys: React.Key[]
+      confirm: () => void
+      clearFilters?: () => void
+    }) => (
       <div style={{ padding: 8 }}>
         <Input
           placeholder={`Поиск ${dataIndex === 'name' ? 'по названию' : 'по ИНН'}`}
@@ -174,7 +180,7 @@ export const ContractorsTab = () => {
           </Button>
           <Button
             onClick={() => {
-              clearFilters()
+              clearFilters?.()
               confirm()
             }}
             size="small"
@@ -188,7 +194,7 @@ export const ContractorsTab = () => {
     filterIcon: (filtered: boolean) => (
       <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
     ),
-    onFilter: (value: any, record: Contractor) =>
+    onFilter: (value: boolean | React.Key, record: Contractor) =>
       record[dataIndex as keyof Contractor]
         ?.toString()
         .toLowerCase()

@@ -1,7 +1,6 @@
 import { supabase } from '../../lib/supabase'
 import { message } from 'antd'
-import type { WorkflowStage, PaymentApproval } from '../../types/approval'
-import { handleError, parseSupabaseError } from '../../lib/errorHandler'
+import type { WorkflowStage } from '../../types/approval'
 
 export const approvePayment = async (
   approvalId: string,
@@ -39,8 +38,8 @@ export const approvePayment = async (
 
     // Проверяем права пользователя на текущий этап
     // stages приходит как массив, нужно найти этап по order_index
-    const stages = approval.route?.stages || []
-    const currentStage = stages.find((s: any) => s.order_index === approval.current_stage_index)
+    const stages = (approval.route?.stages || []) as WorkflowStage[]
+    const currentStage = stages.find((s: WorkflowStage) => s.order_index === approval.current_stage_index)
     if (!currentStage) {
       message.error('Текущий этап не найден')
       return false
@@ -189,8 +188,8 @@ export const rejectPayment = async (
 
     // Проверяем права пользователя на текущий этап
     // stages приходит как массив, нужно найти этап по order_index
-    const stages = approval.route?.stages || []
-    const currentStage = stages.find((s: any) => s.order_index === approval.current_stage_index)
+    const stages = (approval.route?.stages || []) as WorkflowStage[]
+    const currentStage = stages.find((s: WorkflowStage) => s.order_index === approval.current_stage_index)
     if (!currentStage) {
       message.error('Текущий этап не найден')
       return false

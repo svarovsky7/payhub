@@ -1,10 +1,11 @@
 import React from 'react'
 import { Form, Input, Select, InputNumber, Button, Space, Tag } from 'antd'
 import type { FormInstance } from 'antd'
+import type { Status } from '../../../types/statuses'
 
 interface StatusFormProps {
   form: FormInstance
-  onSubmit: (values: any) => void
+  onSubmit: (values: Partial<Status> & Record<string, unknown>) => void
   onCancel: () => void
   isEditing: boolean
 }

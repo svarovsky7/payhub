@@ -272,15 +272,16 @@ export const RoutesList = ({
               </>
             ) : (
               <>
-                <Switch
-                  size="small"
-                  checked={route.is_active}
-                  onChange={() => handleToggleActive(route)}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    background: route.is_active ? '#52c41a' : undefined
-                  }}
-                />
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Switch
+                    size="small"
+                    checked={route.is_active}
+                    onChange={() => handleToggleActive(route)}
+                    style={{
+                      background: route.is_active ? '#52c41a' : undefined
+                    }}
+                  />
+                </div>
                 <Button
                   type="text"
                   size="small"

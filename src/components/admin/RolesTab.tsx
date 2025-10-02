@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { FormValues } from '../../types/common'
 import { Table, Space, Button, Modal, Form, Input, Switch, message, Tooltip, Select, Tag } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -65,7 +66,7 @@ export const RolesTab = () => {
     setIsModalVisible(true)
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: FormValues) => {
     try {
       // Преобразуем allowed_pages в JSON строку для хранения в базе
       const dataToSave = {
@@ -92,9 +93,9 @@ export const RolesTab = () => {
 
       setIsModalVisible(false)
       loadRoles()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[RolesTab.handleSubmit] Error:', error)
-      message.error(error.message || 'Ошибка сохранения роли')
+      message.error(error instanceof Error ? error.message : 'Ошибка сохранения роли')
     }
   }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import type { FormValues } from '../../../types/common'
 import { Button, Modal, Form, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { supabase } from '../../../lib/supabase'
@@ -67,13 +68,13 @@ export const TypeManager: React.FC<TypeManagerProps> = ({ typeCategory }) => {
     setIsModalVisible(true)
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: FormValues) => {
     console.log('[TypeManager.handleSubmit] Start with values:', values)
 
-    const formValues: any = {
+    const formValues: Partial<TypeRecord> = {
       ...values,
-      id: parseInt(values.id, 10)
-    }
+      id: parseInt(values.id as string, 10)
+    } as Partial<TypeRecord>
 
     if (typeCategory === 'payment') {
       delete formValues.is_active
@@ -102,7 +103,7 @@ export const TypeManager: React.FC<TypeManagerProps> = ({ typeCategory }) => {
 
       setIsModalVisible(false)
       loadTypes()
-    } catch (error: any) {
+    } catch (error: unknown) {
       handleSubmitError(error, formValues)
     }
   }
@@ -219,7 +220,7 @@ export const TypeManager: React.FC<TypeManagerProps> = ({ typeCategory }) => {
         message.error('Запись с такими данными уже существует')
       }
     } else {
-      message.error(error.message || `Ошибка сохранения типа ${typeName}`)
+      message.error(error instanceof Error ? error.message : `Ошибка сохранения типа ${typeName}`)
     }
   }
 
@@ -255,9 +256,9 @@ export const TypeManager: React.FC<TypeManagerProps> = ({ typeCategory }) => {
           if (error) throw error
           message.success(`Тип ${typeName} удален`)
           loadTypes()
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('[TypeManager.handleDelete] Error:', error)
-          message.error(error.message || `Ошибка удаления типа ${typeName}`)
+          message.error(error instanceof Error ? error.message : `Ошибка удаления типа ${typeName}`)
         }
       }
     })
