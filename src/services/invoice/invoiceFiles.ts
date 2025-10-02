@@ -109,6 +109,9 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
     message.warning(`Не удалось обновить описания для некоторых файлов`)
   }
 
+  // Max file size: 50MB (configurable based on server limits)
+  const MAX_FILE_SIZE = 50 * 1024 * 1024
+
   const uploadedFiles: string[] = []
   const failedFiles: string[] = []
 
@@ -129,9 +132,21 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
         continue
       }
 
+      // Check file size
+      const fileSize = file.size || 0
+      if (fileSize > MAX_FILE_SIZE) {
+        const sizeMB = (fileSize / (1024 * 1024)).toFixed(2)
+        console.error('[InvoiceOperations.processFiles] File too large:', { name: file.name, sizeMB })
+        message.error(`Файл "${file.name}" слишком большой (${sizeMB} МБ). Максимальный размер: 50 МБ`)
+        failedFiles.push(file.name)
+        continue
+      }
+
       // Генерируем уникальное имя файла
       const fileName = `${Date.now()}_${file.name}`
       const filePath = `invoices/${invoiceId}/${fileName}`
+
+      console.log('[InvoiceOperations.processFiles] Uploading file:', { name: file.name, size: fileSize, path: filePath })
 
       // Загружаем файл в Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -140,6 +155,18 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
 
       if (uploadError) {
         console.error('[InvoiceOperations.processFiles] Storage upload error:', uploadError)
+
+        // Provide user-friendly error messages
+        let errorMessage = uploadError.message
+        if (uploadError.message.includes('Failed to fetch') || uploadError.message.includes('CORS')) {
+          errorMessage = 'Ошибка подключения к серверу хранилища. Обратитесь к администратору.'
+          console.error('[InvoiceOperations.processFiles] CRITICAL: Storage bucket may not exist. See STORAGE_SETUP.md')
+        } else if (uploadError.message.includes('not found') || uploadError.message.includes('404')) {
+          errorMessage = 'Хранилище файлов не настроено. Обратитесь к администратору.'
+          console.error('[InvoiceOperations.processFiles] CRITICAL: Storage bucket "attachments" does not exist. See STORAGE_SETUP.md')
+        }
+
+        message.error(`Ошибка загрузки файла ${file.name}: ${errorMessage}`)
         failedFiles.push(file.name)
         continue
       }

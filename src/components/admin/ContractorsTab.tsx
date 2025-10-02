@@ -188,11 +188,11 @@ export const ContractorsTab = () => {
     filterIcon: (filtered: boolean) => (
       <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
     ),
-    onFilter: (value: string, record: Contractor) =>
+    onFilter: (value: any, record: Contractor) =>
       record[dataIndex as keyof Contractor]
         ?.toString()
         .toLowerCase()
-        .includes(value.toLowerCase()) ?? false
+        .includes(String(value).toLowerCase()) ?? false
   })
 
   const columns: ColumnsType<Contractor> = [

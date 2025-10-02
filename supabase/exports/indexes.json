@@ -375,6 +375,14 @@
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX users_phone_key ON auth.users USING btree (phone)"
   },
+  "cron.job.jobname_username_uniq": {
+    "schema": "cron",
+    "name": "jobname_username_uniq",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX jobname_username_uniq ON cron.job USING btree (jobname, username)"
+  },
   "net._http_response._http_response_created_idx": {
     "schema": "net",
     "name": "_http_response_created_idx",
@@ -382,14 +390,6 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX _http_response_created_idx ON net._http_response USING btree (created)"
-  },
-  "public.approval_routes.approval_routes_invoice_type_id_key": {
-    "schema": "public",
-    "name": "approval_routes_invoice_type_id_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX approval_routes_invoice_type_id_key ON public.approval_routes USING btree (invoice_type_id)"
   },
   "public.approval_routes.idx_approval_routes_invoice_type": {
     "schema": "public",
@@ -934,14 +934,6 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_payment_approvals_status ON public.payment_approvals USING btree (status_id)"
-  },
-  "public.payment_approvals.payment_approvals_payment_id_key": {
-    "schema": "public",
-    "name": "payment_approvals_payment_id_key",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX payment_approvals_payment_id_key ON public.payment_approvals USING btree (payment_id)"
   },
   "public.payment_attachments.idx_payment_attachments_attachment_id": {
     "schema": "public",

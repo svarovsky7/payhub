@@ -75,7 +75,8 @@
       "Bash(gh pr create:*)",
       "Bash(knip:*)",
       "Bash(depcheck:*)",
-      "Bash(tsc --noEmit)"
+      "Bash(tsc --noEmit)",
+      "WebSearch"
     ]
   },
   "enableAllProjectMcpServers": true,

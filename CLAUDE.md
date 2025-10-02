@@ -62,12 +62,12 @@ src/
 ### Database Schema
 
 **Critical**: All database operations must reference schema in `supabase/ai_context/`:
-- `ai_tables_*.json` - Table structures
-- `ai_functions_*.json` - Database functions
+- `ai_tables_min.json` / `ai_tables_full.json` - Table structures
+- `ai_functions_min.json` / `ai_functions_full.json` - Database functions
 - `ai_relations.json` - Foreign key relationships
 - `ai_manifest.json` - Schema metadata
-- `ai_enums_*.json` - Database enumerations
-- `ai_triggers_*.json` - Database triggers
+- `ai_enums_min.json` - Database enumerations
+- `ai_triggers_min.json` - Database triggers
 
 To regenerate AI context after database schema changes:
 ```bash
@@ -139,12 +139,16 @@ Automatic field maintenance:
 - `update_material_request_items_count()` - Syncs parent item counts
 
 #### File Upload System
-- Storage bucket: `attachments`
+- Storage bucket: `attachments` (**must be created first** - see `setup-storage-bucket.sql`)
 - Path pattern: `{entity}/{id}/{timestamp}_{filename}`
+- **File size limit: 50 MB** (enforced in all upload services)
 - Metadata in `attachments` table
-- Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`
+- Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`, `material_request_attachments`
 - Cascade deletion removes both storage and database records
+- Universal component: `FileUploadBlock` (src/components/common/)
 - Service: `fileAttachmentService.ts`, Hook: `useFileAttachment.ts`
+- Upload implementations: `paymentOperations.ts::processPaymentFiles()`, `invoice/invoiceFiles.ts::processInvoiceFiles()`, `fileAttachmentService.ts::uploadFile()`
+- **Troubleshooting**: If CORS errors occur, check `URGENT_STORAGE_ISSUE.md` and run `setup-storage-bucket.sql`
 
 #### Bulk Data Import Pattern
 Multi-step import modals for JSON/CSV data:
@@ -189,10 +193,11 @@ Strict mode with:
 
 Required `.env`:
 ```
-VITE_SUPABASE_URL=http://31.128.51.210:8001
+VITE_SUPABASE_URL=https://api-p1.fvds.ru
 VITE_SUPABASE_ANON_KEY=[your_key]
-VITE_STORAGE_BUCKET=http://31.128.51.210:8001/storage/v1
 ```
+
+**Note**: Storage URL is automatically derived from `VITE_SUPABASE_URL`. Do not add separate `VITE_STORAGE_BUCKET` variable.
 
 ### Windows Development Notes
 

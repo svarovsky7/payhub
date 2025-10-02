@@ -28,8 +28,8 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
 
       console.log('[loadApprovalsForRole] User profile:', userProfile)
 
-      if (userProfile?.roles?.own_projects_only) {
-        projectIds = userProfile.user_projects?.map(up => up.project_id) || []
+      if (userProfile && (userProfile.roles as any)?.own_projects_only) {
+        projectIds = userProfile.user_projects?.map((up: any) => up.project_id) || []
         console.log('[loadApprovalsForRole] User restricted to projects:', projectIds)
       }
     }

@@ -43,7 +43,7 @@ export const loadInvoices = async (userId: string) => {
       .order('created_at', { ascending: false })
 
     // Если у роли включен параметр own_projects_only, фильтруем по проектам пользователя
-    if (role?.own_projects_only) {
+    if ((role as any)?.own_projects_only) {
 
       // Получаем проекты пользователя
       const { data: userProjects, error: projectsError } = await supabase

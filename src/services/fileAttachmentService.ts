@@ -39,6 +39,17 @@ const uploadFile = async ({
       fileSize: file.size
     })
 
+    // Max file size: 50MB (configurable based on server limits)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024
+
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2)
+      const error = new Error(`Файл "${file.name}" слишком большой (${sizeMB} МБ). Максимальный размер: 50 МБ`)
+      console.error('[fileAttachmentService.uploadFile] File too large:', { name: file.name, sizeMB })
+      throw error
+    }
+
     // Генерируем уникальный путь для файла
     const timestamp = Date.now()
     const fileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_') // Очищаем имя файла
@@ -54,6 +65,16 @@ const uploadFile = async ({
 
     if (uploadError) {
       console.error('[fileAttachmentService.uploadFile] Upload error:', uploadError)
+
+      // Provide detailed error information
+      if (uploadError.message.includes('Failed to fetch') || uploadError.message.includes('CORS')) {
+        console.error('[fileAttachmentService.uploadFile] CRITICAL: Storage bucket may not exist or CORS is misconfigured. See STORAGE_SETUP.md')
+        throw new Error('Ошибка подключения к серверу хранилища. Обратитесь к администратору.')
+      } else if (uploadError.message.includes('not found') || uploadError.message.includes('404')) {
+        console.error('[fileAttachmentService.uploadFile] CRITICAL: Storage bucket "attachments" does not exist. See STORAGE_SETUP.md')
+        throw new Error('Хранилище файлов не настроено. Обратитесь к администратору.')
+      }
+
       throw uploadError
     }
 

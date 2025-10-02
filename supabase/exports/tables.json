@@ -2642,6 +2642,231 @@
     ],
     "sql": "-- Auth: Stores user login data within a secure schema.\nCREATE TABLE IF NOT EXISTS auth.users (\n    instance_id uuid,\n    id uuid NOT NULL,\n    aud character varying(255),\n    role character varying(255),\n    email character varying(255),\n    encrypted_password character varying(255),\n    email_confirmed_at timestamp with time zone,\n    invited_at timestamp with time zone,\n    confirmation_token character varying(255),\n    confirmation_sent_at timestamp with time zone,\n    recovery_token character varying(255),\n    recovery_sent_at timestamp with time zone,\n    email_change_token_new character varying(255),\n    email_change character varying(255),\n    email_change_sent_at timestamp with time zone,\n    last_sign_in_at timestamp with time zone,\n    raw_app_meta_data jsonb,\n    raw_user_meta_data jsonb,\n    is_super_admin boolean,\n    created_at timestamp with time zone,\n    updated_at timestamp with time zone,\n    phone text DEFAULT NULL::character varying,\n    phone_confirmed_at timestamp with time zone,\n    phone_change text DEFAULT ''::character varying,\n    phone_change_token character varying(255) DEFAULT ''::character varying,\n    phone_change_sent_at timestamp with time zone,\n    confirmed_at timestamp with time zone,\n    email_change_token_current character varying(255) DEFAULT ''::character varying,\n    email_change_confirm_status smallint(16) DEFAULT 0,\n    banned_until timestamp with time zone,\n    reauthentication_token character varying(255) DEFAULT ''::character varying,\n    reauthentication_sent_at timestamp with time zone,\n    is_sso_user boolean NOT NULL DEFAULT false,\n    deleted_at timestamp with time zone,\n    is_anonymous boolean NOT NULL DEFAULT false,\n    CONSTRAINT users_phone_key UNIQUE (phone),\n    CONSTRAINT users_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE auth.users IS 'Auth: Stores user login data within a secure schema.';\nCOMMENT ON COLUMN auth.users.is_sso_user IS 'Auth: Set this column to true when the account comes from SSO. These accounts can have duplicate emails.';"
   },
+  "cron.job": {
+    "schema": "cron",
+    "name": "job",
+    "comment": null,
+    "columns": [
+      {
+        "name": "jobid",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('cron.jobid_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "schedule",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "command",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "nodename",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "'localhost'::text",
+        "comment": null
+      },
+      {
+        "name": "nodeport",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "inet_server_port()",
+        "comment": null
+      },
+      {
+        "name": "database",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "current_database()",
+        "comment": null
+      },
+      {
+        "name": "username",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "CURRENT_USER",
+        "comment": null
+      },
+      {
+        "name": "active",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "true",
+        "comment": null
+      },
+      {
+        "name": "jobname",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [],
+    "sql": "CREATE TABLE IF NOT EXISTS cron.job (\n    jobid bigint(64) NOT NULL DEFAULT nextval('cron.jobid_seq'::regclass),\n    schedule text NOT NULL,\n    command text NOT NULL,\n    nodename text NOT NULL DEFAULT 'localhost'::text,\n    nodeport integer(32) NOT NULL DEFAULT inet_server_port(),\n    database text NOT NULL DEFAULT current_database(),\n    username text NOT NULL DEFAULT CURRENT_USER,\n    active boolean NOT NULL DEFAULT true,\n    jobname text\n);"
+  },
+  "cron.job_run_details": {
+    "schema": "cron",
+    "name": "job_run_details",
+    "comment": null,
+    "columns": [
+      {
+        "name": "jobid",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "runid",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('cron.runid_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "job_pid",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "database",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "username",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "command",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "return_message",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "start_time",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "end_time",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "25189_25210_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "job_run_details_pkey",
+        "type": "PRIMARY KEY",
+        "column": "runid",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS cron.job_run_details (\n    jobid bigint(64),\n    runid bigint(64) NOT NULL DEFAULT nextval('cron.runid_seq'::regclass),\n    job_pid integer(32),\n    database text,\n    username text,\n    command text,\n    status text,\n    return_message text,\n    start_time timestamp with time zone,\n    end_time timestamp with time zone,\n    CONSTRAINT job_run_details_pkey PRIMARY KEY (runid)\n);"
+  },
   "net._http_response": {
     "schema": "net",
     "name": "_http_response",
@@ -2853,7 +3078,7 @@
   "public.approval_routes": {
     "schema": "public",
     "name": "approval_routes",
-    "comment": "Approval routes configured per invoice type.",
+    "comment": "Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.",
     "columns": [
       {
         "name": "id",
@@ -2950,14 +3175,6 @@
         "foreign_column": null
       },
       {
-        "name": "approval_routes_invoice_type_id_key",
-        "type": "UNIQUE",
-        "column": "invoice_type_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "approval_routes_pkey",
         "type": "PRIMARY KEY",
         "column": "id",
@@ -2966,7 +3183,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Approval routes configured per invoice type.\nCREATE TABLE IF NOT EXISTS public.approval_routes (\n    id integer(32) NOT NULL,\n    invoice_type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_routes_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT approval_routes_invoice_type_id_key UNIQUE (invoice_type_id),\n    CONSTRAINT approval_routes_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.approval_routes IS 'Approval routes configured per invoice type.';\nCOMMENT ON COLUMN public.approval_routes.id IS 'Primary key of the approval route.';\nCOMMENT ON COLUMN public.approval_routes.invoice_type_id IS 'Invoice type (public.invoice_types.id) this route applies to.';\nCOMMENT ON COLUMN public.approval_routes.name IS 'Display name of the approval route.';\nCOMMENT ON COLUMN public.approval_routes.is_active IS 'TRUE when the route can be used for new payments.';\nCOMMENT ON COLUMN public.approval_routes.created_at IS 'Timestamp when the route record was created.';\nCOMMENT ON COLUMN public.approval_routes.updated_at IS 'Timestamp when the route record was last updated.';"
+    "sql": "-- Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.\nCREATE TABLE IF NOT EXISTS public.approval_routes (\n    id integer(32) NOT NULL,\n    invoice_type_id integer(32) NOT NULL,\n    name character varying(255) NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_routes_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT approval_routes_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.approval_routes IS 'Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.';\nCOMMENT ON COLUMN public.approval_routes.id IS 'Primary key of the approval route.';\nCOMMENT ON COLUMN public.approval_routes.invoice_type_id IS 'Invoice type (public.invoice_types.id) this route applies to.';\nCOMMENT ON COLUMN public.approval_routes.name IS 'Display name of the approval route.';\nCOMMENT ON COLUMN public.approval_routes.is_active IS 'TRUE when the route can be used for new payments.';\nCOMMENT ON COLUMN public.approval_routes.created_at IS 'Timestamp when the route record was created.';\nCOMMENT ON COLUMN public.approval_routes.updated_at IS 'Timestamp when the route record was last updated.';"
   },
   "public.approval_steps": {
     "schema": "public",
@@ -5815,7 +6032,7 @@
   "public.payment_approvals": {
     "schema": "public",
     "name": "payment_approvals",
-    "comment": "Payment approval instances.",
+    "comment": "Payment approval processes. One payment can have multiple approval processes (history of all attempts).",
     "columns": [
       {
         "name": "id",
@@ -5938,14 +6155,6 @@
         "foreign_column": null
       },
       {
-        "name": "payment_approvals_payment_id_key",
-        "type": "UNIQUE",
-        "column": "payment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
         "name": "payment_approvals_pkey",
         "type": "PRIMARY KEY",
         "column": "id",
@@ -5970,7 +6179,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Payment approval instances.\nCREATE TABLE IF NOT EXISTS public.payment_approvals (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    route_id integer(32) NOT NULL,\n    status_id integer(32) NOT NULL,\n    current_stage_index integer(32) NOT NULL DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_approvals_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_payment_id_key UNIQUE (payment_id),\n    CONSTRAINT payment_approvals_pkey PRIMARY KEY (id),\n    CONSTRAINT payment_approvals_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payment_approvals IS 'Payment approval instances.';\nCOMMENT ON COLUMN public.payment_approvals.id IS 'Primary key of the payment approval.';\nCOMMENT ON COLUMN public.payment_approvals.payment_id IS 'Payment (public.payments.id) that is being approved.';\nCOMMENT ON COLUMN public.payment_approvals.route_id IS 'Approval route (public.approval_routes.id) used for the payment.';\nCOMMENT ON COLUMN public.payment_approvals.status_id IS 'Current status of the approval (public.payment_statuses.id).';\nCOMMENT ON COLUMN public.payment_approvals.current_stage_index IS 'Zero-based index of the current stage within the route.';\nCOMMENT ON COLUMN public.payment_approvals.created_at IS 'Timestamp when the approval instance was created.';\nCOMMENT ON COLUMN public.payment_approvals.updated_at IS 'Timestamp when the approval instance was last updated.';"
+    "sql": "-- Payment approval processes. One payment can have multiple approval processes (history of all attempts).\nCREATE TABLE IF NOT EXISTS public.payment_approvals (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_id uuid NOT NULL,\n    route_id integer(32) NOT NULL,\n    status_id integer(32) NOT NULL,\n    current_stage_index integer(32) NOT NULL DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payment_approvals_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_pkey PRIMARY KEY (id),\n    CONSTRAINT payment_approvals_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT payment_approvals_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payment_approvals IS 'Payment approval processes. One payment can have multiple approval processes (history of all attempts).';\nCOMMENT ON COLUMN public.payment_approvals.id IS 'Primary key of the payment approval.';\nCOMMENT ON COLUMN public.payment_approvals.payment_id IS 'Payment (public.payments.id) that is being approved.';\nCOMMENT ON COLUMN public.payment_approvals.route_id IS 'Approval route (public.approval_routes.id) used for the payment.';\nCOMMENT ON COLUMN public.payment_approvals.status_id IS 'Current status of the approval (public.payment_statuses.id).';\nCOMMENT ON COLUMN public.payment_approvals.current_stage_index IS 'Zero-based index of the current stage within the route.';\nCOMMENT ON COLUMN public.payment_approvals.created_at IS 'Timestamp when the approval instance was created.';\nCOMMENT ON COLUMN public.payment_approvals.updated_at IS 'Timestamp when the approval instance was last updated.';"
   },
   "public.payment_attachments": {
     "schema": "public",

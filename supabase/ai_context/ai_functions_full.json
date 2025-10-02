@@ -1,7 +1,29 @@
 [
   {
+    "function": "public.add_working_days(start_date date, days_to_add integer)",
+    "returns": "date",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [],
+    "side_effects": []
+  },
+  {
     "function": "public.calculate_material_class_level()",
     "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [],
+    "side_effects": []
+  },
+  {
+    "function": "public.calculate_preliminary_delivery_date(delivery_days integer, delivery_type character varying)",
+    "returns": "date",
     "language": "plpgsql",
     "security": "invoker",
     "summary": "",
@@ -56,6 +78,30 @@
     ]
   },
   {
+    "function": "public.is_weekend(check_date date)",
+    "returns": "boolean",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [],
+    "side_effects": []
+  },
+  {
+    "function": "public.recalculate_invoice_delivery_date()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [
+      "public.update_delivery_date_on_payment_change"
+    ],
+    "side_effects": []
+  },
+  {
     "function": "public.update_material_request_items_count()",
     "returns": "trigger",
     "language": "plpgsql",
@@ -69,6 +115,17 @@
     "side_effects": [
       "UPDATE public.material_requests"
     ]
+  },
+  {
+    "function": "public.update_preliminary_delivery_dates()",
+    "returns": null,
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [],
+    "invoked_by": [],
+    "side_effects": []
   },
   {
     "function": "public.update_updated_at_column()",

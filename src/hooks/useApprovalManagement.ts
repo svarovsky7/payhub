@@ -78,15 +78,16 @@ export const useApprovalManagement = () => {
   // Запуск процесса согласования
   const handleStartApproval = useCallback(async (
     paymentId: string,
-    invoiceTypeId: number
+    routeId: number
   ) => {
     if (!user?.id) {
       message.error('Необходимо авторизоваться')
       return false
     }
 
+    console.log('[useApprovalManagement.handleStartApproval] Starting approval:', { paymentId, routeId })
 
-    const approval = await startApprovalProcess(paymentId, invoiceTypeId)
+    const approval = await startApprovalProcess(paymentId, routeId)
 
     if (approval) {
       await loadPendingApprovals()

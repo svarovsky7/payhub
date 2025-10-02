@@ -144,11 +144,7 @@ export const ApprovalRoutesTab = () => {
       }
     } catch (error: any) {
       console.error('[ApprovalRoutesTab.handleCreateRoute] Error:', error)
-      if (error.code === '23505') {
-        message.error('Маршрут для этого типа счета уже существует')
-      } else {
-        message.error(error.message || 'Ошибка создания маршрута')
-      }
+      message.error(error.message || 'Ошибка создания маршрута')
     }
   }
 
@@ -258,80 +254,44 @@ export const ApprovalRoutesTab = () => {
         return
       }
 
-      // Получаем существующие этапы
-      const { data: existingStages, error: fetchError } = await supabase
+      console.log('[ApprovalRoutesTab.handleSaveStages] Saving stages for route:', selectedRoute.id)
+
+      // Шаг 1: Удаляем ВСЕ существующие этапы маршрута
+      // Это избегает конфликта с unique constraint (route_id, order_index)
+      const { error: deleteError } = await supabase
         .from('workflow_stages')
-        .select('id, order_index')
+        .delete()
         .eq('route_id', selectedRoute.id)
-        .order('order_index')
 
-      if (fetchError) throw fetchError
-
-      const existingIds = existingStages?.map(s => s.id) || []
-      const stagesToUpdate: any[] = []
-      const stagesToInsert: any[] = []
-      const idsToKeep: number[] = []
-
-      // Разделяем этапы на обновляемые и новые
-      editingStages.forEach((stage, index) => {
-        const stageData = {
-          route_id: selectedRoute.id,
-          order_index: index,
-          role_id: stage.role_id,
-          name: stage.name,
-          payment_status_id: stage.payment_status_id || null,
-          permissions: stage.permissions || {}
-        }
-
-        if (stage.id && existingIds.includes(stage.id)) {
-          // Обновляем существующий этап
-          stagesToUpdate.push({ ...stageData, id: stage.id })
-          idsToKeep.push(stage.id)
-        } else if (existingStages && existingStages[index]) {
-          // Переиспользуем существующий этап по индексу
-          stagesToUpdate.push({ ...stageData, id: existingStages[index].id })
-          idsToKeep.push(existingStages[index].id)
-        } else {
-          // Добавляем новый этап
-          stagesToInsert.push(stageData)
-        }
-      })
-
-      // Обновляем существующие этапы
-      for (const stage of stagesToUpdate) {
-        const { error: updateError } = await supabase
-          .from('workflow_stages')
-          .update({
-            order_index: stage.order_index,
-            role_id: stage.role_id,
-            name: stage.name,
-            payment_status_id: stage.payment_status_id,
-            is_active: stage.is_active,
-            permissions: stage.permissions
-          })
-          .eq('id', stage.id)
-
-        if (updateError) throw updateError
+      if (deleteError) {
+        console.error('[ApprovalRoutesTab.handleSaveStages] Delete error:', deleteError)
+        throw deleteError
       }
 
-      // Добавляем новые этапы
+      console.log('[ApprovalRoutesTab.handleSaveStages] Deleted existing stages')
+
+      // Шаг 2: Вставляем новые этапы с правильными order_index
+      const stagesToInsert = editingStages.map((stage, index) => ({
+        route_id: selectedRoute.id,
+        order_index: index,
+        role_id: stage.role_id,
+        name: stage.name,
+        payment_status_id: stage.payment_status_id || null,
+        permissions: stage.permissions || {},
+        is_active: true
+      }))
+
       if (stagesToInsert.length > 0) {
         const { error: insertError } = await supabase
           .from('workflow_stages')
           .insert(stagesToInsert)
 
-        if (insertError) throw insertError
-      }
+        if (insertError) {
+          console.error('[ApprovalRoutesTab.handleSaveStages] Insert error:', insertError)
+          throw insertError
+        }
 
-      // Деактивируем неиспользуемые этапы вместо удаления
-      const idsToDeactivate = existingIds.filter(id => !idsToKeep.includes(id))
-      if (idsToDeactivate.length > 0) {
-        const { error: deactivateError } = await supabase
-          .from('workflow_stages')
-          .update({ is_active: false })
-          .in('id', idsToDeactivate)
-
-        if (deactivateError) throw deactivateError
+        console.log('[ApprovalRoutesTab.handleSaveStages] Inserted', stagesToInsert.length, 'stages')
       }
 
       message.success('Этапы сохранены')
@@ -345,46 +305,53 @@ export const ApprovalRoutesTab = () => {
   }
 
   return (
-    <Row gutter={16} style={{ height: 'calc(100vh - 200px)' }}>
-      {/* Левая часть - список маршрутов */}
-      <Col span={8}>
-        <NewRouteForm
-          form={newRouteForm}
-          invoiceTypes={invoiceTypes}
-          loading={loading}
-          isAddingRoute={isAddingRoute}
-          setIsAddingRoute={setIsAddingRoute}
-          onCreateRoute={handleCreateRoute}
-        />
-
-        <div style={{ marginTop: isAddingRoute ? 16 : 0 }}>
-          <RoutesList
-            routes={routes}
+    <div style={{
+      background: 'linear-gradient(135deg, #f8f9fc 0%, #eef0f5 100%)',
+      minHeight: 'calc(100vh - 200px)',
+      padding: '24px',
+      borderRadius: '12px'
+    }}>
+      <Row gutter={24}>
+        {/* Левая часть - список маршрутов */}
+        <Col xs={24} lg={10} xl={9}>
+          <NewRouteForm
+            form={newRouteForm}
+            invoiceTypes={invoiceTypes}
             loading={loading}
-            selectedRoute={selectedRoute}
-            onSelectRoute={handleSelectRoute}
-            onUpdateRoute={handleUpdateRoute}
-            onDeleteRoute={handleDeleteRoute}
-            setEditingRoute={setEditingRoute}
-            editingRoute={editingRoute}
+            isAddingRoute={isAddingRoute}
+            setIsAddingRoute={setIsAddingRoute}
+            onCreateRoute={handleCreateRoute}
           />
-        </div>
-      </Col>
 
-      {/* Правая часть - конструктор этапов */}
-      <Col span={16}>
-        <StagesEditor
-          selectedRoute={selectedRoute}
-          editingStages={editingStages}
-          roles={roles}
-          paymentStatuses={paymentStatuses}
-          savingStages={savingStages}
-          onAddStage={handleAddStage}
-          onRemoveStage={handleRemoveStage}
-          onStageChange={handleStageChange}
-          onSaveStages={handleSaveStages}
-        />
-      </Col>
-    </Row>
+          <div style={{ marginTop: isAddingRoute ? 16 : 0 }}>
+            <RoutesList
+              routes={routes}
+              loading={loading}
+              selectedRoute={selectedRoute}
+              onSelectRoute={handleSelectRoute}
+              onUpdateRoute={handleUpdateRoute}
+              onDeleteRoute={handleDeleteRoute}
+              setEditingRoute={setEditingRoute}
+              editingRoute={editingRoute}
+            />
+          </div>
+        </Col>
+
+        {/* Правая часть - конструктор этапов */}
+        <Col xs={24} lg={14} xl={15}>
+          <StagesEditor
+            selectedRoute={selectedRoute}
+            editingStages={editingStages}
+            roles={roles}
+            paymentStatuses={paymentStatuses}
+            savingStages={savingStages}
+            onAddStage={handleAddStage}
+            onRemoveStage={handleRemoveStage}
+            onStageChange={handleStageChange}
+            onSaveStages={handleSaveStages}
+          />
+        </Col>
+      </Row>
+    </div>
   )
 }

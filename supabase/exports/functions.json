@@ -27,6 +27,55 @@
     "comment": "Deprecated. Use auth.jwt() -> 'sub' instead.",
     "sql": "CREATE OR REPLACE FUNCTION auth.uid()\n RETURNS uuid\n LANGUAGE sql\n STABLE\nAS $function$\n  select \n  coalesce(\n    nullif(current_setting('request.jwt.claim.sub', true), ''),\n    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')\n  )::uuid\n$function$\n"
   },
+  "cron.alter_job(job_id bigint, schedule text, command text, database text, username text, active boolean)": {
+    "schema": "cron",
+    "name": "alter_job",
+    "arguments": "job_id bigint, schedule text, command text, database text, username text, active boolean",
+    "comment": "Alter the job identified by job_id. Any option left as NULL will not be modified.",
+    "sql": "CREATE OR REPLACE FUNCTION cron.alter_job(job_id bigint, schedule text DEFAULT NULL::text, command text DEFAULT NULL::text, database text DEFAULT NULL::text, username text DEFAULT NULL::text, active boolean DEFAULT NULL::boolean)\n RETURNS void\n LANGUAGE c\nAS '$libdir/pg_cron', $function$cron_alter_job$function$\n"
+  },
+  "cron.job_cache_invalidate()": {
+    "schema": "cron",
+    "name": "job_cache_invalidate",
+    "arguments": "",
+    "comment": "invalidate job cache",
+    "sql": "CREATE OR REPLACE FUNCTION cron.job_cache_invalidate()\n RETURNS trigger\n LANGUAGE c\nAS '$libdir/pg_cron', $function$cron_job_cache_invalidate$function$\n"
+  },
+  "cron.schedule(schedule text, command text)": {
+    "schema": "cron",
+    "name": "schedule",
+    "arguments": "schedule text, command text",
+    "comment": "schedule a pg_cron job",
+    "sql": "CREATE OR REPLACE FUNCTION cron.schedule(schedule text, command text)\n RETURNS bigint\n LANGUAGE c\n STRICT\nAS '$libdir/pg_cron', $function$cron_schedule$function$\n"
+  },
+  "cron.schedule(job_name text, schedule text, command text)": {
+    "schema": "cron",
+    "name": "schedule",
+    "arguments": "job_name text, schedule text, command text",
+    "comment": "schedule a pg_cron job",
+    "sql": "CREATE OR REPLACE FUNCTION cron.schedule(job_name text, schedule text, command text)\n RETURNS bigint\n LANGUAGE c\nAS '$libdir/pg_cron', $function$cron_schedule_named$function$\n"
+  },
+  "cron.schedule_in_database(job_name text, schedule text, command text, database text, username text, active boolean)": {
+    "schema": "cron",
+    "name": "schedule_in_database",
+    "arguments": "job_name text, schedule text, command text, database text, username text, active boolean",
+    "comment": "schedule a pg_cron job",
+    "sql": "CREATE OR REPLACE FUNCTION cron.schedule_in_database(job_name text, schedule text, command text, database text, username text DEFAULT NULL::text, active boolean DEFAULT true)\n RETURNS bigint\n LANGUAGE c\nAS '$libdir/pg_cron', $function$cron_schedule_named$function$\n"
+  },
+  "cron.unschedule(job_id bigint)": {
+    "schema": "cron",
+    "name": "unschedule",
+    "arguments": "job_id bigint",
+    "comment": "unschedule a pg_cron job",
+    "sql": "CREATE OR REPLACE FUNCTION cron.unschedule(job_id bigint)\n RETURNS boolean\n LANGUAGE c\n STRICT\nAS '$libdir/pg_cron', $function$cron_unschedule$function$\n"
+  },
+  "cron.unschedule(job_name text)": {
+    "schema": "cron",
+    "name": "unschedule",
+    "arguments": "job_name text",
+    "comment": "unschedule a pg_cron job",
+    "sql": "CREATE OR REPLACE FUNCTION cron.unschedule(job_name text)\n RETURNS boolean\n LANGUAGE c\n STRICT\nAS '$libdir/pg_cron', $function$cron_unschedule_named$function$\n"
+  },
   "extensions.algorithm_sign(signables text, secret text, algorithm text)": {
     "schema": "extensions",
     "name": "algorithm_sign",
@@ -34,19 +83,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.algorithm_sign(signables text, secret text, algorithm text)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\nAS $function$\nWITH\n  alg AS (\n    SELECT CASE\n      WHEN algorithm = 'HS256' THEN 'sha256'\n      WHEN algorithm = 'HS384' THEN 'sha384'\n      WHEN algorithm = 'HS512' THEN 'sha512'\n      ELSE '' END AS id)  -- hmac throws error\nSELECT extensions.url_encode(extensions.hmac(signables, secret, alg.id)) FROM alg;\n$function$\n"
   },
-  "extensions.armor(bytea)": {
-    "schema": "extensions",
-    "name": "armor",
-    "arguments": "bytea",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
-  },
   "extensions.armor(bytea, text[], text[])": {
     "schema": "extensions",
     "name": "armor",
     "arguments": "bytea, text[], text[]",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
+  },
+  "extensions.armor(bytea)": {
+    "schema": "extensions",
+    "name": "armor",
+    "arguments": "bytea",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.armor(bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_armor$function$\n"
   },
   "extensions.crypt(text, text)": {
     "schema": "extensions",
@@ -76,19 +125,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.decrypt_iv(bytea, bytea, bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$\n"
   },
-  "extensions.digest(text, text)": {
-    "schema": "extensions",
-    "name": "digest",
-    "arguments": "text, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.digest(text, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_digest$function$\n"
-  },
   "extensions.digest(bytea, text)": {
     "schema": "extensions",
     "name": "digest",
     "arguments": "bytea, text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_digest$function$\n"
+  },
+  "extensions.digest(text, text)": {
+    "schema": "extensions",
+    "name": "digest",
+    "arguments": "text, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.digest(text, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_digest$function$\n"
   },
   "extensions.encrypt(bytea, bytea, text)": {
     "schema": "extensions",
@@ -118,19 +167,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.gen_random_uuid()\n RETURNS uuid\n LANGUAGE c\n PARALLEL SAFE\nAS '$libdir/pgcrypto', $function$pg_random_uuid$function$\n"
   },
-  "extensions.gen_salt(text, integer)": {
-    "schema": "extensions",
-    "name": "gen_salt",
-    "arguments": "text, integer",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$\n"
-  },
   "extensions.gen_salt(text)": {
     "schema": "extensions",
     "name": "gen_salt",
     "arguments": "text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt$function$\n"
+  },
+  "extensions.gen_salt(text, integer)": {
+    "schema": "extensions",
+    "name": "gen_salt",
+    "arguments": "text, integer",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)\n RETURNS text\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$\n"
   },
   "extensions.grant_pg_cron_access()": {
     "schema": "extensions",
@@ -202,12 +251,12 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_key_id(bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_key_id_w$function$\n"
   },
-  "extensions.pgp_pub_decrypt(bytea, bytea, text)": {
+  "extensions.pgp_pub_decrypt(bytea, bytea, text, text)": {
     "schema": "extensions",
     "name": "pgp_pub_decrypt",
-    "arguments": "bytea, bytea, text",
+    "arguments": "bytea, bytea, text, text",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
   },
   "extensions.pgp_pub_decrypt(bytea, bytea)": {
     "schema": "extensions",
@@ -216,12 +265,12 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
   },
-  "extensions.pgp_pub_decrypt(bytea, bytea, text, text)": {
+  "extensions.pgp_pub_decrypt(bytea, bytea, text)": {
     "schema": "extensions",
     "name": "pgp_pub_decrypt",
-    "arguments": "bytea, bytea, text, text",
+    "arguments": "bytea, bytea, text",
     "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)\n RETURNS text\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$\n"
   },
   "extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)": {
     "schema": "extensions",
@@ -300,19 +349,19 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)\n RETURNS bytea\n LANGUAGE c\n IMMUTABLE PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$\n"
   },
-  "extensions.pgp_sym_encrypt(text, text)": {
-    "schema": "extensions",
-    "name": "pgp_sym_encrypt",
-    "arguments": "text, text",
-    "comment": null,
-    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$\n"
-  },
   "extensions.pgp_sym_encrypt(text, text, text)": {
     "schema": "extensions",
     "name": "pgp_sym_encrypt",
     "arguments": "text, text, text",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$\n"
+  },
+  "extensions.pgp_sym_encrypt(text, text)": {
+    "schema": "extensions",
+    "name": "pgp_sym_encrypt",
+    "arguments": "text, text",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)\n RETURNS bytea\n LANGUAGE c\n PARALLEL SAFE STRICT\nAS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$\n"
   },
   "extensions.pgp_sym_encrypt_bytea(bytea, text)": {
     "schema": "extensions",
@@ -580,12 +629,26 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION pgbouncer.get_auth(p_usename text)\n RETURNS TABLE(username text, password text)\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\nBEGIN\n    RAISE WARNING 'PgBouncer auth request: %', p_usename;\n\n    RETURN QUERY\n    SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow\n    WHERE usename = p_usename;\nEND;\n$function$\n"
   },
+  "public.add_working_days(start_date date, days_to_add integer)": {
+    "schema": "public",
+    "name": "add_working_days",
+    "arguments": "start_date date, days_to_add integer",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.add_working_days(start_date date, days_to_add integer)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nDECLARE\n  result_date DATE := start_date;\n  working_days_added INTEGER := 0;\nBEGIN\n  WHILE working_days_added < days_to_add LOOP\n    result_date := result_date + INTERVAL '1 day';\n\n    -- Count only if not weekend\n    IF NOT is_weekend(result_date) THEN\n      working_days_added := working_days_added + 1;\n    END IF;\n  END LOOP;\n\n  RETURN result_date;\nEND;\n$function$\n"
+  },
   "public.calculate_material_class_level()": {
     "schema": "public",
     "name": "calculate_material_class_level",
     "arguments": "",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION public.calculate_material_class_level()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF NEW.parent_id IS NULL THEN\n        NEW.level = 0;\n    ELSE\n        SELECT level + 1 INTO NEW.level\n        FROM material_classes\n        WHERE id = NEW.parent_id;\n    END IF;\n    RETURN NEW;\nEND;\n$function$\n"
+  },
+  "public.calculate_preliminary_delivery_date(delivery_days integer, delivery_type character varying)": {
+    "schema": "public",
+    "name": "calculate_preliminary_delivery_date",
+    "arguments": "delivery_days integer, delivery_type character varying",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.calculate_preliminary_delivery_date(delivery_days integer, delivery_type character varying)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nDECLARE\n  today DATE := CURRENT_DATE;\n  next_working_day DATE;\nBEGIN\n  -- If no delivery days specified, return NULL\n  IF delivery_days IS NULL OR delivery_days <= 0 THEN\n    RETURN NULL;\n  END IF;\n\n  -- Step 1: Find next working day from today\n  next_working_day := today + INTERVAL '1 day';\n  WHILE is_weekend(next_working_day) LOOP\n    next_working_day := next_working_day + INTERVAL '1 day';\n  END LOOP;\n\n  -- Step 2: Add delivery days based on type\n  IF delivery_type = 'working' THEN\n    RETURN add_working_days(next_working_day, delivery_days);\n  ELSE\n    -- Calendar days\n    RETURN next_working_day + (delivery_days || ' days')::INTERVAL;\n  END IF;\nEND;\n$function$\n"
   },
   "public.delete_project(project_id_param integer)": {
     "schema": "public",
@@ -605,8 +668,22 @@
     "schema": "public",
     "name": "handle_new_user",
     "arguments": "",
-    "comment": "Creates user profile with default role (user/id=4) when new auth user is created",
-    "sql": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    INSERT INTO public.user_profiles (id, email, full_name, role_id)\n    VALUES (\n        NEW.id,\n        NEW.email,\n        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),\n        1 -- Роль по умолчанию\n    );\n    RETURN NEW;\nEND;\n$function$\n"
+    "comment": "Seeds public.user_profiles when auth.users gains a new row. Role is set to NULL and must be assigned by admin.",
+    "sql": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    INSERT INTO public.user_profiles (id, email, full_name, role_id)\n    VALUES (\n        NEW.id,\n        NEW.email,\n        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),\n        NULL -- Роль будет назначена администратором позже\n    );\n    RETURN NEW;\nEND;\n$function$\n"
+  },
+  "public.is_weekend(check_date date)": {
+    "schema": "public",
+    "name": "is_weekend",
+    "arguments": "check_date date",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.is_weekend(check_date date)\n RETURNS boolean\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n  -- 0 = Sunday, 6 = Saturday\n  RETURN EXTRACT(DOW FROM check_date) IN (0, 6);\nEND;\n$function$\n"
+  },
+  "public.recalculate_invoice_delivery_date()": {
+    "schema": "public",
+    "name": "recalculate_invoice_delivery_date",
+    "arguments": "",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.recalculate_invoice_delivery_date()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  -- Recalculate delivery date for the affected invoice\n  UPDATE invoices\n  SET preliminary_delivery_date = calculate_preliminary_delivery_date(\n    delivery_days,\n    delivery_days_type\n  )\n  WHERE id = COALESCE(NEW.invoice_id, OLD.invoice_id)\n    AND delivery_days IS NOT NULL\n    AND delivery_days > 0\n    AND status_id != 3;  -- Don't update if invoice is already fully paid\n\n  RETURN NEW;\nEND;\n$function$\n"
   },
   "public.update_material_request_items_count()": {
     "schema": "public",
@@ -614,6 +691,13 @@
     "arguments": "",
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION public.update_material_request_items_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'INSERT' THEN\n        -- При добавлении элемента увеличиваем счетчик\n        UPDATE material_requests\n        SET total_items = COALESCE(total_items, 0) + 1\n        WHERE id = NEW.material_request_id;\n    ELSIF TG_OP = 'DELETE' THEN\n        -- При удалении элемента уменьшаем счетчик\n        UPDATE material_requests\n        SET total_items = GREATEST(COALESCE(total_items, 0) - 1, 0)\n        WHERE id = OLD.material_request_id;\n    END IF;\n    RETURN NULL;\nEND;\n$function$\n"
+  },
+  "public.update_preliminary_delivery_dates()": {
+    "schema": "public",
+    "name": "update_preliminary_delivery_dates",
+    "arguments": "",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.update_preliminary_delivery_dates()\n RETURNS TABLE(invoice_id uuid, old_date date, new_date date)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  RETURN QUERY\n  UPDATE invoices i\n  SET preliminary_delivery_date = calculate_preliminary_delivery_date(\n    i.delivery_days,\n    i.delivery_days_type\n  )\n  WHERE\n    -- Only update invoices with delivery days specified\n    i.delivery_days IS NOT NULL\n    AND i.delivery_days > 0\n    -- Only update if not fully paid (status_id != 3)\n    -- Status IDs: 1=draft, 2=pending, 3=paid, 4=partial, 5=cancelled\n    AND i.status_id != 3\n    -- Only update if there are no paid payments\n    AND NOT EXISTS (\n      SELECT 1\n      FROM invoice_payments ip\n      JOIN payments p ON ip.payment_id = p.id\n      WHERE ip.invoice_id = i.id\n        AND p.status_id = 3  -- paid status\n    )\n  RETURNING\n    i.id,\n    i.preliminary_delivery_date AS old_date,\n    calculate_preliminary_delivery_date(i.delivery_days, i.delivery_days_type) AS new_date;\nEND;\n$function$\n"
   },
   "public.update_updated_at_column()": {
     "schema": "public",

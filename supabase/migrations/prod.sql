@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-01T06:55:37.247995
+-- Generated: 2025-10-02T18:04:17.179503
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -333,6 +333,32 @@ CREATE TABLE IF NOT EXISTS auth.users (
 COMMENT ON TABLE auth.users IS 'Auth: Stores user login data within a secure schema.';
 COMMENT ON COLUMN auth.users.is_sso_user IS 'Auth: Set this column to true when the account comes from SSO. These accounts can have duplicate emails.';
 
+CREATE TABLE IF NOT EXISTS cron.job (
+    jobid bigint(64) NOT NULL DEFAULT nextval('cron.jobid_seq'::regclass),
+    schedule text NOT NULL,
+    command text NOT NULL,
+    nodename text NOT NULL DEFAULT 'localhost'::text,
+    nodeport integer(32) NOT NULL DEFAULT inet_server_port(),
+    database text NOT NULL DEFAULT current_database(),
+    username text NOT NULL DEFAULT CURRENT_USER,
+    active boolean NOT NULL DEFAULT true,
+    jobname text
+);
+
+CREATE TABLE IF NOT EXISTS cron.job_run_details (
+    jobid bigint(64),
+    runid bigint(64) NOT NULL DEFAULT nextval('cron.runid_seq'::regclass),
+    job_pid integer(32),
+    database text,
+    username text,
+    command text,
+    status text,
+    return_message text,
+    start_time timestamp with time zone,
+    end_time timestamp with time zone,
+    CONSTRAINT job_run_details_pkey PRIMARY KEY (runid)
+);
+
 CREATE TABLE IF NOT EXISTS net._http_response (
     id bigint(64),
     status_code integer(32),
@@ -353,7 +379,7 @@ CREATE TABLE IF NOT EXISTS net.http_request_queue (
     timeout_milliseconds integer(32) NOT NULL
 );
 
--- Approval routes configured per invoice type.
+-- Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.
 CREATE TABLE IF NOT EXISTS public.approval_routes (
     id integer(32) NOT NULL,
     invoice_type_id integer(32) NOT NULL,
@@ -362,11 +388,10 @@ CREATE TABLE IF NOT EXISTS public.approval_routes (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT approval_routes_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
-    CONSTRAINT approval_routes_invoice_type_id_key UNIQUE (invoice_type_id),
     CONSTRAINT approval_routes_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.approval_routes IS 'Approval routes configured per invoice type.';
+COMMENT ON TABLE public.approval_routes IS 'Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.';
 COMMENT ON COLUMN public.approval_routes.id IS 'Primary key of the approval route.';
 COMMENT ON COLUMN public.approval_routes.invoice_type_id IS 'Invoice type (public.invoice_types.id) this route applies to.';
 COMMENT ON COLUMN public.approval_routes.name IS 'Display name of the approval route.';
@@ -818,7 +843,7 @@ COMMENT ON COLUMN public.material_requests.employee_id IS 'Ответствен�
 COMMENT ON COLUMN public.material_requests.total_items IS 'Общее количество позиций в заявке';
 COMMENT ON COLUMN public.material_requests.created_by IS 'Пользователь, создавший заявку';
 
--- Payment approval instances.
+-- Payment approval processes. One payment can have multiple approval processes (history of all attempts).
 CREATE TABLE IF NOT EXISTS public.payment_approvals (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     payment_id uuid NOT NULL,
@@ -828,13 +853,12 @@ CREATE TABLE IF NOT EXISTS public.payment_approvals (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT payment_approvals_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES None.None(None),
-    CONSTRAINT payment_approvals_payment_id_key UNIQUE (payment_id),
     CONSTRAINT payment_approvals_pkey PRIMARY KEY (id),
     CONSTRAINT payment_approvals_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),
     CONSTRAINT payment_approvals_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.payment_approvals IS 'Payment approval instances.';
+COMMENT ON TABLE public.payment_approvals IS 'Payment approval processes. One payment can have multiple approval processes (history of all attempts).';
 COMMENT ON COLUMN public.payment_approvals.id IS 'Primary key of the payment approval.';
 COMMENT ON COLUMN public.payment_approvals.payment_id IS 'Payment (public.payments.id) that is being approved.';
 COMMENT ON COLUMN public.payment_approvals.route_id IS 'Approval route (public.approval_routes.id) used for the payment.';
@@ -1397,6 +1421,58 @@ $function$
 
 ;
 
+CREATE OR REPLACE FUNCTION cron.alter_job(job_id bigint, schedule text DEFAULT NULL::text, command text DEFAULT NULL::text, database text DEFAULT NULL::text, username text DEFAULT NULL::text, active boolean DEFAULT NULL::boolean)
+ RETURNS void
+ LANGUAGE c
+AS '$libdir/pg_cron', $function$cron_alter_job$function$
+
+;
+
+CREATE OR REPLACE FUNCTION cron.job_cache_invalidate()
+ RETURNS trigger
+ LANGUAGE c
+AS '$libdir/pg_cron', $function$cron_job_cache_invalidate$function$
+
+;
+
+CREATE OR REPLACE FUNCTION cron.schedule(schedule text, command text)
+ RETURNS bigint
+ LANGUAGE c
+ STRICT
+AS '$libdir/pg_cron', $function$cron_schedule$function$
+
+;
+
+CREATE OR REPLACE FUNCTION cron.schedule(job_name text, schedule text, command text)
+ RETURNS bigint
+ LANGUAGE c
+AS '$libdir/pg_cron', $function$cron_schedule_named$function$
+
+;
+
+CREATE OR REPLACE FUNCTION cron.schedule_in_database(job_name text, schedule text, command text, database text, username text DEFAULT NULL::text, active boolean DEFAULT true)
+ RETURNS bigint
+ LANGUAGE c
+AS '$libdir/pg_cron', $function$cron_schedule_named$function$
+
+;
+
+CREATE OR REPLACE FUNCTION cron.unschedule(job_id bigint)
+ RETURNS boolean
+ LANGUAGE c
+ STRICT
+AS '$libdir/pg_cron', $function$cron_unschedule$function$
+
+;
+
+CREATE OR REPLACE FUNCTION cron.unschedule(job_name text)
+ RETURNS boolean
+ LANGUAGE c
+ STRICT
+AS '$libdir/pg_cron', $function$cron_unschedule_named$function$
+
+;
+
 CREATE OR REPLACE FUNCTION extensions.algorithm_sign(signables text, secret text, algorithm text)
  RETURNS text
  LANGUAGE sql
@@ -1414,7 +1490,7 @@ $function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea)
+CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1422,7 +1498,7 @@ AS '$libdir/pgcrypto', $function$pg_armor$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])
+CREATE OR REPLACE FUNCTION extensions.armor(bytea)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1462,7 +1538,7 @@ AS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.digest(text, text)
+CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1470,7 +1546,7 @@ AS '$libdir/pgcrypto', $function$pg_digest$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.digest(text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1510,19 +1586,19 @@ AS '$libdir/pgcrypto', $function$pg_random_uuid$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
- RETURNS text
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
  RETURNS text
  LANGUAGE c
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
+ RETURNS text
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
 
 ;
 
@@ -1722,7 +1798,7 @@ AS '$libdir/pgcrypto', $function$pgp_key_id_w$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1738,7 +1814,7 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1834,7 +1910,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -1842,7 +1918,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)
  RETURNS bytea
  LANGUAGE c
  PARALLEL SAFE STRICT
@@ -2512,6 +2588,30 @@ $function$
 
 ;
 
+CREATE OR REPLACE FUNCTION public.add_working_days(start_date date, days_to_add integer)
+ RETURNS date
+ LANGUAGE plpgsql
+ IMMUTABLE
+AS $function$
+DECLARE
+  result_date DATE := start_date;
+  working_days_added INTEGER := 0;
+BEGIN
+  WHILE working_days_added < days_to_add LOOP
+    result_date := result_date + INTERVAL '1 day';
+
+    -- Count only if not weekend
+    IF NOT is_weekend(result_date) THEN
+      working_days_added := working_days_added + 1;
+    END IF;
+  END LOOP;
+
+  RETURN result_date;
+END;
+$function$
+
+;
+
 CREATE OR REPLACE FUNCTION public.calculate_material_class_level()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -2525,6 +2625,38 @@ BEGIN
         WHERE id = NEW.parent_id;
     END IF;
     RETURN NEW;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.calculate_preliminary_delivery_date(delivery_days integer, delivery_type character varying)
+ RETURNS date
+ LANGUAGE plpgsql
+ IMMUTABLE
+AS $function$
+DECLARE
+  today DATE := CURRENT_DATE;
+  next_working_day DATE;
+BEGIN
+  -- If no delivery days specified, return NULL
+  IF delivery_days IS NULL OR delivery_days <= 0 THEN
+    RETURN NULL;
+  END IF;
+
+  -- Step 1: Find next working day from today
+  next_working_day := today + INTERVAL '1 day';
+  WHILE is_weekend(next_working_day) LOOP
+    next_working_day := next_working_day + INTERVAL '1 day';
+  END LOOP;
+
+  -- Step 2: Add delivery days based on type
+  IF delivery_type = 'working' THEN
+    RETURN add_working_days(next_working_day, delivery_days);
+  ELSE
+    -- Calendar days
+    RETURN next_working_day + (delivery_days || ' days')::INTERVAL;
+  END IF;
 END;
 $function$
 
@@ -2589,9 +2721,44 @@ BEGIN
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-        1 -- Роль по умолчанию
+        NULL -- Роль будет назначена администратором позже
     );
     RETURN NEW;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.is_weekend(check_date date)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ IMMUTABLE
+AS $function$
+BEGIN
+  -- 0 = Sunday, 6 = Saturday
+  RETURN EXTRACT(DOW FROM check_date) IN (0, 6);
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.recalculate_invoice_delivery_date()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+  -- Recalculate delivery date for the affected invoice
+  UPDATE invoices
+  SET preliminary_delivery_date = calculate_preliminary_delivery_date(
+    delivery_days,
+    delivery_days_type
+  )
+  WHERE id = COALESCE(NEW.invoice_id, OLD.invoice_id)
+    AND delivery_days IS NOT NULL
+    AND delivery_days > 0
+    AND status_id != 3;  -- Don't update if invoice is already fully paid
+
+  RETURN NEW;
 END;
 $function$
 
@@ -2614,6 +2781,41 @@ BEGIN
         WHERE id = OLD.material_request_id;
     END IF;
     RETURN NULL;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.update_preliminary_delivery_dates()
+ RETURNS TABLE(invoice_id uuid, old_date date, new_date date)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+  RETURN QUERY
+  UPDATE invoices i
+  SET preliminary_delivery_date = calculate_preliminary_delivery_date(
+    i.delivery_days,
+    i.delivery_days_type
+  )
+  WHERE
+    -- Only update invoices with delivery days specified
+    i.delivery_days IS NOT NULL
+    AND i.delivery_days > 0
+    -- Only update if not fully paid (status_id != 3)
+    -- Status IDs: 1=draft, 2=pending, 3=paid, 4=partial, 5=cancelled
+    AND i.status_id != 3
+    -- Only update if there are no paid payments
+    AND NOT EXISTS (
+      SELECT 1
+      FROM invoice_payments ip
+      JOIN payments p ON ip.payment_id = p.id
+      WHERE ip.invoice_id = i.id
+        AND p.status_id = 3  -- paid status
+    )
+  RETURNING
+    i.id,
+    i.preliminary_delivery_date AS old_date,
+    calculate_preliminary_delivery_date(i.delivery_days, i.delivery_days_type) AS new_date;
 END;
 $function$
 
@@ -4067,6 +4269,9 @@ $function$
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user()
 ;
 
+CREATE TRIGGER cron_job_cache_invalidate AFTER INSERT OR DELETE OR UPDATE OR TRUNCATE ON cron.job FOR EACH STATEMENT EXECUTE FUNCTION cron.job_cache_invalidate()
+;
+
 CREATE TRIGGER update_approval_routes_updated_at BEFORE UPDATE ON public.approval_routes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -4086,6 +4291,9 @@ CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON public.departments
 ;
 
 CREATE TRIGGER update_employees_updated_at BEFORE UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER update_delivery_date_on_payment_change AFTER INSERT OR DELETE OR UPDATE ON public.invoice_payments FOR EACH ROW EXECUTE FUNCTION recalculate_invoice_delivery_date()
 ;
 
 CREATE TRIGGER update_invoice_statuses_updated_at BEFORE UPDATE ON public.invoice_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
@@ -4308,10 +4516,10 @@ CREATE INDEX users_is_anonymous_idx ON auth.users USING btree (is_anonymous)
 CREATE UNIQUE INDEX users_phone_key ON auth.users USING btree (phone)
 ;
 
-CREATE INDEX _http_response_created_idx ON net._http_response USING btree (created)
+CREATE UNIQUE INDEX jobname_username_uniq ON cron.job USING btree (jobname, username)
 ;
 
-CREATE UNIQUE INDEX approval_routes_invoice_type_id_key ON public.approval_routes USING btree (invoice_type_id)
+CREATE INDEX _http_response_created_idx ON net._http_response USING btree (created)
 ;
 
 CREATE INDEX idx_approval_routes_invoice_type ON public.approval_routes USING btree (invoice_type_id)
@@ -4516,9 +4724,6 @@ CREATE INDEX idx_payment_approvals_payment ON public.payment_approvals USING btr
 ;
 
 CREATE INDEX idx_payment_approvals_status ON public.payment_approvals USING btree (status_id)
-;
-
-CREATE UNIQUE INDEX payment_approvals_payment_id_key ON public.payment_approvals USING btree (payment_id)
 ;
 
 CREATE INDEX idx_payment_attachments_attachment_id ON public.payment_attachments USING btree (attachment_id)

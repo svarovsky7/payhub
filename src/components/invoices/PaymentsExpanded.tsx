@@ -1,4 +1,4 @@
-import { Table, Space, Button, Typography, Empty, Spin, Tag, Tooltip } from 'antd'
+import { Table, Space, Button, Typography, Empty, Spin, Tag, Tooltip, message as antdMessage } from 'antd'
 import { EditOutlined, DeleteOutlined, SendOutlined, ClockCircleOutlined, HistoryOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import type { Invoice, Payment, PaymentType, PaymentStatus } from '../../lib/supabase'
@@ -6,8 +6,9 @@ import { formatAmount } from '../../utils/invoiceHelpers'
 import dayjs from 'dayjs'
 import { useApprovalManagement } from '../../hooks/useApprovalManagement'
 import { ApprovalHistoryModal } from '../approvals/ApprovalHistoryModal'
+import { SelectRouteModal } from '../approvals/SelectRouteModal'
 import { useEffect, useState, useMemo, memo } from 'react'
-import type { PaymentApproval } from '../../services/approvalOperations'
+import { type PaymentApproval, loadApprovalRoutes } from '../../services/approvalOperations'
 
 const { Text } = Typography
 
@@ -20,6 +21,14 @@ interface PaymentsExpandedProps {
   onEditPayment: (payment: Payment) => void
   onDeletePayment: (paymentId: string) => void
   onApprovalStarted?: () => void
+}
+
+interface ApprovalRoute {
+  id: number
+  name: string
+  description?: string
+  invoice_type_id: number
+  is_active: boolean
 }
 
 export const PaymentsExpanded = memo(({
@@ -36,7 +45,13 @@ export const PaymentsExpanded = memo(({
   const [approvalStatuses, setApprovalStatuses] = useState<Record<string, any>>({})
   const [loadingApproval, setLoadingApproval] = useState<string | null>(null)
   const [historyModalVisible, setHistoryModalVisible] = useState(false)
-  const [selectedApproval, setSelectedApproval] = useState<PaymentApproval | null>(null)
+  const [selectedApprovals, setSelectedApprovals] = useState<PaymentApproval[]>([])
+
+  // Route selection modal state
+  const [routeModalVisible, setRouteModalVisible] = useState(false)
+  const [availableRoutes, setAvailableRoutes] = useState<ApprovalRoute[]>([])
+  const [loadingRoutes, setLoadingRoutes] = useState(false)
+  const [selectedPaymentForApproval, setSelectedPaymentForApproval] = useState<Payment | null>(null)
 
   // Load approval statuses for payments
   useEffect(() => {
@@ -68,27 +83,74 @@ export const PaymentsExpanded = memo(({
     return status?.name || '-'
   }
 
-  // Handle send to approval
+  // Handle send to approval - shows route selection modal
   const handleSendToApproval = async (payment: Payment) => {
     if (!invoice.invoice_type_id) {
+      antdMessage.warning('Не указан тип счёта')
       return
     }
 
-    setLoadingApproval(payment.id)
+    console.log('[PaymentsExpanded.handleSendToApproval] Loading routes for invoice type:', invoice.invoice_type_id)
+
+    // Load available routes
+    setLoadingRoutes(true)
+    setSelectedPaymentForApproval(payment)
 
     try {
-      const success = await handleStartApproval(payment.id, invoice.invoice_type_id)
+      const routes = await loadApprovalRoutes(invoice.invoice_type_id)
+
+      if (routes.length === 0) {
+        antdMessage.info('Для данного типа счёта нет активных маршрутов согласования')
+        setSelectedPaymentForApproval(null)
+        return
+      }
+
+      if (routes.length === 1) {
+        // If only one route, use it directly
+        console.log('[PaymentsExpanded.handleSendToApproval] Only one route found, starting approval directly')
+        await handleRouteSelected(routes[0].id, payment)
+      } else {
+        // Show route selection modal
+        console.log('[PaymentsExpanded.handleSendToApproval] Multiple routes found, showing selection modal')
+        setAvailableRoutes(routes)
+        setRouteModalVisible(true)
+      }
+    } catch (error) {
+      console.error('[PaymentsExpanded.handleSendToApproval] Error loading routes:', error)
+      antdMessage.error('Ошибка загрузки маршрутов согласования')
+      setSelectedPaymentForApproval(null)
+    } finally {
+      setLoadingRoutes(false)
+    }
+  }
+
+  // Handle route selected from modal
+  const handleRouteSelected = async (routeId: number, payment?: Payment) => {
+    const targetPayment = payment || selectedPaymentForApproval
+    if (!targetPayment) {
+      console.error('[PaymentsExpanded.handleRouteSelected] No payment selected')
+      return
+    }
+
+    console.log('[PaymentsExpanded.handleRouteSelected] Starting approval with route:', routeId)
+    setLoadingApproval(targetPayment.id)
+
+    try {
+      const success = await handleStartApproval(targetPayment.id, routeId)
       if (success) {
         // Reload approval status
-        const status = await checkApprovalStatus(payment.id)
-        setApprovalStatuses(prev => ({ ...prev, [payment.id]: status }))
+        const status = await checkApprovalStatus(targetPayment.id)
+        setApprovalStatuses(prev => ({ ...prev, [targetPayment.id]: status }))
         // Обновляем данные счетов для отображения нового статуса
         if (onApprovalStarted) {
           onApprovalStarted()
         }
       }
+    } catch (error) {
+      console.error('[PaymentsExpanded.handleRouteSelected] Error:', error)
     } finally {
       setLoadingApproval(null)
+      setSelectedPaymentForApproval(null)
     }
   }
 
@@ -101,20 +163,10 @@ export const PaymentsExpanded = memo(({
     console.log('[PaymentsExpanded.handleHistoryClick] History loaded:', history)
 
     if (history && history.length > 0) {
-      setSelectedApproval(history[0])
+      setSelectedApprovals(history)
     } else {
-      // Если истории нет, создаём минимальный объект для отображения
-      setSelectedApproval({
-        id: '',
-        payment_id: payment.id,
-        route_id: 0,
-        current_stage_index: 0,
-        status_id: payment.status_id || 1,
-        created_at: '',
-        payment: payment,
-        route: null,
-        steps: []
-      } as PaymentApproval)
+      // Если истории нет, создаём пустой массив
+      setSelectedApprovals([])
     }
 
     setHistoryModalVisible(true)
@@ -200,19 +252,20 @@ export const PaymentsExpanded = memo(({
       key: 'actions',
       render: (_, record) => {
         const approvalStatus = approvalStatuses[record.id]
-        const canSendToApproval = !approvalStatus?.isInApproval && record.status_id === 1 // created (Создан)
+        // Разрешаем отправку для статусов: 1 (Создан) и 4 (Отменён)
+        const canSendToApproval = !approvalStatus?.isInApproval && (record.status_id === 1 || record.status_id === 4)
 
         return (
           <Space size="small">
             {canSendToApproval && (
-              <Tooltip title="Отправить на согласование">
+              <Tooltip title={record.status_id === 4 ? "Повторно отправить на согласование" : "Отправить на согласование"}>
                 <Button
                   type="text"
                   icon={<SendOutlined />}
                   onClick={() => handleSendToApproval(record)}
                   size="small"
                   loading={loadingApproval === record.id}
-                  style={{ color: '#1890ff' }}
+                  style={{ color: record.status_id === 4 ? '#fa8c16' : '#1890ff' }}
                 />
               </Tooltip>
             )}
@@ -307,9 +360,21 @@ export const PaymentsExpanded = memo(({
         visible={historyModalVisible}
         onClose={() => {
           setHistoryModalVisible(false)
-          setSelectedApproval(null)
+          setSelectedApprovals([])
         }}
-        approval={selectedApproval}
+        approvals={selectedApprovals}
+      />
+
+      {/* Route Selection Modal */}
+      <SelectRouteModal
+        open={routeModalVisible}
+        onClose={() => {
+          setRouteModalVisible(false)
+          setSelectedPaymentForApproval(null)
+        }}
+        onSelect={handleRouteSelected}
+        routes={availableRoutes}
+        loading={loadingRoutes}
       />
     </div>
   )

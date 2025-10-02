@@ -30,7 +30,7 @@ export const InvoiceBasicFields: React.FC<InvoiceBasicFieldsProps> = ({
             name="invoice_number"
             label="Номер счёта"
           >
-            <Input placeholder="б/н (если номер отсутствует)" />
+            <Input placeholder="б/н (если номер отсутствует)" autoComplete="off" />
           </Form.Item>
         </Col>
         <Col span={12}>

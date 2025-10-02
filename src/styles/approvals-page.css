@@ -1,0 +1,38 @@
+/* Approvals Page Layout */
+.approvals-page {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.approvals-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.approvals-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.approvals-page-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.approvals-page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.approvals-count-tag {
+  font-size: 14px;
+  padding: 4px 12px;
+  border-radius: 16px;
+}

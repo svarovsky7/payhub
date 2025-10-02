@@ -1,7 +1,7 @@
 [
   {
     "table": "public.approval_routes",
-    "summary": "Approval routes configured per invoice type.",
+    "summary": "Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.",
     "columns": [
       {
         "name": "id",
@@ -56,14 +56,7 @@
           "description": "Invoice type (public.invoice_types.id) this route applies to."
         }
       ],
-      "unique": [
-        {
-          "name": "approval_routes_invoice_type_id_key",
-          "columns": [
-            "invoice_type_id"
-          ]
-        }
-      ],
+      "unique": [],
       "checks": [
         {
           "name": "2200_20081_1_not_null"
@@ -77,13 +70,6 @@
       ]
     },
     "indexes": [
-      {
-        "name": "approval_routes_invoice_type_id_key",
-        "columns": [
-          "invoice_type_id"
-        ],
-        "unique": false
-      },
       {
         "name": "idx_approval_routes_invoice_type",
         "columns": [
@@ -1315,7 +1301,18 @@
         "unique": false
       }
     ],
-    "triggers": []
+    "triggers": [
+      {
+        "trigger": "update_delivery_date_on_payment_change",
+        "timing": "AFTER",
+        "events": [
+          "INSERT",
+          "DELETE",
+          "UPDATE"
+        ],
+        "function": "public.recalculate_invoice_delivery_date()"
+      }
+    ]
   },
   {
     "table": "public.invoice_statuses",
@@ -2396,7 +2393,7 @@
   },
   {
     "table": "public.payment_approvals",
-    "summary": "Payment approval instances.",
+    "summary": "Payment approval processes. One payment can have multiple approval processes (history of all attempts).",
     "columns": [
       {
         "name": "id",
@@ -2470,14 +2467,7 @@
           "description": "Current status of the approval (public.payment_statuses.id)."
         }
       ],
-      "unique": [
-        {
-          "name": "payment_approvals_payment_id_key",
-          "columns": [
-            "payment_id"
-          ]
-        }
-      ],
+      "unique": [],
       "checks": [
         {
           "name": "2200_20117_1_not_null"
@@ -2508,13 +2498,6 @@
         "name": "idx_payment_approvals_status",
         "columns": [
           "status_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "payment_approvals_payment_id_key",
-        "columns": [
-          "payment_id"
         ],
         "unique": false
       }

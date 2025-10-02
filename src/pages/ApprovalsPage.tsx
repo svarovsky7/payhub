@@ -1,19 +1,27 @@
 import { useState } from 'react'
-import { Card, Tag, message, Empty, Spin, Form } from 'antd'
+import { Card, Tag, message, Empty, Spin, Form, Switch } from 'antd'
 import { supabase } from '../lib/supabase'
 import { useApprovalManagement } from '../hooks/useApprovalManagement'
+import { useAuth } from '../contexts/AuthContext'
 import dayjs from 'dayjs'
 import type { PaymentApproval } from '../services/approvalOperations'
+import type { BulkApprovalResult } from '../services/approval/approvalBulk'
+import { bulkApprovePayments, bulkRejectPayments } from '../services/approval/approvalBulk'
 import { ApprovalsTable } from '../components/approvals/ApprovalsTable'
+import { GroupedApprovals } from '../components/approvals/GroupedApprovals'
+import { BulkActionBar } from '../components/approvals/BulkActionBar'
+import { BulkRejectModal } from '../components/approvals/BulkRejectModal'
 import { ApprovalActionModals } from '../components/approvals/ApprovalActionModals'
 import { ApprovalHistoryModal } from '../components/approvals/ApprovalHistoryModal'
 import { EditInvoiceModal } from '../components/approvals/EditInvoiceModal'
 import { EditAmountModal } from '../components/approvals/EditAmountModal'
 import { AddFilesModal } from '../components/approvals/AddFilesModal'
 import '../styles/compact-table.css'
+import '../styles/approvals-page.css'
 
 
 export const ApprovalsPage = () => {
+  const { user } = useAuth()
   const {
     pendingApprovals,
     loadingApprovals,
@@ -31,17 +39,35 @@ export const ApprovalsPage = () => {
     pendingApprovals
   })
 
+  // View mode state
+  const [groupedView, setGroupedView] = useState(true)
+
+  // Selection state for bulk operations
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  // Modal states
   const [approveModalVisible, setApproveModalVisible] = useState(false)
   const [rejectModalVisible, setRejectModalVisible] = useState(false)
+  const [bulkRejectModalVisible, setBulkRejectModalVisible] = useState(false)
   const [historyModalVisible, setHistoryModalVisible] = useState(false)
   const [editInvoiceModalVisible, setEditInvoiceModalVisible] = useState(false)
   const [addFilesModalVisible, setAddFilesModalVisible] = useState(false)
   const [editAmountModalVisible, setEditAmountModalVisible] = useState(false)
+
+  // Data states
   const [selectedApproval, setSelectedApproval] = useState<PaymentApproval | null>(null)
   const [comment, setComment] = useState('')
+  const [bulkComment, setBulkComment] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [bulkProcessing, setBulkProcessing] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState(0)
+  const [bulkResult, setBulkResult] = useState<BulkApprovalResult | null>(null)
+
+  // Form instances
   const [editAmountForm] = Form.useForm()
   const [editInvoiceForm] = Form.useForm()
+
+  // Reference data
   const [contractors, setContractors] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [invoiceTypes, setInvoiceTypes] = useState<any[]>([])
@@ -303,6 +329,96 @@ export const ApprovalsPage = () => {
     }
   }
 
+  // Bulk operations handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(pendingApprovals.map(a => a.id))
+    } else {
+      setSelectedIds([])
+    }
+  }
+
+  const handleClearSelection = () => {
+    setSelectedIds([])
+  }
+
+  const handleBulkApprove = async () => {
+    if (!user?.id || selectedIds.length === 0) return
+
+    console.log('[ApprovalsPage.handleBulkApprove] Starting bulk approve:', selectedIds.length)
+    setBulkProcessing(true)
+    setBulkProgress(0)
+
+    try {
+      const result = await bulkApprovePayments(selectedIds, user.id, comment)
+      console.log('[ApprovalsPage.handleBulkApprove] Result:', result)
+
+      if (result.successful > 0) {
+        message.success(`Успешно согласовано: ${result.successful} из ${result.total}`)
+      }
+
+      if (result.failed > 0) {
+        message.error(`Ошибок: ${result.failed} из ${result.total}`)
+      }
+
+      setSelectedIds([])
+      setComment('')
+      await loadPendingApprovals()
+    } catch (error) {
+      console.error('[ApprovalsPage.handleBulkApprove] Error:', error)
+      message.error('Ошибка массового согласования')
+    } finally {
+      setBulkProcessing(false)
+      setBulkProgress(0)
+    }
+  }
+
+  const handleBulkReject = async () => {
+    setBulkRejectModalVisible(true)
+    setBulkResult(null)
+  }
+
+  const submitBulkReject = async () => {
+    if (!user?.id || selectedIds.length === 0 || !bulkComment.trim()) {
+      message.error('Укажите причину отклонения')
+      return
+    }
+
+    console.log('[ApprovalsPage.submitBulkReject] Starting bulk reject:', selectedIds.length)
+    setBulkProcessing(true)
+    setBulkProgress(0)
+    setBulkResult(null)
+
+    try {
+      const result = await bulkRejectPayments(selectedIds, user.id, bulkComment)
+      console.log('[ApprovalsPage.submitBulkReject] Result:', result)
+
+      setBulkResult(result)
+
+      if (result.successful > 0) {
+        message.success(`Успешно отклонено: ${result.successful} из ${result.total}`)
+      }
+
+      if (result.failed > 0) {
+        message.error(`Ошибок: ${result.failed} из ${result.total}`)
+      }
+
+      // Clear selection and reload only if fully successful
+      if (result.failed === 0) {
+        setSelectedIds([])
+        setBulkComment('')
+        setBulkRejectModalVisible(false)
+        await loadPendingApprovals()
+      }
+    } catch (error) {
+      console.error('[ApprovalsPage.submitBulkReject] Error:', error)
+      message.error('Ошибка массового отклонения')
+    } finally {
+      setBulkProcessing(false)
+      setBulkProgress(0)
+    }
+  }
+
 
   if (!userRole) {
     return (
@@ -316,14 +432,27 @@ export const ApprovalsPage = () => {
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <div className="compact-table-header" style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ margin: 0, fontSize: '20px' }}>Согласование платежей</h1>
-        {pendingApprovals.length > 0 && (
-          <Tag color="processing" style={{ fontSize: '13px' }}>
-            {pendingApprovals.length} {pendingApprovals.length === 1 ? 'платёж' : pendingApprovals.length < 5 ? 'платежа' : 'платежей'} на согласовании
-          </Tag>
-        )}
+    <div className="approvals-page">
+      <div className="approvals-page-header">
+        <div className="approvals-page-header-left">
+          <h1 className="approvals-page-title">Согласование платежей</h1>
+          {pendingApprovals.length > 0 && (
+            <Tag color="processing" className="approvals-count-tag">
+              {pendingApprovals.length} {pendingApprovals.length === 1 ? 'платёж' : pendingApprovals.length < 5 ? 'платежа' : 'платежей'}
+            </Tag>
+          )}
+        </div>
+        <div className="approvals-page-header-right">
+          <span style={{ marginRight: 8, color: '#595959' }}>
+            {groupedView ? 'Группировка по проектам' : 'Табличный вид'}
+          </span>
+          <Switch
+            checked={groupedView}
+            onChange={setGroupedView}
+            checkedChildren="Группы"
+            unCheckedChildren="Таблица"
+          />
+        </div>
       </div>
 
       {loadingApprovals ? (
@@ -340,17 +469,46 @@ export const ApprovalsPage = () => {
           />
         </Card>
       ) : (
-        <ApprovalsTable
-          approvals={pendingApprovals}
-          loading={loadingApprovals}
-          onApprove={handleApproveClick}
-          onReject={handleRejectClick}
-          onViewHistory={handleHistoryClick}
-          onEditInvoice={handleEditInvoiceClick}
-          onAddFiles={handleAddFilesClick}
-          onEditAmount={handleEditAmountClick}
-          getCurrentStagePermissions={getCurrentStagePermissions}
-        />
+        <>
+          {groupedView && (
+            <BulkActionBar
+              selectedIds={selectedIds}
+              approvals={pendingApprovals}
+              onApproveAll={handleBulkApprove}
+              onRejectAll={handleBulkReject}
+              onClearSelection={handleClearSelection}
+              onSelectAll={handleSelectAll}
+              processing={bulkProcessing}
+            />
+          )}
+
+          {groupedView ? (
+            <GroupedApprovals
+              approvals={pendingApprovals}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              onApprove={handleApproveClick}
+              onReject={handleRejectClick}
+              onViewHistory={handleHistoryClick}
+              onEditInvoice={handleEditInvoiceClick}
+              onAddFiles={handleAddFilesClick}
+              onEditAmount={handleEditAmountClick}
+              getCurrentStagePermissions={getCurrentStagePermissions}
+            />
+          ) : (
+            <ApprovalsTable
+              approvals={pendingApprovals}
+              loading={loadingApprovals}
+              onApprove={handleApproveClick}
+              onReject={handleRejectClick}
+              onViewHistory={handleHistoryClick}
+              onEditInvoice={handleEditInvoiceClick}
+              onAddFiles={handleAddFilesClick}
+              onEditAmount={handleEditAmountClick}
+              getCurrentStagePermissions={getCurrentStagePermissions}
+            />
+          )}
+        </>
       )}
 
       <ApprovalActionModals
@@ -424,6 +582,22 @@ export const ApprovalsPage = () => {
         processing={processing}
         form={editAmountForm}
         selectedApproval={selectedApproval}
+      />
+
+      <BulkRejectModal
+        visible={bulkRejectModalVisible}
+        selectedCount={selectedIds.length}
+        comment={bulkComment}
+        setComment={setBulkComment}
+        onReject={submitBulkReject}
+        onCancel={() => {
+          setBulkRejectModalVisible(false)
+          setBulkComment('')
+          setBulkResult(null)
+        }}
+        processing={bulkProcessing}
+        processingProgress={bulkProgress}
+        result={bulkResult}
       />
     </div>
   )

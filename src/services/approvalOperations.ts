@@ -13,3 +13,12 @@ export {
   loadApprovalHistory,
   checkPaymentApprovalStatus
 } from './approval/approvalQueries'
+export {
+  loadApprovalRoutes,
+  checkApprovalRoute
+} from './approval/approvalRoutes'
+export {
+  bulkApprovePayments,
+  bulkRejectPayments,
+  type BulkApprovalResult
+} from './approval/approvalBulk'

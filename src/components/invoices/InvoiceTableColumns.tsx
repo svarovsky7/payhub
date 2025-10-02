@@ -200,7 +200,12 @@ export const getInvoiceTableColumns = ({
       dataIndex: 'amount_with_vat',
       key: 'amount_with_vat',
       align: 'right',
-      render: (amount: number | null) => (amount ? `${formatAmount(amount)} ₽` : '-'),
+      width: 150,
+      render: (amount: number | null) => (
+        <span style={{ whiteSpace: 'nowrap' }}>
+          {amount ? `${formatAmount(amount)} ₽` : '-'}
+        </span>
+      ),
       sorter: (a, b) => (a.amount_with_vat ?? 0) - (b.amount_with_vat ?? 0),
       sortDirections: ['ascend', 'descend'],
     },
@@ -209,7 +214,12 @@ export const getInvoiceTableColumns = ({
       dataIndex: 'delivery_cost',
       key: 'delivery_cost',
       align: 'right',
-      render: (cost: number | null) => (cost ? `${formatAmount(cost)} ₽` : '-'),
+      width: 130,
+      render: (cost: number | null) => (
+        <span style={{ whiteSpace: 'nowrap' }}>
+          {cost ? `${formatAmount(cost)} ₽` : '-'}
+        </span>
+      ),
       sorter: (a, b) => (a.delivery_cost ?? 0) - (b.delivery_cost ?? 0),
       sortDirections: ['ascend', 'descend'],
     },

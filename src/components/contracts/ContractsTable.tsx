@@ -3,7 +3,7 @@ import { Table, Button, Space, Tooltip, Popconfirm, Tag, Typography } from 'antd
 import { DeleteOutlined, LinkOutlined, EditOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import type { Contract } from '../../services/contractOperations'
+import type { Contract } from '../../lib/supabase'
 import { ContractInvoices } from './ContractInvoices'
 
 const { Text } = Typography
@@ -84,7 +84,7 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
       title: 'Счетов',
       key: 'invoices_count',
       render: (_, record) => {
-        const count = record.contract_invoices?.length || 0
+        const count = (record.contract_invoices as any[] | undefined)?.length || 0
         return (
           <Tag color={count > 0 ? 'blue' : 'default'}>
             {count}
@@ -97,7 +97,7 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
       title: 'Файлов',
       key: 'attachments_count',
       render: (_, record) => {
-        const count = record.contract_attachments?.length || 0
+        const count = (record.contract_attachments as any[] | undefined)?.length || 0
         return (
           <Tag color={count > 0 ? 'green' : 'default'}>
             {count}
@@ -154,8 +154,8 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
           <ContractInvoices contract={record} onDataChange={onDataChange} />
         ),
         expandedRowKeys,
-        onExpandedRowsChange,
-        rowExpandable: (record) => (record.contract_invoices?.length || 0) > 0
+        onExpandedRowsChange: (keys) => onExpandedRowsChange(keys as string[]),
+        rowExpandable: (record) => ((record.contract_invoices as any[] | undefined)?.length || 0) > 0
       }}
       pagination={{
         pageSize: 10,

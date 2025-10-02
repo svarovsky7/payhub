@@ -273,7 +273,6 @@ export const deletePayment = async (paymentId: string) => {
 
       if (removeError) {
         console.error('[PaymentOperations.deletePayment] Error removing files from storage:', removeError)
-      } else {
       }
     }
 
@@ -333,6 +332,9 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
     currentAttachments?.map(item => (item as any).attachments?.id).filter(Boolean) || []
   )
 
+  // Max file size: 50MB (configurable based on server limits)
+  const MAX_FILE_SIZE = 50 * 1024 * 1024
+
   // Process each file
   for (const file of files) {
     // Skip already existing files
@@ -349,12 +351,29 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
         continue
       }
 
+      // Check file size
+      const fileSize = file.size || fileToUpload.size || 0
+      if (fileSize > MAX_FILE_SIZE) {
+        const sizeMB = (fileSize / (1024 * 1024)).toFixed(2)
+        console.error('[PaymentOperations.processPaymentFiles] File too large:', { name: file.name, sizeMB })
+        message.error(`Файл "${file.name}" слишком большой (${sizeMB} МБ). Максимальный размер: 50 МБ`)
+        continue
+      }
+
       const timestamp = Date.now()
-      const fileName = `${timestamp}_${file.name || fileToUpload.name}`
+      const originalName = file.name || (fileToUpload instanceof File ? fileToUpload.name : 'file')
+      const fileName = `${timestamp}_${originalName}`
       const storagePath = `payments/${paymentId}/${fileName}`
 
+      console.log('[PaymentOperations.processPaymentFiles] Uploading file:', {
+        name: originalName,
+        size: fileSize,
+        path: storagePath,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        bucketName: 'attachments'
+      })
 
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('attachments')
         .upload(storagePath, fileToUpload, {
           cacheControl: '3600',
@@ -362,13 +381,34 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
         })
 
       if (uploadError) {
-        console.error('[PaymentOperations.processPaymentFiles] Upload error:', uploadError)
-        message.error(`Ошибка загрузки файла ${fileName}`)
+        console.error('[PaymentOperations.processPaymentFiles] Upload error:', {
+          error: uploadError,
+          message: uploadError.message,
+          name: uploadError.name
+        })
+
+        // Provide user-friendly error messages
+        let errorMessage = uploadError.message
+        if (uploadError.message.includes('Failed to fetch') || uploadError.message.includes('CORS')) {
+          errorMessage = 'Ошибка подключения к серверу хранилища. Обратитесь к администратору.'
+          console.error('[PaymentOperations.processPaymentFiles] CRITICAL: Storage bucket may not exist or CORS is misconfigured. See STORAGE_SETUP.md')
+        } else if (uploadError.message.includes('not found') || uploadError.message.includes('404')) {
+          errorMessage = 'Хранилище файлов не настроено. Обратитесь к администратору.'
+          console.error('[PaymentOperations.processPaymentFiles] CRITICAL: Storage bucket "attachments" does not exist. See STORAGE_SETUP.md')
+        }
+
+        message.error(`Ошибка загрузки файла ${fileName}: ${errorMessage}`)
         continue
       }
 
+      console.log('[PaymentOperations.processPaymentFiles] Upload successful:', {
+        path: uploadData?.path,
+        id: uploadData?.id,
+        fullPath: uploadData?.fullPath
+      })
+
       const attachmentData = {
-        original_name: file.name || fileToUpload.name,
+        original_name: originalName,
         storage_path: storagePath,
         size_bytes: file.size || fileToUpload.size || 0,
         mime_type: file.type || fileToUpload.type || 'application/octet-stream',
@@ -398,7 +438,6 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
 
       if (linkError) {
         console.error('[PaymentOperations.processPaymentFiles] Link error:', linkError)
-      } else {
       }
     } catch (fileError) {
       console.error('[PaymentOperations.processPaymentFiles] File processing error:', fileError)
@@ -443,16 +482,36 @@ export const getPaymentTotals = (invoiceId: string, invoicePayments: Record<stri
   const payments = invoicePayments[invoiceId] || []
   const totalAmount = invoice?.amount_with_vat || 0
 
+  // Calculate total paid (all payments regardless of status)
   const totalPaid = payments.reduce((sum, payment) => {
     // Use allocated_amount if available, otherwise use payment amount
     const amount = (payment as any).allocated_amount || payment.amount || 0
     return sum + amount
   }, 0)
 
+  // Calculate payments by status
+  const paymentsByStatus: Record<number, { statusName: string, amount: number, color?: string }> = {}
+
+  payments.forEach(payment => {
+    const statusId = payment.status_id
+    const amount = (payment as any).allocated_amount || payment.amount || 0
+
+    if (!paymentsByStatus[statusId]) {
+      paymentsByStatus[statusId] = {
+        statusName: payment.payment_status?.name || `Статус ${statusId}`,
+        amount: 0,
+        color: payment.payment_status?.color
+      }
+    }
+
+    paymentsByStatus[statusId].amount += amount
+  })
+
   const result = {
     totalPaid,
     remainingAmount: totalAmount - totalPaid,
-    paymentCount: payments.length
+    paymentCount: payments.length,
+    paymentsByStatus
   }
 
   return result

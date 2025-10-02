@@ -1,6 +1,5 @@
 import { supabase } from '../../lib/supabase'
 import { message } from 'antd'
-import { checkApprovalRoute } from './approvalRoutes'
 
 export interface PaymentApproval {
   id: string
@@ -30,14 +29,21 @@ export interface ApprovalStep {
 
 export const startApprovalProcess = async (
   paymentId: string,
-  invoiceTypeId: number
+  routeId: number
 ) => {
+  console.log('[ApprovalProcess.startApprovalProcess] Starting approval with routeId:', routeId)
 
   try {
-    // Проверяем, есть ли маршрут согласования для данного типа счёта
-    const route = await checkApprovalRoute(invoiceTypeId)
-    if (!route) {
-      message.info('Для данного типа счёта маршрут согласования не настроен')
+    // Получаем маршрут по ID
+    const { data: route, error: routeError } = await supabase
+      .from('approval_routes')
+      .select('*')
+      .eq('id', routeId)
+      .eq('is_active', true)
+      .single()
+
+    if (routeError || !route) {
+      message.error('Маршрут согласования не найден или неактивен')
       return null
     }
 
@@ -52,6 +58,19 @@ export const startApprovalProcess = async (
     if (existingApproval) {
       message.warning('Процесс согласования уже запущен')
       return null
+    }
+
+    // Проверяем статус платежа - если отклонен (status_id = 4), разрешаем повторное согласование
+    const { data: payment } = await supabase
+      .from('payments')
+      .select('status_id')
+      .eq('id', paymentId)
+      .single()
+
+    if (payment?.status_id === 4) {
+      // Для отклоненного платежа просто создаем новый процесс согласования
+      // Старые записи сохраняются для истории
+      console.log('[ApprovalProcess.startApprovalProcess] Creating new approval process for rejected payment')
     }
 
     // Получаем этапы маршрута
@@ -108,15 +127,15 @@ export const startApprovalProcess = async (
     if (paymentError) throw paymentError
 
     // После обновления статуса платежа пересчитываем статус счета
-    const { data: payment } = await supabase
+    const { data: paymentData } = await supabase
       .from('payments')
       .select('invoice_id')
       .eq('id', paymentId)
       .single()
 
-    if (payment?.invoice_id) {
+    if (paymentData?.invoice_id) {
       const { recalculateInvoiceStatus } = await import('../invoiceOperations')
-      await recalculateInvoiceStatus(payment.invoice_id)
+      await recalculateInvoiceStatus(paymentData.invoice_id)
     }
 
     message.success('Платёж отправлен на согласование')

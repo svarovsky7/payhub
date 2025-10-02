@@ -1,39 +1,8 @@
 import { supabase } from '../lib/supabase'
-import type { Contractor, Project } from '../lib/supabase'
+import type { Contractor, Project, Contract, ContractStatus } from '../lib/supabase'
 import { message } from 'antd'
 
-export interface ContractStatus {
-  id: number
-  code: string
-  name: string
-  color?: string
-  description?: string
-  sort_order?: number
-}
-
-export interface Contract {
-  id: string
-  contract_number: string
-  contract_date: string
-  payer_id?: number
-  supplier_id?: number
-  project_id?: number
-  vat_rate?: number
-  warranty_period_days?: number
-  description?: string
-  created_at: string
-  updated_at: string
-  created_by?: string
-  payer?: any
-  supplier?: any
-  project?: any
-  invoices?: any[]
-  attachments?: any[]
-  status_id?: number
-  status?: ContractStatus
-  payment_terms?: string
-  advance_percentage?: number
-}
+export type { Contract, ContractStatus }
 
 
 // Load contracts with related data

@@ -185,14 +185,16 @@ export const ApprovalsTable = ({
         const progress = `${record.current_stage_index + 1}/${totalStages}`
 
         return (
-          <Tooltip title={`${stage?.role?.name || 'Не определён'} (${stage?.name || 'Этап ' + (record.current_stage_index + 1)})`}>
+          <Tooltip title={`${stage?.role?.name || ''} (${stage?.name || 'Этап ' + (record.current_stage_index + 1)})`}>
             <div>
               <Tag color="processing" style={{ margin: 0, fontSize: '11px' }}>
                 {progress}
               </Tag>
-              <div style={{ fontSize: '11px', marginTop: '2px', color: '#595959' }}>
-                {stage?.role?.name || 'Не определён'}
-              </div>
+              {stage?.role?.name && (
+                <div style={{ fontSize: '11px', marginTop: '2px', color: '#595959' }}>
+                  {stage.role.name}
+                </div>
+              )}
             </div>
           </Tooltip>
         )

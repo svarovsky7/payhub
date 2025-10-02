@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Form, Modal, Button, Space, message, Select, Row, Col } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
-import type { UploadFile, UploadProps } from 'antd'
+import type { UploadFile } from 'antd'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
@@ -13,8 +13,8 @@ import { InvoiceBasicFields } from './InvoiceForm/InvoiceBasicFields'
 import { InvoiceContractProjectFields } from './InvoiceForm/InvoiceContractProjectFields'
 import { InvoiceContractorFieldsEnhanced } from './InvoiceForm/InvoiceContractorFieldsEnhanced'
 import { InvoiceAmountFields } from './InvoiceForm/InvoiceAmountFields'
-import { InvoiceFileUpload } from './InvoiceForm/InvoiceFileUpload'
 import { InvoiceDeliveryFields } from './InvoiceForm/InvoiceDeliveryFields'
+import { FileUploadBlock, type ExistingFile, type FileDescriptions } from '../common/FileUploadBlock'
 
 dayjs.locale('ru')
 
@@ -77,10 +77,9 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   loadingReferences = false,
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([])
-  const [fileDescriptions, setFileDescriptions] = useState<{ [uid: string]: string }>({})
+  const [fileDescriptions, setFileDescriptions] = useState<FileDescriptions>({})
   const [originalFiles, setOriginalFiles] = useState<UploadFile[]>([])
-  const [existingAttachments, setExistingAttachments] = useState<any[]>([])
-  const [uploadingFile, setUploadingFile] = useState(false)
+  const [existingFiles, setExistingFiles] = useState<ExistingFile[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -90,7 +89,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       setFileList([])
       setFileDescriptions({})
       setOriginalFiles([])
-      setExistingAttachments([])
+      setExistingFiles([])
       setSelectedProjectId(null)
       setSelectedContractId(null)
       setSubmitting(false)
@@ -111,19 +110,22 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
 
     try {
       const attachments = await loadInvoiceAttachments(editingInvoice.id)
-      const existingFileList: UploadFile[] = attachments.map(att => ({
-        uid: att.id,
-        name: att.original_name,
-        status: 'done' as const,
-        url: att.storage_path,
-        response: { id: att.id, storage_path: att.storage_path },
-        existingAttachmentId: att.id
-      } as any))
 
-      setOriginalFiles(existingFileList)
-      setExistingAttachments(attachments)
+      // Convert attachments to ExistingFile format
+      const existingFilesList: ExistingFile[] = attachments.map(att => ({
+        id: att.id,
+        original_name: att.original_name,
+        storage_path: att.storage_path,
+        size_bytes: att.size_bytes || 0,
+        mime_type: att.mime_type || 'application/octet-stream',
+        description: att.description,
+        created_at: att.created_at,
+        attachment_id: att.id
+      }))
 
-      const descriptions = attachments.reduce((acc: any, att: any) => {
+      setExistingFiles(existingFilesList)
+
+      const descriptions = attachments.reduce((acc: FileDescriptions, att: any) => {
         if (att.description) {
           acc[att.id] = att.description
         }
@@ -136,61 +138,19 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }
   }
 
-  const handleFileChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
+  const handleFileListChange = (newFileList: UploadFile[]) => {
     setFileList(newFileList)
   }
 
-  const handleFileRemove: UploadProps['onRemove'] = (file) => {
-    setFileList(prev => prev.filter(f => f.uid !== file.uid))
-    setFileDescriptions(prev => {
-      const newDescs = { ...prev }
-      delete newDescs[file.uid]
-      return newDescs
-    })
+  const handleFileDescriptionChange = (uid: string, description: string) => {
+    setFileDescriptions(prev => ({ ...prev, [uid]: description }))
   }
 
-  const handleFilePreview: UploadProps['onPreview'] = async (file) => {
-    if (file.url || file.response?.storage_path) {
-      const url = file.url || file.response.storage_path
-      window.open(url, '_blank')
+  const handleExistingFilesChange = async () => {
+    // Reload existing files after changes
+    if (editingInvoice?.id) {
+      await loadExistingFiles()
     }
-  }
-
-  const handleFileUpload: UploadProps['customRequest'] = async (options) => {
-    const { file, onSuccess, onError } = options
-    setUploadingFile(true)
-
-    try {
-      // Simulate file upload
-      setTimeout(() => {
-        onSuccess?.({ id: `temp-${Date.now()}`, storage_path: URL.createObjectURL(file as Blob) })
-        setUploadingFile(false)
-      }, 1000)
-    } catch (error) {
-      onError?.(error as Error)
-      setUploadingFile(false)
-    }
-  }
-
-  const handleDeleteExistingFile = (fileId: string) => {
-    setExistingAttachments(prev => prev.filter(att => att.id !== fileId))
-    message.success('Файл удален')
-  }
-
-  const handleUpdateFileDescription = (fileId: string, description: string) => {
-    setFileDescriptions(prev => ({ ...prev, [fileId]: description }))
-    // Update existing attachment if it's already in database
-    const existingAttachment = existingAttachments.find(att => att.id === fileId)
-    if (existingAttachment) {
-      existingAttachment.description = description
-      // Mark the original file with the updated description
-      setOriginalFiles(prev => prev.map(f =>
-        f.uid === fileId
-          ? { ...f, description, existingAttachmentId: fileId } as any
-          : f
-      ))
-    }
-    message.success('Описание обновлено')
   }
 
   const handleFinish = async (values: any) => {
@@ -387,18 +347,21 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
         {/* Comments Field */}
 
         {/* File Upload */}
-        <InvoiceFileUpload
-          fileList={fileList}
-          onFileChange={handleFileChange}
-          onFileRemove={handleFileRemove}
-          onFilePreview={handleFilePreview}
-          customRequest={handleFileUpload}
-          uploadingFile={uploadingFile}
-          existingAttachments={existingAttachments}
-          onDeleteExistingFile={handleDeleteExistingFile}
-          onUpdateFileDescription={handleUpdateFileDescription}
-          fileDescriptions={fileDescriptions}
-        />
+        <Form.Item label="Файлы счета">
+          <FileUploadBlock
+            entityType="invoice"
+            entityId={editingInvoice?.id}
+            fileList={fileList}
+            onFileListChange={handleFileListChange}
+            existingFiles={existingFiles}
+            onExistingFilesChange={handleExistingFilesChange}
+            fileDescriptions={fileDescriptions}
+            onFileDescriptionChange={handleFileDescriptionChange}
+            multiple={true}
+            maxSize={50}
+            disabled={submitting}
+          />
+        </Form.Item>
 
         <Form.Item>
           <Space>

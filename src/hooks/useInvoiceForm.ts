@@ -120,7 +120,7 @@ export const useInvoiceForm = () => {
       delivery_days: invoice.delivery_days,
       delivery_days_type: invoice.delivery_days_type || 'calendar',
       preliminary_delivery_date: invoice.preliminary_delivery_date ? dayjs(invoice.preliminary_delivery_date) : null,
-      responsible_id: invoice.responsible_id, // Используем responsible_id напрямую
+      responsible_id: invoice.employee_id, // Исправлено: используем employee_id из типа Invoice
       payment_deadline_date: invoice.relevance_date ? dayjs(invoice.relevance_date) : null // Конечная дата актуальности счета
     }
 

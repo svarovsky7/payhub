@@ -8,6 +8,12 @@ import { formatAmount } from '../../utils/invoiceHelpers'
 
 const { Title, Text } = Typography
 
+interface PaymentByStatus {
+  statusName: string
+  amount: number
+  color?: string
+}
+
 interface QuickPaymentDrawerProps {
   open: boolean
   onClose: () => void
@@ -17,6 +23,7 @@ interface QuickPaymentDrawerProps {
   paymentStatuses: PaymentStatus[]
   totalPaid: number
   remainingAmount: number
+  paymentsByStatus: Record<number, PaymentByStatus>
 }
 
 export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
@@ -27,7 +34,8 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
   paymentTypes,
   paymentStatuses,
   totalPaid,
-  remainingAmount
+  remainingAmount,
+  paymentsByStatus
 }) => {
   const [form] = Form.useForm()
   const [submitting, setSubmitting] = useState(false)
@@ -129,7 +137,7 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
   const uploadProps = {
     beforeUpload: (file: File) => {
       const uploadFile: UploadFile = {
-        uid: file.uid || `rc-upload-${Date.now()}-${Math.random()}`,
+        uid: (file as any).uid || `rc-upload-${Date.now()}-${Math.random()}`,
         name: file.name,
         status: 'done',
         size: file.size,
@@ -188,11 +196,28 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
           <Text>Сумма счёта:</Text>
           <Text strong>{formatAmount(invoice.amount_with_vat || 0)} ₽</Text>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Text>Оплачено:</Text>
-          <Text strong style={{ color: '#52c41a' }}>{formatAmount(totalPaid)} ₽</Text>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+
+        {/* Payments by status */}
+        {Object.keys(paymentsByStatus).length > 0 ? (
+          <>
+            {Object.entries(paymentsByStatus).map(([statusId, statusData]) => (
+              <div key={statusId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, paddingLeft: 12 }}>
+                <Text style={{ fontSize: 13 }}>
+                  {statusData.statusName}:
+                </Text>
+                <Text style={{ fontSize: 13, color: statusData.color || '#52c41a' }}>
+                  {formatAmount(statusData.amount)} ₽
+                </Text>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, paddingLeft: 12 }}>
+            <Text type="secondary" style={{ fontSize: 13 }}>Платежей нет</Text>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
           <Text>Остаток:</Text>
           <Text strong style={{ color: remainingAmount > 0 ? '#ff4d4f' : '#52c41a' }}>
             {formatAmount(Math.abs(remainingAmount))} ₽

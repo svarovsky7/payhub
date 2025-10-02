@@ -319,21 +319,25 @@ export const InvoicesPage = () => {
       />
 
       {/* Quick Payment Drawer */}
-      {selectedInvoiceForPayment && (
-        <QuickPaymentDrawer
-          open={quickPaymentDrawerOpen}
-          onClose={() => {
-            setQuickPaymentDrawerOpen(false)
-            setSelectedInvoiceForPayment(null)
-          }}
-          onSubmit={handleQuickPaymentSubmit}
-          invoice={selectedInvoiceForPayment}
-          paymentTypes={paymentTypes}
-          paymentStatuses={paymentStatuses}
-          totalPaid={getTotals(selectedInvoiceForPayment.id).totalPaid}
-          remainingAmount={getTotals(selectedInvoiceForPayment.id).remainingAmount}
-        />
-      )}
+      {selectedInvoiceForPayment && (() => {
+        const totals = getTotals(selectedInvoiceForPayment.id)
+        return (
+          <QuickPaymentDrawer
+            open={quickPaymentDrawerOpen}
+            onClose={() => {
+              setQuickPaymentDrawerOpen(false)
+              setSelectedInvoiceForPayment(null)
+            }}
+            onSubmit={handleQuickPaymentSubmit}
+            invoice={selectedInvoiceForPayment}
+            paymentTypes={paymentTypes}
+            paymentStatuses={paymentStatuses}
+            totalPaid={totals.totalPaid}
+            remainingAmount={totals.remainingAmount}
+            paymentsByStatus={totals.paymentsByStatus}
+          />
+        )
+      })()}
 
       {/* Payment Edit Modal */}
       {editingPayment && (

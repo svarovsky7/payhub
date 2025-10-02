@@ -70,6 +70,18 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.update_delivery_date_on_payment_change",
+    "table": "public.invoice_payments",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "DELETE",
+      "UPDATE"
+    ],
+    "function": "public.recalculate_invoice_delivery_date()",
+    "purpose": ""
+  },
+  {
     "trigger": "public.update_invoice_statuses_updated_at",
     "table": "public.invoice_statuses",
     "timing": "BEFORE",

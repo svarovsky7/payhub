@@ -1,0 +1,156 @@
+/* Bulk Action Bar Styles */
+.bulk-action-bar {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.bulk-action-bar-empty {
+  background: white;
+}
+
+.bulk-action-bar-active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-color: #667eea;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+
+.bulk-action-bar .ant-card-body {
+  padding: 16px 20px;
+}
+
+.bulk-action-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.bulk-action-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.bulk-action-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bulk-action-count {
+  font-size: 14px;
+  color: #262626;
+}
+
+.bulk-action-amount {
+  font-size: 13px;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.bulk-action-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Bulk Action Buttons */
+.bulk-action-btn {
+  font-weight: 500;
+  border-radius: 8px;
+  height: 36px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bulk-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bulk-action-btn:active {
+  transform: translateY(0);
+}
+
+.bulk-action-btn-approve {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  border: none;
+}
+
+.bulk-action-btn-approve:hover {
+  background: linear-gradient(135deg, #73d13d 0%, #52c41a 100%);
+}
+
+.bulk-action-btn-approve:disabled {
+  background: #d9d9d9;
+  color: #8c8c8c;
+  box-shadow: none;
+}
+
+.bulk-action-btn-reject {
+  background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
+  border: none;
+}
+
+.bulk-action-btn-reject:hover {
+  background: linear-gradient(135deg, #ff7875 0%, #ff4d4f 100%);
+}
+
+.bulk-action-btn-reject:disabled {
+  background: #d9d9d9;
+  color: #8c8c8c;
+  box-shadow: none;
+}
+
+.bulk-action-btn-clear {
+  color: #595959;
+  background: white;
+  border: 1px solid #d9d9d9;
+}
+
+.bulk-action-btn-clear:hover {
+  color: #262626;
+  border-color: #8c8c8c;
+  background: #fafafa;
+}
+
+.bulk-action-btn-clear:disabled {
+  color: #8c8c8c;
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+  box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bulk-action-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bulk-action-left {
+    width: 100%;
+  }
+
+  .bulk-action-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .bulk-action-right .ant-space {
+    width: 100%;
+  }
+
+  .bulk-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

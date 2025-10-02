@@ -183,9 +183,9 @@ export const EditInvoiceModal = ({
                 parser={value => value!.replace(/₽\s?|\s/g, '')}
                 precision={2}
                 onChange={(value) => {
-                  if (value) {
+                  if (value && typeof value === 'number') {
                     setAmountWithVat(value)
-                    const { vatAmount, amountWithoutVat } = calculateVatAmounts(value, vatRate)
+                    calculateVatAmounts(value, vatRate)
                     // Show calculated values in UI
                   }
                 }}
@@ -200,7 +200,7 @@ export const EditInvoiceModal = ({
               <Select
                 onChange={(value) => {
                   setVatRate(value)
-                  const { vatAmount, amountWithoutVat } = calculateVatAmounts(amountWithVat, value)
+                  calculateVatAmounts(amountWithVat, value)
                   // Show calculated values in UI
                 }}
               >

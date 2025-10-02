@@ -3,7 +3,23 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+console.log('[supabase.ts] Initializing Supabase client:', {
+  url: supabaseUrl,
+  hasKey: !!supabaseAnonKey,
+  keyLength: supabaseAnonKey.length
+})
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'payhub-app'
+    }
+  }
+})
 
 export type UserProfile = {
   id: string
@@ -151,5 +167,79 @@ export type Payment = {
   // Связанные объекты
   payment_type?: PaymentType
   payment_status?: PaymentStatus
+  invoice?: Invoice
+}
+
+export type ContractStatus = {
+  id: number
+  code: string
+  name: string
+  color?: string
+  description?: string
+  sort_order?: number
+  created_at: string
+  updated_at: string
+}
+
+export type Contract = {
+  id: string
+  contract_number: string
+  contract_date: string
+  payer_id?: number
+  supplier_id?: number
+  project_id?: number
+  vat_rate?: number
+  warranty_period_days?: number
+  description?: string
+  status_id?: number
+  payment_terms?: string
+  advance_percentage?: number
+  created_at: string
+  updated_at: string
+  created_by?: string
+  // Связанные объекты
+  payer?: Contractor
+  supplier?: Contractor
+  project?: Project
+  status?: ContractStatus
+  contract_invoices?: any[]
+  contract_attachments?: any[]
+}
+
+export type MaterialRequest = {
+  id: string
+  request_number: string
+  request_date: string
+  project_id?: number | null
+  employee_id?: number | null
+  total_items: number
+  created_by?: string | null
+  created_at: string
+  updated_at: string
+  // Relations
+  project?: Project
+  employee?: Employee
+  items?: MaterialRequestItem[]
+}
+
+export type MaterialRequestItem = {
+  id: string
+  material_request_id: string
+  material_name: string
+  unit: string
+  quantity: number
+  nomenclature_id?: number | null
+  sort_order: number
+  created_at: string
+  // Relations
+  nomenclature?: {
+    id: number
+    name: string
+    unit: string
+    material_class?: {
+      id: number
+      name: string
+    }
+  }
 }
 

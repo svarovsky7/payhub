@@ -1,7 +1,8 @@
 import React from 'react'
 import { Table, Button, Popconfirm, Typography, message } from 'antd'
 import dayjs from 'dayjs'
-import { removeInvoiceFromContract, type Contract } from '../../services/contractOperations'
+import { removeInvoiceFromContract } from '../../services/contractOperations'
+import type { Contract } from '../../lib/supabase'
 
 const { Title, Text } = Typography
 
@@ -14,7 +15,7 @@ export const ContractInvoices: React.FC<ContractInvoicesProps> = ({
   contract,
   onDataChange
 }) => {
-  const invoices = contract.contract_invoices || []
+  const invoices = (contract.contract_invoices || []) as any[]
 
   const handleUnlinkInvoice = async (contractId: string, invoiceId: string) => {
     try {
@@ -60,7 +61,7 @@ export const ContractInvoices: React.FC<ContractInvoicesProps> = ({
           {
             title: 'Действия',
             key: 'actions',
-            render: (_, invoiceLink) => (
+            render: (_, invoiceLink: any) => (
               <Popconfirm
                 title="Отвязать счет от договора?"
                 onConfirm={() => handleUnlinkInvoice(contract.id, invoiceLink.invoice_id)}

@@ -197,7 +197,7 @@ export const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   const uploadProps = {
     beforeUpload: (file: File) => {
       const uploadFile: UploadFile = {
-        uid: file.uid || `rc-upload-${Date.now()}-${Math.random()}`,
+        uid: (file as any).uid || `rc-upload-${Date.now()}-${Math.random()}`,
         name: file.name,
         status: 'done',
         size: file.size,

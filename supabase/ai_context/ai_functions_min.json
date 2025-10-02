@@ -1,7 +1,17 @@
 [
   {
+    "function": "public.add_working_days(start_date date, days_to_add integer)",
+    "returns": "date",
+    "summary": ""
+  },
+  {
     "function": "public.calculate_material_class_level()",
     "returns": "trigger",
+    "summary": ""
+  },
+  {
+    "function": "public.calculate_preliminary_delivery_date(delivery_days integer, delivery_type character varying)",
+    "returns": "date",
     "summary": ""
   },
   {
@@ -20,9 +30,24 @@
     "summary": "Seeds public.user_profiles when auth.users gains a new row."
   },
   {
+    "function": "public.is_weekend(check_date date)",
+    "returns": "boolean",
+    "summary": ""
+  },
+  {
+    "function": "public.recalculate_invoice_delivery_date()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
     "function": "public.update_material_request_items_count()",
     "returns": "trigger",
     "summary": "Keeps material_requests.total_items in sync with child records."
+  },
+  {
+    "function": "public.update_preliminary_delivery_dates()",
+    "returns": null,
+    "summary": ""
   },
   {
     "function": "public.update_updated_at_column()",

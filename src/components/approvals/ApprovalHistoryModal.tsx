@@ -12,13 +12,13 @@ const { Text } = Typography
 interface ApprovalHistoryModalProps {
   visible: boolean
   onClose: () => void
-  approval: PaymentApproval | null
+  approvals: PaymentApproval[] // Изменено на массив для отображения всей истории
 }
 
 export const ApprovalHistoryModal = ({
   visible,
   onClose,
-  approval
+  approvals
 }: ApprovalHistoryModalProps) => {
   // Render approval history
   const renderApprovalHistory = (approval: PaymentApproval) => {
@@ -112,23 +112,46 @@ export const ApprovalHistoryModal = ({
           Закрыть
         </Button>
       ]}
-      width={700}
+      width={800}
     >
-      {approval && (
+      {approvals && approvals.length > 0 && (
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <div>
             <Text strong>
-              Платеж № {approval.payment?.payment_number} от{' '}
-              {approval.payment?.payment_date
-                ? dayjs(approval.payment.payment_date).format('DD.MM.YYYY')
+              Платеж № {approvals[0].payment?.payment_number} от{' '}
+              {approvals[0].payment?.payment_date
+                ? dayjs(approvals[0].payment.payment_date).format('DD.MM.YYYY')
                 : '-'}
             </Text>
             <br />
-            <Text>Маршрут: {approval.route?.name}</Text>
+            <Text type="secondary">Всего попыток согласования: {approvals.length}</Text>
           </div>
 
-          {renderApprovalHistory(approval)}
+          {approvals.map((approval, index) => (
+            <div key={approval.id} style={{
+              padding: '16px',
+              background: index === 0 ? '#f0f5ff' : '#fafafa',
+              borderRadius: '8px',
+              border: index === 0 ? '1px solid #1890ff' : '1px solid #d9d9d9'
+            }}>
+              <div style={{ marginBottom: 12 }}>
+                <Space>
+                  <Text strong>Попытка #{approvals.length - index}</Text>
+                  <Text type="secondary">
+                    {dayjs(approval.created_at).format('DD.MM.YYYY HH:mm')}
+                  </Text>
+                  <Text>Маршрут: {approval.route?.name}</Text>
+                  {index === 0 && <Tag color="blue">Текущая</Tag>}
+                </Space>
+              </div>
+              {renderApprovalHistory(approval)}
+            </div>
+          ))}
         </Space>
+      )}
+
+      {(!approvals || approvals.length === 0) && (
+        <Text type="secondary">История согласования отсутствует</Text>
       )}
     </Modal>
   )
