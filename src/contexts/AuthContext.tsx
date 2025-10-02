@@ -28,22 +28,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentRoleId, setCurrentRoleId] = useState<number | null>(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
 
       // Load current user role
       if (session?.user) {
-        const { data: userData } = await supabase
-          .from('user_profiles')
-          .select('role_id')
-          .eq('id', session.user.id)
-          .single()
+        try {
+          const { data: userData } = await supabase
+            .from('user_profiles')
+            .select('role_id')
+            .eq('id', session.user.id)
+            .single()
 
-        setCurrentRoleId(userData?.role_id || null)
+          setCurrentRoleId(userData?.role_id || null)
+        } catch (error) {
+          console.error('[AuthProvider] Error loading user role:', error)
+          setCurrentRoleId(null)
+        }
       }
 
       setLoading(false)
-    })
+    }
+
+    initializeAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)

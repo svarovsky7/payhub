@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-02T18:04:17.179503
+-- Generated: 2025-10-02T19:56:18.827165
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -2714,15 +2714,48 @@ $function$
 CREATE OR REPLACE FUNCTION public.handle_new_user()
  RETURNS trigger
  LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
 AS $function$
+DECLARE
+    default_role_id INTEGER;
 BEGIN
-    INSERT INTO public.user_profiles (id, email, full_name, role_id)
-    VALUES (
-        NEW.id,
-        NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-        NULL -- Роль будет назначена администратором позже
-    );
+    RAISE NOTICE '[handle_new_user] Триггер вызван для user id: %', NEW.id;
+    RAISE NOTICE '[handle_new_user] Email: %', NEW.email;
+    RAISE NOTICE '[handle_new_user] Metadata full_name: %', NEW.raw_user_meta_data->>'full_name';
+
+    BEGIN
+        -- Получаем ID роли 'user' (code='user')
+        SELECT id INTO default_role_id
+        FROM public.roles
+        WHERE code = 'user'
+        LIMIT 1;
+
+        IF default_role_id IS NULL THEN
+            RAISE WARNING '[handle_new_user] ВНИМАНИЕ: Роль с code=''user'' не найдена! Пользователь будет создан без роли.';
+        ELSE
+            RAISE NOTICE '[handle_new_user] Назначаем роль по умолчанию: id=%', default_role_id;
+        END IF;
+
+        -- Создаём профиль пользователя с назначенной ролью
+        INSERT INTO public.user_profiles (id, email, full_name, role_id)
+        VALUES (
+            NEW.id,
+            NEW.email,
+            COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+            default_role_id -- Автоматически назначаем роль 'user'
+        );
+
+        RAISE NOTICE '[handle_new_user] ✓ Профиль успешно создан для: % с role_id=%', NEW.email, default_role_id;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE WARNING '[handle_new_user] ОШИБКА при создании профиля';
+        RAISE WARNING '[handle_new_user] SQLERRM: %', SQLERRM;
+        RAISE WARNING '[handle_new_user] SQLSTATE: %', SQLSTATE;
+        -- Поднимаем исключение дальше, чтобы прервать регистрацию
+        RAISE;
+    END;
+
     RETURN NEW;
 END;
 $function$

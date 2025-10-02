@@ -64,10 +64,11 @@
     "function": "public.handle_new_user()",
     "returns": "trigger",
     "language": "plpgsql",
-    "security": "invoker",
+    "security": "definer",
     "summary": "Seeds public.user_profiles when auth.users gains a new row.",
     "details": "Copies id, email, and derived full_name from the auth.users record into public.user_profiles for application lookups.",
     "touches_tables": [
+      "public.roles",
       "public.user_profiles"
     ],
     "invoked_by": [

@@ -96,10 +96,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
         return
       }
 
-      // If no role is selected, allow access to all pages
+      // If no role is assigned, deny access to protected pages
+      // SECURITY: Never allow access without a valid role
       if (!currentRoleId) {
         setLoading(false)
-        setHasAccess(true)
+        setHasAccess(false)
         return
       }
 

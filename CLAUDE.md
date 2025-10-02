@@ -139,16 +139,15 @@ Automatic field maintenance:
 - `update_material_request_items_count()` - Syncs parent item counts
 
 #### File Upload System
-- Storage bucket: `attachments` (**must be created first** - see `setup-storage-bucket.sql`)
+- Storage bucket: `attachments` (must be created in Supabase Storage)
 - Path pattern: `{entity}/{id}/{timestamp}_{filename}`
-- **File size limit: 50 MB** (enforced in all upload services)
+- **File size limit: 50 MB** (enforced in all upload services - see `fileAttachmentService.ts:43` and `paymentOperations.ts:336`)
 - Metadata in `attachments` table
 - Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`, `material_request_attachments`
 - Cascade deletion removes both storage and database records
 - Universal component: `FileUploadBlock` (src/components/common/)
 - Service: `fileAttachmentService.ts`, Hook: `useFileAttachment.ts`
 - Upload implementations: `paymentOperations.ts::processPaymentFiles()`, `invoice/invoiceFiles.ts::processInvoiceFiles()`, `fileAttachmentService.ts::uploadFile()`
-- **Troubleshooting**: If CORS errors occur, check `URGENT_STORAGE_ISSUE.md` and run `setup-storage-bucket.sql`
 
 #### Bulk Data Import Pattern
 Multi-step import modals for JSON/CSV data:

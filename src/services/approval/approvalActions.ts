@@ -1,5 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { message } from 'antd'
+import type { WorkflowStage, PaymentApproval } from '../../types/approval'
+import { handleError, parseSupabaseError } from '../../lib/errorHandler'
 
 export const approvePayment = async (
   approvalId: string,
@@ -72,7 +74,7 @@ export const approvePayment = async (
 
     // Проверяем, есть ли следующий этап
     const nextStageIndex = approval.current_stage_index + 1
-    const nextStage = stages.find((s: any) => s.order_index === nextStageIndex)
+    const nextStage = stages.find((s: WorkflowStage) => s.order_index === nextStageIndex)
 
     // Обновляем статус платежа согласно настройкам текущего этапа
     if (currentStage.payment_status_id) {
