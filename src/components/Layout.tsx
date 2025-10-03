@@ -285,6 +285,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             minHeight: 280,
             background: '#fff',
             borderRadius: 8,
+              overflowX: 'clip',   // ← добавь это
           }}
         >
           {children}

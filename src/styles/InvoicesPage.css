@@ -10,6 +10,7 @@
 .expandable-table-smooth .ant-table-container,
 .expandable-table-smooth .ant-table-body {
     overflow-x: hidden;   /* не даём появляться горизонтальной полосе */
+}
 
 .expandable-table-smooth table {
   width: 100% !important;

@@ -157,6 +157,7 @@ export const RoutesList = ({
                 count={group.routes.length}
                 style={{
                   background: '#667eea',
+                  color: '#fff',
                   marginLeft: '4px'
                 }}
               />
@@ -237,6 +238,7 @@ export const RoutesList = ({
                 showZero
                 style={{
                   background: isSelected ? '#667eea' : '#8c8c8c',
+                  color: '#fff',
                   fontSize: '12px'
                 }}
               />

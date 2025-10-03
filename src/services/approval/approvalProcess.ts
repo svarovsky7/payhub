@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase'
 import { message } from 'antd'
+import { recalculateInvoiceStatus } from '../invoiceOperations'
 
 export interface PaymentApproval {
   id: string
@@ -134,7 +135,6 @@ export const startApprovalProcess = async (
       .single()
 
     if (paymentData?.invoice_id) {
-      const { recalculateInvoiceStatus } = await import('../invoiceOperations')
       await recalculateInvoiceStatus(paymentData.invoice_id)
     }
 

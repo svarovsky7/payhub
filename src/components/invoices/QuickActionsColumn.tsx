@@ -57,7 +57,31 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
         {/* Разворачивание строки */}
         {onExpandRow && (
           <Tooltip title={isExpanded ? "Скрыть" : paymentCount > 0 ? `${paymentCount} платеж(ей)` : "Нет платежей"}>
-            <Badge count={paymentCount} size="small" showZero={false} offset={[2, -2]} style={{ zIndex: 10 }}>
+            <Badge
+              count={paymentCount}
+              size="small"
+              showZero={false}
+              offset={[2, -2]}
+              style={{
+                zIndex: 10
+              }}
+              styles={{
+                indicator: {
+                  backgroundColor: '#ff4d4f',
+                  color: '#fff',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  minWidth: '18px',
+                  height: '18px',
+                  lineHeight: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 6px',
+                  boxShadow: '0 0 0 1px #fff'
+                }
+              }}
+            >
               <Button
                 icon={<UnorderedListOutlined />}
                 size="small"

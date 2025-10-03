@@ -18,6 +18,7 @@ import { supabase } from '../../lib/supabase'
 import { loadContractors, loadContractStatuses, loadProjects, generateContractNumber } from '../../services/contractOperations'
 import { FileUploadBlock } from '../common/FileUploadBlock'
 import { useFileAttachment } from '../../hooks/useFileAttachment'
+import { uploadAndLinkFile } from '../../services/fileAttachmentService'
 import { useAuth } from '../../contexts/AuthContext'
 
 const { TextArea } = Input
@@ -156,8 +157,6 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
 
       // Загружаем файлы, если есть
       if (fileList.length > 0) {
-        const { uploadAndLinkFile } = await import('../../services/fileAttachmentService')
-
         for (const file of fileList) {
           if (file.originFileObj) {
             try {

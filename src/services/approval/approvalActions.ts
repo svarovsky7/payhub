@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { message } from 'antd'
 import type { WorkflowStage } from '../../types/approval'
+import { recalculateInvoiceStatus } from '../invoiceOperations'
 
 export const approvePayment = async (
   approvalId: string,
@@ -135,7 +136,6 @@ export const approvePayment = async (
       .single()
 
     if (payment?.invoice_id) {
-      const { recalculateInvoiceStatus } = await import('../invoiceOperations')
       await recalculateInvoiceStatus(payment.invoice_id)
     }
 
@@ -254,7 +254,6 @@ export const rejectPayment = async (
     console.log('[ApprovalActions.rejectPayment] Payment after status update:', payment)
 
     if (payment?.invoice_id) {
-      const { recalculateInvoiceStatus } = await import('../invoiceOperations')
       console.log('[ApprovalActions.rejectPayment] Recalculating invoice status for invoice_id:', payment.invoice_id)
       await recalculateInvoiceStatus(payment.invoice_id)
     }
