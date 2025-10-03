@@ -6827,6 +6827,142 @@
     ],
     "sql": "-- Должности сотрудников\nCREATE TABLE IF NOT EXISTS public.positions (\n    id integer(32) NOT NULL DEFAULT nextval('positions_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT positions_name_key UNIQUE (name),\n    CONSTRAINT positions_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.positions IS 'Должности сотрудников';"
   },
+  "public.project_budgets": {
+    "schema": "public",
+    "name": "project_budgets",
+    "comment": "Budget allocations for projects",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('project_budgets_id_seq'::regclass)",
+        "comment": "Primary key of the budget record"
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Foreign key to public.projects.id"
+      },
+      {
+        "name": "allocated_amount",
+        "data_type": "numeric",
+        "max_length": null,
+        "numeric_precision": 15,
+        "numeric_scale": 2,
+        "is_nullable": "NO",
+        "default": "0",
+        "comment": "Total amount allocated to the project"
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Optional description for the budget allocation"
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "User (auth.users.id) who created the budget record"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": "Timestamp when the budget was created"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": "Timestamp when the budget was last updated"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_26027_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26027_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26027_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_budgets_allocated_amount_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_budgets_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_budgets_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_budgets_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Budget allocations for projects\nCREATE TABLE IF NOT EXISTS public.project_budgets (\n    id integer(32) NOT NULL DEFAULT nextval('project_budgets_id_seq'::regclass),\n    project_id integer(32) NOT NULL,\n    allocated_amount numeric(15,2) NOT NULL DEFAULT 0,\n    description text,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT project_budgets_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT project_budgets_pkey PRIMARY KEY (id),\n    CONSTRAINT project_budgets_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.project_budgets IS 'Budget allocations for projects';\nCOMMENT ON COLUMN public.project_budgets.id IS 'Primary key of the budget record';\nCOMMENT ON COLUMN public.project_budgets.project_id IS 'Foreign key to public.projects.id';\nCOMMENT ON COLUMN public.project_budgets.allocated_amount IS 'Total amount allocated to the project';\nCOMMENT ON COLUMN public.project_budgets.description IS 'Optional description for the budget allocation';\nCOMMENT ON COLUMN public.project_budgets.created_by IS 'User (auth.users.id) who created the budget record';\nCOMMENT ON COLUMN public.project_budgets.created_at IS 'Timestamp when the budget was created';\nCOMMENT ON COLUMN public.project_budgets.updated_at IS 'Timestamp when the budget was last updated';"
+  },
   "public.projects": {
     "schema": "public",
     "name": "projects",

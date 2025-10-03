@@ -9,6 +9,7 @@ import {
   AuditOutlined,
   SafetyOutlined,
   FormOutlined,
+  DollarOutlined,
 } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -70,7 +71,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }
         } else {
           // No role selected, allow all pages
-          setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/admin'])
+          setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/project-budgets', '/admin'])
         }
 
       } catch (error) {
@@ -117,7 +118,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }
       } else {
         // No role selected, allow all pages
-        setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/admin'])
+        setAllowedPages(['/invoices', '/material-requests', '/contracts', '/approvals', '/project-budgets', '/admin'])
       }
 
       message.success('Роль изменена')
@@ -182,6 +183,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       key: '/approvals',
       icon: <AuditOutlined />,
       label: 'Согласования',
+    },
+    {
+      key: '/project-budgets',
+      icon: <DollarOutlined />,
+      label: 'Бюджеты проектов',
     },
     {
       key: '/admin',

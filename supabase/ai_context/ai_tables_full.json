@@ -3055,6 +3055,126 @@
     ]
   },
   {
+    "table": "public.project_budgets",
+    "summary": "Budget allocations for projects",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "default": "nextval('project_budgets_id_seq'::regclass)",
+        "description": "Primary key of the budget record"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "fk": "public.projects.id",
+        "description": "Foreign key to public.projects.id"
+      },
+      {
+        "name": "allocated_amount",
+        "type": "numeric(15,2)",
+        "nullable": false,
+        "default": "0",
+        "description": "Total amount allocated to the project"
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "description": "Optional description for the budget allocation"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "fk": "auth.users.id",
+        "description": "User (auth.users.id) who created the budget record"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "description": "Timestamp when the budget was created"
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()",
+        "description": "Timestamp when the budget was last updated"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [
+        {
+          "column": "project_id",
+          "references": "public.projects.id",
+          "description": "Foreign key to public.projects.id"
+        },
+        {
+          "column": "created_by",
+          "references": "auth.users.id",
+          "description": "User (auth.users.id) who created the budget record"
+        }
+      ],
+      "unique": [],
+      "checks": [
+        {
+          "name": "2200_26027_1_not_null"
+        },
+        {
+          "name": "2200_26027_2_not_null"
+        },
+        {
+          "name": "2200_26027_3_not_null"
+        },
+        {
+          "name": "project_budgets_allocated_amount_check"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_project_budgets_created_by",
+        "columns": [
+          "created_by"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_project_budgets_project_id",
+        "columns": [
+          "project_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "project_budgets_project_id_key",
+        "columns": [
+          "project_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": [
+      {
+        "trigger": "update_project_budgets_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "function": "public.update_updated_at_column()"
+      }
+    ]
+  },
+  {
     "table": "public.projects",
     "summary": "Projects used to group invoices and contractors.",
     "columns": [

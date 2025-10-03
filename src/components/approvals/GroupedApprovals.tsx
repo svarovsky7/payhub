@@ -12,6 +12,7 @@ import {
 import dayjs from 'dayjs'
 import { formatAmount } from '../../utils/invoiceHelpers'
 import type { PaymentApproval } from '../../services/approvalOperations'
+import type { ProjectBudgetWithProject } from '../../types/budget'
 import '../../styles/grouped-approvals.css'
 
 const { Panel } = Collapse
@@ -28,6 +29,7 @@ interface GroupedApprovalsProps {
   onAddFiles: (approval: PaymentApproval) => void
   onEditAmount: (approval: PaymentApproval) => void
   getCurrentStagePermissions: (approval: PaymentApproval) => any
+  projectBudgets?: ProjectBudgetWithProject[]
 }
 
 interface ProjectGroup {
@@ -35,6 +37,7 @@ interface ProjectGroup {
   projectName: string
   approvals: PaymentApproval[]
   totalAmount: number
+  budgetAmount?: number
 }
 
 export const GroupedApprovals = ({
@@ -47,7 +50,8 @@ export const GroupedApprovals = ({
   onEditInvoice,
   onAddFiles,
   onEditAmount,
-  getCurrentStagePermissions
+  getCurrentStagePermissions,
+  projectBudgets = []
 }: GroupedApprovalsProps) => {
   const [activeKeys, setActiveKeys] = useState<string[]>([])
 
@@ -58,11 +62,15 @@ export const GroupedApprovals = ({
 
     let group = groups.find(g => g.projectId === projectId)
     if (!group) {
+      // Find budget for this project
+      const budget = projectId ? projectBudgets.find(b => b.project_id === projectId) : null
+
       group = {
         projectId,
         projectName,
         approvals: [],
-        totalAmount: 0
+        totalAmount: 0,
+        budgetAmount: budget ? Number(budget.allocated_amount) : undefined
       }
       groups.push(group)
     }
@@ -162,8 +170,13 @@ export const GroupedApprovals = ({
                     </div>
                   </div>
                   <div className="group-header-right">
+                    {group.budgetAmount !== undefined && (
+                      <Tag color="blue" className="group-budget-tag">
+                        Бюджет: {formatAmount(group.budgetAmount)} ₽
+                      </Tag>
+                    )}
                     <Tag color="purple" className="group-amount-tag">
-                      {formatAmount(group.totalAmount)} ₽
+                      Платежи: {formatAmount(group.totalAmount)} ₽
                     </Tag>
                   </div>
                 </div>

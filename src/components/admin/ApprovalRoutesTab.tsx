@@ -257,42 +257,73 @@ export const ApprovalRoutesTab = () => {
 
       console.log('[ApprovalRoutesTab.handleSaveStages] Saving stages for route:', selectedRoute.id)
 
-      // Шаг 1: Удаляем ВСЕ существующие этапы маршрута
-      // Это избегает конфликта с unique constraint (route_id, order_index)
-      const { error: deleteError } = await supabase
-        .from('workflow_stages')
-        .delete()
-        .eq('route_id', selectedRoute.id)
+      // Новая логика: UPDATE существующих этапов и INSERT новых
+      // Это позволяет избежать конфликтов с foreign key при наличии активных согласований
 
-      if (deleteError) {
-        console.error('[ApprovalRoutesTab.handleSaveStages] Delete error:', deleteError)
-        throw deleteError
-      }
+      for (let index = 0; index < editingStages.length; index++) {
+        const stage = editingStages[index]
 
-      console.log('[ApprovalRoutesTab.handleSaveStages] Deleted existing stages')
-
-      // Шаг 2: Вставляем новые этапы с правильными order_index
-      const stagesToInsert = editingStages.map((stage, index) => ({
-        route_id: selectedRoute.id,
-        order_index: index,
-        role_id: stage.role_id,
-        name: stage.name,
-        payment_status_id: stage.payment_status_id || null,
-        permissions: stage.permissions || {},
-        is_active: true
-      }))
-
-      if (stagesToInsert.length > 0) {
-        const { error: insertError } = await supabase
-          .from('workflow_stages')
-          .insert(stagesToInsert)
-
-        if (insertError) {
-          console.error('[ApprovalRoutesTab.handleSaveStages] Insert error:', insertError)
-          throw insertError
+        const stageData = {
+          route_id: selectedRoute.id,
+          order_index: index,
+          role_id: stage.role_id,
+          name: stage.name,
+          payment_status_id: stage.payment_status_id || null,
+          permissions: stage.permissions || {},
+          is_active: true
         }
 
-        console.log('[ApprovalRoutesTab.handleSaveStages] Inserted', stagesToInsert.length, 'stages')
+        if (stage.id) {
+          // UPDATE существующего этапа
+          const { error: updateError } = await supabase
+            .from('workflow_stages')
+            .update(stageData)
+            .eq('id', stage.id)
+
+          if (updateError) {
+            console.error('[ApprovalRoutesTab.handleSaveStages] Update error:', updateError)
+            throw updateError
+          }
+          console.log('[ApprovalRoutesTab.handleSaveStages] Updated stage:', stage.id)
+        } else {
+          // INSERT нового этапа
+          const { error: insertError } = await supabase
+            .from('workflow_stages')
+            .insert(stageData)
+
+          if (insertError) {
+            console.error('[ApprovalRoutesTab.handleSaveStages] Insert error:', insertError)
+            throw insertError
+          }
+          console.log('[ApprovalRoutesTab.handleSaveStages] Inserted new stage at index:', index)
+        }
+      }
+
+      // Удаляем этапы, которые больше не нужны (если их больше чем в editingStages)
+      // Но только те, которые НЕ используются в активных согласованиях
+      const { data: existingStages } = await supabase
+        .from('workflow_stages')
+        .select('id')
+        .eq('route_id', selectedRoute.id)
+
+      if (existingStages && existingStages.length > editingStages.length) {
+        const stagesToKeep = editingStages.filter(s => s.id).map(s => s.id)
+        const stagesToDelete = existingStages
+          .filter(s => !stagesToKeep.includes(s.id))
+          .map(s => s.id)
+
+        if (stagesToDelete.length > 0) {
+          // Пытаемся удалить неиспользуемые этапы (может не удастся если есть FK)
+          const { error: deleteError } = await supabase
+            .from('workflow_stages')
+            .delete()
+            .in('id', stagesToDelete)
+
+          if (deleteError) {
+            // Игнорируем ошибку FK - просто не удаляем этапы которые используются
+            console.warn('[ApprovalRoutesTab.handleSaveStages] Could not delete old stages (may be in use):', deleteError)
+          }
+        }
       }
 
       message.success('Этапы сохранены')

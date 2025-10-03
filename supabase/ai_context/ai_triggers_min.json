@@ -203,6 +203,16 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.update_project_budgets_updated_at",
+    "table": "public.project_budgets",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "function": "public.update_updated_at_column()",
+    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  },
+  {
     "trigger": "public.update_projects_updated_at",
     "table": "public.projects",
     "timing": "BEFORE",

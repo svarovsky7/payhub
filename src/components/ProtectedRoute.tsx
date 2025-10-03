@@ -82,7 +82,7 @@ const AccessDeniedPage: React.FC = () => {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredPath }) => {
-  const { user, currentRoleId } = useAuth()
+  const { user, currentRoleId, loading: authLoading } = useAuth()
   const location = useLocation()
   const [loading, setLoading] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
@@ -90,6 +90,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
 
   useEffect(() => {
     const checkAccess = async () => {
+      // Wait for auth to finish loading before checking access
+      if (authLoading) {
+        return
+      }
+
       if (!user) {
         setLoading(false)
         setHasAccess(false)
@@ -146,10 +151,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     }
 
     checkAccess()
-  }, [user, currentRoleId, location.pathname, requiredPath])
+  }, [user, currentRoleId, location.pathname, requiredPath, authLoading])
 
-  // Show loading spinner while checking access
-  if (loading) {
+  // Show loading spinner while checking access or auth is loading
+  if (loading || authLoading) {
     return (
       <Spin
         size="large"

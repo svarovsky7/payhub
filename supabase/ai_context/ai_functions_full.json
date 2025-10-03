@@ -155,6 +155,7 @@
       "public.update_payment_types_updated_at",
       "public.update_payments_updated_at",
       "public.update_positions_updated_at",
+      "public.update_project_budgets_updated_at",
       "public.update_projects_updated_at",
       "public.update_roles_updated_at",
       "public.update_user_profiles_updated_at",

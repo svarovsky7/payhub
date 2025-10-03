@@ -2,7 +2,8 @@ import { Checkbox, Space, Typography, Row, Col } from 'antd'
 import {
   EditOutlined,
   FileAddOutlined,
-  DollarOutlined
+  DollarOutlined,
+  FundOutlined
 } from '@ant-design/icons'
 import type { StagePermissions as StagePermissionsType } from './types'
 
@@ -44,6 +45,12 @@ export const StagePermissions = ({
       label: 'Изменить сумму платежа',
       icon: <DollarOutlined />,
       color: '#fa8c16'
+    },
+    {
+      key: 'can_show_budgets' as keyof StagePermissionsType,
+      label: 'Показывать бюджеты',
+      icon: <FundOutlined />,
+      color: '#1890ff'
     }
   ]
 
@@ -60,7 +67,7 @@ export const StagePermissions = ({
 
       <Row gutter={[16, 12]}>
         {permissionItems.map((item) => (
-          <Col span={8} key={item.key}>
+          <Col span={6} key={item.key}>
             <div
               style={{
                 background: '#fff',

@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-02T21:03:06.198373
+-- Generated: 2025-10-03T21:13:08.891321
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -974,6 +974,29 @@ CREATE TABLE IF NOT EXISTS public.positions (
 );
 
 COMMENT ON TABLE public.positions IS 'Должности сотрудников';
+
+-- Budget allocations for projects
+CREATE TABLE IF NOT EXISTS public.project_budgets (
+    id integer(32) NOT NULL DEFAULT nextval('project_budgets_id_seq'::regclass),
+    project_id integer(32) NOT NULL,
+    allocated_amount numeric(15,2) NOT NULL DEFAULT 0,
+    description text,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT project_budgets_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT project_budgets_pkey PRIMARY KEY (id),
+    CONSTRAINT project_budgets_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)
+);
+
+COMMENT ON TABLE public.project_budgets IS 'Budget allocations for projects';
+COMMENT ON COLUMN public.project_budgets.id IS 'Primary key of the budget record';
+COMMENT ON COLUMN public.project_budgets.project_id IS 'Foreign key to public.projects.id';
+COMMENT ON COLUMN public.project_budgets.allocated_amount IS 'Total amount allocated to the project';
+COMMENT ON COLUMN public.project_budgets.description IS 'Optional description for the budget allocation';
+COMMENT ON COLUMN public.project_budgets.created_by IS 'User (auth.users.id) who created the budget record';
+COMMENT ON COLUMN public.project_budgets.created_at IS 'Timestamp when the budget was created';
+COMMENT ON COLUMN public.project_budgets.updated_at IS 'Timestamp when the budget was last updated';
 
 -- Projects used to group invoices and contractors.
 CREATE TABLE IF NOT EXISTS public.projects (
@@ -4368,6 +4391,9 @@ CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON public.payments FOR E
 CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON public.positions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER update_project_budgets_updated_at BEFORE UPDATE ON public.project_budgets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -4790,6 +4816,15 @@ CREATE UNIQUE INDEX payments_payment_number_key ON public.payments USING btree (
 ;
 
 CREATE UNIQUE INDEX positions_name_key ON public.positions USING btree (name)
+;
+
+CREATE INDEX idx_project_budgets_created_by ON public.project_budgets USING btree (created_by)
+;
+
+CREATE INDEX idx_project_budgets_project_id ON public.project_budgets USING btree (project_id)
+;
+
+CREATE UNIQUE INDEX project_budgets_project_id_key ON public.project_budgets USING btree (project_id)
 ;
 
 CREATE INDEX idx_projects_code ON public.projects USING btree (code)

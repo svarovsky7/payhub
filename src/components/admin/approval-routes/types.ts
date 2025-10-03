@@ -10,6 +10,7 @@ export interface StagePermissions {
   can_edit_invoice?: boolean
   can_add_files?: boolean
   can_edit_amount?: boolean
+  can_show_budgets?: boolean
   [key: string]: boolean | undefined // Для будущих разрешений
 }
 

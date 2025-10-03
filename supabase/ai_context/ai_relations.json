@@ -155,6 +155,16 @@
     "to": "public.payment_statuses.id"
   },
   {
+    "from": "public.project_budgets",
+    "column": "created_by",
+    "to": "auth.users.id"
+  },
+  {
+    "from": "public.project_budgets",
+    "column": "project_id",
+    "to": "public.projects.id"
+  },
+  {
     "from": "public.projects",
     "column": "created_by",
     "to": "auth.users.id"
