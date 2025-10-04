@@ -220,7 +220,17 @@
         "unique": false
       }
     ],
-    "triggers": []
+    "triggers": [
+      {
+        "trigger": "audit_approval_steps",
+        "timing": "AFTER",
+        "events": [
+          "INSERT",
+          "UPDATE"
+        ],
+        "function": "public.log_approval_actions()"
+      }
+    ]
   },
   {
     "table": "public.attachments",
@@ -338,6 +348,127 @@
         "function": "public.update_updated_at_column()"
       }
     ]
+  },
+  {
+    "table": "public.audit_log",
+    "summary": "Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()"
+      },
+      {
+        "name": "entity_type",
+        "type": "text",
+        "nullable": false,
+        "description": "Тип сущности: invoice, payment, invoice_attachment, payment_attachment, approval"
+      },
+      {
+        "name": "entity_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "action",
+        "type": "text",
+        "nullable": false,
+        "description": "Тип действия: create, update, delete, file_add, file_delete, status_change, approval_action"
+      },
+      {
+        "name": "field_name",
+        "type": "text",
+        "nullable": true,
+        "description": "Название поля (только для action=update)"
+      },
+      {
+        "name": "old_value",
+        "type": "text",
+        "nullable": true,
+        "description": "Старое значение поля"
+      },
+      {
+        "name": "new_value",
+        "type": "text",
+        "nullable": true,
+        "description": "Новое значение поля"
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      },
+      {
+        "name": "metadata",
+        "type": "jsonb",
+        "nullable": true,
+        "description": "Дополнительные данные в формате JSON (имя файла, комментарий, и т.д.)"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [],
+      "checks": [
+        {
+          "name": "2200_26302_1_not_null"
+        },
+        {
+          "name": "2200_26302_2_not_null"
+        },
+        {
+          "name": "2200_26302_3_not_null"
+        },
+        {
+          "name": "2200_26302_4_not_null"
+        },
+        {
+          "name": "2200_26302_8_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_audit_log_action",
+        "columns": [
+          "action"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_audit_log_created_at",
+        "columns": [
+          "created_at DESC"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_audit_log_entity",
+        "columns": [
+          "entity_type",
+          "entity_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_audit_log_user_id",
+        "columns": [
+          "user_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": []
   },
   {
     "table": "public.contract_attachments",
@@ -1208,7 +1339,17 @@
         "unique": false
       }
     ],
-    "triggers": []
+    "triggers": [
+      {
+        "trigger": "audit_invoice_attachments",
+        "timing": "AFTER",
+        "events": [
+          "INSERT",
+          "DELETE"
+        ],
+        "function": "public.log_attachment_changes()"
+      }
+    ]
   },
   {
     "table": "public.invoice_payments",
@@ -1870,6 +2011,16 @@
     ],
     "triggers": [
       {
+        "trigger": "audit_invoice_changes",
+        "timing": "AFTER",
+        "events": [
+          "INSERT",
+          "DELETE",
+          "UPDATE"
+        ],
+        "function": "public.log_invoice_changes()"
+      },
+      {
         "trigger": "update_invoices_updated_at",
         "timing": "BEFORE",
         "events": [
@@ -2525,7 +2676,17 @@
         "unique": false
       }
     ],
-    "triggers": []
+    "triggers": [
+      {
+        "trigger": "audit_payment_attachments",
+        "timing": "AFTER",
+        "events": [
+          "INSERT",
+          "DELETE"
+        ],
+        "function": "public.log_attachment_changes()"
+      }
+    ]
   },
   {
     "table": "public.payment_statuses",
@@ -2918,6 +3079,16 @@
       }
     ],
     "triggers": [
+      {
+        "trigger": "audit_payment_changes",
+        "timing": "AFTER",
+        "events": [
+          "INSERT",
+          "DELETE",
+          "UPDATE"
+        ],
+        "function": "public.log_payment_changes()"
+      },
       {
         "trigger": "update_payments_updated_at",
         "timing": "BEFORE",

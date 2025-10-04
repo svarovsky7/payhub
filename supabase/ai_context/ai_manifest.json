@@ -1,12 +1,12 @@
 {
-  "generated_at": "2025-10-04T18:27:19.010Z",
+  "generated_at": "2025-10-04T20:22:21.873Z",
   "source_hashes": {
-    "supabase/exports/tables.json": "b57a5e386191658186299fb6cc01dbefcf1592f02fe023a398ce57a8ee9dc032",
-    "supabase/exports/indexes.json": "b29fbae482eba95fe53d6f97d3ae60efdea632d3292b4ee1b6587f094140c8f1",
-    "supabase/exports/triggers.json": "5823e880eb9622eddabe7cda663cce37ab87012ba438fc550100cd4a1c3d1157",
-    "supabase/exports/functions.json": "f794bf68a5473bd61888f89c5b99080e5df3682e46fe4bd4f5b6193c99207018",
+    "supabase/exports/tables.json": "5246579a9d6be9c0740455e9d4df866582686a2364c50b3d94f4d7a55fb79ddb",
+    "supabase/exports/indexes.json": "02deb0f0b22994f6b0056f0b4c8bcaba2b21259b688bedf40d474a77e5f29221",
+    "supabase/exports/triggers.json": "57d923760671a44254ae83c9b21543e5592b14e74fccfb913dc1db5617ed7cd7",
+    "supabase/exports/functions.json": "122e8be61bfe28ee6b56a642530ac16c6174ae8508de41910f013cd73537f621",
     "supabase/exports/enums.json": "b279269c34c179cd6f5d88d3653730ad5d8731c76d3fb835f115072d297c9f4f",
-    "supabase/migrations/prod.sql": "de6733779803e11daa7b56c19f3bb75ce84fb054d8d6d1fcd17aaaaeb7117647"
+    "supabase/migrations/prod.sql": "28b861ef20364fe1ab7566154f8a943815af65bc7355cdefc3a8faacd48304d9"
   },
   "generator": "scripts/generate-ai-context.cjs"
 }

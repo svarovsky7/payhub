@@ -138,6 +138,62 @@
     ]
   },
   {
+    "table": "public.audit_log",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "entity_type",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "entity_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "action",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "field_name",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "old_value",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "new_value",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "metadata",
+        "type": "jsonb",
+        "nullable": true
+      }
+    ]
+  },
+  {
     "table": "public.contract_attachments",
     "columns": [
       {

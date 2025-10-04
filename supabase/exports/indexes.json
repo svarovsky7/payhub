@@ -431,6 +431,38 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)"
   },
+  "public.audit_log.idx_audit_log_action": {
+    "schema": "public",
+    "name": "idx_audit_log_action",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_audit_log_action ON public.audit_log USING btree (action)"
+  },
+  "public.audit_log.idx_audit_log_created_at": {
+    "schema": "public",
+    "name": "idx_audit_log_created_at",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_audit_log_created_at ON public.audit_log USING btree (created_at DESC)"
+  },
+  "public.audit_log.idx_audit_log_entity": {
+    "schema": "public",
+    "name": "idx_audit_log_entity",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_audit_log_entity ON public.audit_log USING btree (entity_type, entity_id)"
+  },
+  "public.audit_log.idx_audit_log_user_id": {
+    "schema": "public",
+    "name": "idx_audit_log_user_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_audit_log_user_id ON public.audit_log USING btree (user_id)"
+  },
   "public.contract_attachments.idx_contract_attachments_attachment_id": {
     "schema": "public",
     "name": "idx_contract_attachments_attachment_id",

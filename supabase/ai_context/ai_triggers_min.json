@@ -10,6 +10,17 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.audit_approval_steps",
+    "table": "public.approval_steps",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "UPDATE"
+    ],
+    "function": "public.log_approval_actions()",
+    "purpose": ""
+  },
+  {
     "trigger": "public.update_attachments_updated_at",
     "table": "public.attachments",
     "timing": "BEFORE",
@@ -70,6 +81,17 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.audit_invoice_attachments",
+    "table": "public.invoice_attachments",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "DELETE"
+    ],
+    "function": "public.log_attachment_changes()",
+    "purpose": ""
+  },
+  {
     "trigger": "public.update_delivery_date_on_payment_change",
     "table": "public.invoice_payments",
     "timing": "AFTER",
@@ -100,6 +122,18 @@
     ],
     "function": "public.update_updated_at_column()",
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  },
+  {
+    "trigger": "public.audit_invoice_changes",
+    "table": "public.invoices",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "DELETE",
+      "UPDATE"
+    ],
+    "function": "public.log_invoice_changes()",
+    "purpose": ""
   },
   {
     "trigger": "public.update_invoices_updated_at",
@@ -163,6 +197,17 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.audit_payment_attachments",
+    "table": "public.payment_attachments",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "DELETE"
+    ],
+    "function": "public.log_attachment_changes()",
+    "purpose": ""
+  },
+  {
     "trigger": "public.update_payment_statuses_updated_at",
     "table": "public.payment_statuses",
     "timing": "BEFORE",
@@ -181,6 +226,18 @@
     ],
     "function": "public.update_updated_at_column()",
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  },
+  {
+    "trigger": "public.audit_payment_changes",
+    "table": "public.payments",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "DELETE",
+      "UPDATE"
+    ],
+    "function": "public.log_payment_changes()",
+    "purpose": ""
   },
   {
     "trigger": "public.update_payments_updated_at",

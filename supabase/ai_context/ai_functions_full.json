@@ -90,6 +90,67 @@
     "side_effects": []
   },
   {
+    "function": "public.log_approval_actions()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [
+      "public.audit_log"
+    ],
+    "invoked_by": [
+      "public.audit_approval_steps"
+    ],
+    "side_effects": []
+  },
+  {
+    "function": "public.log_attachment_changes()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [
+      "public.audit_log"
+    ],
+    "invoked_by": [
+      "public.audit_invoice_attachments",
+      "public.audit_payment_attachments"
+    ],
+    "side_effects": []
+  },
+  {
+    "function": "public.log_invoice_changes()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [
+      "public.audit_log"
+    ],
+    "invoked_by": [
+      "public.audit_invoice_changes"
+    ],
+    "side_effects": []
+  },
+  {
+    "function": "public.log_payment_changes()",
+    "returns": "trigger",
+    "language": "plpgsql",
+    "security": "invoker",
+    "summary": "",
+    "details": "",
+    "touches_tables": [
+      "public.audit_log"
+    ],
+    "invoked_by": [
+      "public.audit_payment_changes"
+    ],
+    "side_effects": []
+  },
+  {
     "function": "public.recalculate_invoice_delivery_date()",
     "returns": "trigger",
     "language": "plpgsql",

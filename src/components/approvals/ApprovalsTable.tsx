@@ -60,14 +60,6 @@ export const ApprovalsTable = ({
     )
   ).map(name => ({ text: name, value: name }))
 
-  const routeFilters = Array.from(
-    new Set(
-      approvals
-        .map(a => a.route?.name)
-        .filter(Boolean)
-    )
-  ).map(name => ({ text: name, value: name }))
-
   const columns: ColumnsType<PaymentApproval> = [
     {
       title: '№',
@@ -161,29 +153,6 @@ export const ApprovalsTable = ({
       sorter: (a, b) => (a.payment?.amount || 0) - (b.payment?.amount || 0)
     },
     {
-      title: 'Статус платежа',
-      key: 'payment_status',
-      render: (_, record) => {
-        const status = record.payment?.payment_status
-        if (!status) return '-'
-
-        let color = 'default'
-        if (status.name === 'Черновик' || status.name === 'Новый') color = 'default'
-        else if (status.name === 'На согласовании') color = 'processing'
-        else if (status.name === 'Согласован' || status.name === 'Утвержден') color = 'success'
-        else if (status.name === 'Отклонен' || status.name === 'Отменен') color = 'error'
-        else if (status.name === 'Оплачен' || status.name === 'Проведен') color = 'green'
-
-        return (
-          <Tooltip title={`Статус: ${status.name}`}>
-            <Tag color={color} style={{ margin: 0, fontSize: '11px' }}>
-              {status.name}
-            </Tag>
-          </Tooltip>
-        )
-      }
-    },
-    {
       title: 'Этап',
       key: 'current_stage',
       render: (_, record) => {
@@ -208,17 +177,17 @@ export const ApprovalsTable = ({
       }
     },
     {
-      title: 'Маршрут',
-      key: 'route',
-      ellipsis: true,
-      filters: routeFilters,
-      filterSearch: true,
-      onFilter: (value, record) => record.route?.name === value,
-      render: (_, record) => (
-        <Tooltip title={record.route?.name || '-'}>
-          <span style={{ fontSize: '12px' }}>{record.route?.name || '-'}</span>
-        </Tooltip>
-      )
+      title: 'Дата поставки',
+      key: 'delivery_date',
+      render: (_, record) => {
+        const deliveryDate = record.payment?.invoice?.preliminary_delivery_date
+        return deliveryDate ? dayjs(deliveryDate).format('DD.MM.YY') : '-'
+      },
+      sorter: (a, b) => {
+        const dateA = a.payment?.invoice?.preliminary_delivery_date ? dayjs(a.payment.invoice.preliminary_delivery_date).valueOf() : 0
+        const dateB = b.payment?.invoice?.preliminary_delivery_date ? dayjs(b.payment.invoice.preliminary_delivery_date).valueOf() : 0
+        return dateA - dateB
+      }
     },
     {
       title: 'Действия',

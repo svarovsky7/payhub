@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-04T21:27:15.999908
+-- Generated: 2025-10-04T23:22:18.769149
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -452,6 +452,30 @@ COMMENT ON COLUMN public.attachments.created_by IS 'User (auth.users.id) who upl
 COMMENT ON COLUMN public.attachments.created_at IS 'Timestamp when the attachment record was created.';
 COMMENT ON COLUMN public.attachments.updated_at IS 'Timestamp when the attachment metadata was last updated.';
 COMMENT ON COLUMN public.attachments.description IS 'User-provided description of the file content';
+
+-- Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям
+CREATE TABLE IF NOT EXISTS public.audit_log (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    entity_type text NOT NULL,
+    entity_id uuid NOT NULL,
+    action text NOT NULL,
+    field_name text,
+    old_value text,
+    new_value text,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    metadata jsonb,
+    CONSTRAINT audit_log_pkey PRIMARY KEY (id),
+    CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)
+);
+
+COMMENT ON TABLE public.audit_log IS 'Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям';
+COMMENT ON COLUMN public.audit_log.entity_type IS 'Тип сущности: invoice, payment, invoice_attachment, payment_attachment, approval';
+COMMENT ON COLUMN public.audit_log.action IS 'Тип действия: create, update, delete, file_add, file_delete, status_change, approval_action';
+COMMENT ON COLUMN public.audit_log.field_name IS 'Название поля (только для action=update)';
+COMMENT ON COLUMN public.audit_log.old_value IS 'Старое значение поля';
+COMMENT ON COLUMN public.audit_log.new_value IS 'Новое значение поля';
+COMMENT ON COLUMN public.audit_log.metadata IS 'Дополнительные данные в формате JSON (имя файла, комментарий, и т.д.)';
 
 -- Связь договоров с приложенными файлами
 CREATE TABLE IF NOT EXISTS public.contract_attachments (
@@ -1344,6 +1368,22 @@ CREATE OR REPLACE VIEW extensions.pg_stat_statements_info AS
     pg_stat_statements_info.stats_reset
    FROM pg_stat_statements_info() pg_stat_statements_info(dealloc, stats_reset);
 
+CREATE OR REPLACE VIEW public.audit_log_view AS
+ SELECT al.id,
+    al.entity_type,
+    al.entity_id,
+    al.action,
+    al.field_name,
+    al.old_value,
+    al.new_value,
+    al.created_at,
+    al.metadata,
+    up.full_name AS user_name,
+    up.email AS user_email
+   FROM (audit_log al
+     LEFT JOIN user_profiles up ON ((al.user_id = up.id)))
+  ORDER BY al.created_at DESC;
+
 CREATE OR REPLACE VIEW public.material_classes_hierarchy AS
  SELECT c.id,
     c.name,
@@ -1443,18 +1483,18 @@ AS '$libdir/pg_cron', $function$cron_job_cache_invalidate$function$
 
 ;
 
+CREATE OR REPLACE FUNCTION cron.schedule(job_name text, schedule text, command text)
+ RETURNS bigint
+ LANGUAGE c
+AS '$libdir/pg_cron', $function$cron_schedule_named$function$
+
+;
+
 CREATE OR REPLACE FUNCTION cron.schedule(schedule text, command text)
  RETURNS bigint
  LANGUAGE c
  STRICT
 AS '$libdir/pg_cron', $function$cron_schedule$function$
-
-;
-
-CREATE OR REPLACE FUNCTION cron.schedule(job_name text, schedule text, command text)
- RETURNS bigint
- LANGUAGE c
-AS '$libdir/pg_cron', $function$cron_schedule_named$function$
 
 ;
 
@@ -1465,19 +1505,19 @@ AS '$libdir/pg_cron', $function$cron_schedule_named$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION cron.unschedule(job_id bigint)
- RETURNS boolean
- LANGUAGE c
- STRICT
-AS '$libdir/pg_cron', $function$cron_unschedule$function$
-
-;
-
 CREATE OR REPLACE FUNCTION cron.unschedule(job_name text)
  RETURNS boolean
  LANGUAGE c
  STRICT
 AS '$libdir/pg_cron', $function$cron_unschedule_named$function$
+
+;
+
+CREATE OR REPLACE FUNCTION cron.unschedule(job_id bigint)
+ RETURNS boolean
+ LANGUAGE c
+ STRICT
+AS '$libdir/pg_cron', $function$cron_unschedule$function$
 
 ;
 
@@ -1594,19 +1634,19 @@ AS '$libdir/pgcrypto', $function$pg_random_uuid$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
- RETURNS text
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)
  RETURNS text
  LANGUAGE c
  PARALLEL SAFE STRICT
 AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.gen_salt(text)
+ RETURNS text
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pg_gen_salt$function$
 
 ;
 
@@ -1806,6 +1846,14 @@ AS '$libdir/pgcrypto', $function$pgp_key_id_w$function$
 
 ;
 
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
+ RETURNS text
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
+
+;
+
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)
  RETURNS text
  LANGUAGE c
@@ -1822,22 +1870,6 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)
- RETURNS text
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$
-
-;
-
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
- RETURNS bytea
- LANGUAGE c
- IMMUTABLE PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
@@ -1847,6 +1879,14 @@ AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
 ;
 
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)
+ RETURNS bytea
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
  RETURNS bytea
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1870,14 +1910,6 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
- RETURNS bytea
- LANGUAGE c
- PARALLEL SAFE STRICT
-AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$
-
-;
-
 CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)
  RETURNS bytea
  LANGUAGE c
@@ -1886,7 +1918,15 @@ AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)
+ RETURNS bytea
+ LANGUAGE c
+ PARALLEL SAFE STRICT
+AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$
+
+;
+
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text, text)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -1894,7 +1934,7 @@ AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_text$function$
 
 ;
 
-CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text, text)
+CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text)
  RETURNS text
  LANGUAGE c
  IMMUTABLE PARALLEL SAFE STRICT
@@ -2778,6 +2818,285 @@ AS $function$
 BEGIN
   -- 0 = Sunday, 6 = Saturday
   RETURN EXTRACT(DOW FROM check_date) IN (0, 6);
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.log_approval_actions()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    payment_entity_id uuid;
+    user_id_value uuid;
+BEGIN
+    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+        -- Получаем payment_id из payment_approvals
+        SELECT payment_id INTO payment_entity_id
+        FROM payment_approvals
+        WHERE id = NEW.payment_approval_id;
+
+        user_id_value := COALESCE(NEW.acted_by, (
+            SELECT created_by FROM payments WHERE id = payment_entity_id
+        ));
+
+        -- Логируем действие согласования
+        INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
+        VALUES ('payment', payment_entity_id, 'approval_action', user_id_value,
+                jsonb_build_object(
+                    'approval_action', NEW.action,
+                    'stage_id', NEW.stage_id,
+                    'comment', NEW.comment,
+                    'acted_at', NEW.acted_at
+                ));
+
+        RETURN NEW;
+    END IF;
+
+    RETURN NULL;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.log_attachment_changes()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    current_user_id uuid;
+    entity_type_name text;
+    entity_id_value uuid;
+    file_info jsonb;
+BEGIN
+    -- Определяем тип сущности и ID на основе таблицы
+    IF TG_TABLE_NAME = 'invoice_attachments' THEN
+        entity_type_name := 'invoice';
+        entity_id_value := NEW.invoice_id;
+    ELSIF TG_TABLE_NAME = 'payment_attachments' THEN
+        entity_type_name := 'payment';
+        entity_id_value := NEW.payment_id;
+    ELSE
+        RETURN NEW; -- Неизвестная таблица
+    END IF;
+
+    -- Получаем текущего пользователя
+    current_user_id := current_setting('app.current_user_id', true)::uuid;
+
+    IF current_user_id IS NULL THEN
+        -- Получаем создателя файла
+        SELECT created_by INTO current_user_id FROM attachments WHERE id = NEW.attachment_id;
+    END IF;
+
+    IF (TG_OP = 'INSERT') THEN
+        -- Получаем информацию о файле
+        SELECT jsonb_build_object(
+            'file_id', a.id,
+            'file_name', a.original_name,
+            'file_size', a.size_bytes,
+            'mime_type', a.mime_type
+        ) INTO file_info
+        FROM attachments a WHERE a.id = NEW.attachment_id;
+
+        -- Логируем добавление файла
+        INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
+        VALUES (entity_type_name, entity_id_value, 'file_add', current_user_id, file_info);
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+        -- Получаем информацию о файле
+        SELECT jsonb_build_object(
+            'file_id', a.id,
+            'file_name', a.original_name
+        ) INTO file_info
+        FROM attachments a WHERE a.id = OLD.attachment_id;
+
+        -- Логируем удаление файла
+        INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
+        VALUES (entity_type_name, entity_id_value, 'file_delete', current_user_id, file_info);
+
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.log_invoice_changes()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    current_user_id uuid;
+    field_record record;
+BEGIN
+    -- Получаем текущего пользователя (можно передавать через session variable)
+    current_user_id := current_setting('app.current_user_id', true)::uuid;
+
+    IF current_user_id IS NULL THEN
+        current_user_id := NEW.user_id; -- fallback на создателя
+    END IF;
+
+    IF (TG_OP = 'INSERT') THEN
+        -- Логируем создание счета
+        INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
+        VALUES ('invoice', NEW.id, 'create', current_user_id,
+                jsonb_build_object('invoice_number', NEW.invoice_number, 'amount', NEW.amount_with_vat));
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+        -- Логируем изменения полей
+        -- Проверяем каждое важное поле на изменение
+
+        IF OLD.invoice_number IS DISTINCT FROM NEW.invoice_number THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'invoice_number', OLD.invoice_number, NEW.invoice_number, current_user_id);
+        END IF;
+
+        IF OLD.invoice_date IS DISTINCT FROM NEW.invoice_date THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'invoice_date', OLD.invoice_date::text, NEW.invoice_date::text, current_user_id);
+        END IF;
+
+        IF OLD.amount_with_vat IS DISTINCT FROM NEW.amount_with_vat THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'amount_with_vat', OLD.amount_with_vat::text, NEW.amount_with_vat::text, current_user_id);
+        END IF;
+
+        IF OLD.vat_rate IS DISTINCT FROM NEW.vat_rate THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'vat_rate', OLD.vat_rate::text, NEW.vat_rate::text, current_user_id);
+        END IF;
+
+        IF OLD.status_id IS DISTINCT FROM NEW.status_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'status_change', 'status_id', OLD.status_id::text, NEW.status_id::text, current_user_id,
+                    jsonb_build_object('old_status_name', (SELECT name FROM invoice_statuses WHERE id = OLD.status_id),
+                                     'new_status_name', (SELECT name FROM invoice_statuses WHERE id = NEW.status_id)));
+        END IF;
+
+        IF OLD.payer_id IS DISTINCT FROM NEW.payer_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'payer_id', OLD.payer_id::text, NEW.payer_id::text, current_user_id);
+        END IF;
+
+        IF OLD.supplier_id IS DISTINCT FROM NEW.supplier_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'supplier_id', OLD.supplier_id::text, NEW.supplier_id::text, current_user_id);
+        END IF;
+
+        IF OLD.project_id IS DISTINCT FROM NEW.project_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'project_id', OLD.project_id::text, NEW.project_id::text, current_user_id);
+        END IF;
+
+        IF OLD.due_date IS DISTINCT FROM NEW.due_date THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'due_date', OLD.due_date::text, NEW.due_date::text, current_user_id);
+        END IF;
+
+        IF OLD.description IS DISTINCT FROM NEW.description THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'description', OLD.description, NEW.description, current_user_id);
+        END IF;
+
+        IF OLD.is_archived IS DISTINCT FROM NEW.is_archived THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'is_archived', OLD.is_archived::text, NEW.is_archived::text, current_user_id);
+        END IF;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+        -- Логируем удаление счета
+        INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
+        VALUES ('invoice', OLD.id, 'delete', current_user_id,
+                jsonb_build_object('invoice_number', OLD.invoice_number));
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$function$
+
+;
+
+CREATE OR REPLACE FUNCTION public.log_payment_changes()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    current_user_id uuid;
+BEGIN
+    -- Получаем текущего пользователя
+    current_user_id := current_setting('app.current_user_id', true)::uuid;
+
+    IF current_user_id IS NULL THEN
+        current_user_id := NEW.created_by; -- fallback на создателя
+    END IF;
+
+    IF (TG_OP = 'INSERT') THEN
+        -- Логируем создание платежа
+        INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
+        VALUES ('payment', NEW.id, 'create', current_user_id,
+                jsonb_build_object('payment_number', NEW.payment_number, 'amount', NEW.amount, 'invoice_id', NEW.invoice_id));
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+        -- Логируем изменения полей
+
+        IF OLD.payment_number IS DISTINCT FROM NEW.payment_number THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('payment', NEW.id, 'update', 'payment_number', OLD.payment_number::text, NEW.payment_number::text, current_user_id);
+        END IF;
+
+        IF OLD.payment_date IS DISTINCT FROM NEW.payment_date THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('payment', NEW.id, 'update', 'payment_date', OLD.payment_date::text, NEW.payment_date::text, current_user_id);
+        END IF;
+
+        IF OLD.amount IS DISTINCT FROM NEW.amount THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('payment', NEW.id, 'update', 'amount', OLD.amount::text, NEW.amount::text, current_user_id);
+        END IF;
+
+        IF OLD.status_id IS DISTINCT FROM NEW.status_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('payment', NEW.id, 'status_change', 'status_id', OLD.status_id::text, NEW.status_id::text, current_user_id,
+                    jsonb_build_object('old_status_name', (SELECT name FROM payment_statuses WHERE id = OLD.status_id),
+                                     'new_status_name', (SELECT name FROM payment_statuses WHERE id = NEW.status_id)));
+        END IF;
+
+        IF OLD.description IS DISTINCT FROM NEW.description THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('payment', NEW.id, 'update', 'description', OLD.description, NEW.description, current_user_id);
+        END IF;
+
+        IF OLD.payment_type_id IS DISTINCT FROM NEW.payment_type_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('payment', NEW.id, 'update', 'payment_type_id', OLD.payment_type_id::text, NEW.payment_type_id::text, current_user_id);
+        END IF;
+
+        IF OLD.is_archived IS DISTINCT FROM NEW.is_archived THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('payment', NEW.id, 'update', 'is_archived', OLD.is_archived::text, NEW.is_archived::text, current_user_id);
+        END IF;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+        -- Логируем удаление платежа
+        INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
+        VALUES ('payment', OLD.id, 'delete', current_user_id,
+                jsonb_build_object('payment_number', OLD.payment_number));
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
 END;
 $function$
 
@@ -4316,6 +4635,9 @@ CREATE TRIGGER cron_job_cache_invalidate AFTER INSERT OR DELETE OR UPDATE OR TRU
 CREATE TRIGGER update_approval_routes_updated_at BEFORE UPDATE ON public.approval_routes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER audit_approval_steps AFTER INSERT OR UPDATE ON public.approval_steps FOR EACH ROW EXECUTE FUNCTION log_approval_actions()
+;
+
 CREATE TRIGGER update_attachments_updated_at BEFORE UPDATE ON public.attachments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -4334,6 +4656,9 @@ CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON public.departments
 CREATE TRIGGER update_employees_updated_at BEFORE UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER audit_invoice_attachments AFTER INSERT OR DELETE ON public.invoice_attachments FOR EACH ROW EXECUTE FUNCTION log_attachment_changes()
+;
+
 CREATE TRIGGER update_delivery_date_on_payment_change AFTER INSERT OR DELETE OR UPDATE ON public.invoice_payments FOR EACH ROW EXECUTE FUNCTION recalculate_invoice_delivery_date()
 ;
 
@@ -4341,6 +4666,9 @@ CREATE TRIGGER update_invoice_statuses_updated_at BEFORE UPDATE ON public.invoic
 ;
 
 CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER audit_invoice_changes AFTER INSERT OR DELETE OR UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION log_invoice_changes()
 ;
 
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
@@ -4364,10 +4692,16 @@ CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.mater
 CREATE TRIGGER update_payment_approvals_updated_at BEFORE UPDATE ON public.payment_approvals FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER audit_payment_attachments AFTER INSERT OR DELETE ON public.payment_attachments FOR EACH ROW EXECUTE FUNCTION log_attachment_changes()
+;
+
 CREATE TRIGGER update_payment_statuses_updated_at BEFORE UPDATE ON public.payment_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
 CREATE TRIGGER update_payment_types_updated_at BEFORE UPDATE ON public.payment_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
+CREATE TRIGGER audit_payment_changes AFTER INSERT OR DELETE OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION log_payment_changes()
 ;
 
 CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
@@ -4579,6 +4913,18 @@ CREATE INDEX idx_approval_steps_approval ON public.approval_steps USING btree (p
 ;
 
 CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)
+;
+
+CREATE INDEX idx_audit_log_action ON public.audit_log USING btree (action)
+;
+
+CREATE INDEX idx_audit_log_created_at ON public.audit_log USING btree (created_at DESC)
+;
+
+CREATE INDEX idx_audit_log_entity ON public.audit_log USING btree (entity_type, entity_id)
+;
+
+CREATE INDEX idx_audit_log_user_id ON public.audit_log USING btree (user_id)
 ;
 
 CREATE INDEX idx_contract_attachments_attachment_id ON public.contract_attachments USING btree (attachment_id)

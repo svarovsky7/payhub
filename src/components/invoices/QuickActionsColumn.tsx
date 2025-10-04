@@ -5,7 +5,8 @@ import {
   DeleteOutlined,
   PlusOutlined,
   InboxOutlined,
-  FolderOpenOutlined
+  FolderOpenOutlined,
+  HistoryOutlined
 } from '@ant-design/icons'
 import type { Invoice } from '../../lib/supabase'
 
@@ -18,6 +19,7 @@ interface QuickActionsColumnProps {
   onEditInvoice: (invoice: Invoice) => void
   onDeleteInvoice: (invoiceId: string) => void
   onArchiveInvoice?: (invoiceId: string, isArchived: boolean) => void
+  onViewHistory?: (invoice: Invoice) => void
 }
 
 export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
@@ -28,7 +30,8 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
   onViewInvoice,
   onEditInvoice,
   onDeleteInvoice,
-  onArchiveInvoice
+  onArchiveInvoice,
+  onViewHistory
 }) => {
   // Allow payment if there's remaining amount OR if the invoice has amount but no payments yet
   // Convert to number to ensure proper comparison
@@ -52,6 +55,17 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
             }}
           />
         </Tooltip>
+
+        {/* История изменений */}
+        {onViewHistory && (
+          <Tooltip title="История изменений">
+            <Button
+              icon={<HistoryOutlined />}
+              size="small"
+              onClick={() => onViewHistory(invoice)}
+            />
+          </Tooltip>
+        )}
       </Space.Compact>
 
       <Space.Compact size="small">

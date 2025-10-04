@@ -18,6 +18,7 @@ import { EditAmountModal } from '../components/approvals/EditAmountModal'
 import { AddFilesModal } from '../components/approvals/AddFilesModal'
 import { PaymentsSummaryCard } from '../components/approvals/PaymentsSummaryCard'
 import { ViewMaterialRequestModal } from '../components/approvals/ViewMaterialRequestModal'
+import ChangeHistoryDrawer from '../components/approvals/ChangeHistoryDrawer'
 import { getCurrentStagePermissions, calculateVatAmounts } from '../utils/approvalCalculations'
 import '../styles/compact-table.css'
 import '../styles/approvals-page.css'
@@ -49,6 +50,10 @@ export const ApprovalsPage = () => {
   const [materialRequestModalVisible, setMaterialRequestModalVisible] = useState(false)
   const [selectedMaterialRequestId, setSelectedMaterialRequestId] = useState<string | null>(null)
 
+  // Change history drawer state
+  const [changeHistoryDrawerVisible, setChangeHistoryDrawerVisible] = useState(false)
+  const [selectedApprovalForHistory, setSelectedApprovalForHistory] = useState<any>(null)
+
   // Use custom hooks for modular functionality
   const approvalActions = useApprovalActions({
     handleApprove,
@@ -78,6 +83,13 @@ export const ApprovalsPage = () => {
       setSelectedMaterialRequestId(materialRequestId)
       setMaterialRequestModalVisible(true)
     }
+  }
+
+  // Handle change history view
+  const handleViewChangeHistory = (approval: any) => {
+    console.log('[ApprovalsPage] View change history:', approval)
+    setSelectedApprovalForHistory(approval)
+    setChangeHistoryDrawerVisible(true)
   }
 
   if (!userRole) {
@@ -178,7 +190,7 @@ export const ApprovalsPage = () => {
                   onSelectionChange={bulkActions.setSelectedIds}
                   onApprove={approvalActions.handleApproveClick}
                   onReject={approvalActions.handleRejectClick}
-                  onViewHistory={approvalActions.handleHistoryClick}
+                  onViewHistory={handleViewChangeHistory}
                   onEditInvoice={invoiceEditing.handleEditInvoiceClick}
                   onAddFiles={invoiceEditing.handleAddFilesClick}
                   onEditAmount={invoiceEditing.handleEditAmountClick}
@@ -194,7 +206,7 @@ export const ApprovalsPage = () => {
                   onSelectionChange={bulkActions.setSelectedIds}
                   onApprove={approvalActions.handleApproveClick}
                   onReject={approvalActions.handleRejectClick}
-                  onViewHistory={approvalActions.handleHistoryClick}
+                  onViewHistory={handleViewChangeHistory}
                   onEditInvoice={invoiceEditing.handleEditInvoiceClick}
                   onAddFiles={invoiceEditing.handleAddFilesClick}
                   onEditAmount={invoiceEditing.handleEditAmountClick}
@@ -296,6 +308,15 @@ export const ApprovalsPage = () => {
           setMaterialRequestModalVisible(false)
           setSelectedMaterialRequestId(null)
         }}
+      />
+
+      <ChangeHistoryDrawer
+        visible={changeHistoryDrawerVisible}
+        onClose={() => {
+          setChangeHistoryDrawerVisible(false)
+          setSelectedApprovalForHistory(null)
+        }}
+        approval={selectedApprovalForHistory}
       />
     </div>
   )

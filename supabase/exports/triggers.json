@@ -26,6 +26,15 @@
     "comment": null,
     "sql": "CREATE TRIGGER update_approval_routes_updated_at BEFORE UPDATE ON public.approval_routes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
+  "public.approval_steps.audit_approval_steps": {
+    "schema": "public",
+    "name": "audit_approval_steps",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER audit_approval_steps AFTER INSERT OR UPDATE ON public.approval_steps FOR EACH ROW EXECUTE FUNCTION log_approval_actions()"
+  },
   "public.attachments.update_attachments_updated_at": {
     "schema": "public",
     "name": "update_attachments_updated_at",
@@ -80,6 +89,15 @@
     "comment": null,
     "sql": "CREATE TRIGGER update_employees_updated_at BEFORE UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
+  "public.invoice_attachments.audit_invoice_attachments": {
+    "schema": "public",
+    "name": "audit_invoice_attachments",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER audit_invoice_attachments AFTER INSERT OR DELETE ON public.invoice_attachments FOR EACH ROW EXECUTE FUNCTION log_attachment_changes()"
+  },
   "public.invoice_payments.update_delivery_date_on_payment_change": {
     "schema": "public",
     "name": "update_delivery_date_on_payment_change",
@@ -106,6 +124,15 @@
     "timing": null,
     "comment": null,
     "sql": "CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.invoices.audit_invoice_changes": {
+    "schema": "public",
+    "name": "audit_invoice_changes",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER audit_invoice_changes AFTER INSERT OR DELETE OR UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION log_invoice_changes()"
   },
   "public.invoices.update_invoices_updated_at": {
     "schema": "public",
@@ -170,6 +197,15 @@
     "comment": null,
     "sql": "CREATE TRIGGER update_payment_approvals_updated_at BEFORE UPDATE ON public.payment_approvals FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
+  "public.payment_attachments.audit_payment_attachments": {
+    "schema": "public",
+    "name": "audit_payment_attachments",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER audit_payment_attachments AFTER INSERT OR DELETE ON public.payment_attachments FOR EACH ROW EXECUTE FUNCTION log_attachment_changes()"
+  },
   "public.payment_statuses.update_payment_statuses_updated_at": {
     "schema": "public",
     "name": "update_payment_statuses_updated_at",
@@ -187,6 +223,15 @@
     "timing": null,
     "comment": null,
     "sql": "CREATE TRIGGER update_payment_types_updated_at BEFORE UPDATE ON public.payment_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.payments.audit_payment_changes": {
+    "schema": "public",
+    "name": "audit_payment_changes",
+    "table_name": null,
+    "event": null,
+    "timing": null,
+    "comment": null,
+    "sql": "CREATE TRIGGER audit_payment_changes AFTER INSERT OR DELETE OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION log_payment_changes()"
   },
   "public.payments.update_payments_updated_at": {
     "schema": "public",

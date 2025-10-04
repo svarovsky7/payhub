@@ -3527,6 +3527,172 @@
     ],
     "sql": "-- Metadata for files uploaded to Supabase Storage.\nCREATE TABLE IF NOT EXISTS public.attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    original_name character varying(255) NOT NULL,\n    storage_path character varying(500) NOT NULL,\n    size_bytes integer(32) NOT NULL,\n    mime_type character varying(100) NOT NULL,\n    created_by uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    description text,\n    CONSTRAINT attachments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.attachments IS 'Metadata for files uploaded to Supabase Storage.';\nCOMMENT ON COLUMN public.attachments.id IS 'Primary key of the attachment and Storage object identifier.';\nCOMMENT ON COLUMN public.attachments.original_name IS 'Original filename provided by the user.';\nCOMMENT ON COLUMN public.attachments.storage_path IS 'Path to the object inside Supabase Storage.';\nCOMMENT ON COLUMN public.attachments.size_bytes IS 'File size in bytes.';\nCOMMENT ON COLUMN public.attachments.mime_type IS 'Detected MIME type of the file.';\nCOMMENT ON COLUMN public.attachments.created_by IS 'User (auth.users.id) who uploaded the file.';\nCOMMENT ON COLUMN public.attachments.created_at IS 'Timestamp when the attachment record was created.';\nCOMMENT ON COLUMN public.attachments.updated_at IS 'Timestamp when the attachment metadata was last updated.';\nCOMMENT ON COLUMN public.attachments.description IS 'User-provided description of the file content';"
   },
+  "public.audit_log": {
+    "schema": "public",
+    "name": "audit_log",
+    "comment": "Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "entity_type",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Тип сущности: invoice, payment, invoice_attachment, payment_attachment, approval"
+      },
+      {
+        "name": "entity_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "action",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Тип действия: create, update, delete, file_add, file_delete, status_change, approval_action"
+      },
+      {
+        "name": "field_name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Название поля (только для action=update)"
+      },
+      {
+        "name": "old_value",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Старое значение поля"
+      },
+      {
+        "name": "new_value",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Новое значение поля"
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "metadata",
+        "data_type": "jsonb",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Дополнительные данные в формате JSON (имя файла, комментарий, и т.д.)"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_26302_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26302_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26302_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26302_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26302_8_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "audit_log_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "audit_log_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям\nCREATE TABLE IF NOT EXISTS public.audit_log (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    entity_type text NOT NULL,\n    entity_id uuid NOT NULL,\n    action text NOT NULL,\n    field_name text,\n    old_value text,\n    new_value text,\n    user_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    metadata jsonb,\n    CONSTRAINT audit_log_pkey PRIMARY KEY (id),\n    CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.audit_log IS 'Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям';\nCOMMENT ON COLUMN public.audit_log.entity_type IS 'Тип сущности: invoice, payment, invoice_attachment, payment_attachment, approval';\nCOMMENT ON COLUMN public.audit_log.action IS 'Тип действия: create, update, delete, file_add, file_delete, status_change, approval_action';\nCOMMENT ON COLUMN public.audit_log.field_name IS 'Название поля (только для action=update)';\nCOMMENT ON COLUMN public.audit_log.old_value IS 'Старое значение поля';\nCOMMENT ON COLUMN public.audit_log.new_value IS 'Новое значение поля';\nCOMMENT ON COLUMN public.audit_log.metadata IS 'Дополнительные данные в формате JSON (имя файла, комментарий, и т.д.)';"
+  },
   "public.contract_attachments": {
     "schema": "public",
     "name": "contract_attachments",

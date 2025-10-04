@@ -35,6 +35,26 @@
     "summary": ""
   },
   {
+    "function": "public.log_approval_actions()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
+    "function": "public.log_attachment_changes()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
+    "function": "public.log_invoice_changes()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
+    "function": "public.log_payment_changes()",
+    "returns": "trigger",
+    "summary": ""
+  },
+  {
     "function": "public.recalculate_invoice_delivery_date()",
     "returns": "trigger",
     "summary": ""

@@ -17,12 +17,15 @@ import { InvoiceViewModal } from '../components/invoices/InvoiceViewModal'
 import { QuickPaymentDrawer } from '../components/invoices/QuickPaymentDrawer'
 import { PaymentEditModal } from '../components/invoices/PaymentEditModal'
 import { ColumnSettings } from '../components/invoices/ColumnSettings'
+import InvoiceHistoryModal from '../components/invoices/InvoiceHistoryModal'
 import type { Invoice } from '../lib/supabase'
 import '../styles/compact-table.css'
 
 export const InvoicesPage = () => {
   const { user } = useAuth()
   const [showArchived, setShowArchived] = useState(false)
+  const [historyModalVisible, setHistoryModalVisible] = useState(false)
+  const [viewingHistoryInvoice, setViewingHistoryInvoice] = useState<Invoice | null>(null)
 
   // Use invoice form hook
   const {
@@ -155,6 +158,12 @@ export const InvoicesPage = () => {
     }
   }
 
+  // Handle view history
+  const handleViewHistory = (invoice: Invoice) => {
+    setViewingHistoryInvoice(invoice)
+    setHistoryModalVisible(true)
+  }
+
   // Handle invoice form submit
   const handleInvoiceFormSubmit = async (values: any, files: any, originalFiles?: any) => {
 
@@ -198,7 +207,8 @@ export const InvoicesPage = () => {
     handleViewInvoice,
     handleEditInvoice: handleOpenEditModal,
     handleDeleteInvoice,
-    handleArchiveInvoice
+    handleArchiveInvoice,
+    handleViewHistory
   })
 
   // Column settings
@@ -376,6 +386,16 @@ export const InvoicesPage = () => {
           paymentStatuses={paymentStatuses}
         />
       )}
+
+      {/* Invoice History Modal */}
+      <InvoiceHistoryModal
+        visible={historyModalVisible}
+        onClose={() => {
+          setHistoryModalVisible(false)
+          setViewingHistoryInvoice(null)
+        }}
+        invoice={viewingHistoryInvoice}
+      />
     </div>
   )
 }

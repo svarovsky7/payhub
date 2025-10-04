@@ -23,6 +23,7 @@ interface InvoiceTableColumnsProps {
   handleEditInvoice: (invoice: Invoice) => void
   handleDeleteInvoice: (invoiceId: string) => void
   handleArchiveInvoice?: (invoiceId: string, isArchived: boolean) => void
+  handleViewHistory?: (invoice: Invoice) => void
 }
 
 export const getInvoiceTableColumns = ({
@@ -37,7 +38,8 @@ export const getInvoiceTableColumns = ({
   handleViewInvoice,
   handleEditInvoice,
   handleDeleteInvoice,
-  handleArchiveInvoice
+  handleArchiveInvoice,
+  handleViewHistory
 }: InvoiceTableColumnsProps): ColumnsType<Invoice> => {
   const getStatusTag = (invoice: Invoice) => {
     const statusInfo = invoice.invoice_status
@@ -283,6 +285,7 @@ export const getInvoiceTableColumns = ({
             onEditInvoice={handleEditInvoice}
             onDeleteInvoice={handleDeleteInvoice}
             onArchiveInvoice={handleArchiveInvoice}
+            onViewHistory={handleViewHistory}
           />
         )
       },
