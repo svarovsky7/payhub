@@ -738,6 +738,11 @@
         "type": "uuid",
         "nullable": true,
         "fk": "public.user_profiles.id"
+      },
+      {
+        "name": "is_archived",
+        "type": "boolean",
+        "nullable": false
       }
     ]
   },
@@ -819,32 +824,6 @@
       {
         "name": "material_class_id",
         "type": "integer",
-        "nullable": true
-      }
-    ]
-  },
-  {
-    "table": "public.material_request_attachments",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "pk": true
-      },
-      {
-        "name": "material_request_id",
-        "type": "uuid",
-        "nullable": false
-      },
-      {
-        "name": "attachment_id",
-        "type": "uuid",
-        "nullable": false
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
         "nullable": true
       }
     ]
@@ -1162,6 +1141,11 @@
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true
+      },
+      {
+        "name": "is_archived",
+        "type": "boolean",
+        "nullable": false
       }
     ]
   },

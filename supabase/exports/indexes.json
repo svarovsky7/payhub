@@ -711,6 +711,14 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoice_type_id)"
   },
+  "public.invoices.idx_invoices_is_archived": {
+    "schema": "public",
+    "name": "idx_invoices_is_archived",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_invoices_is_archived ON public.invoices USING btree (is_archived)"
+  },
   "public.invoices.idx_invoices_material_request": {
     "schema": "public",
     "name": "idx_invoices_material_request",
@@ -847,30 +855,6 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_material_nomenclature_name ON public.material_nomenclature USING btree (name)"
   },
-  "public.material_request_attachments.idx_material_request_attachments_attachment_id": {
-    "schema": "public",
-    "name": "idx_material_request_attachments_attachment_id",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE INDEX idx_material_request_attachments_attachment_id ON public.material_request_attachments USING btree (attachment_id)"
-  },
-  "public.material_request_attachments.idx_material_request_attachments_request_id": {
-    "schema": "public",
-    "name": "idx_material_request_attachments_request_id",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE INDEX idx_material_request_attachments_request_id ON public.material_request_attachments USING btree (material_request_id)"
-  },
-  "public.material_request_attachments.material_request_attachments_unique": {
-    "schema": "public",
-    "name": "material_request_attachments_unique",
-    "table_name": null,
-    "is_unique": false,
-    "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX material_request_attachments_unique ON public.material_request_attachments USING btree (material_request_id, attachment_id)"
-  },
   "public.material_request_items.idx_material_request_items_nomenclature": {
     "schema": "public",
     "name": "idx_material_request_items_nomenclature",
@@ -982,6 +966,14 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_payments_invoice_id ON public.payments USING btree (invoice_id)"
+  },
+  "public.payments.idx_payments_is_archived": {
+    "schema": "public",
+    "name": "idx_payments_is_archived",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_payments_is_archived ON public.payments USING btree (is_archived)"
   },
   "public.payments.idx_payments_payment_date": {
     "schema": "public",

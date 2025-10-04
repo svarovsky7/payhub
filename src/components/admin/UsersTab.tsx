@@ -197,7 +197,37 @@ export const UsersTab = () => {
           loadUsers()
         } catch (error) {
           console.error('[UsersTab.handleDelete] Error:', error)
-          message.error('Ошибка удаления пользователя')
+
+          // Проверяем, является ли это ошибкой нарушения внешнего ключа
+          const dbError = error as { code?: string; details?: string; message?: string }
+          if (dbError?.code === '23503') {
+            const errorMessage = dbError?.details || dbError?.message || ''
+
+            // Определяем, какая таблица блокирует удаление
+            let blockingEntity = 'связанные записи'
+            if (errorMessage.includes('attachments')) {
+              blockingEntity = 'прикрепленные файлы'
+            } else if (errorMessage.includes('invoices')) {
+              blockingEntity = 'счета'
+            } else if (errorMessage.includes('payments')) {
+              blockingEntity = 'платежи'
+            } else if (errorMessage.includes('approval_steps')) {
+              blockingEntity = 'шаги согласования'
+            } else if (errorMessage.includes('contractors')) {
+              blockingEntity = 'контрагенты'
+            } else if (errorMessage.includes('contracts')) {
+              blockingEntity = 'договоры'
+            } else if (errorMessage.includes('projects')) {
+              blockingEntity = 'проекты'
+            }
+
+            message.error(
+              `Невозможно удалить пользователя. У него есть ${blockingEntity}. Сначала удалите или переназначьте их.`,
+              5
+            )
+          } else {
+            message.error('Ошибка удаления пользователя')
+          }
         }
       }
     })

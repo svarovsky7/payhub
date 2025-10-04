@@ -150,13 +150,6 @@ const linkFileToEntity = async ({
           attachment_id: attachmentId
         }
         break
-      case 'material_request':
-        tableName = 'material_request_attachments'
-        linkData = {
-          material_request_id: entityId,
-          attachment_id: attachmentId
-        }
-        break
       default:
         throw new Error(`Unknown entity type: ${entityType}`)
     }
@@ -228,10 +221,6 @@ export const loadEntityFiles = async (
       case 'contract':
         tableName = 'contract_attachments'
         filterColumn = 'contract_id'
-        break
-      case 'material_request':
-        tableName = 'material_request_attachments'
-        filterColumn = 'material_request_id'
         break
       default:
         throw new Error(`Unknown entity type: ${entityType}`)

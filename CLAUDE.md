@@ -143,7 +143,7 @@ Automatic field maintenance:
 - Path pattern: `{entity}/{id}/{timestamp}_{filename}`
 - **File size limit: 50 MB** (enforced in all upload services - see `fileAttachmentService.ts:43` and `paymentOperations.ts:336`)
 - Metadata in `attachments` table
-- Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`, `material_request_attachments`
+- Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`
 - Cascade deletion removes both storage and database records
 - Universal component: `FileUploadBlock` (src/components/common/)
 - Service: `fileAttachmentService.ts`, Hook: `useFileAttachment.ts`

@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import { processInvoiceFiles, deleteRemovedFiles } from './invoiceFiles'
 import { recalculateInvoiceStatus } from './invoiceStatus'
 
-export const loadInvoices = async (userId: string) => {
+export const loadInvoices = async (userId: string, showArchived: boolean = false) => {
 
   try {
     // Сначала получаем информацию о роли пользователя
@@ -41,6 +41,11 @@ export const loadInvoices = async (userId: string) => {
         invoice_status:invoice_statuses (*)
       `)
       .order('created_at', { ascending: false })
+
+    // Фильтр архивных счетов
+    if (!showArchived) {
+      query = query.eq('is_archived', false)
+    }
 
     // Если у роли включен параметр own_projects_only, фильтруем по проектам пользователя
     if ((role as any)?.own_projects_only) {
@@ -113,7 +118,7 @@ export const createInvoice = async (
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
-    const { vat_rate: providedVatRate, ...cleanData } = invoiceData
+    const { vat_rate: providedVatRate, payment_deadline_date, ...cleanData } = invoiceData
 
     // Ensure VAT rate is valid - use the provided value from state
     const vatRateValue = providedVatRate !== undefined && providedVatRate !== null
@@ -123,7 +128,7 @@ export const createInvoice = async (
     const formattedData = {
       ...cleanData,
       invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : null,
-      relevance_date: invoiceData.payment_deadline_date ? dayjs(invoiceData.payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
+      relevance_date: payment_deadline_date ? dayjs(payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
       preliminary_delivery_date: invoiceData.preliminary_delivery_date ? dayjs(invoiceData.preliminary_delivery_date).format('YYYY-MM-DD') : null,
       user_id: userId, // Используем user_id вместо created_by (согласно структуре таблицы)
       status_id: 1, // draft (Черновик) по умолчанию
@@ -148,6 +153,21 @@ export const createInvoice = async (
       await processInvoiceFiles(data.id, files, userId)
     }
 
+    // Автоматически привязываем счет к договору, если указан contract_id
+    if (invoiceData.contract_id) {
+      const { error: linkError } = await supabase
+        .from('contract_invoices')
+        .insert({
+          contract_id: invoiceData.contract_id,
+          invoice_id: data.id
+        })
+
+      if (linkError) {
+        console.error('[InvoiceOperations.createInvoice] Error linking to contract:', linkError)
+        // Не прерываем процесс, просто логируем ошибку
+      }
+    }
+
     message.success('Счёт успешно создан')
     return data
   } catch (error) {
@@ -167,7 +187,7 @@ export const updateInvoice = async (
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
-    const { vat_rate: providedVatRate, ...cleanData } = invoiceData
+    const { vat_rate: providedVatRate, payment_deadline_date, ...cleanData } = invoiceData
 
     // Ensure VAT rate is valid - use the provided value from state
     const vatRateValue = providedVatRate !== undefined && providedVatRate !== null
@@ -177,7 +197,7 @@ export const updateInvoice = async (
     const formattedData = {
       ...cleanData,
       invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : null,
-      relevance_date: invoiceData.payment_deadline_date ? dayjs(invoiceData.payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
+      relevance_date: payment_deadline_date ? dayjs(payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
       preliminary_delivery_date: invoiceData.preliminary_delivery_date ? dayjs(invoiceData.preliminary_delivery_date).format('YYYY-MM-DD') : null,
       vat_rate: vatRateValue // Use the properly parsed VAT rate value
     }
@@ -203,6 +223,28 @@ export const updateInvoice = async (
     // Обрабатываем файлы (новые и обновление описаний существующих)
     if (files && files.length > 0) {
       await processInvoiceFiles(invoiceId, files, userId)
+    }
+
+    // Обновляем привязку к договору
+    // Сначала удаляем старую привязку
+    await supabase
+      .from('contract_invoices')
+      .delete()
+      .eq('invoice_id', invoiceId)
+
+    // Затем создаем новую, если указан contract_id
+    if (invoiceData.contract_id) {
+      const { error: linkError } = await supabase
+        .from('contract_invoices')
+        .insert({
+          contract_id: invoiceData.contract_id,
+          invoice_id: invoiceId
+        })
+
+      if (linkError) {
+        console.error('[InvoiceOperations.updateInvoice] Error linking to contract:', linkError)
+        // Не прерываем процесс, просто логируем ошибку
+      }
     }
 
     // Пересчитываем статус счета

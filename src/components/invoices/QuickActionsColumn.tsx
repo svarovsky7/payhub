@@ -1,10 +1,11 @@
-import { Button, Space, Tooltip, Badge } from 'antd'
+import { Button, Space, Tooltip } from 'antd'
 import {
   PaperClipOutlined,
   EditOutlined,
   DeleteOutlined,
   PlusOutlined,
-  UnorderedListOutlined
+  InboxOutlined,
+  FolderOpenOutlined
 } from '@ant-design/icons'
 import type { Invoice } from '../../lib/supabase'
 
@@ -16,8 +17,7 @@ interface QuickActionsColumnProps {
   onViewInvoice: (invoice: Invoice) => void
   onEditInvoice: (invoice: Invoice) => void
   onDeleteInvoice: (invoiceId: string) => void
-  onExpandRow?: (invoiceId: string) => void
-  isExpanded?: boolean
+  onArchiveInvoice?: (invoiceId: string, isArchived: boolean) => void
 }
 
 export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
@@ -28,8 +28,7 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
   onViewInvoice,
   onEditInvoice,
   onDeleteInvoice,
-  onExpandRow,
-  isExpanded
+  onArchiveInvoice
 }) => {
   // Allow payment if there's remaining amount OR if the invoice has amount but no payments yet
   // Convert to number to ensure proper comparison
@@ -53,44 +52,6 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
             }}
           />
         </Tooltip>
-
-        {/* Разворачивание строки */}
-        {onExpandRow && (
-          <Tooltip title={isExpanded ? "Скрыть" : paymentCount > 0 ? `${paymentCount} платеж(ей)` : "Нет платежей"}>
-            <Badge
-              count={paymentCount}
-              size="small"
-              showZero={false}
-              offset={[2, -2]}
-              style={{
-                zIndex: 10
-              }}
-              styles={{
-                indicator: {
-                  backgroundColor: '#ff4d4f',
-                  color: '#fff',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  minWidth: '18px',
-                  height: '18px',
-                  lineHeight: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0 6px',
-                  boxShadow: '0 0 0 1px #fff'
-                }
-              }}
-            >
-              <Button
-                icon={<UnorderedListOutlined />}
-                size="small"
-                type={isExpanded ? "primary" : "default"}
-                onClick={() => onExpandRow(invoice.id)}
-              />
-            </Badge>
-          </Tooltip>
-        )}
       </Space.Compact>
 
       <Space.Compact size="small">
@@ -111,6 +72,20 @@ export const QuickActionsColumn: React.FC<QuickActionsColumnProps> = ({
             onClick={() => onEditInvoice(invoice)}
           />
         </Tooltip>
+
+        {/* Архивировать/Разархивировать */}
+        {onArchiveInvoice && (
+          <Tooltip title={invoice.is_archived ? "Разархивировать" : "В архив"}>
+            <Button
+              icon={invoice.is_archived ? <FolderOpenOutlined /> : <InboxOutlined />}
+              size="small"
+              onClick={() => onArchiveInvoice(invoice.id, !invoice.is_archived)}
+              style={{
+                color: invoice.is_archived ? '#1890ff' : undefined
+              }}
+            />
+          </Tooltip>
+        )}
 
         {/* Удалить */}
         <Tooltip title="Удалить">

@@ -20,7 +20,11 @@ export const loadContracts = async () => {
         status:contract_statuses(*),
         contract_invoices(
           *,
-          invoice:invoices(*)
+          invoice:invoices(
+            *,
+            payer:contractors!invoices_payer_id_fkey(*),
+            supplier:contractors!invoices_supplier_id_fkey(*)
+          )
         ),
         contract_attachments(
           *,

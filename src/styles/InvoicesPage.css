@@ -8,8 +8,10 @@
 
 .expandable-table-smooth .ant-table-content,
 .expandable-table-smooth .ant-table-container,
-.expandable-table-smooth .ant-table-body {
-    overflow-x: hidden;   /* не даём появляться горизонтальной полосе */
+.expandable-table-smooth .ant-table-body,
+.expandable-table-smooth .ant-table,
+.expandable-table-smooth .ant-table-wrapper {
+    overflow-x: hidden !important;   /* не даём появляться горизонтальной полосе */
 }
 
 .expandable-table-smooth table {

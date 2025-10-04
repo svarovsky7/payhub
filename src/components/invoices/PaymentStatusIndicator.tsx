@@ -1,5 +1,5 @@
 import { Progress, Tooltip } from 'antd'
-import { formatAmount } from '../../utils/invoiceHelpers'
+import { formatAmount, formatAmountInMillions } from '../../utils/invoiceHelpers'
 
 interface PaymentStatusIndicatorProps {
   totalAmount: number
@@ -51,16 +51,16 @@ export const PaymentStatusIndicator: React.FC<PaymentStatusIndicatorProps> = ({
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: '14px' }}>
             <span style={{ color: isFullyPaid ? '#52c41a' : '#1890ff' }}>
-              {formatAmount(totalPaid)}
+              {formatAmountInMillions(totalPaid)}
             </span>
             {remainingAmount > 0 && (
               <span style={{ color: '#ff4d4f' }}>
-                -{formatAmount(Math.abs(remainingAmount))}
+                -{formatAmountInMillions(Math.abs(remainingAmount))}
               </span>
             )}
             {isOverpaid && (
               <span style={{ color: '#faad14' }}>
-                +{formatAmount(Math.abs(remainingAmount))}
+                +{formatAmountInMillions(Math.abs(remainingAmount))}
               </span>
             )}
           </div>

@@ -106,6 +106,7 @@ export type Invoice = {
   contract_id?: string // новое поле для связи с договором
   material_request_id?: string // новое поле для связи с заявкой на материалы
   employee_id?: number // новое поле для ответственного сотрудника (integer в БД)
+  is_archived?: boolean // поле для архивирования счетов
   created_at: string
   updated_at: string
   // Связанные объекты (для JOIN запросов)

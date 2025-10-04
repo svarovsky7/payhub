@@ -19,12 +19,10 @@ interface InvoiceTableColumnsProps {
     paymentCount: number
   }
   handleQuickPayment: (invoice: Invoice) => void
-  handleViewPayments: (invoice: Invoice) => void
   handleViewInvoice: (invoice: Invoice) => void
   handleEditInvoice: (invoice: Invoice) => void
   handleDeleteInvoice: (invoiceId: string) => void
-  handleExpandRow: (invoiceId: string) => void
-  expandedRows: Set<string>
+  handleArchiveInvoice?: (invoiceId: string, isArchived: boolean) => void
 }
 
 export const getInvoiceTableColumns = ({
@@ -39,8 +37,7 @@ export const getInvoiceTableColumns = ({
   handleViewInvoice,
   handleEditInvoice,
   handleDeleteInvoice,
-  handleExpandRow,
-  expandedRows
+  handleArchiveInvoice
 }: InvoiceTableColumnsProps): ColumnsType<Invoice> => {
   const getStatusTag = (invoice: Invoice) => {
     const statusInfo = invoice.invoice_status
@@ -224,7 +221,7 @@ export const getInvoiceTableColumns = ({
       sortDirections: ['ascend', 'descend'],
     },
     {
-      title: 'Предполагаемая дата поставки',
+      title: 'Дата поставки',
       dataIndex: 'preliminary_delivery_date',
       key: 'preliminary_delivery_date',
       render: (date: string | null) => (date ? dayjs(date).format('DD.MM.YYYY') : '-'),
@@ -285,8 +282,7 @@ export const getInvoiceTableColumns = ({
             onViewInvoice={handleViewInvoice}
             onEditInvoice={handleEditInvoice}
             onDeleteInvoice={handleDeleteInvoice}
-            onExpandRow={handleExpandRow}
-            isExpanded={expandedRows.has(record.id)}
+            onArchiveInvoice={handleArchiveInvoice}
           />
         )
       },

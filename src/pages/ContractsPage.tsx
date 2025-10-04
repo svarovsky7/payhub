@@ -4,7 +4,6 @@ import { FileTextOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   loadContracts,
   deleteContract,
-  loadAvailableInvoices,
   type Contract
 } from '../services/contractOperations'
 import { ContractsTable } from '../components/contracts/ContractsTable'
@@ -18,7 +17,6 @@ export const ContractsPage = () => {
 
   // State
   const [contracts, setContracts] = useState<Contract[]>([])
-  const [availableInvoices, setAvailableInvoices] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false)
   const [addModalVisible, setAddModalVisible] = useState(false)
@@ -58,12 +56,10 @@ export const ContractsPage = () => {
   }
 
   // Invoice management
-  const handleAddInvoice = (contract: Contract) => {
+  const handleViewInvoices = (contract: Contract) => {
     setSelectedContract(contract)
-    loadAvailableInvoices().then(setAvailableInvoices)
     setInvoiceModalVisible(true)
   }
-
 
   const handleCancelViewModal = () => {
     setInvoiceModalVisible(false)
@@ -95,7 +91,7 @@ export const ContractsPage = () => {
           loading={loading}
           onDelete={handleDelete}
           onEdit={handleEdit}
-          onAddInvoice={handleAddInvoice}
+          onAddInvoice={handleViewInvoices}
           expandedRowKeys={expandedRowKeys}
           onExpandedRowsChange={setExpandedRowKeys}
           onDataChange={loadData}
@@ -106,9 +102,7 @@ export const ContractsPage = () => {
         visible={invoiceModalVisible}
         onCancel={handleCancelViewModal}
         selectedContract={selectedContract}
-        availableInvoices={availableInvoices}
         onDataChange={loadData}
-        onAvailableInvoicesChange={setAvailableInvoices}
       />
 
       <AddContractModal

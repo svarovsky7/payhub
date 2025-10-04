@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from 'react'
-import { Table, Button, Space } from 'antd'
+import { useEffect, useCallback, useState } from 'react'
+import { Table, Button, Space, Switch } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ExpandableConfig } from 'antd/es/table/interface'
 import dayjs from 'dayjs'
@@ -8,6 +8,7 @@ import '../styles/InvoicesPage.css'
 import { useInvoiceManagement } from '../hooks/useInvoiceManagement'
 import { usePaymentManagement } from '../hooks/usePaymentManagement'
 import { useInvoiceForm } from '../hooks/useInvoiceForm'
+import { useColumnSettings } from '../hooks/useColumnSettings'
 import { formatAmount, parseAmount } from '../utils/invoiceHelpers'
 import { getInvoiceTableColumns } from '../components/invoices/InvoiceTableColumns'
 import { PaymentsExpanded } from '../components/invoices/PaymentsExpanded'
@@ -15,11 +16,13 @@ import { InvoiceFormModal } from '../components/invoices/InvoiceFormModal'
 import { InvoiceViewModal } from '../components/invoices/InvoiceViewModal'
 import { QuickPaymentDrawer } from '../components/invoices/QuickPaymentDrawer'
 import { PaymentEditModal } from '../components/invoices/PaymentEditModal'
+import { ColumnSettings } from '../components/invoices/ColumnSettings'
 import type { Invoice } from '../lib/supabase'
 import '../styles/compact-table.css'
 
 export const InvoicesPage = () => {
   const { user } = useAuth()
+  const [showArchived, setShowArchived] = useState(false)
 
   // Use invoice form hook
   const {
@@ -72,7 +75,7 @@ export const InvoicesPage = () => {
     handleOpenCreateModal: originalHandleOpenCreateModal,
     handleOpenEditModal,
     handleViewInvoice
-  } = useInvoiceManagement()
+  } = useInvoiceManagement(showArchived)
 
   // Wrap handleOpenCreateModal to ensure form reset and load references
   const handleOpenCreateModal = useCallback(() => {
@@ -137,9 +140,19 @@ export const InvoicesPage = () => {
     }
   }, [invoices, loadSummaries])
 
-  // Handle view payments
-  const handleViewPayments = (invoice: Invoice) => {
-    handleExpandRow(invoice.id)
+  // Handle archive invoice
+  const handleArchiveInvoice = async (invoiceId: string, isArchived: boolean) => {
+    try {
+      const { archiveInvoice } = await import('../services/invoiceOperations')
+      await archiveInvoice(invoiceId, isArchived)
+      await loadInvoiceData()
+      const { message } = await import('antd')
+      message.success(isArchived ? 'Счёт перемещен в архив' : 'Счёт восстановлен из архива')
+    } catch (error) {
+      console.error('[InvoicesPage.handleArchiveInvoice] Error:', error)
+      const { message } = await import('antd')
+      message.error('Ошибка архивирования счёта')
+    }
   }
 
   // Handle invoice form submit
@@ -173,7 +186,7 @@ export const InvoicesPage = () => {
   }
 
   // Table columns
-  const columns = getInvoiceTableColumns({
+  const allColumns = getInvoiceTableColumns({
     invoices,
     invoiceStatuses,
     invoiceTypes,
@@ -182,13 +195,14 @@ export const InvoicesPage = () => {
     projects,
     getPaymentTotals: getTotals,
     handleQuickPayment,
-    handleViewPayments,
     handleViewInvoice,
     handleEditInvoice: handleOpenEditModal,
     handleDeleteInvoice,
-    handleExpandRow,
-    expandedRows
+    handleArchiveInvoice
   })
+
+  // Column settings
+  const { columnConfig, setColumnConfig, visibleColumns, defaultConfig } = useColumnSettings(allColumns)
 
   // Expandable configuration
   const expandable: ExpandableConfig<Invoice> = {
@@ -223,6 +237,17 @@ export const InvoicesPage = () => {
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <h1 style={{ margin: 0 }}>Счета</h1>
         <Space>
+          <Switch
+            checked={showArchived}
+            onChange={setShowArchived}
+            checkedChildren="Показаны архивные"
+            unCheckedChildren="Скрыты архивные"
+          />
+          <ColumnSettings
+            columns={columnConfig}
+            onChange={setColumnConfig}
+            defaultColumns={defaultConfig}
+          />
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -234,13 +259,11 @@ export const InvoicesPage = () => {
       </div>
 
       <Table
-        columns={columns}
+        columns={visibleColumns}
         dataSource={invoices}
         rowKey="id"
         loading={loading}
         expandable={expandable}
-        scroll={{ x: true }}
-        tableLayout="auto"
         rowClassName={(record) => {
           // Подсветка устаревших счетов (более 30 дней)
           if (record.relevance_date) {

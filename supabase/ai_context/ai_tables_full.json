@@ -1695,6 +1695,13 @@
         "nullable": true,
         "fk": "public.user_profiles.id",
         "description": "Ответственный менеджер снабжения (public.user_profiles.id)"
+      },
+      {
+        "name": "is_archived",
+        "type": "boolean",
+        "nullable": false,
+        "default": "false",
+        "description": "Indicates if the invoice has been archived"
       }
     ],
     "constraints": {
@@ -1748,6 +1755,9 @@
           "name": "2200_18252_24_not_null"
         },
         {
+          "name": "2200_18252_29_not_null"
+        },
+        {
           "name": "2200_18252_2_not_null"
         },
         {
@@ -1784,6 +1794,13 @@
         "name": "idx_invoices_invoice_type_id",
         "columns": [
           "invoice_type_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_invoices_is_archived",
+        "columns": [
+          "is_archived"
         ],
         "unique": false
       },
@@ -2074,90 +2091,6 @@
         "function": "public.update_updated_at_column()"
       }
     ]
-  },
-  {
-    "table": "public.material_request_attachments",
-    "summary": "Связь заявок на материалы с приложенными файлами",
-    "columns": [
-      {
-        "name": "id",
-        "type": "uuid",
-        "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Уникальный идентификатор связи"
-      },
-      {
-        "name": "material_request_id",
-        "type": "uuid",
-        "nullable": false,
-        "description": "ID заявки на материалы"
-      },
-      {
-        "name": "attachment_id",
-        "type": "uuid",
-        "nullable": false,
-        "description": "ID вложенного файла"
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()",
-        "description": "Время создания связи"
-      }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "material_request_attachments_unique",
-          "columns": [
-            "attachment_id",
-            "material_request_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_23552_1_not_null"
-        },
-        {
-          "name": "2200_23552_2_not_null"
-        },
-        {
-          "name": "2200_23552_3_not_null"
-        }
-      ]
-    },
-    "indexes": [
-      {
-        "name": "idx_material_request_attachments_attachment_id",
-        "columns": [
-          "attachment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_request_attachments_request_id",
-        "columns": [
-          "material_request_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "material_request_attachments_unique",
-        "columns": [
-          "material_request_id",
-          "attachment_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
   },
   {
     "table": "public.material_request_items",
@@ -2866,6 +2799,13 @@
         "nullable": true,
         "default": "now()",
         "description": "Timestamp when the payment record was last updated."
+      },
+      {
+        "name": "is_archived",
+        "type": "boolean",
+        "nullable": false,
+        "default": "false",
+        "description": "Indicates if the payment has been archived"
       }
     ],
     "constraints": {
@@ -2904,6 +2844,9 @@
       ],
       "checks": [
         {
+          "name": "2200_19851_12_not_null"
+        },
+        {
           "name": "2200_19851_1_not_null"
         },
         {
@@ -2935,6 +2878,13 @@
         "name": "idx_payments_invoice_id",
         "columns": [
           "invoice_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_payments_is_archived",
+        "columns": [
+          "is_archived"
         ],
         "unique": false
       },

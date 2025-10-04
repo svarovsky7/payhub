@@ -1,7 +1,7 @@
 import React from 'react'
-import { Modal, Table, Button, Typography, message } from 'antd'
+import { Modal, Table, Button, Typography, message, Popconfirm } from 'antd'
 import dayjs from 'dayjs'
-import { addInvoiceToContract, loadAvailableInvoices } from '../../services/contractOperations'
+import { removeInvoiceFromContract } from '../../services/contractOperations'
 import type { Contract } from '../../services/contractOperations'
 
 const { Text } = Typography
@@ -10,84 +10,82 @@ interface ContractViewModalProps {
   visible: boolean
   onCancel: () => void
   selectedContract: Contract | null
-  availableInvoices: any[]
   onDataChange: () => void
-  onAvailableInvoicesChange: (invoices: any[]) => void
 }
 
 export const ContractViewModal: React.FC<ContractViewModalProps> = ({
   visible,
   onCancel,
   selectedContract,
-  availableInvoices,
-  onDataChange,
-  onAvailableInvoicesChange
+  onDataChange
 }) => {
-  const handleLinkInvoice = async (invoiceId: string) => {
+  const linkedInvoices = (selectedContract?.contract_invoices || []) as any[]
+
+  const handleUnlinkInvoice = async (invoiceId: string) => {
     if (!selectedContract) return
 
     try {
-      await addInvoiceToContract(selectedContract.id, invoiceId)
+      await removeInvoiceFromContract(selectedContract.id, invoiceId)
       onDataChange()
-
-      // Reload available invoices
-      const updatedInvoices = await loadAvailableInvoices()
-      onAvailableInvoicesChange(updatedInvoices)
-
-      message.success('Счет успешно привязан к договору')
+      message.success('Счет успешно отвязан от договора')
     } catch (error) {
-      console.error('Error linking invoice:', error)
-      message.error('Ошибка при привязке счета')
+      console.error('Error unlinking invoice:', error)
+      message.error('Ошибка при отвязке счета')
     }
   }
 
   return (
     <Modal
-      title={`Привязать счет к договору: ${selectedContract?.contract_number}`}
+      title={`Счета договора: ${selectedContract?.contract_number}`}
       open={visible}
       onCancel={onCancel}
       footer={null}
       width={900}
     >
-      {availableInvoices.length === 0 ? (
-        <Text type="secondary">Нет доступных счетов для привязки</Text>
+      {linkedInvoices.length === 0 ? (
+        <Text type="secondary">Нет привязанных счетов</Text>
       ) : (
         <Table
-          dataSource={availableInvoices}
+          dataSource={linkedInvoices}
           columns={[
             {
               title: 'Номер счета',
-              dataIndex: 'invoice_number',
-              key: 'invoice_number'
+              dataIndex: ['invoice', 'invoice_number'],
+              key: 'invoice_number',
+              render: (number) => number || '—'
             },
             {
               title: 'Дата',
-              dataIndex: 'invoice_date',
+              dataIndex: ['invoice', 'invoice_date'],
               key: 'invoice_date',
               render: (date) => date ? dayjs(date).format('DD.MM.YYYY') : '—'
             },
             {
               title: 'Плательщик',
-              dataIndex: ['payer', 'name'],
+              dataIndex: ['invoice', 'payer', 'name'],
               key: 'payer',
-              render: (_, record) => record.payer?.name || '—'
+              render: (_, record) => record.invoice?.payer?.name || '—'
             },
             {
               title: 'Сумма',
-              dataIndex: 'amount_with_vat',
+              dataIndex: ['invoice', 'amount_with_vat'],
               key: 'amount_with_vat',
               render: (amount) => amount ? `${amount.toLocaleString('ru-RU')} ₽` : '—'
             },
             {
               title: 'Действия',
               key: 'actions',
-              render: (_, invoice) => (
-                <Button
-                  type="link"
-                  onClick={() => handleLinkInvoice(invoice.id)}
+              render: (_, invoiceLink: any) => (
+                <Popconfirm
+                  title="Отвязать счет от договора?"
+                  onConfirm={() => handleUnlinkInvoice(invoiceLink.invoice_id)}
+                  okText="Отвязать"
+                  cancelText="Отмена"
                 >
-                  Привязать
-                </Button>
+                  <Button type="link" danger size="small">
+                    Отвязать
+                  </Button>
+                </Popconfirm>
               )
             }
           ]}

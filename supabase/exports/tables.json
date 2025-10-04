@@ -5215,6 +5215,16 @@
         "is_nullable": "YES",
         "default": null,
         "comment": "Ответственный менеджер снабжения (public.user_profiles.id)"
+      },
+      {
+        "name": "is_archived",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "false",
+        "comment": "Indicates if the invoice has been archived"
       }
     ],
     "constraints": [
@@ -5244,6 +5254,14 @@
       },
       {
         "name": "2200_18252_24_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_18252_29_not_null",
         "type": "CHECK",
         "column": null,
         "foreign_table_schema": null,
@@ -5355,7 +5373,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date date NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    contract_id uuid,\n    responsible_id uuid,\n    CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Конечная дата актуальности счёта';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';\nCOMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';\nCOMMENT ON COLUMN public.invoices.responsible_id IS 'Ответственный менеджер снабжения (public.user_profiles.id)';"
+    "sql": "-- Outbound invoices issued from PayHub.\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date date NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    contract_id uuid,\n    responsible_id uuid,\n    is_archived boolean NOT NULL DEFAULT false,\n    CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';\nCOMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Конечная дата актуальности счёта';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';\nCOMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';\nCOMMENT ON COLUMN public.invoices.responsible_id IS 'Ответственный менеджер снабжения (public.user_profiles.id)';\nCOMMENT ON COLUMN public.invoices.is_archived IS 'Indicates if the invoice has been archived';"
   },
   "public.material_classes": {
     "schema": "public",
@@ -5596,120 +5614,6 @@
       }
     ],
     "sql": "CREATE TABLE IF NOT EXISTS public.material_nomenclature (\n    id integer(32) NOT NULL DEFAULT nextval('material_nomenclature_id_seq'::regclass),\n    name character varying(500) NOT NULL,\n    unit character varying(50) NOT NULL,\n    is_active boolean DEFAULT true,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    material_class_id integer(32),\n    CONSTRAINT fk_material_nomenclature_class FOREIGN KEY (material_class_id) REFERENCES None.None(None),\n    CONSTRAINT material_nomenclature_pkey PRIMARY KEY (id)\n);"
-  },
-  "public.material_request_attachments": {
-    "schema": "public",
-    "name": "material_request_attachments",
-    "comment": "Связь заявок на материалы с приложенными файлами",
-    "columns": [
-      {
-        "name": "id",
-        "data_type": "uuid",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "NO",
-        "default": "gen_random_uuid()",
-        "comment": "Уникальный идентификатор связи"
-      },
-      {
-        "name": "material_request_id",
-        "data_type": "uuid",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": "ID заявки на материалы"
-      },
-      {
-        "name": "attachment_id",
-        "data_type": "uuid",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "NO",
-        "default": null,
-        "comment": "ID вложенного файла"
-      },
-      {
-        "name": "created_at",
-        "data_type": "timestamp with time zone",
-        "max_length": null,
-        "numeric_precision": null,
-        "numeric_scale": null,
-        "is_nullable": "YES",
-        "default": "now()",
-        "comment": "Время создания связи"
-      }
-    ],
-    "constraints": [
-      {
-        "name": "2200_23552_1_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "2200_23552_2_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "2200_23552_3_not_null",
-        "type": "CHECK",
-        "column": null,
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "material_request_attachments_attachment_id_fkey",
-        "type": "FOREIGN KEY",
-        "column": "attachment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "material_request_attachments_pkey",
-        "type": "PRIMARY KEY",
-        "column": "id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "material_request_attachments_request_id_fkey",
-        "type": "FOREIGN KEY",
-        "column": "material_request_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "material_request_attachments_unique",
-        "type": "UNIQUE",
-        "column": "attachment_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      },
-      {
-        "name": "material_request_attachments_unique",
-        "type": "UNIQUE",
-        "column": "material_request_id",
-        "foreign_table_schema": null,
-        "foreign_table": null,
-        "foreign_column": null
-      }
-    ],
-    "sql": "-- Связь заявок на материалы с приложенными файлами\nCREATE TABLE IF NOT EXISTS public.material_request_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    material_request_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT material_request_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_attachments_pkey PRIMARY KEY (id),\n    CONSTRAINT material_request_attachments_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT material_request_attachments_unique UNIQUE (attachment_id),\n    CONSTRAINT material_request_attachments_unique UNIQUE (material_request_id)\n);\n\nCOMMENT ON TABLE public.material_request_attachments IS 'Связь заявок на материалы с приложенными файлами';\nCOMMENT ON COLUMN public.material_request_attachments.id IS 'Уникальный идентификатор связи';\nCOMMENT ON COLUMN public.material_request_attachments.material_request_id IS 'ID заявки на материалы';\nCOMMENT ON COLUMN public.material_request_attachments.attachment_id IS 'ID вложенного файла';\nCOMMENT ON COLUMN public.material_request_attachments.created_at IS 'Время создания связи';"
   },
   "public.material_request_items": {
     "schema": "public",
@@ -6633,9 +6537,27 @@
         "is_nullable": "YES",
         "default": "now()",
         "comment": "Timestamp when the payment record was last updated."
+      },
+      {
+        "name": "is_archived",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "false",
+        "comment": "Indicates if the payment has been archived"
       }
     ],
     "constraints": [
+      {
+        "name": "2200_19851_12_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
       {
         "name": "2200_19851_1_not_null",
         "type": "CHECK",
@@ -6733,7 +6655,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Payments registered against invoices in PayHub.\nCREATE TABLE IF NOT EXISTS public.payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),\n    payment_date date NOT NULL DEFAULT CURRENT_DATE,\n    amount numeric(15,2) NOT NULL,\n    description text,\n    payment_type_id integer(32),\n    status_id integer(32) DEFAULT 1,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),\n    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),\n    CONSTRAINT payments_pkey PRIMARY KEY (id),\n    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payments IS 'Payments registered against invoices in PayHub.';\nCOMMENT ON COLUMN public.payments.id IS 'Primary key of the payment (UUID).';\nCOMMENT ON COLUMN public.payments.invoice_id IS 'Invoice (public.invoices.id) that the payment relates to.';\nCOMMENT ON COLUMN public.payments.payment_number IS 'Unique sequential number of the payment.';\nCOMMENT ON COLUMN public.payments.payment_date IS 'Date on which the payment was made.';\nCOMMENT ON COLUMN public.payments.amount IS 'Monetary amount of the payment.';\nCOMMENT ON COLUMN public.payments.description IS 'Optional description or purpose of the payment.';\nCOMMENT ON COLUMN public.payments.payment_type_id IS 'Payment type (public.payment_types.id).';\nCOMMENT ON COLUMN public.payments.status_id IS 'Current payment status (public.payment_statuses.id).';\nCOMMENT ON COLUMN public.payments.created_by IS 'User (auth.users.id) who created the payment record.';\nCOMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment record was created.';\nCOMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment record was last updated.';"
+    "sql": "-- Payments registered against invoices in PayHub.\nCREATE TABLE IF NOT EXISTS public.payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),\n    payment_date date NOT NULL DEFAULT CURRENT_DATE,\n    amount numeric(15,2) NOT NULL,\n    description text,\n    payment_type_id integer(32),\n    status_id integer(32) DEFAULT 1,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    is_archived boolean NOT NULL DEFAULT false,\n    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),\n    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),\n    CONSTRAINT payments_pkey PRIMARY KEY (id),\n    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payments IS 'Payments registered against invoices in PayHub.';\nCOMMENT ON COLUMN public.payments.id IS 'Primary key of the payment (UUID).';\nCOMMENT ON COLUMN public.payments.invoice_id IS 'Invoice (public.invoices.id) that the payment relates to.';\nCOMMENT ON COLUMN public.payments.payment_number IS 'Unique sequential number of the payment.';\nCOMMENT ON COLUMN public.payments.payment_date IS 'Date on which the payment was made.';\nCOMMENT ON COLUMN public.payments.amount IS 'Monetary amount of the payment.';\nCOMMENT ON COLUMN public.payments.description IS 'Optional description or purpose of the payment.';\nCOMMENT ON COLUMN public.payments.payment_type_id IS 'Payment type (public.payment_types.id).';\nCOMMENT ON COLUMN public.payments.status_id IS 'Current payment status (public.payment_statuses.id).';\nCOMMENT ON COLUMN public.payments.created_by IS 'User (auth.users.id) who created the payment record.';\nCOMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment record was created.';\nCOMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment record was last updated.';\nCOMMENT ON COLUMN public.payments.is_archived IS 'Indicates if the payment has been archived';"
   },
   "public.positions": {
     "schema": "public",

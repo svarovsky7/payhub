@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-03T21:13:08.891321
+-- Generated: 2025-10-04T20:27:39.859967
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -711,6 +711,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     material_request_id uuid,
     contract_id uuid,
     responsible_id uuid,
+    is_archived boolean NOT NULL DEFAULT false,
     CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),
     CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),
     CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
@@ -749,6 +750,7 @@ COMMENT ON COLUMN public.invoices.relevance_date IS 'Конечная дата �
 COMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';
 COMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';
 COMMENT ON COLUMN public.invoices.responsible_id IS 'Ответственный менеджер снабжения (public.user_profiles.id)';
+COMMENT ON COLUMN public.invoices.is_archived IS 'Indicates if the invoice has been archived';
 
 CREATE TABLE IF NOT EXISTS public.material_classes (
     id bigint(64) NOT NULL,
@@ -774,25 +776,6 @@ CREATE TABLE IF NOT EXISTS public.material_nomenclature (
     CONSTRAINT fk_material_nomenclature_class FOREIGN KEY (material_class_id) REFERENCES None.None(None),
     CONSTRAINT material_nomenclature_pkey PRIMARY KEY (id)
 );
-
--- Связь заявок на материалы с приложенными файлами
-CREATE TABLE IF NOT EXISTS public.material_request_attachments (
-    id uuid NOT NULL DEFAULT gen_random_uuid(),
-    material_request_id uuid NOT NULL,
-    attachment_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT material_request_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
-    CONSTRAINT material_request_attachments_pkey PRIMARY KEY (id),
-    CONSTRAINT material_request_attachments_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),
-    CONSTRAINT material_request_attachments_unique UNIQUE (attachment_id),
-    CONSTRAINT material_request_attachments_unique UNIQUE (material_request_id)
-);
-
-COMMENT ON TABLE public.material_request_attachments IS 'Связь заявок на материалы с приложенными файлами';
-COMMENT ON COLUMN public.material_request_attachments.id IS 'Уникальный идентификатор связи';
-COMMENT ON COLUMN public.material_request_attachments.material_request_id IS 'ID заявки на материалы';
-COMMENT ON COLUMN public.material_request_attachments.attachment_id IS 'ID вложенного файла';
-COMMENT ON COLUMN public.material_request_attachments.created_at IS 'Время создания связи';
 
 -- Позиции в заявках на материалы
 CREATE TABLE IF NOT EXISTS public.material_request_items (
@@ -941,6 +924,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
+    is_archived boolean NOT NULL DEFAULT false,
     CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
     CONSTRAINT payments_payment_number_key UNIQUE (payment_number),
@@ -961,6 +945,7 @@ COMMENT ON COLUMN public.payments.status_id IS 'Current payment status (public.p
 COMMENT ON COLUMN public.payments.created_by IS 'User (auth.users.id) who created the payment record.';
 COMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment record was created.';
 COMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment record was last updated.';
+COMMENT ON COLUMN public.payments.is_archived IS 'Indicates if the payment has been archived';
 
 -- Должности сотрудников
 CREATE TABLE IF NOT EXISTS public.positions (
@@ -4701,6 +4686,9 @@ CREATE INDEX idx_invoices_invoice_date ON public.invoices USING btree (invoice_d
 CREATE INDEX idx_invoices_invoice_type_id ON public.invoices USING btree (invoice_type_id)
 ;
 
+CREATE INDEX idx_invoices_is_archived ON public.invoices USING btree (is_archived)
+;
+
 CREATE INDEX idx_invoices_material_request ON public.invoices USING btree (material_request_id)
 ;
 
@@ -4752,15 +4740,6 @@ CREATE INDEX idx_material_nomenclature_class ON public.material_nomenclature USI
 CREATE INDEX idx_material_nomenclature_name ON public.material_nomenclature USING btree (name)
 ;
 
-CREATE INDEX idx_material_request_attachments_attachment_id ON public.material_request_attachments USING btree (attachment_id)
-;
-
-CREATE INDEX idx_material_request_attachments_request_id ON public.material_request_attachments USING btree (material_request_id)
-;
-
-CREATE UNIQUE INDEX material_request_attachments_unique ON public.material_request_attachments USING btree (material_request_id, attachment_id)
-;
-
 CREATE INDEX idx_material_request_items_nomenclature ON public.material_request_items USING btree (nomenclature_id)
 ;
 
@@ -4801,6 +4780,9 @@ CREATE INDEX idx_payments_created_by ON public.payments USING btree (created_by)
 ;
 
 CREATE INDEX idx_payments_invoice_id ON public.payments USING btree (invoice_id)
+;
+
+CREATE INDEX idx_payments_is_archived ON public.payments USING btree (is_archived)
 ;
 
 CREATE INDEX idx_payments_payment_date ON public.payments USING btree (payment_date)

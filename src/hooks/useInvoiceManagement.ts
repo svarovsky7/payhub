@@ -15,7 +15,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import dayjs from 'dayjs'
 
-export const useInvoiceManagement = () => {
+export const useInvoiceManagement = (showArchived: boolean = false) => {
   const { user } = useAuth()
   const { modal } = App.useApp()
 
@@ -67,12 +67,12 @@ export const useInvoiceManagement = () => {
       // Пересчитываем статусы всех счетов перед загрузкой
       await recalculateAllInvoiceStatuses()
 
-      const data = await loadInvoices(user.id)
+      const data = await loadInvoices(user.id, showArchived)
       setInvoices(data)
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, showArchived])
 
   // Initialize data on mount
   useEffect(() => {

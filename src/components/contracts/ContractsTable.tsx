@@ -118,7 +118,7 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
               size="small"
             />
           </Tooltip>
-          <Tooltip title="Привязать счет">
+          <Tooltip title="Счета">
             <Button
               icon={<LinkOutlined />}
               onClick={() => onAddInvoice(record)}

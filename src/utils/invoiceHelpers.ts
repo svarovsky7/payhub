@@ -25,6 +25,20 @@ export const formatAmount = (value: number | string | undefined): string => {
   })
 }
 
+// Функция форматирования сумм в миллионах рублей
+export const formatAmountInMillions = (value: number | string | undefined): string => {
+  if (!value && value !== 0) return '0,00'
+  const num = typeof value === 'string' ? parseFloat(value) : value
+  if (isNaN(num)) return '0,00'
+
+  // Делим на миллион и форматируем
+  const millions = num / 1000000
+  return millions.toLocaleString('ru-RU', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
 // Функция парсинга введенной суммы
 export const parseAmount = (value: string | undefined): number => {
   if (!value) return 0
