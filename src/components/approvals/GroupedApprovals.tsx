@@ -7,7 +7,8 @@ import {
   EditOutlined,
   FileAddOutlined,
   DollarOutlined,
-  ProjectOutlined
+  ProjectOutlined,
+  FileTextOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { formatAmount } from '../../utils/invoiceHelpers'
@@ -28,6 +29,7 @@ interface GroupedApprovalsProps {
   onEditInvoice: (approval: PaymentApproval) => void
   onAddFiles: (approval: PaymentApproval) => void
   onEditAmount: (approval: PaymentApproval) => void
+  onViewMaterialRequest: (approval: PaymentApproval) => void
   getCurrentStagePermissions: (approval: PaymentApproval) => any
   projectBudgets?: ProjectBudgetWithProject[]
 }
@@ -50,6 +52,7 @@ export const GroupedApprovals = ({
   onEditInvoice,
   onAddFiles,
   onEditAmount,
+  onViewMaterialRequest,
   getCurrentStagePermissions,
   projectBudgets = []
 }: GroupedApprovalsProps) => {
@@ -298,6 +301,16 @@ export const GroupedApprovals = ({
                                     icon={<DollarOutlined />}
                                     onClick={() => onEditAmount(approval)}
                                     className="action-btn action-btn-amount"
+                                  />
+                                </Tooltip>
+                              )}
+                              {approval.payment?.invoice?.material_request_id && (
+                                <Tooltip title="Заявка на материалы">
+                                  <Button
+                                    size="small"
+                                    icon={<FileTextOutlined />}
+                                    onClick={() => onViewMaterialRequest(approval)}
+                                    className="action-btn action-btn-material-request"
                                   />
                                 </Tooltip>
                               )}

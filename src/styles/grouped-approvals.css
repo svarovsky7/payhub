@@ -296,6 +296,17 @@
   background: rgba(250, 140, 22, 0.05);
 }
 
+.action-btn-material-request {
+  color: #722ed1;
+  border-color: #722ed1;
+}
+
+.action-btn-material-request:hover {
+  color: #9254de;
+  border-color: #9254de;
+  background: rgba(114, 46, 209, 0.05);
+}
+
 .action-btn-history {
   color: #8c8c8c;
   border-color: #d9d9d9;

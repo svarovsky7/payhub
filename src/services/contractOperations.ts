@@ -7,10 +7,11 @@ export type { Contract, ContractStatus }
 
 
 // Load contracts with related data
-export const loadContracts = async () => {
+export const loadContracts = async (userId?: string) => {
+  console.log('[contractOperations.loadContracts] Loading contracts for user:', userId)
 
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('contracts')
       .select(`
         *,
@@ -31,7 +32,23 @@ export const loadContracts = async () => {
           attachment:attachments(*)
         )
       `)
-      .order('contract_date', { ascending: false })
+
+    // Filter by user projects if needed
+    if (userId) {
+      const { getUserProjectFilter } = await import('./userProjectsService')
+      const { shouldFilter, projectIds } = await getUserProjectFilter(userId)
+
+      if (shouldFilter && projectIds.length > 0) {
+        console.log('[contractOperations.loadContracts] Filtering by projects:', projectIds)
+        query = query.in('project_id', projectIds)
+      } else if (shouldFilter && projectIds.length === 0) {
+        // User has no projects - return empty array
+        console.log('[contractOperations.loadContracts] User has no projects')
+        return []
+      }
+    }
+
+    const { data, error } = await query.order('contract_date', { ascending: false })
 
     if (error) throw error
 

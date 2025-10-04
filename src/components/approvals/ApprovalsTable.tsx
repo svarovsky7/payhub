@@ -5,7 +5,8 @@ import {
   HistoryOutlined,
   EditOutlined,
   FileAddOutlined,
-  DollarOutlined
+  DollarOutlined,
+  FileTextOutlined
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { formatAmount } from '../../utils/invoiceHelpers'
@@ -15,24 +16,30 @@ import type { PaymentApproval } from '../../services/approvalOperations'
 interface ApprovalsTableProps {
   approvals: PaymentApproval[]
   loading: boolean
+  selectedIds?: string[]
+  onSelectionChange?: (selectedIds: string[]) => void
   onApprove: (approval: PaymentApproval) => void
   onReject: (approval: PaymentApproval) => void
   onViewHistory: (approval: PaymentApproval) => void
   onEditInvoice: (approval: PaymentApproval) => void
   onAddFiles: (approval: PaymentApproval) => void
   onEditAmount: (approval: PaymentApproval) => void
+  onViewMaterialRequest: (approval: PaymentApproval) => void
   getCurrentStagePermissions: (approval: PaymentApproval) => any
 }
 
 export const ApprovalsTable = ({
   approvals,
   loading,
+  selectedIds = [],
+  onSelectionChange,
   onApprove,
   onReject,
   onViewHistory,
   onEditInvoice,
   onAddFiles,
   onEditAmount,
+  onViewMaterialRequest,
   getCurrentStagePermissions
 }: ApprovalsTableProps) => {
   console.log('[ApprovalsTable] Approvals data:', approvals)
@@ -271,6 +278,16 @@ export const ApprovalsTable = ({
                 />
               </Tooltip>
             )}
+            {record.payment?.invoice?.material_request_id && (
+              <Tooltip title="Заявка на материалы">
+                <Button
+                  size="small"
+                  icon={<FileTextOutlined />}
+                  onClick={() => onViewMaterialRequest(record)}
+                  style={{ padding: '0 6px', color: '#722ed1' }}
+                />
+              </Tooltip>
+            )}
             <Tooltip title="История">
               <Button
                 size="small"
@@ -295,6 +312,13 @@ export const ApprovalsTable = ({
         loading={loading}
         scroll={{ x: 'max-content' }}
         tableLayout="auto"
+        rowSelection={onSelectionChange ? {
+          selectedRowKeys: selectedIds,
+          onChange: (selectedRowKeys) => {
+            onSelectionChange(selectedRowKeys as string[])
+          },
+          preserveSelectedRowKeys: true
+        } : undefined}
         pagination={{
           defaultPageSize: 10,
           showSizeChanger: true,

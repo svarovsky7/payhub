@@ -157,11 +157,11 @@ export async function loadMaterialRequest(requestId: string): Promise<MaterialRe
 }
 
 // Load all material requests
-export async function loadMaterialRequests(): Promise<MaterialRequest[]> {
-  console.log('[materialRequestOperations.loadMaterialRequests] Loading all requests')
+export async function loadMaterialRequests(userId?: string): Promise<MaterialRequest[]> {
+  console.log('[materialRequestOperations.loadMaterialRequests] Loading requests for user:', userId)
 
   try {
-    const { data: requests, error } = await supabase
+    let query = supabase
       .from('material_requests')
       .select(`
         *,
@@ -182,6 +182,23 @@ export async function loadMaterialRequests(): Promise<MaterialRequest[]> {
           )
         )
       `)
+
+    // Filter by user projects if needed
+    if (userId) {
+      const { getUserProjectFilter } = await import('./userProjectsService')
+      const { shouldFilter, projectIds } = await getUserProjectFilter(userId)
+
+      if (shouldFilter && projectIds.length > 0) {
+        console.log('[materialRequestOperations.loadMaterialRequests] Filtering by projects:', projectIds)
+        query = query.in('project_id', projectIds)
+      } else if (shouldFilter && projectIds.length === 0) {
+        // User has no projects - return empty array
+        console.log('[materialRequestOperations.loadMaterialRequests] User has no projects')
+        return []
+      }
+    }
+
+    const { data: requests, error } = await query
       .order('request_date', { ascending: false })
       .order('created_at', { ascending: false })
 

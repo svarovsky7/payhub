@@ -45,7 +45,7 @@ export function useMaterialRequestManagement() {
 
     try {
       const [requestsData, referencesData] = await Promise.all([
-        loadMaterialRequests(),
+        loadMaterialRequests(user.id),
         loadMaterialRequestReferences()
       ])
 

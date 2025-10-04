@@ -16,6 +16,8 @@ import { ApprovalHistoryModal } from '../components/approvals/ApprovalHistoryMod
 import { EditInvoiceModal } from '../components/approvals/EditInvoiceModal'
 import { EditAmountModal } from '../components/approvals/EditAmountModal'
 import { AddFilesModal } from '../components/approvals/AddFilesModal'
+import { PaymentsSummaryCard } from '../components/approvals/PaymentsSummaryCard'
+import { ViewMaterialRequestModal } from '../components/approvals/ViewMaterialRequestModal'
 import { getCurrentStagePermissions, calculateVatAmounts } from '../utils/approvalCalculations'
 import '../styles/compact-table.css'
 import '../styles/approvals-page.css'
@@ -43,6 +45,10 @@ export const ApprovalsPage = () => {
   // View mode state
   const [groupedView, setGroupedView] = useState(true)
 
+  // Material request modal state
+  const [materialRequestModalVisible, setMaterialRequestModalVisible] = useState(false)
+  const [selectedMaterialRequestId, setSelectedMaterialRequestId] = useState<string | null>(null)
+
   // Use custom hooks for modular functionality
   const approvalActions = useApprovalActions({
     handleApprove,
@@ -64,6 +70,15 @@ export const ApprovalsPage = () => {
 
   console.log('[ApprovalsPage] Budget visibility:', { canShowBudgets, approvalsCount: pendingApprovals.length })
 
+  // Handle material request view
+  const handleViewMaterialRequest = (approval: any) => {
+    console.log('[ApprovalsPage] View material request:', approval)
+    const materialRequestId = approval.payment?.invoice?.material_request_id
+    if (materialRequestId) {
+      setSelectedMaterialRequestId(materialRequestId)
+      setMaterialRequestModalVisible(true)
+    }
+  }
 
   if (!userRole) {
     return (
@@ -128,62 +143,79 @@ export const ApprovalsPage = () => {
         </Card>
       )}
 
-      {loadingApprovals ? (
-        <Card>
-          <div style={{ textAlign: 'center', padding: 50 }}>
-            <Spin size="large" />
-          </div>
-        </Card>
-      ) : pendingApprovals.length === 0 ? (
-        <Card>
-          <Empty
-            description="Нет платежей на согласовании"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
-        </Card>
-      ) : (
-        <>
-          {groupedView && (
-            <BulkActionBar
-              selectedIds={bulkActions.selectedIds}
-              approvals={pendingApprovals}
-              onApproveAll={() => bulkActions.handleBulkApprove(approvalActions.comment)}
-              onRejectAll={bulkActions.handleBulkReject}
-              onClearSelection={bulkActions.handleClearSelection}
-              onSelectAll={(checked) => bulkActions.handleSelectAll(checked, pendingApprovals)}
-              processing={bulkActions.bulkProcessing}
-            />
-          )}
-
-          {groupedView ? (
-            <GroupedApprovals
-              approvals={pendingApprovals}
-              selectedIds={bulkActions.selectedIds}
-              onSelectionChange={bulkActions.setSelectedIds}
-              onApprove={approvalActions.handleApproveClick}
-              onReject={approvalActions.handleRejectClick}
-              onViewHistory={approvalActions.handleHistoryClick}
-              onEditInvoice={invoiceEditing.handleEditInvoiceClick}
-              onAddFiles={invoiceEditing.handleAddFilesClick}
-              onEditAmount={invoiceEditing.handleEditAmountClick}
-              getCurrentStagePermissions={getCurrentStagePermissions}
-              projectBudgets={canShowBudgets ? projectBudgets : []}
-            />
+      <Row gutter={16}>
+        {/* Main content - left side */}
+        <Col xs={24} lg={18}>
+          {loadingApprovals ? (
+            <Card>
+              <div style={{ textAlign: 'center', padding: 50 }}>
+                <Spin size="large" />
+              </div>
+            </Card>
+          ) : pendingApprovals.length === 0 ? (
+            <Card>
+              <Empty
+                description="Нет платежей на согласовании"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            </Card>
           ) : (
-            <ApprovalsTable
+            <>
+              <BulkActionBar
+                selectedIds={bulkActions.selectedIds}
+                approvals={pendingApprovals}
+                onApproveAll={() => bulkActions.handleBulkApprove(approvalActions.comment)}
+                onRejectAll={bulkActions.handleBulkReject}
+                onClearSelection={bulkActions.handleClearSelection}
+                onSelectAll={(checked) => bulkActions.handleSelectAll(checked, pendingApprovals)}
+                processing={bulkActions.bulkProcessing}
+              />
+
+              {groupedView ? (
+                <GroupedApprovals
+                  approvals={pendingApprovals}
+                  selectedIds={bulkActions.selectedIds}
+                  onSelectionChange={bulkActions.setSelectedIds}
+                  onApprove={approvalActions.handleApproveClick}
+                  onReject={approvalActions.handleRejectClick}
+                  onViewHistory={approvalActions.handleHistoryClick}
+                  onEditInvoice={invoiceEditing.handleEditInvoiceClick}
+                  onAddFiles={invoiceEditing.handleAddFilesClick}
+                  onEditAmount={invoiceEditing.handleEditAmountClick}
+                  onViewMaterialRequest={handleViewMaterialRequest}
+                  getCurrentStagePermissions={getCurrentStagePermissions}
+                  projectBudgets={canShowBudgets ? projectBudgets : []}
+                />
+              ) : (
+                <ApprovalsTable
+                  approvals={pendingApprovals}
+                  loading={loadingApprovals}
+                  selectedIds={bulkActions.selectedIds}
+                  onSelectionChange={bulkActions.setSelectedIds}
+                  onApprove={approvalActions.handleApproveClick}
+                  onReject={approvalActions.handleRejectClick}
+                  onViewHistory={approvalActions.handleHistoryClick}
+                  onEditInvoice={invoiceEditing.handleEditInvoiceClick}
+                  onAddFiles={invoiceEditing.handleAddFilesClick}
+                  onEditAmount={invoiceEditing.handleEditAmountClick}
+                  onViewMaterialRequest={handleViewMaterialRequest}
+                  getCurrentStagePermissions={getCurrentStagePermissions}
+                />
+              )}
+            </>
+          )}
+        </Col>
+
+        {/* Summary card - right side */}
+        <Col xs={24} lg={6}>
+          {pendingApprovals.length > 0 && (
+            <PaymentsSummaryCard
               approvals={pendingApprovals}
-              loading={loadingApprovals}
-              onApprove={approvalActions.handleApproveClick}
-              onReject={approvalActions.handleRejectClick}
-              onViewHistory={approvalActions.handleHistoryClick}
-              onEditInvoice={invoiceEditing.handleEditInvoiceClick}
-              onAddFiles={invoiceEditing.handleAddFilesClick}
-              onEditAmount={invoiceEditing.handleEditAmountClick}
-              getCurrentStagePermissions={getCurrentStagePermissions}
+              selectedIds={bulkActions.selectedIds}
             />
           )}
-        </>
-      )}
+        </Col>
+      </Row>
 
       <ApprovalActionModals
         approveModalVisible={approvalActions.approveModalVisible}
@@ -255,6 +287,15 @@ export const ApprovalsPage = () => {
         processing={bulkActions.bulkProcessing}
         processingProgress={bulkActions.bulkProgress}
         result={bulkActions.bulkResult}
+      />
+
+      <ViewMaterialRequestModal
+        visible={materialRequestModalVisible}
+        materialRequestId={selectedMaterialRequestId}
+        onClose={() => {
+          setMaterialRequestModalVisible(false)
+          setSelectedMaterialRequestId(null)
+        }}
       />
     </div>
   )

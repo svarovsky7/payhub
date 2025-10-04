@@ -10,10 +10,12 @@ import { ContractsTable } from '../components/contracts/ContractsTable'
 import { ContractViewModal } from '../components/contracts/ContractViewModal'
 import { AddContractModal } from '../components/contracts/AddContractModal'
 import { EditContractModal } from '../components/contracts/EditContractModal'
+import { useAuth } from '../contexts/AuthContext'
 
 const { Title } = Typography
 
 export const ContractsPage = () => {
+  const { user } = useAuth()
 
   // State
   const [contracts, setContracts] = useState<Contract[]>([])
@@ -27,13 +29,17 @@ export const ContractsPage = () => {
 
   // Load data
   useEffect(() => {
-    loadData()
-  }, [])
+    if (user?.id) {
+      loadData()
+    }
+  }, [user?.id])
 
   const loadData = async () => {
+    if (!user?.id) return
+
     setLoading(true)
     try {
-      const contractsData = await loadContracts()
+      const contractsData = await loadContracts(user.id)
       setContracts(contractsData)
     } finally {
       setLoading(false)
