@@ -1,7 +1,7 @@
 import { Modal, List, Typography, Empty, Spin } from 'antd'
 import { CheckCircleOutlined } from '@ant-design/icons'
 
-const { Text, Title } = Typography
+const { Text } = Typography
 
 interface ApprovalRoute {
   id: number
@@ -52,7 +52,9 @@ export const SelectRouteModal: React.FC<SelectRouteModalProps> = ({
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <Spin tip="Загрузка маршрутов..." />
+          <Spin>
+            <div style={{ padding: 20 }}>Загрузка маршрутов...</div>
+          </Spin>
         </div>
       ) : routes.length === 0 ? (
         <Empty
@@ -85,9 +87,9 @@ export const SelectRouteModal: React.FC<SelectRouteModalProps> = ({
             >
               <List.Item.Meta
                 title={
-                  <Title level={5} style={{ margin: 0 }}>
+                  <span style={{ fontSize: 16, fontWeight: 500 }}>
                     {route.name}
-                  </Title>
+                  </span>
                 }
                 description={
                   route.description && (

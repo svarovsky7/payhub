@@ -275,14 +275,22 @@ export const InvoicesPage = () => {
         loading={loading}
         expandable={expandable}
         rowClassName={(record) => {
+          const classes = [];
+
+          // Подсветка архивных счетов
+          if (record.is_archived) {
+            classes.push('archived-invoice-row');
+          }
+
           // Подсветка устаревших счетов (более 30 дней)
           if (record.relevance_date) {
             const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
             if (daysSinceRelevance > 30) {
-              return 'outdated-invoice-row'
+              classes.push('outdated-invoice-row');
             }
           }
-          return ''
+
+          return classes.join(' ');
         }}
         pagination={{
           defaultPageSize: 10,

@@ -54,3 +54,16 @@ code {
 .ant-table-wrapper .ant-table-content {
     overflow-x: clip;
 }
+
+/* Nomenclature select dropdown - wider for full text display */
+.nomenclature-select-dropdown {
+    min-width: 400px !important;
+    max-width: 800px !important;
+}
+
+.nomenclature-select-dropdown .ant-select-item {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    padding: 8px 12px !important;
+    line-height: 1.4 !important;
+}

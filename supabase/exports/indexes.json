@@ -855,13 +855,13 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_material_classes_parent_active ON public.material_classes USING btree (parent_id, is_active)"
   },
-  "public.material_classes.material_classes_name_key": {
+  "public.material_classes.material_classes_name_parent_key": {
     "schema": "public",
-    "name": "material_classes_name_key",
+    "name": "material_classes_name_parent_key",
     "table_name": null,
     "is_unique": false,
     "is_primary": false,
-    "sql": "CREATE UNIQUE INDEX material_classes_name_key ON public.material_classes USING btree (name)"
+    "sql": "CREATE UNIQUE INDEX material_classes_name_parent_key ON public.material_classes USING btree (name, parent_id)"
   },
   "public.material_nomenclature.idx_material_nomenclature_active": {
     "schema": "public",

@@ -14,6 +14,7 @@ npm run build     # TypeScript check (tsc -b) + Vite production build to dist/
 npm run lint      # Run ESLint
 npm run preview   # Preview production build locally
 node scripts/generate-ai-context.cjs  # Regenerate database AI context from supabase/exports/
+node scripts/apply-migration.js <migration-file>  # Apply SQL migration (requires service_role key)
 ```
 
 **Critical**: Always run `npm run lint` and `npm run build` before committing changes to ensure code quality and TypeScript compilation.
@@ -59,6 +60,19 @@ src/
 - **Hooks** (`src/hooks/`): React state management, UI interactions, optimistic updates
 - **Services** (`src/services/`): Pure business logic, database operations, no React dependencies
 
+#### TypeScript Types
+All database entity types are centralized in `src/lib/supabase.ts`:
+- Export TypeScript interfaces for all major entities (Invoice, Payment, Contract, etc.)
+- Import Supabase client from `src/lib/supabase` (never create new instances)
+- Types mirror database schema structure with optional joined relations
+
+#### Authentication
+Single `AuthContext` (`src/contexts/AuthContext.tsx`) provides:
+- User session state from Supabase Auth
+- Role-based access via `currentRoleId` from `user_profiles` table
+- `useAuth()` hook for accessing auth state in components
+- Sign in/up/out methods with error handling
+
 ### Database Schema
 
 **Critical**: All database operations must reference schema in `supabase/ai_context/`:
@@ -90,6 +104,14 @@ Design principles:
 - Cascade deletion for related records
 - UUID for user tables, serial for others
 - All timestamps use `timestamp with time zone`
+
+#### Database Migration Workflow
+Migrations stored in `supabase/migrations/`:
+- `prod.sql` - Complete production schema (primary source of truth)
+- `YYYYMMDD_description.sql` - Individual migration files for schema changes
+- After schema changes, export updated metadata from Supabase to `supabase/exports/`
+- Run `node scripts/generate-ai-context.cjs` to regenerate AI context files
+- Apply migrations via Supabase SQL Editor (preferred) or `scripts/apply-migration.js` (requires service_role key)
 
 ### Status Management
 

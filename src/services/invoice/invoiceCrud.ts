@@ -12,22 +12,25 @@ export const loadInvoices = async (userId: string, showArchived: boolean = false
     // Сначала получаем информацию о роли пользователя
     const { data: userProfile, error: profileError } = await supabase
       .from('user_profiles')
-      .select(`
-        role_id,
-        roles (
-          id,
-          own_projects_only
-        )
-      `)
+      .select('role_id')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
     if (profileError) {
       console.error('[InvoiceOperations.loadInvoices] Error loading user profile:', profileError)
       throw profileError
     }
 
-    const role = userProfile?.roles
+    let role = null
+    if (userProfile?.role_id) {
+      const { data: roleData } = await supabase
+        .from('roles')
+        .select('id, own_projects_only')
+        .eq('id', userProfile.role_id)
+        .maybeSingle()
+
+      role = roleData
+    }
 
     // Базовый запрос для счетов
     let query = supabase

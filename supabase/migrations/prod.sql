@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-04T23:22:18.769149
+-- Generated: 2025-10-05T18:29:00.118113
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -379,7 +379,7 @@ CREATE TABLE IF NOT EXISTS net.http_request_queue (
     timeout_milliseconds integer(32) NOT NULL
 );
 
--- Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.
+-- Payment approval routes. One invoice type can have multiple routes.
 CREATE TABLE IF NOT EXISTS public.approval_routes (
     id integer(32) NOT NULL,
     invoice_type_id integer(32) NOT NULL,
@@ -391,15 +391,15 @@ CREATE TABLE IF NOT EXISTS public.approval_routes (
     CONSTRAINT approval_routes_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.approval_routes IS 'Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.';
-COMMENT ON COLUMN public.approval_routes.id IS 'Primary key of the approval route.';
-COMMENT ON COLUMN public.approval_routes.invoice_type_id IS 'Invoice type (public.invoice_types.id) this route applies to.';
-COMMENT ON COLUMN public.approval_routes.name IS 'Display name of the approval route.';
-COMMENT ON COLUMN public.approval_routes.is_active IS 'TRUE when the route can be used for new payments.';
-COMMENT ON COLUMN public.approval_routes.created_at IS 'Timestamp when the route record was created.';
-COMMENT ON COLUMN public.approval_routes.updated_at IS 'Timestamp when the route record was last updated.';
+COMMENT ON TABLE public.approval_routes IS 'Payment approval routes. One invoice type can have multiple routes.';
+COMMENT ON COLUMN public.approval_routes.id IS 'Primary key';
+COMMENT ON COLUMN public.approval_routes.invoice_type_id IS 'Invoice type ID this route applies to';
+COMMENT ON COLUMN public.approval_routes.name IS 'Route name';
+COMMENT ON COLUMN public.approval_routes.is_active IS 'Whether this route is currently active';
+COMMENT ON COLUMN public.approval_routes.created_at IS 'Timestamp when the route was created';
+COMMENT ON COLUMN public.approval_routes.updated_at IS 'Timestamp when the route was last updated';
 
--- Audit log of actions performed during payment approval.
+-- Audit log of actions performed during payment approval process
 CREATE TABLE IF NOT EXISTS public.approval_steps (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     payment_approval_id uuid NOT NULL,
@@ -417,17 +417,17 @@ CREATE TABLE IF NOT EXISTS public.approval_steps (
     CONSTRAINT approval_steps_stage_id_fkey FOREIGN KEY (stage_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.approval_steps IS 'Audit log of actions performed during payment approval.';
-COMMENT ON COLUMN public.approval_steps.id IS 'Primary key of the approval step entry.';
-COMMENT ON COLUMN public.approval_steps.payment_approval_id IS 'Payment approval instance (public.payment_approvals.id) this entry belongs to.';
-COMMENT ON COLUMN public.approval_steps.stage_id IS 'Workflow stage (public.workflow_stages.id) where the action happened.';
-COMMENT ON COLUMN public.approval_steps.action IS 'Recorded action on the stage, e.g. approve or reject.';
-COMMENT ON COLUMN public.approval_steps.acted_by IS 'User (auth.users.id) who performed the action.';
-COMMENT ON COLUMN public.approval_steps.acted_at IS 'Timestamp when the action was performed.';
-COMMENT ON COLUMN public.approval_steps.comment IS 'Optional free-form note left by the approver.';
-COMMENT ON COLUMN public.approval_steps.created_at IS 'Timestamp when the audit entry was stored.';
+COMMENT ON TABLE public.approval_steps IS 'Audit log of actions performed during payment approval process';
+COMMENT ON COLUMN public.approval_steps.id IS 'Primary key';
+COMMENT ON COLUMN public.approval_steps.payment_approval_id IS 'Payment approval ID this step belongs to';
+COMMENT ON COLUMN public.approval_steps.stage_id IS 'Workflow stage ID';
+COMMENT ON COLUMN public.approval_steps.action IS 'Action taken: approved, rejected, or returned';
+COMMENT ON COLUMN public.approval_steps.acted_by IS 'User ID who performed the approval action';
+COMMENT ON COLUMN public.approval_steps.acted_at IS 'Timestamp when the action was performed';
+COMMENT ON COLUMN public.approval_steps.comment IS 'Optional comment explaining the decision';
+COMMENT ON COLUMN public.approval_steps.created_at IS 'Timestamp when the record was created';
 
--- Metadata for files uploaded to Supabase Storage.
+-- Metadata for files uploaded to Supabase Storage
 CREATE TABLE IF NOT EXISTS public.attachments (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     original_name character varying(255) NOT NULL,
@@ -442,18 +442,18 @@ CREATE TABLE IF NOT EXISTS public.attachments (
     CONSTRAINT attachments_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.attachments IS 'Metadata for files uploaded to Supabase Storage.';
-COMMENT ON COLUMN public.attachments.id IS 'Primary key of the attachment and Storage object identifier.';
-COMMENT ON COLUMN public.attachments.original_name IS 'Original filename provided by the user.';
-COMMENT ON COLUMN public.attachments.storage_path IS 'Path to the object inside Supabase Storage.';
-COMMENT ON COLUMN public.attachments.size_bytes IS 'File size in bytes.';
-COMMENT ON COLUMN public.attachments.mime_type IS 'Detected MIME type of the file.';
-COMMENT ON COLUMN public.attachments.created_by IS 'User (auth.users.id) who uploaded the file.';
-COMMENT ON COLUMN public.attachments.created_at IS 'Timestamp when the attachment record was created.';
-COMMENT ON COLUMN public.attachments.updated_at IS 'Timestamp when the attachment metadata was last updated.';
-COMMENT ON COLUMN public.attachments.description IS 'User-provided description of the file content';
+COMMENT ON TABLE public.attachments IS 'Metadata for files uploaded to Supabase Storage';
+COMMENT ON COLUMN public.attachments.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.attachments.original_name IS 'Original filename as uploaded by user';
+COMMENT ON COLUMN public.attachments.storage_path IS 'Path to file in Supabase Storage';
+COMMENT ON COLUMN public.attachments.size_bytes IS 'File size in bytes';
+COMMENT ON COLUMN public.attachments.mime_type IS 'MIME type of the file';
+COMMENT ON COLUMN public.attachments.created_by IS 'User ID who uploaded the file';
+COMMENT ON COLUMN public.attachments.created_at IS 'Timestamp when the file was uploaded';
+COMMENT ON COLUMN public.attachments.updated_at IS 'Timestamp when metadata was last updated';
+COMMENT ON COLUMN public.attachments.description IS 'Optional description of the attachment';
 
--- Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям
+-- Centralized audit log for tracking changes to invoices, payments, and related entities
 CREATE TABLE IF NOT EXISTS public.audit_log (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     entity_type text NOT NULL,
@@ -469,15 +469,19 @@ CREATE TABLE IF NOT EXISTS public.audit_log (
     CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.audit_log IS 'Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям';
-COMMENT ON COLUMN public.audit_log.entity_type IS 'Тип сущности: invoice, payment, invoice_attachment, payment_attachment, approval';
-COMMENT ON COLUMN public.audit_log.action IS 'Тип действия: create, update, delete, file_add, file_delete, status_change, approval_action';
-COMMENT ON COLUMN public.audit_log.field_name IS 'Название поля (только для action=update)';
-COMMENT ON COLUMN public.audit_log.old_value IS 'Старое значение поля';
-COMMENT ON COLUMN public.audit_log.new_value IS 'Новое значение поля';
-COMMENT ON COLUMN public.audit_log.metadata IS 'Дополнительные данные в формате JSON (имя файла, комментарий, и т.д.)';
+COMMENT ON TABLE public.audit_log IS 'Centralized audit log for tracking changes to invoices, payments, and related entities';
+COMMENT ON COLUMN public.audit_log.id IS 'Primary key';
+COMMENT ON COLUMN public.audit_log.entity_type IS 'Type of entity: invoice, payment, invoice_attachment, payment_attachment, approval';
+COMMENT ON COLUMN public.audit_log.entity_id IS 'ID of the affected entity';
+COMMENT ON COLUMN public.audit_log.action IS 'Action performed: create, update, delete, file_add, file_delete, status_change, approval_action';
+COMMENT ON COLUMN public.audit_log.field_name IS 'Name of the field that was changed (for update actions)';
+COMMENT ON COLUMN public.audit_log.old_value IS 'Previous value (for update actions)';
+COMMENT ON COLUMN public.audit_log.new_value IS 'New value (for update actions)';
+COMMENT ON COLUMN public.audit_log.user_id IS 'User ID who performed the action';
+COMMENT ON COLUMN public.audit_log.created_at IS 'Timestamp when the action was performed';
+COMMENT ON COLUMN public.audit_log.metadata IS 'Additional JSON metadata (file info, status names, comments)';
 
--- Связь договоров с приложенными файлами
+-- Junction table linking contracts with attached files
 CREATE TABLE IF NOT EXISTS public.contract_attachments (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     contract_id uuid NOT NULL,
@@ -488,9 +492,13 @@ CREATE TABLE IF NOT EXISTS public.contract_attachments (
     CONSTRAINT contract_attachments_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.contract_attachments IS 'Связь договоров с приложенными файлами';
+COMMENT ON TABLE public.contract_attachments IS 'Junction table linking contracts with attached files';
+COMMENT ON COLUMN public.contract_attachments.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.contract_attachments.contract_id IS 'Contract ID';
+COMMENT ON COLUMN public.contract_attachments.attachment_id IS 'Attachment ID';
+COMMENT ON COLUMN public.contract_attachments.created_at IS 'Timestamp when the link was created';
 
--- Связь договоров со счетами
+-- Junction table linking contracts with invoices
 CREATE TABLE IF NOT EXISTS public.contract_invoices (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     contract_id uuid NOT NULL,
@@ -501,9 +509,13 @@ CREATE TABLE IF NOT EXISTS public.contract_invoices (
     CONSTRAINT contract_invoices_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.contract_invoices IS 'Связь договоров со счетами';
+COMMENT ON TABLE public.contract_invoices IS 'Junction table linking contracts with invoices';
+COMMENT ON COLUMN public.contract_invoices.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.contract_invoices.contract_id IS 'Contract ID';
+COMMENT ON COLUMN public.contract_invoices.invoice_id IS 'Invoice ID';
+COMMENT ON COLUMN public.contract_invoices.created_at IS 'Timestamp when the link was created';
 
--- Справочник статусов договоров
+-- Contract status reference table
 CREATE TABLE IF NOT EXISTS public.contract_statuses (
     id integer(32) NOT NULL DEFAULT nextval('contract_statuses_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -517,13 +529,17 @@ CREATE TABLE IF NOT EXISTS public.contract_statuses (
     CONSTRAINT contract_statuses_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.contract_statuses IS 'Справочник статусов договоров';
-COMMENT ON COLUMN public.contract_statuses.code IS 'Уникальный код статуса';
-COMMENT ON COLUMN public.contract_statuses.name IS 'Название статуса';
-COMMENT ON COLUMN public.contract_statuses.color IS 'Цвет для отображения в интерфейсе (HEX)';
-COMMENT ON COLUMN public.contract_statuses.sort_order IS 'Порядок сортировки статусов (меньшие значения показываются первыми)';
+COMMENT ON TABLE public.contract_statuses IS 'Contract status reference table';
+COMMENT ON COLUMN public.contract_statuses.id IS 'Primary key';
+COMMENT ON COLUMN public.contract_statuses.code IS 'Unique status code';
+COMMENT ON COLUMN public.contract_statuses.name IS 'Status name';
+COMMENT ON COLUMN public.contract_statuses.color IS 'Display color for UI';
+COMMENT ON COLUMN public.contract_statuses.description IS 'Status description';
+COMMENT ON COLUMN public.contract_statuses.created_at IS 'Timestamp when the status was created';
+COMMENT ON COLUMN public.contract_statuses.updated_at IS 'Timestamp when the status was last updated';
+COMMENT ON COLUMN public.contract_statuses.sort_order IS 'Sort order for display';
 
--- Registry of contractors linked to invoices and projects.
+-- Registry of contractors linked to invoices and projects
 CREATE TABLE IF NOT EXISTS public.contractors (
     id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),
     name character varying(255) NOT NULL,
@@ -536,15 +552,15 @@ CREATE TABLE IF NOT EXISTS public.contractors (
     CONSTRAINT contractors_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects.';
-COMMENT ON COLUMN public.contractors.id IS 'Primary key of the contractor.';
-COMMENT ON COLUMN public.contractors.name IS 'Official contractor name stored for invoices.';
-COMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN) of the contractor.';
-COMMENT ON COLUMN public.contractors.created_by IS 'User (auth.users.id) who created the contractor record.';
-COMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor record was created.';
-COMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor record was last updated.';
+COMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects';
+COMMENT ON COLUMN public.contractors.id IS 'Primary key';
+COMMENT ON COLUMN public.contractors.name IS 'Official contractor name';
+COMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN)';
+COMMENT ON COLUMN public.contractors.created_by IS 'User ID who created the contractor record';
+COMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor was created';
+COMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor was last updated';
 
--- Договоры с контрагентами
+-- Contracts with counterparties
 CREATE TABLE IF NOT EXISTS public.contracts (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     contract_number character varying(255) NOT NULL,
@@ -569,20 +585,24 @@ CREATE TABLE IF NOT EXISTS public.contracts (
     CONSTRAINT contracts_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.contracts IS 'Договоры с контрагентами';
-COMMENT ON COLUMN public.contracts.contract_number IS 'Номер договора';
-COMMENT ON COLUMN public.contracts.contract_date IS 'Дата заключения договора';
-COMMENT ON COLUMN public.contracts.payer_id IS 'Ссылка на плательщика (public.contractors.id)';
-COMMENT ON COLUMN public.contracts.supplier_id IS 'Ссылка на поставщика (public.contractors.id)';
-COMMENT ON COLUMN public.contracts.vat_rate IS 'Ставка НДС в процентах';
-COMMENT ON COLUMN public.contracts.warranty_period_days IS 'Гарантийный срок в днях';
-COMMENT ON COLUMN public.contracts.description IS 'Описание договора';
-COMMENT ON COLUMN public.contracts.created_by IS 'Пользователь, создавший запись (auth.users.id)';
-COMMENT ON COLUMN public.contracts.project_id IS 'Проект, связанный с договором';
-COMMENT ON COLUMN public.contracts.payment_terms IS 'Условия оплаты (произвольный текст)';
-COMMENT ON COLUMN public.contracts.advance_percentage IS 'Процент аванса (от 0 до 100)';
+COMMENT ON TABLE public.contracts IS 'Contracts with counterparties';
+COMMENT ON COLUMN public.contracts.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.contracts.contract_number IS 'Contract number';
+COMMENT ON COLUMN public.contracts.contract_date IS 'Contract signing date';
+COMMENT ON COLUMN public.contracts.payer_id IS 'Payer contractor ID';
+COMMENT ON COLUMN public.contracts.supplier_id IS 'Supplier contractor ID';
+COMMENT ON COLUMN public.contracts.vat_rate IS 'VAT rate percentage';
+COMMENT ON COLUMN public.contracts.warranty_period_days IS 'Warranty period in days';
+COMMENT ON COLUMN public.contracts.description IS 'Contract description';
+COMMENT ON COLUMN public.contracts.created_at IS 'Timestamp when the contract was created';
+COMMENT ON COLUMN public.contracts.updated_at IS 'Timestamp when the contract was last updated';
+COMMENT ON COLUMN public.contracts.created_by IS 'User ID who created the contract';
+COMMENT ON COLUMN public.contracts.project_id IS 'Project ID this contract belongs to';
+COMMENT ON COLUMN public.contracts.status_id IS 'Contract status ID';
+COMMENT ON COLUMN public.contracts.payment_terms IS 'Payment terms (free text)';
+COMMENT ON COLUMN public.contracts.advance_percentage IS 'Advance payment percentage (0-100)';
 
--- Организационные отделы компании
+-- Organizational departments
 CREATE TABLE IF NOT EXISTS public.departments (
     id integer(32) NOT NULL DEFAULT nextval('departments_id_seq'::regclass),
     name character varying(255) NOT NULL,
@@ -593,9 +613,14 @@ CREATE TABLE IF NOT EXISTS public.departments (
     CONSTRAINT departments_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.departments IS 'Организационные отделы компании';
+COMMENT ON TABLE public.departments IS 'Organizational departments';
+COMMENT ON COLUMN public.departments.id IS 'Primary key';
+COMMENT ON COLUMN public.departments.name IS 'Department name';
+COMMENT ON COLUMN public.departments.description IS 'Department description';
+COMMENT ON COLUMN public.departments.created_at IS 'Timestamp when the department was created';
+COMMENT ON COLUMN public.departments.updated_at IS 'Timestamp when the department was last updated';
 
--- Справочник сотрудников
+-- Company employees registry
 CREATE TABLE IF NOT EXISTS public.employees (
     id integer(32) NOT NULL DEFAULT nextval('employees_id_seq'::regclass),
     last_name character varying(255) NOT NULL,
@@ -616,19 +641,22 @@ CREATE TABLE IF NOT EXISTS public.employees (
     CONSTRAINT employees_position_id_fkey FOREIGN KEY (position_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.employees IS 'Справочник сотрудников';
-COMMENT ON COLUMN public.employees.last_name IS 'Фамилия сотрудника';
-COMMENT ON COLUMN public.employees.first_name IS 'Имя сотрудника';
-COMMENT ON COLUMN public.employees.middle_name IS 'Отчество сотрудника';
-COMMENT ON COLUMN public.employees.full_name IS 'Полное ФИО сотрудника (генерируется автоматически)';
-COMMENT ON COLUMN public.employees.department_id IS 'Ссылка на отдел (public.departments.id)';
-COMMENT ON COLUMN public.employees.position_id IS 'Ссылка на должность (public.positions.id)';
-COMMENT ON COLUMN public.employees.email IS 'Рабочий email сотрудника';
-COMMENT ON COLUMN public.employees.phone IS 'Рабочий телефон сотрудника';
-COMMENT ON COLUMN public.employees.is_active IS 'Активен ли сотрудник (false = уволен)';
-COMMENT ON COLUMN public.employees.created_by IS 'Пользователь, создавший запись (auth.users.id)';
+COMMENT ON TABLE public.employees IS 'Company employees registry';
+COMMENT ON COLUMN public.employees.id IS 'Primary key';
+COMMENT ON COLUMN public.employees.last_name IS 'Employee last name';
+COMMENT ON COLUMN public.employees.first_name IS 'Employee first name';
+COMMENT ON COLUMN public.employees.middle_name IS 'Employee middle name (patronymic)';
+COMMENT ON COLUMN public.employees.full_name IS 'Full name (auto-computed)';
+COMMENT ON COLUMN public.employees.department_id IS 'Department ID';
+COMMENT ON COLUMN public.employees.position_id IS 'Position ID';
+COMMENT ON COLUMN public.employees.email IS 'Employee email address';
+COMMENT ON COLUMN public.employees.phone IS 'Employee phone number';
+COMMENT ON COLUMN public.employees.is_active IS 'Whether the employee is currently active';
+COMMENT ON COLUMN public.employees.created_at IS 'Timestamp when the employee was created';
+COMMENT ON COLUMN public.employees.updated_at IS 'Timestamp when the employee was last updated';
+COMMENT ON COLUMN public.employees.created_by IS 'User ID who created the employee record';
 
--- Associates invoices with stored attachments.
+-- Junction table linking invoices with attached files
 CREATE TABLE IF NOT EXISTS public.invoice_attachments (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     invoice_id uuid NOT NULL,
@@ -639,13 +667,13 @@ CREATE TABLE IF NOT EXISTS public.invoice_attachments (
     CONSTRAINT invoice_attachments_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.invoice_attachments IS 'Associates invoices with stored attachments.';
-COMMENT ON COLUMN public.invoice_attachments.id IS 'Primary key of the invoice-attachment relation.';
-COMMENT ON COLUMN public.invoice_attachments.invoice_id IS 'Invoice (public.invoices.id) that the file belongs to.';
-COMMENT ON COLUMN public.invoice_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the invoice.';
-COMMENT ON COLUMN public.invoice_attachments.created_at IS 'Timestamp when the attachment was linked to the invoice.';
+COMMENT ON TABLE public.invoice_attachments IS 'Junction table linking invoices with attached files';
+COMMENT ON COLUMN public.invoice_attachments.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.invoice_attachments.invoice_id IS 'Invoice ID';
+COMMENT ON COLUMN public.invoice_attachments.attachment_id IS 'Attachment ID';
+COMMENT ON COLUMN public.invoice_attachments.created_at IS 'Timestamp when the link was created';
 
--- Allocation of payments to invoices.
+-- Junction table linking invoices with payments and allocation amounts
 CREATE TABLE IF NOT EXISTS public.invoice_payments (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     invoice_id uuid NOT NULL,
@@ -657,14 +685,14 @@ CREATE TABLE IF NOT EXISTS public.invoice_payments (
     CONSTRAINT invoice_payments_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.invoice_payments IS 'Allocation of payments to invoices.';
-COMMENT ON COLUMN public.invoice_payments.id IS 'Primary key of the invoice-payment allocation.';
-COMMENT ON COLUMN public.invoice_payments.invoice_id IS 'Invoice (public.invoices.id) receiving the allocation.';
-COMMENT ON COLUMN public.invoice_payments.payment_id IS 'Payment (public.payments.id) allocated to the invoice.';
-COMMENT ON COLUMN public.invoice_payments.allocated_amount IS 'Portion of the payment applied to the invoice.';
-COMMENT ON COLUMN public.invoice_payments.created_at IS 'Timestamp when the allocation was recorded.';
+COMMENT ON TABLE public.invoice_payments IS 'Junction table linking invoices with payments and allocation amounts';
+COMMENT ON COLUMN public.invoice_payments.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.invoice_payments.invoice_id IS 'Invoice ID';
+COMMENT ON COLUMN public.invoice_payments.payment_id IS 'Payment ID';
+COMMENT ON COLUMN public.invoice_payments.allocated_amount IS 'Amount of payment allocated to this invoice';
+COMMENT ON COLUMN public.invoice_payments.created_at IS 'Timestamp when the allocation was created';
 
--- Reference list of invoice workflow statuses.
+-- Invoice status reference table
 CREATE TABLE IF NOT EXISTS public.invoice_statuses (
     id integer(32) NOT NULL DEFAULT nextval('invoice_statuses_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -678,17 +706,17 @@ CREATE TABLE IF NOT EXISTS public.invoice_statuses (
     CONSTRAINT invoice_statuses_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.invoice_statuses IS 'Reference list of invoice workflow statuses.';
-COMMENT ON COLUMN public.invoice_statuses.id IS 'Primary key of the invoice status.';
-COMMENT ON COLUMN public.invoice_statuses.code IS 'Unique status code used in API and UI.';
-COMMENT ON COLUMN public.invoice_statuses.name IS 'Display name of the invoice status.';
-COMMENT ON COLUMN public.invoice_statuses.description IS 'Optional description clarifying when to use the status.';
-COMMENT ON COLUMN public.invoice_statuses.sort_order IS 'Ordering weight used when listing statuses.';
-COMMENT ON COLUMN public.invoice_statuses.color IS 'Optional UI color token or hex code for the status.';
-COMMENT ON COLUMN public.invoice_statuses.created_at IS 'Timestamp when the invoice status was created.';
-COMMENT ON COLUMN public.invoice_statuses.updated_at IS 'Timestamp when the invoice status was last updated.';
+COMMENT ON TABLE public.invoice_statuses IS 'Invoice status reference table';
+COMMENT ON COLUMN public.invoice_statuses.id IS 'Primary key';
+COMMENT ON COLUMN public.invoice_statuses.code IS 'Unique status code';
+COMMENT ON COLUMN public.invoice_statuses.name IS 'Status name';
+COMMENT ON COLUMN public.invoice_statuses.description IS 'Status description';
+COMMENT ON COLUMN public.invoice_statuses.sort_order IS 'Sort order for display';
+COMMENT ON COLUMN public.invoice_statuses.color IS 'Display color for UI';
+COMMENT ON COLUMN public.invoice_statuses.created_at IS 'Timestamp when the status was created';
+COMMENT ON COLUMN public.invoice_statuses.updated_at IS 'Timestamp when the status was last updated';
 
--- Reference list of invoice classification types.
+-- Invoice type reference table
 CREATE TABLE IF NOT EXISTS public.invoice_types (
     id integer(32) NOT NULL DEFAULT nextval('invoice_types_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -700,15 +728,15 @@ CREATE TABLE IF NOT EXISTS public.invoice_types (
     CONSTRAINT invoice_types_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.invoice_types IS 'Reference list of invoice classification types.';
-COMMENT ON COLUMN public.invoice_types.id IS 'Primary key of the invoice type.';
-COMMENT ON COLUMN public.invoice_types.code IS 'Unique code representing the invoice type.';
-COMMENT ON COLUMN public.invoice_types.name IS 'Display name of the invoice type.';
-COMMENT ON COLUMN public.invoice_types.description IS 'Optional explanation of what the invoice type represents.';
-COMMENT ON COLUMN public.invoice_types.created_at IS 'Timestamp when the invoice type record was created.';
-COMMENT ON COLUMN public.invoice_types.updated_at IS 'Timestamp when the invoice type record was last updated.';
+COMMENT ON TABLE public.invoice_types IS 'Invoice type reference table';
+COMMENT ON COLUMN public.invoice_types.id IS 'Primary key';
+COMMENT ON COLUMN public.invoice_types.code IS 'Unique type code';
+COMMENT ON COLUMN public.invoice_types.name IS 'Invoice type name';
+COMMENT ON COLUMN public.invoice_types.description IS 'Invoice type description';
+COMMENT ON COLUMN public.invoice_types.created_at IS 'Timestamp when the type was created';
+COMMENT ON COLUMN public.invoice_types.updated_at IS 'Timestamp when the type was last updated';
 
--- Outbound invoices issued from PayHub.
+-- Outbound invoices issued to contractors
 CREATE TABLE IF NOT EXISTS public.invoices (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     user_id uuid NOT NULL,
@@ -748,34 +776,35 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.invoices IS 'Outbound invoices issued from PayHub.';
-COMMENT ON COLUMN public.invoices.id IS 'Primary key of the invoice (UUID).';
-COMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created or owns the invoice.';
-COMMENT ON COLUMN public.invoices.invoice_number IS 'Human readable invoice number shown to customers.';
-COMMENT ON COLUMN public.invoices.description IS 'Optional invoice description or customer note.';
-COMMENT ON COLUMN public.invoices.due_date IS 'Date by which payment is expected.';
-COMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice record was created.';
-COMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice record was last updated.';
-COMMENT ON COLUMN public.invoices.invoice_date IS 'Calendar date printed on the invoice.';
-COMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer (public.contractors.id).';
-COMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier (public.contractors.id).';
-COMMENT ON COLUMN public.invoices.project_id IS 'Project associated with the invoice (public.projects.id).';
-COMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type reference (public.invoice_types.id).';
-COMMENT ON COLUMN public.invoices.amount_with_vat IS 'Invoice total amount including VAT.';
-COMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate applied to the invoice total, in percent.';
-COMMENT ON COLUMN public.invoices.vat_amount IS 'VAT portion of the invoice total.';
-COMMENT ON COLUMN public.invoices.amount_without_vat IS 'Invoice amount excluding VAT.';
-COMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days required for delivery after payment.';
-COMMENT ON COLUMN public.invoices.delivery_days_type IS 'Interpretation of delivery days (working or calendar).';
-COMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Projected delivery date calculated from payment terms.';
-COMMENT ON COLUMN public.invoices.status_id IS 'Workflow status of the invoice (public.invoice_statuses.id).';
-COMMENT ON COLUMN public.invoices.delivery_cost IS 'Стоимость доставки в рублях';
-COMMENT ON COLUMN public.invoices.relevance_date IS 'Конечная дата актуальности счёта';
-COMMENT ON COLUMN public.invoices.material_request_id IS 'Ссылка на связанную заявку на материалы';
-COMMENT ON COLUMN public.invoices.contract_id IS 'Ссылка на связанный договор';
-COMMENT ON COLUMN public.invoices.responsible_id IS 'Ответственный менеджер снабжения (public.user_profiles.id)';
-COMMENT ON COLUMN public.invoices.is_archived IS 'Indicates if the invoice has been archived';
+COMMENT ON TABLE public.invoices IS 'Outbound invoices issued to contractors';
+COMMENT ON COLUMN public.invoices.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created the invoice';
+COMMENT ON COLUMN public.invoices.invoice_number IS 'Human-readable invoice number';
+COMMENT ON COLUMN public.invoices.description IS 'Invoice description';
+COMMENT ON COLUMN public.invoices.due_date IS 'Payment due date (deprecated)';
+COMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created';
+COMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice was last updated';
+COMMENT ON COLUMN public.invoices.invoice_date IS 'Invoice issue date';
+COMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer';
+COMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier';
+COMMENT ON COLUMN public.invoices.project_id IS 'Project this invoice belongs to';
+COMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type';
+COMMENT ON COLUMN public.invoices.amount_with_vat IS 'Total amount including VAT';
+COMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate percentage';
+COMMENT ON COLUMN public.invoices.vat_amount IS 'VAT amount (calculated)';
+COMMENT ON COLUMN public.invoices.amount_without_vat IS 'Amount excluding VAT (calculated)';
+COMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery';
+COMMENT ON COLUMN public.invoices.delivery_days_type IS 'Type of days: working or calendar';
+COMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Preliminary delivery date';
+COMMENT ON COLUMN public.invoices.status_id IS 'Invoice status';
+COMMENT ON COLUMN public.invoices.delivery_cost IS 'Delivery cost';
+COMMENT ON COLUMN public.invoices.relevance_date IS 'Invoice relevance/validity date';
+COMMENT ON COLUMN public.invoices.material_request_id IS 'Material request this invoice is linked to';
+COMMENT ON COLUMN public.invoices.contract_id IS 'Contract this invoice is linked to';
+COMMENT ON COLUMN public.invoices.responsible_id IS 'Responsible procurement manager (user_profiles UUID)';
+COMMENT ON COLUMN public.invoices.is_archived IS 'Whether the invoice is archived';
 
+-- Material classification hierarchy
 CREATE TABLE IF NOT EXISTS public.material_classes (
     id bigint(64) NOT NULL,
     name text NOT NULL,
@@ -785,10 +814,21 @@ CREATE TABLE IF NOT EXISTS public.material_classes (
     parent_id bigint(64),
     level integer(32) DEFAULT 0,
     CONSTRAINT fk_material_classes_parent FOREIGN KEY (parent_id) REFERENCES None.None(None),
-    CONSTRAINT material_classes_name_key UNIQUE (name),
+    CONSTRAINT material_classes_name_parent_key UNIQUE (name),
+    CONSTRAINT material_classes_name_parent_key UNIQUE (parent_id),
     CONSTRAINT material_classes_pkey PRIMARY KEY (id)
 );
 
+COMMENT ON TABLE public.material_classes IS 'Material classification hierarchy';
+COMMENT ON COLUMN public.material_classes.id IS 'Primary key';
+COMMENT ON COLUMN public.material_classes.name IS 'Class name';
+COMMENT ON COLUMN public.material_classes.is_active IS 'Whether the class is currently active';
+COMMENT ON COLUMN public.material_classes.created_at IS 'Timestamp when the class was created';
+COMMENT ON COLUMN public.material_classes.updated_at IS 'Timestamp when the class was last updated';
+COMMENT ON COLUMN public.material_classes.parent_id IS 'Parent class ID (for hierarchical structure)';
+COMMENT ON COLUMN public.material_classes.level IS 'Hierarchy level (depth in tree)';
+
+-- Material catalog and specifications
 CREATE TABLE IF NOT EXISTS public.material_nomenclature (
     id integer(32) NOT NULL DEFAULT nextval('material_nomenclature_id_seq'::regclass),
     name character varying(500) NOT NULL,
@@ -801,7 +841,16 @@ CREATE TABLE IF NOT EXISTS public.material_nomenclature (
     CONSTRAINT material_nomenclature_pkey PRIMARY KEY (id)
 );
 
--- Позиции в заявках на материалы
+COMMENT ON TABLE public.material_nomenclature IS 'Material catalog and specifications';
+COMMENT ON COLUMN public.material_nomenclature.id IS 'Primary key';
+COMMENT ON COLUMN public.material_nomenclature.name IS 'Material name';
+COMMENT ON COLUMN public.material_nomenclature.unit IS 'Unit of measurement';
+COMMENT ON COLUMN public.material_nomenclature.is_active IS 'Whether the material is currently active';
+COMMENT ON COLUMN public.material_nomenclature.created_at IS 'Timestamp when the material was created';
+COMMENT ON COLUMN public.material_nomenclature.updated_at IS 'Timestamp when the material was last updated';
+COMMENT ON COLUMN public.material_nomenclature.material_class_id IS 'Material class ID';
+
+-- Individual items within material requests
 CREATE TABLE IF NOT EXISTS public.material_request_items (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     material_request_id uuid NOT NULL,
@@ -816,15 +865,17 @@ CREATE TABLE IF NOT EXISTS public.material_request_items (
     CONSTRAINT material_request_items_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.material_request_items IS 'Позиции в заявках на материалы';
-COMMENT ON COLUMN public.material_request_items.id IS 'Уникальный идентификатор позиции';
-COMMENT ON COLUMN public.material_request_items.material_request_id IS 'Ссылка на заявку';
-COMMENT ON COLUMN public.material_request_items.material_name IS 'Наименование материала';
-COMMENT ON COLUMN public.material_request_items.unit IS 'Единица измерения (шт, кг, м, м2, м3, л и т.д.)';
-COMMENT ON COLUMN public.material_request_items.quantity IS 'Количество';
-COMMENT ON COLUMN public.material_request_items.sort_order IS 'Порядок сортировки позиций';
+COMMENT ON TABLE public.material_request_items IS 'Individual items within material requests';
+COMMENT ON COLUMN public.material_request_items.id IS 'Primary key';
+COMMENT ON COLUMN public.material_request_items.material_request_id IS 'Material request ID this item belongs to';
+COMMENT ON COLUMN public.material_request_items.material_name IS 'Material name';
+COMMENT ON COLUMN public.material_request_items.unit IS 'Unit of measurement';
+COMMENT ON COLUMN public.material_request_items.quantity IS 'Requested quantity';
+COMMENT ON COLUMN public.material_request_items.sort_order IS 'Sort order for display';
+COMMENT ON COLUMN public.material_request_items.created_at IS 'Timestamp when the item was created';
+COMMENT ON COLUMN public.material_request_items.nomenclature_id IS 'Material nomenclature ID (optional link)';
 
--- Заявки на материалы
+-- Material requisitions submitted by employees
 CREATE TABLE IF NOT EXISTS public.material_requests (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     request_number character varying(255) NOT NULL,
@@ -841,16 +892,18 @@ CREATE TABLE IF NOT EXISTS public.material_requests (
     CONSTRAINT material_requests_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.material_requests IS 'Заявки на материалы';
-COMMENT ON COLUMN public.material_requests.id IS 'Уникальный идентификатор заявки';
-COMMENT ON COLUMN public.material_requests.request_number IS 'Номер заявки';
-COMMENT ON COLUMN public.material_requests.request_date IS 'Дата создания заявки';
-COMMENT ON COLUMN public.material_requests.project_id IS 'Ссылка на проект';
-COMMENT ON COLUMN public.material_requests.employee_id IS 'Ответственный сотрудник';
-COMMENT ON COLUMN public.material_requests.total_items IS 'Общее количество позиций в заявке';
-COMMENT ON COLUMN public.material_requests.created_by IS 'Пользователь, создавший заявку';
+COMMENT ON TABLE public.material_requests IS 'Material requisitions submitted by employees';
+COMMENT ON COLUMN public.material_requests.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.material_requests.request_number IS 'Human-readable request number';
+COMMENT ON COLUMN public.material_requests.request_date IS 'Date when the request was submitted';
+COMMENT ON COLUMN public.material_requests.project_id IS 'Project this request belongs to';
+COMMENT ON COLUMN public.material_requests.employee_id IS 'Employee who submitted the request';
+COMMENT ON COLUMN public.material_requests.total_items IS 'Total number of items (auto-counted)';
+COMMENT ON COLUMN public.material_requests.created_by IS 'User ID who created the request';
+COMMENT ON COLUMN public.material_requests.created_at IS 'Timestamp when the request was created';
+COMMENT ON COLUMN public.material_requests.updated_at IS 'Timestamp when the request was last updated';
 
--- Payment approval processes. One payment can have multiple approval processes (history of all attempts).
+-- Payment approval instances tracking approval workflow progress
 CREATE TABLE IF NOT EXISTS public.payment_approvals (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     payment_id uuid NOT NULL,
@@ -865,16 +918,16 @@ CREATE TABLE IF NOT EXISTS public.payment_approvals (
     CONSTRAINT payment_approvals_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.payment_approvals IS 'Payment approval processes. One payment can have multiple approval processes (history of all attempts).';
-COMMENT ON COLUMN public.payment_approvals.id IS 'Primary key of the payment approval.';
-COMMENT ON COLUMN public.payment_approvals.payment_id IS 'Payment (public.payments.id) that is being approved.';
-COMMENT ON COLUMN public.payment_approvals.route_id IS 'Approval route (public.approval_routes.id) used for the payment.';
-COMMENT ON COLUMN public.payment_approvals.status_id IS 'Current status of the approval (public.payment_statuses.id).';
-COMMENT ON COLUMN public.payment_approvals.current_stage_index IS 'Zero-based index of the current stage within the route.';
-COMMENT ON COLUMN public.payment_approvals.created_at IS 'Timestamp when the approval instance was created.';
-COMMENT ON COLUMN public.payment_approvals.updated_at IS 'Timestamp when the approval instance was last updated.';
+COMMENT ON TABLE public.payment_approvals IS 'Payment approval instances tracking approval workflow progress';
+COMMENT ON COLUMN public.payment_approvals.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.payment_approvals.payment_id IS 'Payment ID being approved';
+COMMENT ON COLUMN public.payment_approvals.route_id IS 'Approval route ID being used';
+COMMENT ON COLUMN public.payment_approvals.status_id IS 'Current approval status ID';
+COMMENT ON COLUMN public.payment_approvals.current_stage_index IS 'Index of current workflow stage (0-based)';
+COMMENT ON COLUMN public.payment_approvals.created_at IS 'Timestamp when the approval was initiated';
+COMMENT ON COLUMN public.payment_approvals.updated_at IS 'Timestamp when the approval was last updated';
 
--- Associates payments with stored attachments.
+-- Junction table linking payments with attached files
 CREATE TABLE IF NOT EXISTS public.payment_attachments (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     payment_id uuid NOT NULL,
@@ -885,13 +938,13 @@ CREATE TABLE IF NOT EXISTS public.payment_attachments (
     CONSTRAINT payment_attachments_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.payment_attachments IS 'Associates payments with stored attachments.';
-COMMENT ON COLUMN public.payment_attachments.id IS 'Primary key of the payment-attachment relation.';
-COMMENT ON COLUMN public.payment_attachments.payment_id IS 'Payment (public.payments.id) that the file is attached to.';
-COMMENT ON COLUMN public.payment_attachments.attachment_id IS 'Attachment (public.attachments.id) linked to the payment.';
-COMMENT ON COLUMN public.payment_attachments.created_at IS 'Timestamp when the attachment was linked to the payment.';
+COMMENT ON TABLE public.payment_attachments IS 'Junction table linking payments with attached files';
+COMMENT ON COLUMN public.payment_attachments.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.payment_attachments.payment_id IS 'Payment ID';
+COMMENT ON COLUMN public.payment_attachments.attachment_id IS 'Attachment ID';
+COMMENT ON COLUMN public.payment_attachments.created_at IS 'Timestamp when the link was created';
 
--- Reference list of payment statuses.
+-- Payment status reference table
 CREATE TABLE IF NOT EXISTS public.payment_statuses (
     id integer(32) NOT NULL DEFAULT nextval('payment_statuses_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -905,17 +958,17 @@ CREATE TABLE IF NOT EXISTS public.payment_statuses (
     CONSTRAINT payment_statuses_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.payment_statuses IS 'Reference list of payment statuses.';
-COMMENT ON COLUMN public.payment_statuses.id IS 'Primary key of the payment status.';
-COMMENT ON COLUMN public.payment_statuses.code IS 'Unique code identifying the payment status.';
-COMMENT ON COLUMN public.payment_statuses.name IS 'Display name of the payment status.';
-COMMENT ON COLUMN public.payment_statuses.description IS 'Optional description of what the payment status means.';
-COMMENT ON COLUMN public.payment_statuses.sort_order IS 'Ordering weight used when listing payment statuses.';
-COMMENT ON COLUMN public.payment_statuses.color IS 'Optional UI color token or hex code for the payment status.';
-COMMENT ON COLUMN public.payment_statuses.created_at IS 'Timestamp when the payment status was created.';
-COMMENT ON COLUMN public.payment_statuses.updated_at IS 'Timestamp when the payment status was last updated.';
+COMMENT ON TABLE public.payment_statuses IS 'Payment status reference table';
+COMMENT ON COLUMN public.payment_statuses.id IS 'Primary key';
+COMMENT ON COLUMN public.payment_statuses.code IS 'Unique status code';
+COMMENT ON COLUMN public.payment_statuses.name IS 'Status name';
+COMMENT ON COLUMN public.payment_statuses.description IS 'Status description';
+COMMENT ON COLUMN public.payment_statuses.sort_order IS 'Sort order for display';
+COMMENT ON COLUMN public.payment_statuses.color IS 'Display color for UI';
+COMMENT ON COLUMN public.payment_statuses.created_at IS 'Timestamp when the status was created';
+COMMENT ON COLUMN public.payment_statuses.updated_at IS 'Timestamp when the status was last updated';
 
--- Reference list of payment types (advance, final, etc.).
+-- Payment type reference table
 CREATE TABLE IF NOT EXISTS public.payment_types (
     id integer(32) NOT NULL DEFAULT nextval('payment_types_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -927,15 +980,15 @@ CREATE TABLE IF NOT EXISTS public.payment_types (
     CONSTRAINT payment_types_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.payment_types IS 'Reference list of payment types (advance, final, etc.).';
-COMMENT ON COLUMN public.payment_types.id IS 'Primary key of the payment type.';
-COMMENT ON COLUMN public.payment_types.code IS 'Unique code used to reference the payment type.';
-COMMENT ON COLUMN public.payment_types.name IS 'Display name of the payment type.';
-COMMENT ON COLUMN public.payment_types.description IS 'Optional description of how the payment type is used.';
-COMMENT ON COLUMN public.payment_types.created_at IS 'Timestamp when the payment type record was created.';
-COMMENT ON COLUMN public.payment_types.updated_at IS 'Timestamp when the payment type record was last updated.';
+COMMENT ON TABLE public.payment_types IS 'Payment type reference table';
+COMMENT ON COLUMN public.payment_types.id IS 'Primary key';
+COMMENT ON COLUMN public.payment_types.code IS 'Unique type code';
+COMMENT ON COLUMN public.payment_types.name IS 'Payment type name';
+COMMENT ON COLUMN public.payment_types.description IS 'Payment type description';
+COMMENT ON COLUMN public.payment_types.created_at IS 'Timestamp when the type was created';
+COMMENT ON COLUMN public.payment_types.updated_at IS 'Timestamp when the type was last updated';
 
--- Payments registered against invoices in PayHub.
+-- Payment records for invoices
 CREATE TABLE IF NOT EXISTS public.payments (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     invoice_id uuid NOT NULL,
@@ -957,21 +1010,21 @@ CREATE TABLE IF NOT EXISTS public.payments (
     CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.payments IS 'Payments registered against invoices in PayHub.';
-COMMENT ON COLUMN public.payments.id IS 'Primary key of the payment (UUID).';
-COMMENT ON COLUMN public.payments.invoice_id IS 'Invoice (public.invoices.id) that the payment relates to.';
-COMMENT ON COLUMN public.payments.payment_number IS 'Unique sequential number of the payment.';
-COMMENT ON COLUMN public.payments.payment_date IS 'Date on which the payment was made.';
-COMMENT ON COLUMN public.payments.amount IS 'Monetary amount of the payment.';
-COMMENT ON COLUMN public.payments.description IS 'Optional description or purpose of the payment.';
-COMMENT ON COLUMN public.payments.payment_type_id IS 'Payment type (public.payment_types.id).';
-COMMENT ON COLUMN public.payments.status_id IS 'Current payment status (public.payment_statuses.id).';
-COMMENT ON COLUMN public.payments.created_by IS 'User (auth.users.id) who created the payment record.';
-COMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment record was created.';
-COMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment record was last updated.';
-COMMENT ON COLUMN public.payments.is_archived IS 'Indicates if the payment has been archived';
+COMMENT ON TABLE public.payments IS 'Payment records for invoices';
+COMMENT ON COLUMN public.payments.id IS 'Primary key (UUID)';
+COMMENT ON COLUMN public.payments.invoice_id IS 'Primary invoice this payment is for';
+COMMENT ON COLUMN public.payments.payment_number IS 'Sequential payment number';
+COMMENT ON COLUMN public.payments.payment_date IS 'Payment date';
+COMMENT ON COLUMN public.payments.amount IS 'Total payment amount';
+COMMENT ON COLUMN public.payments.description IS 'Payment description or notes';
+COMMENT ON COLUMN public.payments.payment_type_id IS 'Payment type';
+COMMENT ON COLUMN public.payments.status_id IS 'Payment status';
+COMMENT ON COLUMN public.payments.created_by IS 'User ID who created the payment';
+COMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment was created';
+COMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment was last updated';
+COMMENT ON COLUMN public.payments.is_archived IS 'Whether the payment is archived';
 
--- Должности сотрудников
+-- Employee positions/job titles
 CREATE TABLE IF NOT EXISTS public.positions (
     id integer(32) NOT NULL DEFAULT nextval('positions_id_seq'::regclass),
     name character varying(255) NOT NULL,
@@ -982,9 +1035,14 @@ CREATE TABLE IF NOT EXISTS public.positions (
     CONSTRAINT positions_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.positions IS 'Должности сотрудников';
+COMMENT ON TABLE public.positions IS 'Employee positions/job titles';
+COMMENT ON COLUMN public.positions.id IS 'Primary key';
+COMMENT ON COLUMN public.positions.name IS 'Position name';
+COMMENT ON COLUMN public.positions.description IS 'Position description';
+COMMENT ON COLUMN public.positions.created_at IS 'Timestamp when the position was created';
+COMMENT ON COLUMN public.positions.updated_at IS 'Timestamp when the position was last updated';
 
--- Budget allocations for projects
+-- Project budgets and financial allocations
 CREATE TABLE IF NOT EXISTS public.project_budgets (
     id integer(32) NOT NULL DEFAULT nextval('project_budgets_id_seq'::regclass),
     project_id integer(32) NOT NULL,
@@ -998,16 +1056,16 @@ CREATE TABLE IF NOT EXISTS public.project_budgets (
     CONSTRAINT project_budgets_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.project_budgets IS 'Budget allocations for projects';
-COMMENT ON COLUMN public.project_budgets.id IS 'Primary key of the budget record';
-COMMENT ON COLUMN public.project_budgets.project_id IS 'Foreign key to public.projects.id';
-COMMENT ON COLUMN public.project_budgets.allocated_amount IS 'Total amount allocated to the project';
-COMMENT ON COLUMN public.project_budgets.description IS 'Optional description for the budget allocation';
-COMMENT ON COLUMN public.project_budgets.created_by IS 'User (auth.users.id) who created the budget record';
+COMMENT ON TABLE public.project_budgets IS 'Project budgets and financial allocations';
+COMMENT ON COLUMN public.project_budgets.id IS 'Primary key';
+COMMENT ON COLUMN public.project_budgets.project_id IS 'Project ID';
+COMMENT ON COLUMN public.project_budgets.allocated_amount IS 'Total allocated budget amount';
+COMMENT ON COLUMN public.project_budgets.description IS 'Budget description or notes';
+COMMENT ON COLUMN public.project_budgets.created_by IS 'User ID who created the budget record';
 COMMENT ON COLUMN public.project_budgets.created_at IS 'Timestamp when the budget was created';
 COMMENT ON COLUMN public.project_budgets.updated_at IS 'Timestamp when the budget was last updated';
 
--- Projects used to group invoices and contractors.
+-- Company projects
 CREATE TABLE IF NOT EXISTS public.projects (
     id integer(32) NOT NULL DEFAULT nextval('projects_id_seq'::regclass),
     code character varying(50),
@@ -1022,17 +1080,17 @@ CREATE TABLE IF NOT EXISTS public.projects (
     CONSTRAINT projects_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.projects IS 'Projects used to group invoices and contractors.';
-COMMENT ON COLUMN public.projects.id IS 'Primary key of the project.';
-COMMENT ON COLUMN public.projects.code IS 'Optional unique project code used in integrations and search.';
-COMMENT ON COLUMN public.projects.name IS 'Display name of the project.';
-COMMENT ON COLUMN public.projects.description IS 'Optional project description for internal users.';
-COMMENT ON COLUMN public.projects.is_active IS 'TRUE when the project is active.';
-COMMENT ON COLUMN public.projects.created_by IS 'User (auth.users.id) who created the project.';
-COMMENT ON COLUMN public.projects.created_at IS 'Timestamp when the project record was created.';
-COMMENT ON COLUMN public.projects.updated_at IS 'Timestamp when the project record was last updated.';
+COMMENT ON TABLE public.projects IS 'Company projects';
+COMMENT ON COLUMN public.projects.id IS 'Primary key';
+COMMENT ON COLUMN public.projects.code IS 'Project code/identifier';
+COMMENT ON COLUMN public.projects.name IS 'Project name';
+COMMENT ON COLUMN public.projects.description IS 'Project description';
+COMMENT ON COLUMN public.projects.is_active IS 'Whether the project is currently active';
+COMMENT ON COLUMN public.projects.created_by IS 'User ID who created the project';
+COMMENT ON COLUMN public.projects.created_at IS 'Timestamp when the project was created';
+COMMENT ON COLUMN public.projects.updated_at IS 'Timestamp when the project was last updated';
 
--- Roles that define access levels inside PayHub.
+-- User roles for approval workflow and permissions
 CREATE TABLE IF NOT EXISTS public.roles (
     id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -1046,17 +1104,17 @@ CREATE TABLE IF NOT EXISTS public.roles (
     CONSTRAINT roles_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.roles IS 'Roles that define access levels inside PayHub.';
-COMMENT ON COLUMN public.roles.id IS 'Primary key of the role.';
-COMMENT ON COLUMN public.roles.code IS 'Unique machine-readable code of the role.';
-COMMENT ON COLUMN public.roles.name IS 'Display name of the role.';
-COMMENT ON COLUMN public.roles.description IS 'Optional description of the role permissions.';
-COMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role record was created.';
-COMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role record was last updated.';
-COMMENT ON COLUMN public.roles.own_projects_only IS 'TRUE when the role limits users to their own projects.';
-COMMENT ON COLUMN public.roles.allowed_pages IS 'JSON array of allowed page paths for this role';
+COMMENT ON TABLE public.roles IS 'User roles for approval workflow and permissions';
+COMMENT ON COLUMN public.roles.id IS 'Primary key';
+COMMENT ON COLUMN public.roles.code IS 'Unique role code';
+COMMENT ON COLUMN public.roles.name IS 'Role name';
+COMMENT ON COLUMN public.roles.description IS 'Role description';
+COMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role was created';
+COMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role was last updated';
+COMMENT ON COLUMN public.roles.own_projects_only IS 'Whether user can only see their own projects';
+COMMENT ON COLUMN public.roles.allowed_pages IS 'JSON array of allowed page routes';
 
--- Mirror of Supabase auth user profiles stored in the public schema.
+-- Extended user profiles linked to Supabase auth users
 CREATE TABLE IF NOT EXISTS public.user_profiles (
     id uuid NOT NULL,
     email text NOT NULL,
@@ -1070,15 +1128,15 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     CONSTRAINT user_profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None)
 );
 
-COMMENT ON TABLE public.user_profiles IS 'Mirror of Supabase auth user profiles stored in the public schema.';
-COMMENT ON COLUMN public.user_profiles.id IS 'Primary key of the profile and foreign key to auth.users.id.';
-COMMENT ON COLUMN public.user_profiles.email IS 'Primary email address associated with the user profile.';
-COMMENT ON COLUMN public.user_profiles.full_name IS 'Display name of the user.';
-COMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile record was created.';
-COMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp when the profile record was last updated.';
-COMMENT ON COLUMN public.user_profiles.role_id IS 'Role (public.roles.id) assigned to the user.';
+COMMENT ON TABLE public.user_profiles IS 'Extended user profiles linked to Supabase auth users';
+COMMENT ON COLUMN public.user_profiles.id IS 'Primary key (matches auth.users.id)';
+COMMENT ON COLUMN public.user_profiles.email IS 'User email address';
+COMMENT ON COLUMN public.user_profiles.full_name IS 'User full name';
+COMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was created';
+COMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp when the profile was last updated';
+COMMENT ON COLUMN public.user_profiles.role_id IS 'User role ID for approval workflow';
 
--- Mapping table assigning users to projects for access control.
+-- Junction table linking users with projects they have access to
 CREATE TABLE IF NOT EXISTS public.user_projects (
     id integer(32) NOT NULL DEFAULT nextval('user_projects_id_seq'::regclass),
     user_id uuid NOT NULL,
@@ -1091,13 +1149,13 @@ CREATE TABLE IF NOT EXISTS public.user_projects (
     CONSTRAINT user_projects_user_project_unique UNIQUE (user_id)
 );
 
-COMMENT ON TABLE public.user_projects IS 'Mapping table assigning users to projects for access control.';
-COMMENT ON COLUMN public.user_projects.id IS 'Primary key of the user-project link.';
-COMMENT ON COLUMN public.user_projects.user_id IS 'User (auth.users.id) who receives access to the project.';
-COMMENT ON COLUMN public.user_projects.project_id IS 'Project (public.projects.id) granted to the user.';
-COMMENT ON COLUMN public.user_projects.created_at IS 'Timestamp when the user-project link was created.';
+COMMENT ON TABLE public.user_projects IS 'Junction table linking users with projects they have access to';
+COMMENT ON COLUMN public.user_projects.id IS 'Primary key';
+COMMENT ON COLUMN public.user_projects.user_id IS 'User ID';
+COMMENT ON COLUMN public.user_projects.project_id IS 'Project ID';
+COMMENT ON COLUMN public.user_projects.created_at IS 'Timestamp when the link was created';
 
--- Workflow stages that build approval routes and set payment statuses.
+-- Workflow stages for approval routes
 CREATE TABLE IF NOT EXISTS public.workflow_stages (
     id integer(32) NOT NULL,
     route_id integer(32) NOT NULL,
@@ -1117,17 +1175,17 @@ CREATE TABLE IF NOT EXISTS public.workflow_stages (
     CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (route_id)
 );
 
-COMMENT ON TABLE public.workflow_stages IS 'Workflow stages that build approval routes and set payment statuses.';
-COMMENT ON COLUMN public.workflow_stages.id IS 'Primary key of the workflow stage.';
-COMMENT ON COLUMN public.workflow_stages.route_id IS 'Approval route (public.approval_routes.id) the stage belongs to.';
-COMMENT ON COLUMN public.workflow_stages.order_index IS 'Zero-based order of the stage within the route.';
-COMMENT ON COLUMN public.workflow_stages.role_id IS 'Role (public.roles.id) responsible for processing the stage.';
-COMMENT ON COLUMN public.workflow_stages.name IS 'Display name of the workflow stage.';
-COMMENT ON COLUMN public.workflow_stages.created_at IS 'Timestamp when the workflow stage was created.';
-COMMENT ON COLUMN public.workflow_stages.updated_at IS 'Timestamp when the workflow stage was last updated.';
-COMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'Payment status (public.payment_statuses.id) applied after the stage is completed.';
-COMMENT ON COLUMN public.workflow_stages.permissions IS 'JSON object storing stage-specific permissions like can_edit_invoice, can_add_files, can_edit_amount, etc.';
-COMMENT ON COLUMN public.workflow_stages.is_active IS 'Soft deletion flag to preserve referential integrity with approval_steps table';
+COMMENT ON TABLE public.workflow_stages IS 'Workflow stages for approval routes';
+COMMENT ON COLUMN public.workflow_stages.id IS 'Primary key';
+COMMENT ON COLUMN public.workflow_stages.route_id IS 'Approval route ID this stage belongs to';
+COMMENT ON COLUMN public.workflow_stages.order_index IS 'Stage order index (0-based)';
+COMMENT ON COLUMN public.workflow_stages.role_id IS 'Role ID required for this stage';
+COMMENT ON COLUMN public.workflow_stages.name IS 'Stage name';
+COMMENT ON COLUMN public.workflow_stages.created_at IS 'Timestamp when the stage was created';
+COMMENT ON COLUMN public.workflow_stages.updated_at IS 'Timestamp when the stage was last updated';
+COMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'Payment status to set when this stage is reached';
+COMMENT ON COLUMN public.workflow_stages.permissions IS 'JSON permissions object for this stage';
+COMMENT ON COLUMN public.workflow_stages.is_active IS 'Whether this stage is currently active';
 
 CREATE TABLE IF NOT EXISTS realtime.messages (
     topic text NOT NULL,
@@ -2870,23 +2928,49 @@ DECLARE
     entity_id_value uuid;
     file_info jsonb;
 BEGIN
-    -- Определяем тип сущности и ID на основе таблицы
+    -- Определяем тип сущности и ID на основе таблицы и операции
     IF TG_TABLE_NAME = 'invoice_attachments' THEN
         entity_type_name := 'invoice';
-        entity_id_value := NEW.invoice_id;
+        IF TG_OP = 'DELETE' THEN
+            entity_id_value := OLD.invoice_id;
+        ELSE
+            entity_id_value := NEW.invoice_id;
+        END IF;
     ELSIF TG_TABLE_NAME = 'payment_attachments' THEN
         entity_type_name := 'payment';
-        entity_id_value := NEW.payment_id;
+        IF TG_OP = 'DELETE' THEN
+            entity_id_value := OLD.payment_id;
+        ELSE
+            entity_id_value := NEW.payment_id;
+        END IF;
     ELSE
-        RETURN NEW; -- Неизвестная таблица
+        RETURN COALESCE(NEW, OLD);
     END IF;
 
     -- Получаем текущего пользователя
     current_user_id := current_setting('app.current_user_id', true)::uuid;
 
     IF current_user_id IS NULL THEN
-        -- Получаем создателя файла
-        SELECT created_by INTO current_user_id FROM attachments WHERE id = NEW.attachment_id;
+        -- Пытаемся получить создателя файла из attachments
+        IF TG_OP = 'DELETE' THEN
+            SELECT created_by INTO current_user_id FROM attachments WHERE id = OLD.attachment_id;
+        ELSE
+            SELECT created_by INTO current_user_id FROM attachments WHERE id = NEW.attachment_id;
+        END IF;
+    END IF;
+
+    -- Если всё ещё null, берём создателя сущности (invoice или payment)
+    IF current_user_id IS NULL THEN
+        IF entity_type_name = 'invoice' THEN
+            SELECT user_id INTO current_user_id FROM invoices WHERE id = entity_id_value;
+        ELSIF entity_type_name = 'payment' THEN
+            SELECT user_id INTO current_user_id FROM payments WHERE id = entity_id_value;
+        END IF;
+    END IF;
+
+    -- Если всё ещё null, пропускаем аудит (не создаём запись с null user_id)
+    IF current_user_id IS NULL THEN
+        RETURN COALESCE(NEW, OLD);
     END IF;
 
     IF (TG_OP = 'INSERT') THEN
@@ -2906,12 +2990,21 @@ BEGIN
         RETURN NEW;
 
     ELSIF (TG_OP = 'DELETE') THEN
-        -- Получаем информацию о файле
+        -- Пытаемся получить информацию о файле (может уже быть удалён)
         SELECT jsonb_build_object(
             'file_id', a.id,
-            'file_name', a.original_name
+            'file_name', a.original_name,
+            'file_size', a.size_bytes
         ) INTO file_info
         FROM attachments a WHERE a.id = OLD.attachment_id;
+
+        -- Если файл уже удалён, используем минимальную информацию
+        IF file_info IS NULL THEN
+            file_info := jsonb_build_object(
+                'file_id', OLD.attachment_id,
+                'file_name', 'Файл удалён'
+            );
+        END IF;
 
         -- Логируем удаление файла
         INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
@@ -2932,7 +3025,6 @@ CREATE OR REPLACE FUNCTION public.log_invoice_changes()
 AS $function$
 DECLARE
     current_user_id uuid;
-    field_record record;
 BEGIN
     -- Получаем текущего пользователя (можно передавать через session variable)
     current_user_id := current_setting('app.current_user_id', true)::uuid;
@@ -2942,7 +3034,6 @@ BEGIN
     END IF;
 
     IF (TG_OP = 'INSERT') THEN
-        -- Логируем создание счета
         INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
         VALUES ('invoice', NEW.id, 'create', current_user_id,
                 jsonb_build_object('invoice_number', NEW.invoice_number, 'amount', NEW.amount_with_vat));
@@ -2950,28 +3041,32 @@ BEGIN
 
     ELSIF (TG_OP = 'UPDATE') THEN
         -- Логируем изменения полей
-        -- Проверяем каждое важное поле на изменение
 
+        -- Номер счета
         IF OLD.invoice_number IS DISTINCT FROM NEW.invoice_number THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('invoice', NEW.id, 'update', 'invoice_number', OLD.invoice_number, NEW.invoice_number, current_user_id);
         END IF;
 
+        -- Дата счета
         IF OLD.invoice_date IS DISTINCT FROM NEW.invoice_date THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('invoice', NEW.id, 'update', 'invoice_date', OLD.invoice_date::text, NEW.invoice_date::text, current_user_id);
         END IF;
 
+        -- Сумма с НДС
         IF OLD.amount_with_vat IS DISTINCT FROM NEW.amount_with_vat THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('invoice', NEW.id, 'update', 'amount_with_vat', OLD.amount_with_vat::text, NEW.amount_with_vat::text, current_user_id);
         END IF;
 
+        -- Ставка НДС
         IF OLD.vat_rate IS DISTINCT FROM NEW.vat_rate THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('invoice', NEW.id, 'update', 'vat_rate', OLD.vat_rate::text, NEW.vat_rate::text, current_user_id);
         END IF;
 
+        -- Статус
         IF OLD.status_id IS DISTINCT FROM NEW.status_id THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
             VALUES ('invoice', NEW.id, 'status_change', 'status_id', OLD.status_id::text, NEW.status_id::text, current_user_id,
@@ -2979,31 +3074,93 @@ BEGIN
                                      'new_status_name', (SELECT name FROM invoice_statuses WHERE id = NEW.status_id)));
         END IF;
 
+        -- Плательщик
         IF OLD.payer_id IS DISTINCT FROM NEW.payer_id THEN
-            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
-            VALUES ('invoice', NEW.id, 'update', 'payer_id', OLD.payer_id::text, NEW.payer_id::text, current_user_id);
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'update', 'payer_id', OLD.payer_id::text, NEW.payer_id::text, current_user_id,
+                    jsonb_build_object('old_payer_name', (SELECT name FROM contractors WHERE id = OLD.payer_id),
+                                     'new_payer_name', (SELECT name FROM contractors WHERE id = NEW.payer_id)));
         END IF;
 
+        -- Поставщик
         IF OLD.supplier_id IS DISTINCT FROM NEW.supplier_id THEN
-            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
-            VALUES ('invoice', NEW.id, 'update', 'supplier_id', OLD.supplier_id::text, NEW.supplier_id::text, current_user_id);
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'update', 'supplier_id', OLD.supplier_id::text, NEW.supplier_id::text, current_user_id,
+                    jsonb_build_object('old_supplier_name', (SELECT name FROM contractors WHERE id = OLD.supplier_id),
+                                     'new_supplier_name', (SELECT name FROM contractors WHERE id = NEW.supplier_id)));
         END IF;
 
+        -- Проект
         IF OLD.project_id IS DISTINCT FROM NEW.project_id THEN
-            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
-            VALUES ('invoice', NEW.id, 'update', 'project_id', OLD.project_id::text, NEW.project_id::text, current_user_id);
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'update', 'project_id', OLD.project_id::text, NEW.project_id::text, current_user_id,
+                    jsonb_build_object('old_project_name', (SELECT name FROM projects WHERE id = OLD.project_id),
+                                     'new_project_name', (SELECT name FROM projects WHERE id = NEW.project_id)));
         END IF;
 
+        -- Договор
+        IF OLD.contract_id IS DISTINCT FROM NEW.contract_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'update', 'contract_id', OLD.contract_id::text, NEW.contract_id::text, current_user_id,
+                    jsonb_build_object('old_contract_number', (SELECT contract_number FROM contracts WHERE id = OLD.contract_id),
+                                     'new_contract_number', (SELECT contract_number FROM contracts WHERE id = NEW.contract_id)));
+        END IF;
+
+        -- Ответственный менеджер
+        IF OLD.responsible_id IS DISTINCT FROM NEW.responsible_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'update', 'responsible_id', OLD.responsible_id::text, NEW.responsible_id::text, current_user_id,
+                    jsonb_build_object('old_responsible_name', (SELECT full_name FROM user_profiles WHERE id = OLD.responsible_id),
+                                     'new_responsible_name', (SELECT full_name FROM user_profiles WHERE id = NEW.responsible_id)));
+        END IF;
+
+        -- Заявка на материалы
+        IF OLD.material_request_id IS DISTINCT FROM NEW.material_request_id THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'update', 'material_request_id', OLD.material_request_id::text, NEW.material_request_id::text, current_user_id,
+                    jsonb_build_object('old_request_number', (SELECT request_number FROM material_requests WHERE id = OLD.material_request_id),
+                                     'new_request_number', (SELECT request_number FROM material_requests WHERE id = NEW.material_request_id)));
+        END IF;
+
+        -- Стоимость доставки
+        IF OLD.delivery_cost IS DISTINCT FROM NEW.delivery_cost THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'delivery_cost', OLD.delivery_cost::text, NEW.delivery_cost::text, current_user_id);
+        END IF;
+
+        -- Срок поставки (дни)
+        IF OLD.delivery_days IS DISTINCT FROM NEW.delivery_days THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id, metadata)
+            VALUES ('invoice', NEW.id, 'update', 'delivery_days', OLD.delivery_days::text, NEW.delivery_days::text, current_user_id,
+                    jsonb_build_object('old_delivery_days_type', OLD.delivery_days_type,
+                                     'new_delivery_days_type', NEW.delivery_days_type));
+        END IF;
+
+        -- Тип дней поставки (рабочие/календарные)
+        IF OLD.delivery_days_type IS DISTINCT FROM NEW.delivery_days_type THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'delivery_days_type', OLD.delivery_days_type, NEW.delivery_days_type, current_user_id);
+        END IF;
+
+        -- Предварительная дата поставки
+        IF OLD.preliminary_delivery_date IS DISTINCT FROM NEW.preliminary_delivery_date THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('invoice', NEW.id, 'update', 'preliminary_delivery_date', OLD.preliminary_delivery_date::text, NEW.preliminary_delivery_date::text, current_user_id);
+        END IF;
+
+        -- Срок оплаты
         IF OLD.due_date IS DISTINCT FROM NEW.due_date THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('invoice', NEW.id, 'update', 'due_date', OLD.due_date::text, NEW.due_date::text, current_user_id);
         END IF;
 
+        -- Описание
         IF OLD.description IS DISTINCT FROM NEW.description THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('invoice', NEW.id, 'update', 'description', OLD.description, NEW.description, current_user_id);
         END IF;
 
+        -- Архивирование
         IF OLD.is_archived IS DISTINCT FROM NEW.is_archived THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('invoice', NEW.id, 'update', 'is_archived', OLD.is_archived::text, NEW.is_archived::text, current_user_id);
@@ -3012,7 +3169,6 @@ BEGIN
         RETURN NEW;
 
     ELSIF (TG_OP = 'DELETE') THEN
-        -- Логируем удаление счета
         INSERT INTO public.audit_log (entity_type, entity_id, action, user_id, metadata)
         VALUES ('invoice', OLD.id, 'delete', current_user_id,
                 jsonb_build_object('invoice_number', OLD.invoice_number));
@@ -5074,7 +5230,7 @@ CREATE INDEX idx_material_classes_parent ON public.material_classes USING btree 
 CREATE INDEX idx_material_classes_parent_active ON public.material_classes USING btree (parent_id, is_active)
 ;
 
-CREATE UNIQUE INDEX material_classes_name_key ON public.material_classes USING btree (name)
+CREATE UNIQUE INDEX material_classes_name_parent_key ON public.material_classes USING btree (name, parent_id)
 ;
 
 CREATE INDEX idx_material_nomenclature_active ON public.material_nomenclature USING btree (is_active)

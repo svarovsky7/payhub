@@ -10,31 +10,37 @@ export async function getUserRoleSettings(userId: string): Promise<{
   console.log('[userProjectsService.getUserRoleSettings] Checking role settings for user:', userId)
 
   try {
-    // Get user profile with role
+    // Get user profile
     const { data: userProfile, error: profileError } = await supabase
       .from('user_profiles')
-      .select(`
-        role_id,
-        role:roles(
-          id,
-          code,
-          name,
-          own_projects_only
-        )
-      `)
+      .select('role_id')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
     if (profileError) throw profileError
 
-    if (!userProfile || !userProfile.role) {
+    if (!userProfile || !userProfile.role_id) {
       return {
         ownProjectsOnly: false,
         roleId: null
       }
     }
 
-    const role = userProfile.role as any
+    // Get role separately
+    const { data: role, error: roleError } = await supabase
+      .from('roles')
+      .select('id, code, name, own_projects_only')
+      .eq('id', userProfile.role_id)
+      .maybeSingle()
+
+    if (roleError) throw roleError
+
+    if (!role) {
+      return {
+        ownProjectsOnly: false,
+        roleId: userProfile.role_id
+      }
+    }
 
     return {
       ownProjectsOnly: role.own_projects_only || false,

@@ -11,8 +11,7 @@
       {
         "name": "invoice_type_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.invoice_types.id"
+        "nullable": false
       },
       {
         "name": "name",
@@ -48,14 +47,12 @@
       {
         "name": "payment_approval_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.payment_approvals.id"
+        "nullable": false
       },
       {
         "name": "stage_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.workflow_stages.id"
+        "nullable": false
       },
       {
         "name": "action",
@@ -65,8 +62,7 @@
       {
         "name": "acted_by",
         "type": "uuid",
-        "nullable": true,
-        "fk": "auth.users.id"
+        "nullable": true
       },
       {
         "name": "acted_at",
@@ -117,8 +113,7 @@
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": false,
-        "fk": "auth.users.id"
+        "nullable": false
       },
       {
         "name": "created_at",
@@ -313,8 +308,7 @@
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": true,
-        "fk": "auth.users.id"
+        "nullable": true
       },
       {
         "name": "created_at",
@@ -350,14 +344,12 @@
       {
         "name": "payer_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.contractors.id"
+        "nullable": true
       },
       {
         "name": "supplier_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.contractors.id"
+        "nullable": true
       },
       {
         "name": "vat_rate",
@@ -387,8 +379,7 @@
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": true,
-        "fk": "auth.users.id"
+        "nullable": true
       },
       {
         "name": "project_id",
@@ -475,14 +466,12 @@
       {
         "name": "department_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.departments.id"
+        "nullable": true
       },
       {
         "name": "position_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.positions.id"
+        "nullable": true
       },
       {
         "name": "email",
@@ -512,8 +501,7 @@
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": true,
-        "fk": "auth.users.id"
+        "nullable": true
       }
     ]
   },
@@ -529,14 +517,12 @@
       {
         "name": "invoice_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.invoices.id"
+        "nullable": false
       },
       {
         "name": "attachment_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.attachments.id"
+        "nullable": false
       },
       {
         "name": "created_at",
@@ -557,14 +543,12 @@
       {
         "name": "invoice_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.invoices.id"
+        "nullable": false
       },
       {
         "name": "payment_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.payments.id"
+        "nullable": false
       },
       {
         "name": "allocated_amount",
@@ -707,26 +691,22 @@
       {
         "name": "payer_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.contractors.id"
+        "nullable": true
       },
       {
         "name": "supplier_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.contractors.id"
+        "nullable": true
       },
       {
         "name": "project_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.projects.id"
+        "nullable": true
       },
       {
         "name": "invoice_type_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.invoice_types.id"
+        "nullable": true
       },
       {
         "name": "amount_with_vat",
@@ -766,8 +746,7 @@
       {
         "name": "status_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.invoice_statuses.id"
+        "nullable": false
       },
       {
         "name": "delivery_cost",
@@ -792,8 +771,7 @@
       {
         "name": "responsible_id",
         "type": "uuid",
-        "nullable": true,
-        "fk": "public.user_profiles.id"
+        "nullable": true
       },
       {
         "name": "is_archived",
@@ -993,20 +971,17 @@
       {
         "name": "payment_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.payments.id"
+        "nullable": false
       },
       {
         "name": "route_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.approval_routes.id"
+        "nullable": false
       },
       {
         "name": "status_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.payment_statuses.id"
+        "nullable": false
       },
       {
         "name": "current_stage_index",
@@ -1037,14 +1012,12 @@
       {
         "name": "payment_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.payments.id"
+        "nullable": false
       },
       {
         "name": "attachment_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.attachments.id"
+        "nullable": false
       },
       {
         "name": "created_at",
@@ -1147,8 +1120,7 @@
       {
         "name": "invoice_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "public.invoices.id"
+        "nullable": false
       },
       {
         "name": "payment_number",
@@ -1173,20 +1145,17 @@
       {
         "name": "payment_type_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.payment_types.id"
+        "nullable": true
       },
       {
         "name": "status_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.payment_statuses.id"
+        "nullable": true
       },
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": true,
-        "fk": "auth.users.id"
+        "nullable": true
       },
       {
         "name": "created_at",
@@ -1248,8 +1217,7 @@
       {
         "name": "project_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.projects.id"
+        "nullable": false
       },
       {
         "name": "allocated_amount",
@@ -1264,8 +1232,7 @@
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": true,
-        "fk": "auth.users.id"
+        "nullable": true
       },
       {
         "name": "created_at",
@@ -1311,8 +1278,7 @@
       {
         "name": "created_by",
         "type": "uuid",
-        "nullable": true,
-        "fk": "auth.users.id"
+        "nullable": true
       },
       {
         "name": "created_at",
@@ -1405,8 +1371,7 @@
       {
         "name": "role_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.roles.id"
+        "nullable": true
       }
     ]
   },
@@ -1422,14 +1387,12 @@
       {
         "name": "user_id",
         "type": "uuid",
-        "nullable": false,
-        "fk": "auth.users.id"
+        "nullable": false
       },
       {
         "name": "project_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.projects.id"
+        "nullable": false
       },
       {
         "name": "created_at",
@@ -1450,8 +1413,7 @@
       {
         "name": "route_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.approval_routes.id"
+        "nullable": false
       },
       {
         "name": "order_index",
@@ -1461,8 +1423,7 @@
       {
         "name": "role_id",
         "type": "integer",
-        "nullable": false,
-        "fk": "public.roles.id"
+        "nullable": false
       },
       {
         "name": "name",
@@ -1482,8 +1443,7 @@
       {
         "name": "payment_status_id",
         "type": "integer",
-        "nullable": true,
-        "fk": "public.payment_statuses.id"
+        "nullable": true
       },
       {
         "name": "permissions",

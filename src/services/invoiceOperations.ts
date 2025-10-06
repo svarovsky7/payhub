@@ -8,4 +8,4 @@ export {
   deleteInvoice
 } from './invoice/invoiceCrud'
 export { recalculateInvoiceStatus, recalculateAllInvoiceStatuses } from './invoice/invoiceStatus'
-export { archiveInvoice, unarchiveInvoice } from './invoice/invoiceArchive'
+export { archiveInvoice } from './invoice/invoiceArchive'

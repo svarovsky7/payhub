@@ -5,11 +5,11 @@ import type { UploadFile, RcFile } from 'antd/es/upload/interface'
 import type { ColumnsType } from 'antd/es/table'
 import {
   loadMaterialClasses,
-  createMaterialClass,
+  bulkCreateMaterialClasses,
 } from '../../services/materialClassOperations'
 import {
   loadMaterialNomenclature,
-  createMaterialNomenclature,
+  bulkCreateMaterialNomenclature,
 } from '../../services/materialNomenclatureOperations'
 
 interface ImportModalProps {
@@ -56,18 +56,14 @@ export const ImportNomenclatureModal = ({ visible, onClose, onSuccess }: ImportM
           const classValue = row['[Класс]'] || row['Класс'] || ''
           const subclassValue = row['[Подкласс]'] || row['Подкласс'] || ''
           const nomenclatureValue = row['[Номенклатура]'] || row['Номенклатура'] || ''
+          const unitValue = row['[Ед. изм.]'] || row['Ед. изм.'] || ''
 
           if (classValue && nomenclatureValue) {
-            // Извлекаем единицу измерения из названия номенклатуры если есть
-            const unitMatch = nomenclatureValue.match(/\(([^)]+)\)[^(]*$/)
-            const unit = unitMatch ? unitMatch[1] : 'шт'
-            const cleanName = nomenclatureValue.replace(/\s*\([^)]+\)[^(]*$/g, '').trim()
-
             items.push({
               class: classValue.trim(),
               subclass: subclassValue.trim(),
-              nomenclature: cleanName,
-              unit: unit
+              nomenclature: nomenclatureValue.trim(),
+              unit: unitValue.trim() || 'шт'
             })
           }
         })
@@ -102,15 +98,18 @@ export const ImportNomenclatureModal = ({ visible, onClose, onSuccess }: ImportM
     setCurrentStep(2)
 
     try {
-      // Загружаем существующие классы и номенклатуру
+      console.log('[ImportNomenclatureModal] Starting bulk import of', importData.length, 'items')
+      setImportProgress(10)
+
+      // Шаг 1: Загружаем существующие классы и номенклатуру
       const existingClasses = await loadMaterialClasses()
       const existingNomenclatures = await loadMaterialNomenclature()
-
-      const processed: ProcessedItem[] = []
-      const classMap = new Map<string, number>()
-      const subclassMap = new Map<string, number>()
+      setImportProgress(20)
 
       // Создаем Map существующих классов
+      const classMap = new Map<string, number>() // Top-level classes: name -> id
+      const subclassMap = new Map<string, number>() // Subclasses: "parent:name" -> id
+
       existingClasses.forEach(cls => {
         if (cls.parent_id === null) {
           classMap.set(cls.name.toLowerCase(), cls.id)
@@ -122,88 +121,136 @@ export const ImportNomenclatureModal = ({ visible, onClose, onSuccess }: ImportM
         }
       })
 
-      let processedCount = 0
+      // Шаг 2: Собираем уникальные классы для создания
+      const uniqueClasses = new Map<string, string>()
+      const uniqueSubclasses = new Map<string, { name: string, parentKey: string }>()
+
+      importData.forEach(item => {
+        const classKey = item.class.toLowerCase()
+
+        // Check if top-level class exists (parent_id = null)
+        if (!classMap.has(classKey)) {
+          uniqueClasses.set(classKey, item.class)
+        }
+
+        if (item.subclass) {
+          const subclassKey = `${classKey}:${item.subclass.toLowerCase()}`
+
+          // Check if subclass exists under this specific parent
+          // With UNIQUE(name, parent_id) constraint, same name can exist under different parents
+          if (!subclassMap.has(subclassKey)) {
+            uniqueSubclasses.set(subclassKey, { name: item.subclass, parentKey: classKey })
+          }
+        }
+      })
+
+      console.log('[ImportNomenclatureModal] Unique classes:', uniqueClasses.size, 'subclasses:', uniqueSubclasses.size)
+      setImportProgress(30)
+
+      // Шаг 3: Bulk создание классов
+      if (uniqueClasses.size > 0) {
+        const classesToCreate = Array.from(uniqueClasses.values()).map(name => ({
+          name,
+          parent_id: null,
+          level: 0,
+          is_active: true
+        }))
+
+        const createdClasses = await bulkCreateMaterialClasses(classesToCreate)
+        createdClasses.forEach(cls => {
+          classMap.set(cls.name.toLowerCase(), cls.id)
+        })
+        console.log('[ImportNomenclatureModal] Created classes:', createdClasses.length)
+      }
+      setImportProgress(45)
+
+      // Шаг 4: Bulk создание подклассов
+      if (uniqueSubclasses.size > 0) {
+        const subclassesToCreate = Array.from(uniqueSubclasses.values()).map(({ name, parentKey }) => ({
+          name,
+          parent_id: classMap.get(parentKey)!,
+          level: 1,
+          is_active: true
+        }))
+
+        const createdSubclasses = await bulkCreateMaterialClasses(subclassesToCreate)
+        createdSubclasses.forEach(cls => {
+          const parent = existingClasses.find(c => c.id === cls.parent_id) ||
+                        { name: Array.from(classMap.entries()).find(([, id]) => id === cls.parent_id)?.[0] || '' }
+          const key = `${parent.name.toLowerCase()}:${cls.name.toLowerCase()}`
+          subclassMap.set(key, cls.id)
+        })
+        console.log('[ImportNomenclatureModal] Created subclasses:', createdSubclasses.length)
+      }
+      setImportProgress(60)
+
+      // Шаг 5: Подготовка номенклатуры для создания
+      const nomenclatureToCreate = []
+      const processed: ProcessedItem[] = []
 
       for (const item of importData) {
-        processedCount++
-        setImportProgress(Math.round((processedCount / importData.length) * 100))
-
         const processedItem: ProcessedItem = { ...item, status: 'pending' }
 
-        try {
-          // 1. Обработка класса
-          let classId = classMap.get(item.class.toLowerCase())
+        const classId = classMap.get(item.class.toLowerCase())
+        processedItem.classId = classId
 
-          if (!classId) {
-            // Создаем новый класс
-            const newClass = await createMaterialClass({
-              name: item.class,
-              parent_id: null,
-              level: 0,
-              is_active: true
-            })
-            classId = newClass.id
-            classMap.set(item.class.toLowerCase(), classId!)
-            processedItem.classId = classId
-          } else {
-            processedItem.classId = classId
-          }
+        let subclassId: number | undefined
+        if (item.subclass) {
+          const subclassKey = `${item.class.toLowerCase()}:${item.subclass.toLowerCase()}`
+          subclassId = subclassMap.get(subclassKey)
+          processedItem.subclassId = subclassId
+        }
 
-          // 2. Обработка подкласса (если есть)
-          let subclassId: number | undefined
+        const materialClassId = subclassId || classId!
 
-          if (item.subclass) {
-            const subclassKey = `${item.class.toLowerCase()}:${item.subclass.toLowerCase()}`
-            subclassId = subclassMap.get(subclassKey)
+        // Проверка существующей номенклатуры
+        const existingNom = existingNomenclatures.find(n =>
+          n.name.toLowerCase() === item.nomenclature.toLowerCase() &&
+          n.material_class_id === materialClassId
+        )
 
-            if (!subclassId) {
-              // Создаем новый подкласс
-              const newSubclass = await createMaterialClass({
-                name: item.subclass,
-                parent_id: classId!,
-                level: 1,
-                is_active: true
-              })
-              subclassId = newSubclass.id
-              subclassMap.set(subclassKey, subclassId!)
-              processedItem.subclassId = subclassId
-            } else {
-              processedItem.subclassId = subclassId
-            }
-          }
-
-          // 3. Проверка существующей номенклатуры
-          const materialClassId = subclassId || classId!
-          const existingNom = existingNomenclatures.find(n =>
-            n.name.toLowerCase() === item.nomenclature.toLowerCase() &&
-            n.material_class_id === materialClassId
-          )
-
-          if (existingNom) {
-            processedItem.status = 'exists'
-            processedItem.message = 'Уже существует'
-            processedItem.nomenclatureId = existingNom.id
-          } else {
-            // Создаем номенклатуру
-            const newNom = await createMaterialNomenclature({
-              name: item.nomenclature,
-              unit: item.unit || 'шт',
-              material_class_id: materialClassId,
-              is_active: true
-            })
-            processedItem.nomenclatureId = newNom.id
-            processedItem.status = 'success'
-            processedItem.message = 'Добавлено'
-          }
-        } catch (error) {
-          processedItem.status = 'error'
-          processedItem.message = error instanceof Error ? error.message : 'Ошибка импорта'
-          console.error('[ImportNomenclatureModal] Error importing item:', item, error)
+        if (existingNom) {
+          processedItem.status = 'exists'
+          processedItem.message = 'Уже существует'
+          processedItem.nomenclatureId = existingNom.id
+        } else {
+          // Добавляем в список для создания
+          nomenclatureToCreate.push({
+            name: item.nomenclature,
+            unit: item.unit || 'шт',
+            material_class_id: materialClassId,
+            is_active: true
+          })
+          processedItem.status = 'pending'
         }
 
         processed.push(processedItem)
-        setProcessedData([...processed])
       }
+
+      setImportProgress(75)
+      console.log('[ImportNomenclatureModal] Nomenclature to create:', nomenclatureToCreate.length)
+
+      // Шаг 6: Bulk создание номенклатуры
+      if (nomenclatureToCreate.length > 0) {
+        const createdNomenclature = await bulkCreateMaterialNomenclature(nomenclatureToCreate)
+
+        // Обновляем статусы
+        let nomIndex = 0
+        for (const item of processed) {
+          if (item.status === 'pending') {
+            if (nomIndex < createdNomenclature.length) {
+              item.status = 'success'
+              item.message = 'Добавлено'
+              item.nomenclatureId = createdNomenclature[nomIndex].id
+              nomIndex++
+            }
+          }
+        }
+        console.log('[ImportNomenclatureModal] Created nomenclature:', createdNomenclature.length)
+      }
+
+      setImportProgress(100)
+      setProcessedData(processed)
 
       const successCount = processed.filter(p => p.status === 'success').length
       const existsCount = processed.filter(p => p.status === 'exists').length
@@ -342,7 +389,7 @@ export const ImportNomenclatureModal = ({ visible, onClose, onSuccess }: ImportM
               Нажмите или перетащите JSON файл для загрузки
             </p>
             <p className="ant-upload-hint">
-              Файл должен содержать структуру с полями: [Класс], [Подкласс], [Номенклатура]
+              Файл должен содержать поля: [Класс], [Подкласс], [Номенклатура], [Ед. изм.]
             </p>
           </Upload.Dragger>
         </div>

@@ -1,61 +1,54 @@
 [
   {
     "table": "public.approval_routes",
-    "summary": "Маршруты согласования платежей. Один тип счета может иметь несколько маршрутов.",
+    "summary": "Payment approval routes. One invoice type can have multiple routes.",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
         "pk": true,
-        "description": "Primary key of the approval route."
+        "description": "Primary key"
       },
       {
         "name": "invoice_type_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.invoice_types.id",
-        "description": "Invoice type (public.invoice_types.id) this route applies to."
+        "description": "Invoice type ID this route applies to"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Display name of the approval route."
+        "description": "Route name"
       },
       {
         "name": "is_active",
         "type": "boolean",
         "nullable": true,
         "default": "true",
-        "description": "TRUE when the route can be used for new payments."
+        "description": "Whether this route is currently active"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the route record was created."
+        "description": "Timestamp when the route was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the route record was last updated."
+        "description": "Timestamp when the route was last updated"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "invoice_type_id",
-          "references": "public.invoice_types.id",
-          "description": "Invoice type (public.invoice_types.id) this route applies to."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -91,7 +84,7 @@
   },
   {
     "table": "public.approval_steps",
-    "summary": "Audit log of actions performed during payment approval.",
+    "summary": "Audit log of actions performed during payment approval process",
     "columns": [
       {
         "name": "id",
@@ -99,76 +92,57 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Primary key of the approval step entry."
+        "description": "Primary key"
       },
       {
         "name": "payment_approval_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payment_approvals.id",
-        "description": "Payment approval instance (public.payment_approvals.id) this entry belongs to."
+        "description": "Payment approval ID this step belongs to"
       },
       {
         "name": "stage_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.workflow_stages.id",
-        "description": "Workflow stage (public.workflow_stages.id) where the action happened."
+        "description": "Workflow stage ID"
       },
       {
         "name": "action",
         "type": "text",
         "nullable": false,
-        "description": "Recorded action on the stage, e.g. approve or reject."
+        "description": "Action taken: approved, rejected, or returned"
       },
       {
         "name": "acted_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who performed the action."
+        "description": "User ID who performed the approval action"
       },
       {
         "name": "acted_at",
         "type": "timestamptz",
         "nullable": true,
-        "description": "Timestamp when the action was performed."
+        "description": "Timestamp when the action was performed"
       },
       {
         "name": "comment",
         "type": "text",
         "nullable": true,
-        "description": "Optional free-form note left by the approver."
+        "description": "Optional comment explaining the decision"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the audit entry was stored."
+        "description": "Timestamp when the record was created"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "payment_approval_id",
-          "references": "public.payment_approvals.id",
-          "description": "Payment approval instance (public.payment_approvals.id) this entry belongs to."
-        },
-        {
-          "column": "stage_id",
-          "references": "public.workflow_stages.id",
-          "description": "Workflow stage (public.workflow_stages.id) where the action happened."
-        },
-        {
-          "column": "acted_by",
-          "references": "auth.users.id",
-          "description": "User (auth.users.id) who performed the action."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [
         {
           "name": "approval_steps_payment_approval_id_stage_id_key",
@@ -234,7 +208,7 @@
   },
   {
     "table": "public.attachments",
-    "summary": "Metadata for files uploaded to Supabase Storage.",
+    "summary": "Metadata for files uploaded to Supabase Storage",
     "columns": [
       {
         "name": "id",
@@ -242,71 +216,64 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Primary key of the attachment and Storage object identifier."
+        "description": "Primary key (UUID)"
       },
       {
         "name": "original_name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Original filename provided by the user."
+        "description": "Original filename as uploaded by user"
       },
       {
         "name": "storage_path",
         "type": "varchar(500)",
         "nullable": false,
-        "description": "Path to the object inside Supabase Storage."
+        "description": "Path to file in Supabase Storage"
       },
       {
         "name": "size_bytes",
         "type": "integer",
         "nullable": false,
-        "description": "File size in bytes."
+        "description": "File size in bytes"
       },
       {
         "name": "mime_type",
         "type": "varchar(100)",
         "nullable": false,
-        "description": "Detected MIME type of the file."
+        "description": "MIME type of the file"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": false,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who uploaded the file."
+        "description": "User ID who uploaded the file"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the attachment record was created."
+        "description": "Timestamp when the file was uploaded"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the attachment metadata was last updated."
+        "description": "Timestamp when metadata was last updated"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "User-provided description of the file content"
+        "description": "Optional description of the attachment"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "created_by",
-          "references": "auth.users.id",
-          "description": "User (auth.users.id) who uploaded the file."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -351,66 +318,70 @@
   },
   {
     "table": "public.audit_log",
-    "summary": "Централизованная таблица для хранения истории изменений по счетам, платежам и связанным сущностям",
+    "summary": "Centralized audit log for tracking changes to invoices, payments, and related entities",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
         "pk": true,
-        "default": "gen_random_uuid()"
+        "default": "gen_random_uuid()",
+        "description": "Primary key"
       },
       {
         "name": "entity_type",
         "type": "text",
         "nullable": false,
-        "description": "Тип сущности: invoice, payment, invoice_attachment, payment_attachment, approval"
+        "description": "Type of entity: invoice, payment, invoice_attachment, payment_attachment, approval"
       },
       {
         "name": "entity_id",
         "type": "uuid",
-        "nullable": false
+        "nullable": false,
+        "description": "ID of the affected entity"
       },
       {
         "name": "action",
         "type": "text",
         "nullable": false,
-        "description": "Тип действия: create, update, delete, file_add, file_delete, status_change, approval_action"
+        "description": "Action performed: create, update, delete, file_add, file_delete, status_change, approval_action"
       },
       {
         "name": "field_name",
         "type": "text",
         "nullable": true,
-        "description": "Название поля (только для action=update)"
+        "description": "Name of the field that was changed (for update actions)"
       },
       {
         "name": "old_value",
         "type": "text",
         "nullable": true,
-        "description": "Старое значение поля"
+        "description": "Previous value (for update actions)"
       },
       {
         "name": "new_value",
         "type": "text",
         "nullable": true,
-        "description": "Новое значение поля"
+        "description": "New value (for update actions)"
       },
       {
         "name": "user_id",
         "type": "uuid",
-        "nullable": false
+        "nullable": false,
+        "description": "User ID who performed the action"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the action was performed"
       },
       {
         "name": "metadata",
         "type": "jsonb",
         "nullable": true,
-        "description": "Дополнительные данные в формате JSON (имя файла, комментарий, и т.д.)"
+        "description": "Additional JSON metadata (file info, status names, comments)"
       }
     ],
     "constraints": {
@@ -472,30 +443,34 @@
   },
   {
     "table": "public.contract_attachments",
-    "summary": "Связь договоров с приложенными файлами",
+    "summary": "Junction table linking contracts with attached files",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
         "pk": true,
-        "default": "uuid_generate_v4()"
+        "default": "uuid_generate_v4()",
+        "description": "Primary key (UUID)"
       },
       {
         "name": "contract_id",
         "type": "uuid",
-        "nullable": false
+        "nullable": false,
+        "description": "Contract ID"
       },
       {
         "name": "attachment_id",
         "type": "uuid",
-        "nullable": false
+        "nullable": false,
+        "description": "Attachment ID"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the link was created"
       }
     ],
     "constraints": {
@@ -536,30 +511,34 @@
   },
   {
     "table": "public.contract_invoices",
-    "summary": "Связь договоров со счетами",
+    "summary": "Junction table linking contracts with invoices",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
         "pk": true,
-        "default": "uuid_generate_v4()"
+        "default": "uuid_generate_v4()",
+        "description": "Primary key (UUID)"
       },
       {
         "name": "contract_id",
         "type": "uuid",
-        "nullable": false
+        "nullable": false,
+        "description": "Contract ID"
       },
       {
         "name": "invoice_id",
         "type": "uuid",
-        "nullable": false
+        "nullable": false,
+        "description": "Invoice ID"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the link was created"
       }
     ],
     "constraints": {
@@ -600,56 +579,60 @@
   },
   {
     "table": "public.contract_statuses",
-    "summary": "Справочник статусов договоров",
+    "summary": "Contract status reference table",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
         "pk": true,
-        "default": "nextval('contract_statuses_id_seq'::regclass)"
+        "default": "nextval('contract_statuses_id_seq'::regclass)",
+        "description": "Primary key"
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "description": "Уникальный код статуса"
+        "description": "Unique status code"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Название статуса"
+        "description": "Status name"
       },
       {
         "name": "color",
         "type": "varchar(7)",
         "nullable": true,
-        "description": "Цвет для отображения в интерфейсе (HEX)"
+        "description": "Display color for UI"
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true
+        "nullable": true,
+        "description": "Status description"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the status was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the status was last updated"
       },
       {
         "name": "sort_order",
         "type": "integer",
         "nullable": true,
         "default": "100",
-        "description": "Порядок сортировки статусов (меньшие значения показываются первыми)"
+        "description": "Sort order for display"
       }
     ],
     "constraints": {
@@ -713,7 +696,7 @@
   },
   {
     "table": "public.contractors",
-    "summary": "Registry of contractors linked to invoices and projects.",
+    "summary": "Registry of contractors linked to invoices and projects",
     "columns": [
       {
         "name": "id",
@@ -721,53 +704,46 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('contractors_id_seq'::regclass)",
-        "description": "Primary key of the contractor."
+        "description": "Primary key"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Official contractor name stored for invoices."
+        "description": "Official contractor name"
       },
       {
         "name": "inn",
         "type": "varchar(12)",
         "nullable": true,
-        "description": "Russian tax identifier (INN) of the contractor."
+        "description": "Russian tax identifier (INN)"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who created the contractor record."
+        "description": "User ID who created the contractor record"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the contractor record was created."
+        "description": "Timestamp when the contractor was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the contractor record was last updated."
+        "description": "Timestamp when the contractor was last updated"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "created_by",
-          "references": "auth.users.id",
-          "description": "User (auth.users.id) who created the contractor record."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [
         {
           "name": "contractors_inn_key",
@@ -821,125 +797,110 @@
   },
   {
     "table": "public.contracts",
-    "summary": "Договоры с контрагентами",
+    "summary": "Contracts with counterparties",
     "columns": [
       {
         "name": "id",
         "type": "uuid",
         "nullable": false,
         "pk": true,
-        "default": "uuid_generate_v4()"
+        "default": "uuid_generate_v4()",
+        "description": "Primary key (UUID)"
       },
       {
         "name": "contract_number",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Номер договора"
+        "description": "Contract number"
       },
       {
         "name": "contract_date",
         "type": "date",
         "nullable": false,
-        "description": "Дата заключения договора"
+        "description": "Contract signing date"
       },
       {
         "name": "payer_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Ссылка на плательщика (public.contractors.id)"
+        "description": "Payer contractor ID"
       },
       {
         "name": "supplier_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Ссылка на поставщика (public.contractors.id)"
+        "description": "Supplier contractor ID"
       },
       {
         "name": "vat_rate",
         "type": "numeric(5,2)",
         "nullable": true,
         "default": "20",
-        "description": "Ставка НДС в процентах"
+        "description": "VAT rate percentage"
       },
       {
         "name": "warranty_period_days",
         "type": "integer",
         "nullable": true,
-        "description": "Гарантийный срок в днях"
+        "description": "Warranty period in days"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Описание договора"
+        "description": "Contract description"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the contract was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the contract was last updated"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "Пользователь, создавший запись (auth.users.id)"
+        "description": "User ID who created the contract"
       },
       {
         "name": "project_id",
         "type": "integer",
         "nullable": true,
-        "description": "Проект, связанный с договором"
+        "description": "Project ID this contract belongs to"
       },
       {
         "name": "status_id",
         "type": "integer",
-        "nullable": true
+        "nullable": true,
+        "description": "Contract status ID"
       },
       {
         "name": "payment_terms",
         "type": "text",
         "nullable": true,
-        "description": "Условия оплаты (произвольный текст)"
+        "description": "Payment terms (free text)"
       },
       {
         "name": "advance_percentage",
         "type": "numeric(5,2)",
         "nullable": true,
         "default": "0",
-        "description": "Процент аванса (от 0 до 100)"
+        "description": "Advance payment percentage (0-100)"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "payer_id",
-          "references": "public.contractors.id",
-          "description": "Ссылка на плательщика (public.contractors.id)"
-        },
-        {
-          "column": "supplier_id",
-          "references": "public.contractors.id",
-          "description": "Ссылка на поставщика (public.contractors.id)"
-        },
-        {
-          "column": "created_by",
-          "references": "auth.users.id",
-          "description": "Пользователь, создавший запись (auth.users.id)"
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -1020,36 +981,41 @@
   },
   {
     "table": "public.departments",
-    "summary": "Организационные отделы компании",
+    "summary": "Organizational departments",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
         "pk": true,
-        "default": "nextval('departments_id_seq'::regclass)"
+        "default": "nextval('departments_id_seq'::regclass)",
+        "description": "Primary key"
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false
+        "nullable": false,
+        "description": "Department name"
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true
+        "nullable": true,
+        "description": "Department description"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the department was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the department was last updated"
       }
     ],
     "constraints": {
@@ -1096,113 +1062,97 @@
   },
   {
     "table": "public.employees",
-    "summary": "Справочник сотрудников",
+    "summary": "Company employees registry",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
         "pk": true,
-        "default": "nextval('employees_id_seq'::regclass)"
+        "default": "nextval('employees_id_seq'::regclass)",
+        "description": "Primary key"
       },
       {
         "name": "last_name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Фамилия сотрудника"
+        "description": "Employee last name"
       },
       {
         "name": "first_name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Имя сотрудника"
+        "description": "Employee first name"
       },
       {
         "name": "middle_name",
         "type": "varchar(255)",
         "nullable": true,
-        "description": "Отчество сотрудника"
+        "description": "Employee middle name (patronymic)"
       },
       {
         "name": "full_name",
         "type": "varchar(765)",
         "nullable": true,
-        "description": "Полное ФИО сотрудника (генерируется автоматически)"
+        "description": "Full name (auto-computed)"
       },
       {
         "name": "department_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.departments.id",
-        "description": "Ссылка на отдел (public.departments.id)"
+        "description": "Department ID"
       },
       {
         "name": "position_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.positions.id",
-        "description": "Ссылка на должность (public.positions.id)"
+        "description": "Position ID"
       },
       {
         "name": "email",
         "type": "varchar(255)",
         "nullable": true,
-        "description": "Рабочий email сотрудника"
+        "description": "Employee email address"
       },
       {
         "name": "phone",
         "type": "varchar(50)",
         "nullable": true,
-        "description": "Рабочий телефон сотрудника"
+        "description": "Employee phone number"
       },
       {
         "name": "is_active",
         "type": "boolean",
         "nullable": false,
         "default": "true",
-        "description": "Активен ли сотрудник (false = уволен)"
+        "description": "Whether the employee is currently active"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the employee was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the employee was last updated"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "Пользователь, создавший запись (auth.users.id)"
+        "description": "User ID who created the employee record"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "department_id",
-          "references": "public.departments.id",
-          "description": "Ссылка на отдел (public.departments.id)"
-        },
-        {
-          "column": "position_id",
-          "references": "public.positions.id",
-          "description": "Ссылка на должность (public.positions.id)"
-        },
-        {
-          "column": "created_by",
-          "references": "auth.users.id",
-          "description": "Пользователь, создавший запись (auth.users.id)"
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -1262,7 +1212,7 @@
   },
   {
     "table": "public.invoice_attachments",
-    "summary": "Associates invoices with stored attachments.",
+    "summary": "Junction table linking invoices with attached files",
     "columns": [
       {
         "name": "id",
@@ -1270,46 +1220,33 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Primary key of the invoice-attachment relation."
+        "description": "Primary key (UUID)"
       },
       {
         "name": "invoice_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.invoices.id",
-        "description": "Invoice (public.invoices.id) that the file belongs to."
+        "description": "Invoice ID"
       },
       {
         "name": "attachment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.attachments.id",
-        "description": "Attachment (public.attachments.id) linked to the invoice."
+        "description": "Attachment ID"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the attachment was linked to the invoice."
+        "description": "Timestamp when the link was created"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "invoice_id",
-          "references": "public.invoices.id",
-          "description": "Invoice (public.invoices.id) that the file belongs to."
-        },
-        {
-          "column": "attachment_id",
-          "references": "public.attachments.id",
-          "description": "Attachment (public.attachments.id) linked to the invoice."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -1353,7 +1290,7 @@
   },
   {
     "table": "public.invoice_payments",
-    "summary": "Allocation of payments to invoices.",
+    "summary": "Junction table linking invoices with payments and allocation amounts",
     "columns": [
       {
         "name": "id",
@@ -1361,52 +1298,39 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Primary key of the invoice-payment allocation."
+        "description": "Primary key (UUID)"
       },
       {
         "name": "invoice_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.invoices.id",
-        "description": "Invoice (public.invoices.id) receiving the allocation."
+        "description": "Invoice ID"
       },
       {
         "name": "payment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payments.id",
-        "description": "Payment (public.payments.id) allocated to the invoice."
+        "description": "Payment ID"
       },
       {
         "name": "allocated_amount",
         "type": "numeric(15,2)",
         "nullable": false,
-        "description": "Portion of the payment applied to the invoice."
+        "description": "Amount of payment allocated to this invoice"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the allocation was recorded."
+        "description": "Timestamp when the allocation was created"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "invoice_id",
-          "references": "public.invoices.id",
-          "description": "Invoice (public.invoices.id) receiving the allocation."
-        },
-        {
-          "column": "payment_id",
-          "references": "public.payments.id",
-          "description": "Payment (public.payments.id) allocated to the invoice."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -1457,7 +1381,7 @@
   },
   {
     "table": "public.invoice_statuses",
-    "summary": "Reference list of invoice workflow statuses.",
+    "summary": "Invoice status reference table",
     "columns": [
       {
         "name": "id",
@@ -1465,51 +1389,51 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('invoice_statuses_id_seq'::regclass)",
-        "description": "Primary key of the invoice status."
+        "description": "Primary key"
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "description": "Unique status code used in API and UI."
+        "description": "Unique status code"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Display name of the invoice status."
+        "description": "Status name"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional description clarifying when to use the status."
+        "description": "Status description"
       },
       {
         "name": "sort_order",
         "type": "integer",
         "nullable": true,
-        "description": "Ordering weight used when listing statuses."
+        "description": "Sort order for display"
       },
       {
         "name": "color",
         "type": "varchar(20)",
         "nullable": true,
-        "description": "Optional UI color token or hex code for the status."
+        "description": "Display color for UI"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the invoice status was created."
+        "description": "Timestamp when the status was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the invoice status was last updated."
+        "description": "Timestamp when the status was last updated"
       }
     ],
     "constraints": {
@@ -1573,7 +1497,7 @@
   },
   {
     "table": "public.invoice_types",
-    "summary": "Reference list of invoice classification types.",
+    "summary": "Invoice type reference table",
     "columns": [
       {
         "name": "id",
@@ -1581,39 +1505,39 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('invoice_types_id_seq'::regclass)",
-        "description": "Primary key of the invoice type."
+        "description": "Primary key"
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "description": "Unique code representing the invoice type."
+        "description": "Unique type code"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Display name of the invoice type."
+        "description": "Invoice type name"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional explanation of what the invoice type represents."
+        "description": "Invoice type description"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the invoice type record was created."
+        "description": "Timestamp when the type was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the invoice type record was last updated."
+        "description": "Timestamp when the type was last updated"
       }
     ],
     "constraints": {
@@ -1670,7 +1594,7 @@
   },
   {
     "table": "public.invoices",
-    "summary": "Outbound invoices issued from PayHub.",
+    "summary": "Outbound invoices issued to contractors",
     "columns": [
       {
         "name": "id",
@@ -1678,209 +1602,172 @@
         "nullable": false,
         "pk": true,
         "default": "uuid_generate_v4()",
-        "description": "Primary key of the invoice (UUID)."
+        "description": "Primary key (UUID)"
       },
       {
         "name": "user_id",
         "type": "uuid",
         "nullable": false,
-        "description": "Supabase auth user who created or owns the invoice."
+        "description": "Supabase auth user who created the invoice"
       },
       {
         "name": "invoice_number",
         "type": "text",
         "nullable": false,
-        "description": "Human readable invoice number shown to customers."
+        "description": "Human-readable invoice number"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional invoice description or customer note."
+        "description": "Invoice description"
       },
       {
         "name": "due_date",
         "type": "date",
         "nullable": true,
-        "description": "Date by which payment is expected."
+        "description": "Payment due date (deprecated)"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the invoice record was created."
+        "description": "Timestamp when the invoice was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the invoice record was last updated."
+        "description": "Timestamp when the invoice was last updated"
       },
       {
         "name": "invoice_date",
         "type": "date",
         "nullable": false,
         "default": "CURRENT_DATE",
-        "description": "Calendar date printed on the invoice."
+        "description": "Invoice issue date"
       },
       {
         "name": "payer_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Contractor acting as payer (public.contractors.id)."
+        "description": "Contractor acting as payer"
       },
       {
         "name": "supplier_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.contractors.id",
-        "description": "Contractor acting as supplier (public.contractors.id)."
+        "description": "Contractor acting as supplier"
       },
       {
         "name": "project_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.projects.id",
-        "description": "Project associated with the invoice (public.projects.id)."
+        "description": "Project this invoice belongs to"
       },
       {
         "name": "invoice_type_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.invoice_types.id",
-        "description": "Invoice type reference (public.invoice_types.id)."
+        "description": "Invoice type"
       },
       {
         "name": "amount_with_vat",
         "type": "numeric(15,2)",
         "nullable": true,
-        "description": "Invoice total amount including VAT."
+        "description": "Total amount including VAT"
       },
       {
         "name": "vat_rate",
         "type": "numeric(5,2)",
         "nullable": true,
         "default": "20",
-        "description": "VAT rate applied to the invoice total, in percent."
+        "description": "VAT rate percentage"
       },
       {
         "name": "vat_amount",
         "type": "numeric(15,2)",
         "nullable": true,
-        "description": "VAT portion of the invoice total."
+        "description": "VAT amount (calculated)"
       },
       {
         "name": "amount_without_vat",
         "type": "numeric(15,2)",
         "nullable": true,
-        "description": "Invoice amount excluding VAT."
+        "description": "Amount excluding VAT (calculated)"
       },
       {
         "name": "delivery_days",
         "type": "integer",
         "nullable": true,
-        "description": "Number of days required for delivery after payment."
+        "description": "Number of days for delivery"
       },
       {
         "name": "delivery_days_type",
         "type": "varchar(20)",
         "nullable": true,
         "default": "'working'::character varying",
-        "description": "Interpretation of delivery days (working or calendar)."
+        "description": "Type of days: working or calendar"
       },
       {
         "name": "preliminary_delivery_date",
         "type": "date",
         "nullable": true,
-        "description": "Projected delivery date calculated from payment terms."
+        "description": "Preliminary delivery date"
       },
       {
         "name": "status_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.invoice_statuses.id",
-        "description": "Workflow status of the invoice (public.invoice_statuses.id)."
+        "description": "Invoice status"
       },
       {
         "name": "delivery_cost",
         "type": "numeric(12,2)",
         "nullable": true,
         "default": "0",
-        "description": "Стоимость доставки в рублях"
+        "description": "Delivery cost"
       },
       {
         "name": "relevance_date",
         "type": "date",
         "nullable": false,
         "default": "CURRENT_TIMESTAMP",
-        "description": "Конечная дата актуальности счёта"
+        "description": "Invoice relevance/validity date"
       },
       {
         "name": "material_request_id",
         "type": "uuid",
         "nullable": true,
-        "description": "Ссылка на связанную заявку на материалы"
+        "description": "Material request this invoice is linked to"
       },
       {
         "name": "contract_id",
         "type": "uuid",
         "nullable": true,
-        "description": "Ссылка на связанный договор"
+        "description": "Contract this invoice is linked to"
       },
       {
         "name": "responsible_id",
         "type": "uuid",
         "nullable": true,
-        "fk": "public.user_profiles.id",
-        "description": "Ответственный менеджер снабжения (public.user_profiles.id)"
+        "description": "Responsible procurement manager (user_profiles UUID)"
       },
       {
         "name": "is_archived",
         "type": "boolean",
         "nullable": false,
         "default": "false",
-        "description": "Indicates if the invoice has been archived"
+        "description": "Whether the invoice is archived"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "payer_id",
-          "references": "public.contractors.id",
-          "description": "Contractor acting as payer (public.contractors.id)."
-        },
-        {
-          "column": "supplier_id",
-          "references": "public.contractors.id",
-          "description": "Contractor acting as supplier (public.contractors.id)."
-        },
-        {
-          "column": "project_id",
-          "references": "public.projects.id",
-          "description": "Project associated with the invoice (public.projects.id)."
-        },
-        {
-          "column": "invoice_type_id",
-          "references": "public.invoice_types.id",
-          "description": "Invoice type reference (public.invoice_types.id)."
-        },
-        {
-          "column": "status_id",
-          "references": "public.invoice_statuses.id",
-          "description": "Workflow status of the invoice (public.invoice_statuses.id)."
-        },
-        {
-          "column": "responsible_id",
-          "references": "public.user_profiles.id",
-          "description": "Ответственный менеджер снабжения (public.user_profiles.id)"
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -2032,47 +1919,54 @@
   },
   {
     "table": "public.material_classes",
-    "summary": "",
+    "summary": "Material classification hierarchy",
     "columns": [
       {
         "name": "id",
         "type": "bigint",
         "nullable": false,
-        "pk": true
+        "pk": true,
+        "description": "Primary key"
       },
       {
         "name": "name",
         "type": "text",
-        "nullable": false
+        "nullable": false,
+        "description": "Class name"
       },
       {
         "name": "is_active",
         "type": "boolean",
         "nullable": true,
-        "default": "true"
+        "default": "true",
+        "description": "Whether the class is currently active"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "CURRENT_TIMESTAMP"
+        "default": "CURRENT_TIMESTAMP",
+        "description": "Timestamp when the class was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "CURRENT_TIMESTAMP"
+        "default": "CURRENT_TIMESTAMP",
+        "description": "Timestamp when the class was last updated"
       },
       {
         "name": "parent_id",
         "type": "bigint",
-        "nullable": true
+        "nullable": true,
+        "description": "Parent class ID (for hierarchical structure)"
       },
       {
         "name": "level",
         "type": "integer",
         "nullable": true,
-        "default": "0"
+        "default": "0",
+        "description": "Hierarchy level (depth in tree)"
       }
     ],
     "constraints": {
@@ -2082,9 +1976,10 @@
       "foreign_keys": [],
       "unique": [
         {
-          "name": "material_classes_name_key",
+          "name": "material_classes_name_parent_key",
           "columns": [
-            "name"
+            "name",
+            "parent_id"
           ]
         }
       ],
@@ -2128,9 +2023,10 @@
         "unique": false
       },
       {
-        "name": "material_classes_name_key",
+        "name": "material_classes_name_parent_key",
         "columns": [
-          "name"
+          "name",
+          "parent_id"
         ],
         "unique": false
       }
@@ -2148,47 +2044,54 @@
   },
   {
     "table": "public.material_nomenclature",
-    "summary": "",
+    "summary": "Material catalog and specifications",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
         "pk": true,
-        "default": "nextval('material_nomenclature_id_seq'::regclass)"
+        "default": "nextval('material_nomenclature_id_seq'::regclass)",
+        "description": "Primary key"
       },
       {
         "name": "name",
         "type": "varchar(500)",
-        "nullable": false
+        "nullable": false,
+        "description": "Material name"
       },
       {
         "name": "unit",
         "type": "varchar(50)",
-        "nullable": false
+        "nullable": false,
+        "description": "Unit of measurement"
       },
       {
         "name": "is_active",
         "type": "boolean",
         "nullable": true,
-        "default": "true"
+        "default": "true",
+        "description": "Whether the material is currently active"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the material was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the material was last updated"
       },
       {
         "name": "material_class_id",
         "type": "integer",
-        "nullable": true
+        "nullable": true,
+        "description": "Material class ID"
       }
     ],
     "constraints": {
@@ -2245,7 +2148,7 @@
   },
   {
     "table": "public.material_request_items",
-    "summary": "Позиции в заявках на материалы",
+    "summary": "Individual items within material requests",
     "columns": [
       {
         "name": "id",
@@ -2253,49 +2156,51 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Уникальный идентификатор позиции"
+        "description": "Primary key"
       },
       {
         "name": "material_request_id",
         "type": "uuid",
         "nullable": false,
-        "description": "Ссылка на заявку"
+        "description": "Material request ID this item belongs to"
       },
       {
         "name": "material_name",
         "type": "varchar(500)",
         "nullable": false,
-        "description": "Наименование материала"
+        "description": "Material name"
       },
       {
         "name": "unit",
         "type": "varchar(50)",
         "nullable": false,
-        "description": "Единица измерения (шт, кг, м, м2, м3, л и т.д.)"
+        "description": "Unit of measurement"
       },
       {
         "name": "quantity",
         "type": "numeric(15,3)",
         "nullable": false,
-        "description": "Количество"
+        "description": "Requested quantity"
       },
       {
         "name": "sort_order",
         "type": "integer",
         "nullable": true,
         "default": "0",
-        "description": "Порядок сортировки позиций"
+        "description": "Sort order for display"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the item was created"
       },
       {
         "name": "nomenclature_id",
         "type": "integer",
-        "nullable": true
+        "nullable": true,
+        "description": "Material nomenclature ID (optional link)"
       }
     ],
     "constraints": {
@@ -2362,7 +2267,7 @@
   },
   {
     "table": "public.material_requests",
-    "summary": "Заявки на материалы",
+    "summary": "Material requisitions submitted by employees",
     "columns": [
       {
         "name": "id",
@@ -2370,57 +2275,59 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Уникальный идентификатор заявки"
+        "description": "Primary key (UUID)"
       },
       {
         "name": "request_number",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Номер заявки"
+        "description": "Human-readable request number"
       },
       {
         "name": "request_date",
         "type": "date",
         "nullable": false,
         "default": "CURRENT_DATE",
-        "description": "Дата создания заявки"
+        "description": "Date when the request was submitted"
       },
       {
         "name": "project_id",
         "type": "integer",
         "nullable": true,
-        "description": "Ссылка на проект"
+        "description": "Project this request belongs to"
       },
       {
         "name": "employee_id",
         "type": "integer",
         "nullable": true,
-        "description": "Ответственный сотрудник"
+        "description": "Employee who submitted the request"
       },
       {
         "name": "total_items",
         "type": "integer",
         "nullable": true,
         "default": "0",
-        "description": "Общее количество позиций в заявке"
+        "description": "Total number of items (auto-counted)"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "description": "Пользователь, создавший заявку"
+        "description": "User ID who created the request"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the request was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the request was last updated"
       }
     ],
     "constraints": {
@@ -2477,7 +2384,7 @@
   },
   {
     "table": "public.payment_approvals",
-    "summary": "Payment approval processes. One payment can have multiple approval processes (history of all attempts).",
+    "summary": "Payment approval instances tracking approval workflow progress",
     "columns": [
       {
         "name": "id",
@@ -2485,72 +2392,53 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Primary key of the payment approval."
+        "description": "Primary key (UUID)"
       },
       {
         "name": "payment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payments.id",
-        "description": "Payment (public.payments.id) that is being approved."
+        "description": "Payment ID being approved"
       },
       {
         "name": "route_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.approval_routes.id",
-        "description": "Approval route (public.approval_routes.id) used for the payment."
+        "description": "Approval route ID being used"
       },
       {
         "name": "status_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.payment_statuses.id",
-        "description": "Current status of the approval (public.payment_statuses.id)."
+        "description": "Current approval status ID"
       },
       {
         "name": "current_stage_index",
         "type": "integer",
         "nullable": false,
         "default": "0",
-        "description": "Zero-based index of the current stage within the route."
+        "description": "Index of current workflow stage (0-based)"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the approval instance was created."
+        "description": "Timestamp when the approval was initiated"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the approval instance was last updated."
+        "description": "Timestamp when the approval was last updated"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "payment_id",
-          "references": "public.payments.id",
-          "description": "Payment (public.payments.id) that is being approved."
-        },
-        {
-          "column": "route_id",
-          "references": "public.approval_routes.id",
-          "description": "Approval route (public.approval_routes.id) used for the payment."
-        },
-        {
-          "column": "status_id",
-          "references": "public.payment_statuses.id",
-          "description": "Current status of the approval (public.payment_statuses.id)."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -2599,7 +2487,7 @@
   },
   {
     "table": "public.payment_attachments",
-    "summary": "Associates payments with stored attachments.",
+    "summary": "Junction table linking payments with attached files",
     "columns": [
       {
         "name": "id",
@@ -2607,46 +2495,33 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Primary key of the payment-attachment relation."
+        "description": "Primary key (UUID)"
       },
       {
         "name": "payment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.payments.id",
-        "description": "Payment (public.payments.id) that the file is attached to."
+        "description": "Payment ID"
       },
       {
         "name": "attachment_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.attachments.id",
-        "description": "Attachment (public.attachments.id) linked to the payment."
+        "description": "Attachment ID"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the attachment was linked to the payment."
+        "description": "Timestamp when the link was created"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "payment_id",
-          "references": "public.payments.id",
-          "description": "Payment (public.payments.id) that the file is attached to."
-        },
-        {
-          "column": "attachment_id",
-          "references": "public.attachments.id",
-          "description": "Attachment (public.attachments.id) linked to the payment."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -2690,7 +2565,7 @@
   },
   {
     "table": "public.payment_statuses",
-    "summary": "Reference list of payment statuses.",
+    "summary": "Payment status reference table",
     "columns": [
       {
         "name": "id",
@@ -2698,51 +2573,51 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('payment_statuses_id_seq'::regclass)",
-        "description": "Primary key of the payment status."
+        "description": "Primary key"
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "description": "Unique code identifying the payment status."
+        "description": "Unique status code"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Display name of the payment status."
+        "description": "Status name"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional description of what the payment status means."
+        "description": "Status description"
       },
       {
         "name": "sort_order",
         "type": "integer",
         "nullable": true,
-        "description": "Ordering weight used when listing payment statuses."
+        "description": "Sort order for display"
       },
       {
         "name": "color",
         "type": "varchar(20)",
         "nullable": true,
-        "description": "Optional UI color token or hex code for the payment status."
+        "description": "Display color for UI"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the payment status was created."
+        "description": "Timestamp when the status was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the payment status was last updated."
+        "description": "Timestamp when the status was last updated"
       }
     ],
     "constraints": {
@@ -2792,7 +2667,7 @@
   },
   {
     "table": "public.payment_types",
-    "summary": "Reference list of payment types (advance, final, etc.).",
+    "summary": "Payment type reference table",
     "columns": [
       {
         "name": "id",
@@ -2800,39 +2675,39 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('payment_types_id_seq'::regclass)",
-        "description": "Primary key of the payment type."
+        "description": "Primary key"
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "description": "Unique code used to reference the payment type."
+        "description": "Unique type code"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Display name of the payment type."
+        "description": "Payment type name"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional description of how the payment type is used."
+        "description": "Payment type description"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the payment type record was created."
+        "description": "Timestamp when the type was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the payment type record was last updated."
+        "description": "Timestamp when the type was last updated"
       }
     ],
     "constraints": {
@@ -2882,7 +2757,7 @@
   },
   {
     "table": "public.payments",
-    "summary": "Payments registered against invoices in PayHub.",
+    "summary": "Payment records for invoices",
     "columns": [
       {
         "name": "id",
@@ -2890,111 +2765,86 @@
         "nullable": false,
         "pk": true,
         "default": "gen_random_uuid()",
-        "description": "Primary key of the payment (UUID)."
+        "description": "Primary key (UUID)"
       },
       {
         "name": "invoice_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "public.invoices.id",
-        "description": "Invoice (public.invoices.id) that the payment relates to."
+        "description": "Primary invoice this payment is for"
       },
       {
         "name": "payment_number",
         "type": "integer",
         "nullable": false,
         "default": "nextval('payment_number_seq'::regclass)",
-        "description": "Unique sequential number of the payment."
+        "description": "Sequential payment number"
       },
       {
         "name": "payment_date",
         "type": "date",
         "nullable": false,
         "default": "CURRENT_DATE",
-        "description": "Date on which the payment was made."
+        "description": "Payment date"
       },
       {
         "name": "amount",
         "type": "numeric(15,2)",
         "nullable": false,
-        "description": "Monetary amount of the payment."
+        "description": "Total payment amount"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional description or purpose of the payment."
+        "description": "Payment description or notes"
       },
       {
         "name": "payment_type_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.payment_types.id",
-        "description": "Payment type (public.payment_types.id)."
+        "description": "Payment type"
       },
       {
         "name": "status_id",
         "type": "integer",
         "nullable": true,
         "default": "1",
-        "fk": "public.payment_statuses.id",
-        "description": "Current payment status (public.payment_statuses.id)."
+        "description": "Payment status"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who created the payment record."
+        "description": "User ID who created the payment"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the payment record was created."
+        "description": "Timestamp when the payment was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the payment record was last updated."
+        "description": "Timestamp when the payment was last updated"
       },
       {
         "name": "is_archived",
         "type": "boolean",
         "nullable": false,
         "default": "false",
-        "description": "Indicates if the payment has been archived"
+        "description": "Whether the payment is archived"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "invoice_id",
-          "references": "public.invoices.id",
-          "description": "Invoice (public.invoices.id) that the payment relates to."
-        },
-        {
-          "column": "payment_type_id",
-          "references": "public.payment_types.id",
-          "description": "Payment type (public.payment_types.id)."
-        },
-        {
-          "column": "status_id",
-          "references": "public.payment_statuses.id",
-          "description": "Current payment status (public.payment_statuses.id)."
-        },
-        {
-          "column": "created_by",
-          "references": "auth.users.id",
-          "description": "User (auth.users.id) who created the payment record."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [
         {
           "name": "payments_payment_number_key",
@@ -3101,36 +2951,41 @@
   },
   {
     "table": "public.positions",
-    "summary": "Должности сотрудников",
+    "summary": "Employee positions/job titles",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
         "pk": true,
-        "default": "nextval('positions_id_seq'::regclass)"
+        "default": "nextval('positions_id_seq'::regclass)",
+        "description": "Primary key"
       },
       {
         "name": "name",
         "type": "varchar(255)",
-        "nullable": false
+        "nullable": false,
+        "description": "Position name"
       },
       {
         "name": "description",
         "type": "text",
-        "nullable": true
+        "nullable": true,
+        "description": "Position description"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the position was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
+        "default": "now()",
+        "description": "Timestamp when the position was last updated"
       }
     ],
     "constraints": {
@@ -3177,7 +3032,7 @@
   },
   {
     "table": "public.project_budgets",
-    "summary": "Budget allocations for projects",
+    "summary": "Project budgets and financial allocations",
     "columns": [
       {
         "name": "id",
@@ -3185,34 +3040,32 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('project_budgets_id_seq'::regclass)",
-        "description": "Primary key of the budget record"
+        "description": "Primary key"
       },
       {
         "name": "project_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.projects.id",
-        "description": "Foreign key to public.projects.id"
+        "description": "Project ID"
       },
       {
         "name": "allocated_amount",
         "type": "numeric(15,2)",
         "nullable": false,
         "default": "0",
-        "description": "Total amount allocated to the project"
+        "description": "Total allocated budget amount"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional description for the budget allocation"
+        "description": "Budget description or notes"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who created the budget record"
+        "description": "User ID who created the budget record"
       },
       {
         "name": "created_at",
@@ -3233,18 +3086,7 @@
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "project_id",
-          "references": "public.projects.id",
-          "description": "Foreign key to public.projects.id"
-        },
-        {
-          "column": "created_by",
-          "references": "auth.users.id",
-          "description": "User (auth.users.id) who created the budget record"
-        }
-      ],
+      "foreign_keys": [],
       "unique": [],
       "checks": [
         {
@@ -3297,7 +3139,7 @@
   },
   {
     "table": "public.projects",
-    "summary": "Projects used to group invoices and contractors.",
+    "summary": "Company projects",
     "columns": [
       {
         "name": "id",
@@ -3305,66 +3147,59 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('projects_id_seq'::regclass)",
-        "description": "Primary key of the project."
+        "description": "Primary key"
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": true,
-        "description": "Optional unique project code used in integrations and search."
+        "description": "Project code/identifier"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Display name of the project."
+        "description": "Project name"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional project description for internal users."
+        "description": "Project description"
       },
       {
         "name": "is_active",
         "type": "boolean",
         "nullable": true,
         "default": "true",
-        "description": "TRUE when the project is active."
+        "description": "Whether the project is currently active"
       },
       {
         "name": "created_by",
         "type": "uuid",
         "nullable": true,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who created the project."
+        "description": "User ID who created the project"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the project record was created."
+        "description": "Timestamp when the project was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the project record was last updated."
+        "description": "Timestamp when the project was last updated"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "created_by",
-          "references": "auth.users.id",
-          "description": "User (auth.users.id) who created the project."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [
         {
           "name": "projects_code_key",
@@ -3418,7 +3253,7 @@
   },
   {
     "table": "public.roles",
-    "summary": "Roles that define access levels inside PayHub.",
+    "summary": "User roles for approval workflow and permissions",
     "columns": [
       {
         "name": "id",
@@ -3426,52 +3261,52 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('roles_id_seq'::regclass)",
-        "description": "Primary key of the role."
+        "description": "Primary key"
       },
       {
         "name": "code",
         "type": "varchar(50)",
         "nullable": false,
-        "description": "Unique machine-readable code of the role."
+        "description": "Unique role code"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": false,
-        "description": "Display name of the role."
+        "description": "Role name"
       },
       {
         "name": "description",
         "type": "text",
         "nullable": true,
-        "description": "Optional description of the role permissions."
+        "description": "Role description"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the role record was created."
+        "description": "Timestamp when the role was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the role record was last updated."
+        "description": "Timestamp when the role was last updated"
       },
       {
         "name": "own_projects_only",
         "type": "boolean",
         "nullable": true,
         "default": "false",
-        "description": "TRUE when the role limits users to their own projects."
+        "description": "Whether user can only see their own projects"
       },
       {
         "name": "allowed_pages",
         "type": "jsonb",
         "nullable": true,
-        "description": "JSON array of allowed page paths for this role"
+        "description": "JSON array of allowed page routes"
       }
     ],
     "constraints": {
@@ -3535,7 +3370,7 @@
   },
   {
     "table": "public.user_profiles",
-    "summary": "Mirror of Supabase auth user profiles stored in the public schema.",
+    "summary": "Extended user profiles linked to Supabase auth users",
     "columns": [
       {
         "name": "id",
@@ -3543,40 +3378,39 @@
         "nullable": false,
         "pk": true,
         "fk": "auth.users.id",
-        "description": "Primary key of the profile and foreign key to auth.users.id."
+        "description": "Primary key (matches auth.users.id)"
       },
       {
         "name": "email",
         "type": "text",
         "nullable": false,
-        "description": "Primary email address associated with the user profile."
+        "description": "User email address"
       },
       {
         "name": "full_name",
         "type": "text",
         "nullable": false,
-        "description": "Display name of the user."
+        "description": "User full name"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the profile record was created."
+        "description": "Timestamp when the profile was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the profile record was last updated."
+        "description": "Timestamp when the profile was last updated"
       },
       {
         "name": "role_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.roles.id",
-        "description": "Role (public.roles.id) assigned to the user."
+        "description": "User role ID for approval workflow"
       }
     ],
     "constraints": {
@@ -3587,12 +3421,7 @@
         {
           "column": "id",
           "references": "auth.users.id",
-          "description": "Primary key of the profile and foreign key to auth.users.id."
-        },
-        {
-          "column": "role_id",
-          "references": "public.roles.id",
-          "description": "Role (public.roles.id) assigned to the user."
+          "description": "Primary key (matches auth.users.id)"
         }
       ],
       "unique": [
@@ -3637,7 +3466,7 @@
   },
   {
     "table": "public.user_projects",
-    "summary": "Mapping table assigning users to projects for access control.",
+    "summary": "Junction table linking users with projects they have access to",
     "columns": [
       {
         "name": "id",
@@ -3645,46 +3474,33 @@
         "nullable": false,
         "pk": true,
         "default": "nextval('user_projects_id_seq'::regclass)",
-        "description": "Primary key of the user-project link."
+        "description": "Primary key"
       },
       {
         "name": "user_id",
         "type": "uuid",
         "nullable": false,
-        "fk": "auth.users.id",
-        "description": "User (auth.users.id) who receives access to the project."
+        "description": "User ID"
       },
       {
         "name": "project_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.projects.id",
-        "description": "Project (public.projects.id) granted to the user."
+        "description": "Project ID"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the user-project link was created."
+        "description": "Timestamp when the link was created"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "user_id",
-          "references": "auth.users.id",
-          "description": "User (auth.users.id) who receives access to the project."
-        },
-        {
-          "column": "project_id",
-          "references": "public.projects.id",
-          "description": "Project (public.projects.id) granted to the user."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [
         {
           "name": "user_projects_user_project_unique",
@@ -3734,98 +3550,79 @@
   },
   {
     "table": "public.workflow_stages",
-    "summary": "Workflow stages that build approval routes and set payment statuses.",
+    "summary": "Workflow stages for approval routes",
     "columns": [
       {
         "name": "id",
         "type": "integer",
         "nullable": false,
         "pk": true,
-        "description": "Primary key of the workflow stage."
+        "description": "Primary key"
       },
       {
         "name": "route_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.approval_routes.id",
-        "description": "Approval route (public.approval_routes.id) the stage belongs to."
+        "description": "Approval route ID this stage belongs to"
       },
       {
         "name": "order_index",
         "type": "integer",
         "nullable": false,
-        "description": "Zero-based order of the stage within the route."
+        "description": "Stage order index (0-based)"
       },
       {
         "name": "role_id",
         "type": "integer",
         "nullable": false,
-        "fk": "public.roles.id",
-        "description": "Role (public.roles.id) responsible for processing the stage."
+        "description": "Role ID required for this stage"
       },
       {
         "name": "name",
         "type": "varchar(255)",
         "nullable": true,
-        "description": "Display name of the workflow stage."
+        "description": "Stage name"
       },
       {
         "name": "created_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the workflow stage was created."
+        "description": "Timestamp when the stage was created"
       },
       {
         "name": "updated_at",
         "type": "timestamptz",
         "nullable": true,
         "default": "now()",
-        "description": "Timestamp when the workflow stage was last updated."
+        "description": "Timestamp when the stage was last updated"
       },
       {
         "name": "payment_status_id",
         "type": "integer",
         "nullable": true,
-        "fk": "public.payment_statuses.id",
-        "description": "Payment status (public.payment_statuses.id) applied after the stage is completed."
+        "description": "Payment status to set when this stage is reached"
       },
       {
         "name": "permissions",
         "type": "jsonb",
         "nullable": true,
         "default": "'{}'::jsonb",
-        "description": "JSON object storing stage-specific permissions like can_edit_invoice, can_add_files, can_edit_amount, etc."
+        "description": "JSON permissions object for this stage"
       },
       {
         "name": "is_active",
         "type": "boolean",
         "nullable": true,
         "default": "true",
-        "description": "Soft deletion flag to preserve referential integrity with approval_steps table"
+        "description": "Whether this stage is currently active"
       }
     ],
     "constraints": {
       "primary_key": [
         "id"
       ],
-      "foreign_keys": [
-        {
-          "column": "route_id",
-          "references": "public.approval_routes.id",
-          "description": "Approval route (public.approval_routes.id) the stage belongs to."
-        },
-        {
-          "column": "role_id",
-          "references": "public.roles.id",
-          "description": "Role (public.roles.id) responsible for processing the stage."
-        },
-        {
-          "column": "payment_status_id",
-          "references": "public.payment_statuses.id",
-          "description": "Payment status (public.payment_statuses.id) applied after the stage is completed."
-        }
-      ],
+      "foreign_keys": [],
       "unique": [
         {
           "name": "workflow_stages_route_id_order_index_key",

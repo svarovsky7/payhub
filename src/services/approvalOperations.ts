@@ -14,8 +14,7 @@ export {
   checkPaymentApprovalStatus
 } from './approval/approvalQueries'
 export {
-  loadApprovalRoutes,
-  checkApprovalRoute
+  loadApprovalRoutes
 } from './approval/approvalRoutes'
 export {
   bulkApprovePayments,

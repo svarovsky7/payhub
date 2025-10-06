@@ -238,3 +238,34 @@
 .outdated-invoice-row td:first-child::after {
   border-left: 3px solid rgba(255, 77, 79, 0.8);
 }
+
+/* Подсветка архивных счетов серой маской */
+.archived-invoice-row {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  opacity: 0.7;
+}
+
+.archived-invoice-row:hover {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+  opacity: 0.8;
+}
+
+.archived-invoice-row td {
+  color: #8c8c8c;
+  position: relative;
+}
+
+.archived-invoice-row td::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border-left: 3px solid rgba(140, 140, 140, 0.3);
+}
+
+.archived-invoice-row td:first-child::after {
+  border-left: 3px solid rgba(140, 140, 140, 0.6);
+}

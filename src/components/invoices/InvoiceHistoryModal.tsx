@@ -106,24 +106,31 @@ export default function InvoiceHistoryModal({
       }
       open={visible}
       onCancel={onClose}
-      width={800}
+      width={900}
       footer={null}
+      styles={{
+        body: { maxHeight: '70vh', overflowY: 'auto', paddingTop: 0 }
+      }}
     >
       {invoice && (
-        <div style={{ marginBottom: 16 }}>
-          <div>
-            <strong>Счет:</strong> №{invoice.invoice_number}
+        <div style={{
+          marginBottom: 12,
+          padding: '12px 16px',
+          background: '#f5f5f5',
+          borderRadius: 4,
+          position: 'sticky',
+          top: 0,
+          zIndex: 1
+        }}>
+          <div style={{ display: 'flex', gap: 24, fontSize: 13 }}>
+            <span><strong>Счет:</strong> №{invoice.invoice_number}</span>
+            {invoice.payer && (
+              <span><strong>Плательщик:</strong> {invoice.payer.name}</span>
+            )}
+            {invoice.supplier && (
+              <span><strong>Поставщик:</strong> {invoice.supplier.name}</span>
+            )}
           </div>
-          {invoice.payer && (
-            <div>
-              <strong>Плательщик:</strong> {invoice.payer.name}
-            </div>
-          )}
-          {invoice.supplier && (
-            <div>
-              <strong>Поставщик:</strong> {invoice.supplier.name}
-            </div>
-          )}
         </div>
       )}
 

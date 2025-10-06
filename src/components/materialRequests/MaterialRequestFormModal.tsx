@@ -1,12 +1,12 @@
 import { Form, Modal, Input, DatePicker, Select, Row, Col, Space, Button, Table, InputNumber, message } from 'antd'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import 'dayjs/locale/ru'
 import type { MaterialRequest } from '../../services/materialRequestOperations'
 import type { Project } from '../../lib/supabase'
 import type { Employee } from '../../services/employeeOperations'
-import { loadMaterialNomenclature } from '../../services/materialNomenclatureOperations'
+import { loadMaterialNomenclaturePaginated } from '../../services/materialNomenclatureOperations'
 import type { MaterialNomenclature } from '../../services/materialNomenclatureOperations'
 
 dayjs.locale('ru')
@@ -41,18 +41,36 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
   const [form] = Form.useForm()
   const [items, setItems] = useState<EditableItem[]>([])
   const [generatingNumber, setGeneratingNumber] = useState(false)
-  const [allNomenclature, setAllNomenclature] = useState<MaterialNomenclature[]>([])
+  const [nomenclatureOptions, setNomenclatureOptions] = useState<MaterialNomenclature[]>([])
+  const [searchingNomenclature, setSearchingNomenclature] = useState(false)
 
-  // Load nomenclature when modal opens
-  useEffect(() => {
-    if (isVisible) {
-      loadMaterialNomenclature(true).then(data => {
-        setAllNomenclature(data)
-      }).catch(error => {
-        console.error('[MaterialRequestFormModal] Error loading nomenclature:', error)
-      })
+  // Server-side search across entire database
+  const handleSearchNomenclature = useCallback(async (searchText: string) => {
+    if (!searchText || !searchText.trim()) {
+      // No search text - clear options
+      setNomenclatureOptions([])
+      return
     }
-  }, [isVisible])
+
+    setSearchingNomenclature(true)
+    try {
+      // Search entire database with server-side multi-word support
+      const result = await loadMaterialNomenclaturePaginated({
+        page: 1,
+        pageSize: 200, // Limit to 200 results for dropdown
+        searchText: searchText.trim(),
+        activeOnly: true
+      })
+
+      setNomenclatureOptions(result.data)
+      console.log('[MaterialRequestFormModal] Server search results:', result.data.length, 'matches for:', searchText, '(out of', result.total, 'total)')
+    } catch (error) {
+      console.error('[MaterialRequestFormModal] Error searching nomenclature:', error)
+      setNomenclatureOptions([])
+    } finally {
+      setSearchingNomenclature(false)
+    }
+  }, [])
 
   // Initialize form when modal opens
   useEffect(() => {
@@ -178,7 +196,7 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
           value={record.nomenclature_id}
           onChange={value => {
             if (value) {
-              const selectedNom = allNomenclature.find(n => n.id === value)
+              const selectedNom = nomenclatureOptions.find(n => n.id === value)
               if (selectedNom) {
                 setItems(items.map(item =>
                   item.key === record.key ? {
@@ -194,10 +212,16 @@ export const MaterialRequestFormModal: React.FC<MaterialRequestFormModalProps> =
           }}
           showSearch
           allowClear
-          placeholder="Выберите номенклатуру"
-          optionFilterProp="label"
+          placeholder="Начните вводить для поиска"
+          filterOption={false}
+          onSearch={handleSearchNomenclature}
+          loading={searchingNomenclature}
+          notFoundContent={searchingNomenclature ? 'Поиск...' : 'Не найдено'}
+          popupMatchSelectWidth={false}
+          listHeight={400}
+          popupClassName="nomenclature-select-dropdown"
           style={{ width: '100%' }}
-          options={allNomenclature.map(nom => ({
+          options={nomenclatureOptions.map(nom => ({
             value: nom.id,
             label: `${nom.name} (${nom.unit})`
           }))}

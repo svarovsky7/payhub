@@ -172,3 +172,26 @@ export const loadSubclasses = async (parentId: number) => {
     return []
   }
 }
+
+// Bulk create material classes (no messages, for import use)
+export const bulkCreateMaterialClasses = async (classes: Partial<MaterialClass>[]) => {
+  try {
+    const { data, error } = await supabase
+      .from('material_classes')
+      .insert(classes.map(c => ({
+        name: c.name,
+        parent_id: c.parent_id || null,
+        is_active: c.is_active ?? true,
+        level: c.level ?? 0
+      })))
+      .select()
+
+    if (error) throw error
+
+    console.log('[MaterialClassOperations.bulkCreateMaterialClasses] Created:', data?.length)
+    return data || []
+  } catch (error) {
+    console.error('[MaterialClassOperations.bulkCreateMaterialClasses] Error:', error)
+    throw error
+  }
+}

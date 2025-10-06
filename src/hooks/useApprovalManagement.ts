@@ -32,7 +32,7 @@ export const useApprovalManagement = () => {
         .from('user_profiles')
         .select('role_id')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 

@@ -11,16 +11,9 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
     if (userId) {
       const { data: userProfile, error: userError } = await supabase
         .from('user_profiles')
-        .select(`
-          roles (
-            own_projects_only
-          ),
-          user_projects (
-            project_id
-          )
-        `)
+        .select('role_id')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
       if (userError) {
         console.error('[loadApprovalsForRole] Error loading user profile:', userError)
@@ -28,8 +21,26 @@ export const loadApprovalsForRole = async (roleId: number, userId?: string) => {
 
       console.log('[loadApprovalsForRole] User profile:', userProfile)
 
-      if (userProfile && (userProfile.roles as any)?.own_projects_only) {
-        projectIds = userProfile.user_projects?.map((up: any) => up.project_id) || []
+      // Check if role has own_projects_only
+      let ownProjectsOnly = false
+      if (userProfile?.role_id) {
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('own_projects_only')
+          .eq('id', userProfile.role_id)
+          .maybeSingle()
+
+        ownProjectsOnly = roleData?.own_projects_only || false
+      }
+
+      if (ownProjectsOnly) {
+        // Get user's projects
+        const { data: userProjects } = await supabase
+          .from('user_projects')
+          .select('project_id')
+          .eq('user_id', userId)
+
+        projectIds = userProjects?.map((up) => up.project_id) || []
         console.log('[loadApprovalsForRole] User restricted to projects:', projectIds)
       }
     }

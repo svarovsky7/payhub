@@ -66,7 +66,18 @@ export async function loadMaterialNomenclaturePaginated({
     }
 
     if (searchText) {
-      countQuery = countQuery.or(`name.ilike.%${searchText}%,unit.ilike.%${searchText}%`)
+      // Multi-word search: each word must be present in name (AND logic)
+      const words = searchText.trim().split(/\s+/).filter(w => w.length > 0)
+
+      if (words.length === 1) {
+        // Single word - search in both name and unit
+        countQuery = countQuery.or(`name.ilike.%${searchText}%,unit.ilike.%${searchText}%`)
+      } else {
+        // Multiple words - all words must be in name (chained AND conditions)
+        words.forEach(word => {
+          countQuery = countQuery.ilike('name', `%${word}%`)
+        })
+      }
     }
 
     const { count, error: countError } = await countQuery
@@ -92,7 +103,18 @@ export async function loadMaterialNomenclaturePaginated({
     }
 
     if (searchText) {
-      query = query.or(`name.ilike.%${searchText}%,unit.ilike.%${searchText}%`)
+      // Multi-word search: each word must be present in name (AND logic)
+      const words = searchText.trim().split(/\s+/).filter(w => w.length > 0)
+
+      if (words.length === 1) {
+        // Single word - search in both name and unit
+        query = query.or(`name.ilike.%${searchText}%,unit.ilike.%${searchText}%`)
+      } else {
+        // Multiple words - all words must be in name (chained AND conditions)
+        words.forEach(word => {
+          query = query.ilike('name', `%${word}%`)
+        })
+      }
     }
 
     const { data, error } = await query
@@ -195,4 +217,25 @@ export async function deleteMaterialNomenclature(id: number) {
   }
 
   console.log('[materialNomenclatureOperations.deleteMaterialNomenclature] Deleted successfully')
+}
+
+// Bulk create material nomenclature (no messages, for import use)
+export async function bulkCreateMaterialNomenclature(items: CreateMaterialNomenclatureData[]) {
+  console.log('[materialNomenclatureOperations.bulkCreateMaterialNomenclature] Creating:', items.length)
+
+  const { data, error } = await supabase
+    .from('material_nomenclature')
+    .insert(items.map(item => ({
+      ...item,
+      is_active: item.is_active ?? true
+    })))
+    .select()
+
+  if (error) {
+    console.error('[materialNomenclatureOperations.bulkCreateMaterialNomenclature] Error:', error)
+    throw error
+  }
+
+  console.log('[materialNomenclatureOperations.bulkCreateMaterialNomenclature] Created:', data?.length)
+  return data || []
 }

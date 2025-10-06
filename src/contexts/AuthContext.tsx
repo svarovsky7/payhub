@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .from('user_profiles')
             .select('role_id')
             .eq('id', session.user.id)
-            .single()
+            .maybeSingle()
 
           setCurrentRoleId(userData?.role_id || null)
         } catch (error) {

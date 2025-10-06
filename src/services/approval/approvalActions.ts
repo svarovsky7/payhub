@@ -51,7 +51,7 @@ export const approvePayment = async (
       .from('user_profiles')
       .select('role_id')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
     if (userProfile?.role_id !== currentStage.role_id) {
       message.error('У вас нет прав для согласования на данном этапе')
@@ -200,7 +200,7 @@ export const rejectPayment = async (
       .from('user_profiles')
       .select('role_id')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
     if (userProfile?.role_id !== currentStage.role_id) {
       message.error('У вас нет прав для отклонения на данном этапе')

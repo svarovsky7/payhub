@@ -73,16 +73,18 @@ export const UsersTab = () => {
   const loadUsers = async () => {
     setLoading(true)
     try {
-      // Загружаем пользователей с ролями
+      // Загружаем пользователей
       const { data: usersData, error: usersError } = await supabase
         .from('user_profiles')
-        .select(`
-          *,
-          role:roles(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
 
       if (usersError) throw usersError
+
+      // Загружаем роли
+      const { data: rolesData } = await supabase
+        .from('roles')
+        .select('*')
 
       // Загружаем проекты пользователей
       const { data: userProjectsData, error: userProjectsError } = await supabase
@@ -93,12 +95,14 @@ export const UsersTab = () => {
 
       // Объединяем данные
       const usersWithProjects = (usersData || []).map(user => {
+        const role = rolesData?.find(r => r.id === user.role_id) || null
         const userProjects = userProjectsData
           ?.filter(up => up.user_id === user.id)
           ?.map(up => up.project_id) || []
 
         return {
           ...user,
+          role,
           projects: userProjects
         }
       })
