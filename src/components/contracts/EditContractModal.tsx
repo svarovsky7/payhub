@@ -6,6 +6,8 @@ import {
   loadContractors,
   loadContractStatuses,
   loadProjects,
+  linkProjectsToContract,
+  getContractProjects,
   type Contract
 } from '../../services/contractOperations'
 import { ContractFormFields } from './EditContract/ContractFormFields'
@@ -89,13 +91,16 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
       setProjects(projectsData)
 
       if (contract) {
+        // Загружаем связанные проекты из contract_projects
+        const linkedProjectIds = await getContractProjects(contract.id)
+
         form.setFieldsValue({
           contractNumber: contract.contract_number,
           contractDate: contract.contract_date ? dayjs(contract.contract_date) : null,
           statusId: contract.status_id,
           supplierId: contract.supplier_id,
           payerId: contract.payer_id,
-          projectId: contract.project_id,
+          projectIds: linkedProjectIds,
           vatRate: contract.vat_rate || 20,
           paymentTerms: contract.payment_terms,
           advancePercentage: contract.advance_percentage || 0,
@@ -127,7 +132,6 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
           status_id: values.statusId,
           supplier_id: values.supplierId,
           payer_id: values.payerId,
-          project_id: values.projectId,
           vat_rate: values.vatRate || 20,
           payment_terms: values.paymentTerms,
           advance_percentage: values.advancePercentage || 0,
@@ -138,6 +142,9 @@ export const EditContractModal: React.FC<EditContractModalProps> = ({
         .eq('id', contract.id)
 
       if (error) throw error
+
+      // Обновляем связи с проектами через contract_projects
+      await linkProjectsToContract(contract.id, values.projectIds || [])
 
       // Загружаем новые файлы через универсальный сервис
       if (fileList.length > 0) {

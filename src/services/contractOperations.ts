@@ -1,9 +1,9 @@
 import { supabase } from '../lib/supabase'
-import type { Contractor, Project, Contract, ContractStatus } from '../lib/supabase'
+import type { Contractor, Project, Contract, ContractStatus, ContractProject } from '../lib/supabase'
 import { message } from 'antd'
 import { isErrorWithCode } from '../types/common'
 
-export type { Contract, ContractStatus }
+export type { Contract, ContractStatus, ContractProject }
 
 
 // Load contracts with related data
@@ -19,6 +19,10 @@ export const loadContracts = async (userId?: string) => {
         supplier:contractors!contracts_supplier_id_fkey(*),
         project:projects(*),
         status:contract_statuses(*),
+        contract_projects(
+          project_id,
+          projects(*)
+        ),
         contract_invoices(
           *,
           invoice:invoices(
@@ -323,6 +327,64 @@ export const generateContractNumber = async (): Promise<string> => {
     console.error('[ContractOperations.generateContractNumber] Error:', error)
     message.error('Ошибка генерации номера договора')
     throw error
+  }
+}
+
+// Link projects to contract
+export const linkProjectsToContract = async (contractId: string, projectIds: number[]) => {
+  console.log('[ContractOperations.linkProjectsToContract] Linking projects:', { contractId, projectIds })
+
+  try {
+    // First, remove all existing project links for this contract
+    const { error: deleteError } = await supabase
+      .from('contract_projects')
+      .delete()
+      .eq('contract_id', contractId)
+
+    if (deleteError) throw deleteError
+
+    // If no projects selected, we're done
+    if (!projectIds || projectIds.length === 0) {
+      return
+    }
+
+    // Insert new project links
+    const { error: insertError } = await supabase
+      .from('contract_projects')
+      .insert(
+        projectIds.map(projectId => ({
+          contract_id: contractId,
+          project_id: projectId
+        }))
+      )
+
+    if (insertError) throw insertError
+
+    console.log('[ContractOperations.linkProjectsToContract] Successfully linked projects')
+  } catch (error) {
+    console.error('[ContractOperations.linkProjectsToContract] Error:', error)
+    throw error
+  }
+}
+
+// Get contract's linked projects
+export const getContractProjects = async (contractId: string): Promise<number[]> => {
+  console.log('[ContractOperations.getContractProjects] Loading projects for contract:', contractId)
+
+  try {
+    const { data, error } = await supabase
+      .from('contract_projects')
+      .select('project_id')
+      .eq('contract_id', contractId)
+
+    if (error) throw error
+
+    const projectIds = data?.map(cp => cp.project_id) || []
+    console.log('[ContractOperations.getContractProjects] Loaded project IDs:', projectIds)
+    return projectIds
+  } catch (error) {
+    console.error('[ContractOperations.getContractProjects] Error:', error)
+    return []
   }
 }
 

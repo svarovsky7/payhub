@@ -241,6 +241,32 @@
     ]
   },
   {
+    "table": "public.contract_projects",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ]
+  },
+  {
     "table": "public.contract_statuses",
     "columns": [
       {

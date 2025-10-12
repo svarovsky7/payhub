@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Row, Col, Typography, Button } from 'antd'
+import { Card, Row, Col, Typography, Button, Space } from 'antd'
 import { FileTextOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   loadContracts,
@@ -10,6 +10,9 @@ import { ContractsTable } from '../components/contracts/ContractsTable'
 import { ContractViewModal } from '../components/contracts/ContractViewModal'
 import { AddContractModal } from '../components/contracts/AddContractModal'
 import { EditContractModal } from '../components/contracts/EditContractModal'
+import { ColumnSettings } from '../components/common/ColumnSettings'
+import { getContractTableColumns } from '../components/contracts/ContractTableColumns'
+import { useColumnSettings } from '../hooks/useColumnSettings'
 import { useAuth } from '../contexts/AuthContext'
 
 const { Title } = Typography
@@ -72,6 +75,19 @@ export const ContractsPage = () => {
     setSelectedContract(null)
   }
 
+  // Table columns with column settings
+  const allColumns = getContractTableColumns({
+    contracts,
+    onDelete: handleDelete,
+    onEdit: handleEdit,
+    onAddInvoice: handleViewInvoices
+  })
+
+  const { columnConfig, setColumnConfig, visibleColumns, defaultConfig } = useColumnSettings(
+    allColumns,
+    'contracts_column_settings'
+  )
+
   return (
     <div style={{ padding: '24px' }}>
       <Card>
@@ -82,13 +98,20 @@ export const ContractsPage = () => {
             </Title>
           </Col>
           <Col>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setAddModalVisible(true)}
-            >
-              Добавить договор
-            </Button>
+            <Space>
+              <ColumnSettings
+                columns={columnConfig}
+                onChange={setColumnConfig}
+                defaultColumns={defaultConfig}
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setAddModalVisible(true)}
+              >
+                Добавить договор
+              </Button>
+            </Space>
           </Col>
         </Row>
 
@@ -101,6 +124,7 @@ export const ContractsPage = () => {
           expandedRowKeys={expandedRowKeys}
           onExpandedRowsChange={setExpandedRowKeys}
           onDataChange={loadData}
+          columns={visibleColumns}
         />
       </Card>
 

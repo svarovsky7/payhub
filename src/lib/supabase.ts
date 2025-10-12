@@ -182,13 +182,21 @@ export type ContractStatus = {
   updated_at: string
 }
 
+export type ContractProject = {
+  id: string
+  contract_id: string
+  project_id: number
+  created_at: string
+  projects?: Project
+}
+
 export type Contract = {
   id: string
   contract_number: string
   contract_date: string
   payer_id?: number
   supplier_id?: number
-  project_id?: number
+  project_id?: number // deprecated - use contract_projects instead
   vat_rate?: number
   warranty_period_days?: number
   description?: string
@@ -201,8 +209,9 @@ export type Contract = {
   // Связанные объекты
   payer?: Contractor
   supplier?: Contractor
-  project?: Project
+  project?: Project // deprecated - use contract_projects instead
   status?: ContractStatus
+  contract_projects?: ContractProject[]
   contract_invoices?: any[]
   contract_attachments?: any[]
 }

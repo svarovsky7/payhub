@@ -261,9 +261,11 @@ export const getInvoiceTableColumns = ({
       key: 'payment_status',
       render: (_, record) => {
         const totals = getPaymentTotals(record.id)
+        // Include delivery cost in total amount
+        const totalAmountWithDelivery = (record.amount_with_vat || 0) + (record.delivery_cost || 0)
         return (
           <PaymentStatusIndicator
-            totalAmount={record.amount_with_vat || 0}
+            totalAmount={totalAmountWithDelivery}
             totalPaid={totals.totalPaid}
             paymentCount={totals.paymentCount}
           />

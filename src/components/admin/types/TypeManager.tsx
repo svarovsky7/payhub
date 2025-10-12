@@ -76,9 +76,8 @@ export const TypeManager: React.FC<TypeManagerProps> = ({ typeCategory }) => {
       id: parseInt(values.id as string, 10)
     } as Partial<TypeRecord>
 
-    if (typeCategory === 'payment') {
-      delete formValues.is_active
-    }
+    // Remove is_active as it doesn't exist in invoice_types or payment_types tables
+    delete formValues.is_active
 
     try {
       // Check code uniqueness

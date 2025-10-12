@@ -480,13 +480,20 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
 
 export const getPaymentTotals = (invoiceId: string, invoicePayments: Record<string, Payment[]>, invoice: any) => {
   const payments = invoicePayments[invoiceId] || []
-  const totalAmount = invoice?.amount_with_vat || 0
+  // Include delivery cost in total amount
+  const totalAmount = (invoice?.amount_with_vat || 0) + (invoice?.delivery_cost || 0)
 
-  // Calculate total paid (all payments regardless of status)
+  // Calculate total paid (only payments with status "Оплачен" or "В оплате")
+  const PAID_STATUS_ID = 3  // Оплачен (paid)
+  const APPROVED_STATUS_ID = 5  // В оплате (approved)
+
   const totalPaid = payments.reduce((sum, payment) => {
-    // Use allocated_amount if available, otherwise use payment amount
-    const amount = (payment as any).allocated_amount || payment.amount || 0
-    return sum + amount
+    // Only count payments with paid or approved status
+    if (payment.status_id === PAID_STATUS_ID || payment.status_id === APPROVED_STATUS_ID) {
+      const amount = (payment as any).allocated_amount || payment.amount || 0
+      return sum + amount
+    }
+    return sum
   }, 0)
 
   // Calculate payments by status

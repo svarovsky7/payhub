@@ -15,7 +15,7 @@ import {
 } from 'antd'
 import dayjs from 'dayjs'
 import { supabase } from '../../lib/supabase'
-import { loadContractors, loadContractStatuses, loadProjects, generateContractNumber } from '../../services/contractOperations'
+import { loadContractors, loadContractStatuses, loadProjects, generateContractNumber, linkProjectsToContract } from '../../services/contractOperations'
 import { FileUploadBlock } from '../common/FileUploadBlock'
 import { useFileAttachment } from '../../hooks/useFileAttachment'
 import { uploadAndLinkFile } from '../../services/fileAttachmentService'
@@ -133,7 +133,7 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
         throw new Error('Пользователь не авторизован')
       }
 
-      // Создаём договор
+      // Создаём договор (без project_id - теперь используем contract_projects)
       const { data: contract, error } = await supabase
         .from('contracts')
         .insert({
@@ -142,7 +142,6 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
           status_id: values.statusId,
           supplier_id: values.supplierId,
           payer_id: values.payerId,
-          project_id: values.projectId,
           vat_rate: values.vatRate || 20,
           payment_terms: values.paymentTerms,
           advance_percentage: values.advancePercentage || 0,
@@ -154,6 +153,11 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
         .single()
 
       if (error) throw error
+
+      // Связываем проекты с договором через contract_projects
+      if (values.projectIds && values.projectIds.length > 0) {
+        await linkProjectsToContract(contract.id, values.projectIds)
+      }
 
       // Загружаем файлы, если есть
       if (fileList.length > 0) {
@@ -356,13 +360,14 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={24}>
               <Form.Item
-                name="projectId"
-                label="Проект"
+                name="projectIds"
+                label="Проекты"
               >
                 <Select
-                  placeholder="Выберите проект"
+                  mode="multiple"
+                  placeholder="Выберите проекты"
                   allowClear
                   showSearch
                   options={projects.map(p => ({

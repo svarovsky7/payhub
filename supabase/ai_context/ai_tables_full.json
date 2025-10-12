@@ -578,6 +578,88 @@
     "triggers": []
   },
   {
+    "table": "public.contract_projects",
+    "summary": "Many-to-many relationship table linking contracts with projects",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()"
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": false,
+        "description": "Reference to contract"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "description": "Reference to project"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [
+        {
+          "name": "contract_projects_unique",
+          "columns": [
+            "contract_id",
+            "project_id"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "2200_26920_1_not_null"
+        },
+        {
+          "name": "2200_26920_2_not_null"
+        },
+        {
+          "name": "2200_26920_3_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "contract_projects_unique",
+        "columns": [
+          "contract_id",
+          "project_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_contract_projects_contract_id",
+        "columns": [
+          "contract_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_contract_projects_project_id",
+        "columns": [
+          "project_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": []
+  },
+  {
     "table": "public.contract_statuses",
     "summary": "Contract status reference table",
     "columns": [

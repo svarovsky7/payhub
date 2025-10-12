@@ -8,7 +8,8 @@ import {
   FileAddOutlined,
   DollarOutlined,
   ProjectOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  FolderOpenOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { formatAmount } from '../../utils/invoiceHelpers'
@@ -30,6 +31,7 @@ interface GroupedApprovalsProps {
   onAddFiles: (approval: PaymentApproval) => void
   onEditAmount: (approval: PaymentApproval) => void
   onViewMaterialRequest: (approval: PaymentApproval) => void
+  onViewAllFiles: (approval: PaymentApproval) => void
   getCurrentStagePermissions: (approval: PaymentApproval) => any
   projectBudgets?: ProjectBudgetWithProject[]
 }
@@ -53,6 +55,7 @@ export const GroupedApprovals = ({
   onAddFiles,
   onEditAmount,
   onViewMaterialRequest,
+  onViewAllFiles,
   getCurrentStagePermissions,
   projectBudgets = []
 }: GroupedApprovalsProps) => {
@@ -314,6 +317,14 @@ export const GroupedApprovals = ({
                                   />
                                 </Tooltip>
                               )}
+                              <Tooltip title="Все файлы">
+                                <Button
+                                  size="small"
+                                  icon={<FolderOpenOutlined />}
+                                  onClick={() => onViewAllFiles(approval)}
+                                  className="action-btn action-btn-files"
+                                />
+                              </Tooltip>
                               <Tooltip title="История">
                                 <Button
                                   size="small"

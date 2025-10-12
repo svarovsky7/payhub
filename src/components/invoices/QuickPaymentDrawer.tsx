@@ -192,10 +192,24 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
         borderRadius: 6,
         border: '1px solid #d9d9d9'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
           <Text>Сумма счёта:</Text>
           <Text strong>{formatAmount(invoice.amount_with_vat || 0)} ₽</Text>
         </div>
+
+        {invoice.delivery_cost && invoice.delivery_cost > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, paddingLeft: 12 }}>
+            <Text style={{ fontSize: 13 }}>Доставка:</Text>
+            <Text style={{ fontSize: 13 }}>{formatAmount(invoice.delivery_cost)} ₽</Text>
+          </div>
+        )}
+
+        {invoice.delivery_cost && invoice.delivery_cost > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, borderTop: '1px solid #d9d9d9', paddingTop: 8 }}>
+            <Text strong>Итого с доставкой:</Text>
+            <Text strong>{formatAmount((invoice.amount_with_vat || 0) + (invoice.delivery_cost || 0))} ₽</Text>
+          </div>
+        )}
 
         {/* Payments by status */}
         {Object.keys(paymentsByStatus).length > 0 ? (

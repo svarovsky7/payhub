@@ -161,13 +161,14 @@ export const ContractFormFields: React.FC<ContractFormFieldsProps> = ({
       </Row>
 
       <Row gutter={16}>
-        <Col span={12}>
+        <Col span={24}>
           <Form.Item
-            name="projectId"
-            label="Проект"
+            name="projectIds"
+            label="Проекты"
           >
             <Select
-              placeholder="Выберите проект"
+              mode="multiple"
+              placeholder="Выберите проекты"
               allowClear
               showSearch
               options={projects.map(p => ({

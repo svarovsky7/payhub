@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Row, Col, Form, Select } from 'antd'
-import type { Project } from '../../../lib/supabase'
+import { Row, Col, Form, Select, Tag, Space } from 'antd'
+import type { Project, ContractProject } from '../../../lib/supabase'
 import type { Contract } from '../../../services/contractOperations'
 
 interface InvoiceContractProjectFieldsProps {
@@ -19,20 +19,77 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
   onProjectSelect
 }) => {
   const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contracts)
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>(projects)
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null)
+
+  // Отслеживаем изменения полей формы
+  const formProjectId = Form.useWatch('project_id', form)
+  const formContractId = Form.useWatch('contract_id', form)
+
+  // Синхронизируем локальное состояние с полями формы
+  useEffect(() => {
+    if (formProjectId !== undefined && formProjectId !== selectedProjectId) {
+      console.log('[InvoiceContractProjectFields] Form project_id changed to:', formProjectId)
+      setSelectedProjectId(formProjectId)
+    }
+  }, [formProjectId])
+
+  useEffect(() => {
+    if (formContractId !== undefined && formContractId !== selectedContractId) {
+      console.log('[InvoiceContractProjectFields] Form contract_id changed to:', formContractId)
+      setSelectedContractId(formContractId)
+    }
+  }, [formContractId])
+
+  // Получаем проекты для выбранного договора
+  const getContractProjects = (contract: Contract): number[] => {
+    const contractProjects = contract.contract_projects as ContractProject[] | undefined
+    if (!contractProjects || contractProjects.length === 0) {
+      // Fallback на старое поле project_id если contract_projects пусто
+      return contract.project_id ? [contract.project_id] : []
+    }
+    return contractProjects.map(cp => cp.project_id)
+  }
+
+  // Проверяем, относится ли договор к проекту
+  const contractHasProject = (contract: Contract, projectId: number): boolean => {
+    const contractProjectIds = getContractProjects(contract)
+    return contractProjectIds.includes(projectId)
+  }
 
   // Обновляем отфильтрованные договоры при изменении списка или выбранного проекта
   useEffect(() => {
     if (selectedProjectId) {
-      // Фильтруем договоры по выбранному проекту
-      const filtered = contracts.filter(contract => contract.project_id === selectedProjectId)
+      // Фильтруем договоры, у которых есть выбранный проект
+      const filtered = contracts.filter(contract => contractHasProject(contract, selectedProjectId))
       setFilteredContracts(filtered)
     } else {
       // Показываем все договоры если проект не выбран
       setFilteredContracts(contracts)
     }
   }, [contracts, selectedProjectId])
+
+  // Обновляем отфильтрованные проекты при изменении выбранного договора
+  useEffect(() => {
+    if (selectedContractId) {
+      const selectedContract = contracts.find(c => c.id === selectedContractId)
+      if (selectedContract) {
+        const contractProjectIds = getContractProjects(selectedContract)
+        if (contractProjectIds.length > 0) {
+          // Фильтруем проекты, которые привязаны к выбранному договору
+          const filtered = projects.filter(p => contractProjectIds.includes(p.id))
+          setFilteredProjects(filtered)
+        } else {
+          // Если у договора нет проектов, показываем все
+          setFilteredProjects(projects)
+        }
+      }
+    } else {
+      // Показываем все проекты если договор не выбран
+      setFilteredProjects(projects)
+    }
+  }, [contracts, projects, selectedContractId])
 
   // Обработчик выбора проекта
   const handleProjectChange = (projectId: number | null) => {
@@ -43,7 +100,7 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
     if (projectId && selectedContractId) {
       const selectedContract = contracts.find(c => c.id === selectedContractId)
       // Если текущий договор не относится к выбранному проекту, сбрасываем его
-      if (selectedContract && selectedContract.project_id !== projectId) {
+      if (selectedContract && !contractHasProject(selectedContract, projectId)) {
         form?.setFieldsValue({ contract_id: undefined })
         setSelectedContractId(null)
         onContractSelect(null)
@@ -64,10 +121,22 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
         // Автоматически заполняем связанные поля
         const fieldsToUpdate: any = {}
 
-        // Заполняем проект если он есть в договоре
-        if (selectedContract.project_id) {
-          fieldsToUpdate.project_id = selectedContract.project_id
-          setSelectedProjectId(selectedContract.project_id)
+        // Получаем проекты договора
+        const contractProjectIds = getContractProjects(selectedContract)
+
+        // Если у договора только один проект, автоматически выбираем его
+        if (contractProjectIds.length === 1) {
+          fieldsToUpdate.project_id = contractProjectIds[0]
+          setSelectedProjectId(contractProjectIds[0])
+        } else if (contractProjectIds.length > 1) {
+          // Если у договора несколько проектов, показываем только их в списке
+          // Но не выбираем автоматически, чтобы пользователь выбрал нужный
+          // Если текущий проект не из списка проектов договора, сбрасываем
+          const currentProjectId = form?.getFieldValue('project_id')
+          if (currentProjectId && !contractProjectIds.includes(currentProjectId)) {
+            fieldsToUpdate.project_id = undefined
+            setSelectedProjectId(null)
+          }
         }
 
         // Заполняем плательщика если он есть в договоре
@@ -85,7 +154,27 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
           form?.setFieldsValue(fieldsToUpdate)
         }
       }
+    } else {
+      // Сбрасываем фильтр проектов при сбросе договора
+      setFilteredProjects(projects)
     }
+  }
+
+  // Дополнительная информация о договоре для отображения
+  const getContractLabel = (contract: Contract) => {
+    const contractProjectIds = getContractProjects(contract)
+    const contractProjectNames = projects
+      .filter(p => contractProjectIds.includes(p.id))
+      .map(p => p.name)
+
+    let label = `${contract.contract_number} от ${contract.contract_date ?
+      new Date(contract.contract_date).toLocaleDateString('ru-RU') : 'без даты'}`
+
+    if (contractProjectNames.length > 0) {
+      label += ` (${contractProjectNames.join(', ')})`
+    }
+
+    return label
   }
 
   return (
@@ -93,7 +182,16 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
       <Col span={12}>
         <Form.Item
           name="project_id"
-          label="Проект"
+          label={
+            <Space>
+              <span>Проект</span>
+              {selectedContractId && filteredProjects.length < projects.length && (
+                <Tag color="blue" style={{ fontSize: 11 }}>
+                  Фильтр по договору
+                </Tag>
+              )}
+            </Space>
+          }
           rules={[{ required: true, message: 'Выберите проект' }]}
         >
           <Select
@@ -102,17 +200,31 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
             allowClear
             optionFilterProp="label"
             onChange={handleProjectChange}
-            options={projects.map((project) => ({
+            options={filteredProjects.map((project) => ({
               value: project.id,
               label: project.name,
             }))}
+            notFoundContent={
+              selectedContractId && filteredProjects.length === 0
+                ? "Нет проектов для выбранного договора"
+                : "Проекты не найдены"
+            }
           />
         </Form.Item>
       </Col>
       <Col span={12}>
         <Form.Item
           name="contract_id"
-          label="Договор"
+          label={
+            <Space>
+              <span>Договор</span>
+              {selectedProjectId && filteredContracts.length < contracts.length && (
+                <Tag color="blue" style={{ fontSize: 11 }}>
+                  Фильтр по проекту
+                </Tag>
+              )}
+            </Space>
+          }
         >
           <Select
             placeholder="Выберите договор"
@@ -122,8 +234,7 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
             onChange={handleContractChange}
             options={filteredContracts.map((contract) => ({
               value: contract.id,
-              label: `${contract.contract_number} от ${contract.contract_date ?
-                new Date(contract.contract_date).toLocaleDateString('ru-RU') : 'без даты'}`,
+              label: getContractLabel(contract),
             }))}
             notFoundContent={
               selectedProjectId && filteredContracts.length === 0

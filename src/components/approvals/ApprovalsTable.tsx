@@ -6,7 +6,8 @@ import {
   EditOutlined,
   FileAddOutlined,
   DollarOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  FolderOpenOutlined
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { formatAmount } from '../../utils/invoiceHelpers'
@@ -25,6 +26,7 @@ interface ApprovalsTableProps {
   onAddFiles: (approval: PaymentApproval) => void
   onEditAmount: (approval: PaymentApproval) => void
   onViewMaterialRequest: (approval: PaymentApproval) => void
+  onViewAllFiles: (approval: PaymentApproval) => void
   getCurrentStagePermissions: (approval: PaymentApproval) => any
 }
 
@@ -40,6 +42,7 @@ export const ApprovalsTable = ({
   onAddFiles,
   onEditAmount,
   onViewMaterialRequest,
+  onViewAllFiles,
   getCurrentStagePermissions
 }: ApprovalsTableProps) => {
   console.log('[ApprovalsTable] Approvals data:', approvals)
@@ -257,6 +260,14 @@ export const ApprovalsTable = ({
                 />
               </Tooltip>
             )}
+            <Tooltip title="Все файлы">
+              <Button
+                size="small"
+                icon={<FolderOpenOutlined />}
+                onClick={() => onViewAllFiles(record)}
+                style={{ padding: '0 6px', color: '#13c2c2' }}
+              />
+            </Tooltip>
             <Tooltip title="История">
               <Button
                 size="small"

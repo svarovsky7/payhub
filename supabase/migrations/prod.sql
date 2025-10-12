@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-05T18:29:00.118113
+-- Generated: 2025-10-08T06:51:42.802215
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -514,6 +514,23 @@ COMMENT ON COLUMN public.contract_invoices.id IS 'Primary key (UUID)';
 COMMENT ON COLUMN public.contract_invoices.contract_id IS 'Contract ID';
 COMMENT ON COLUMN public.contract_invoices.invoice_id IS 'Invoice ID';
 COMMENT ON COLUMN public.contract_invoices.created_at IS 'Timestamp when the link was created';
+
+-- Many-to-many relationship table linking contracts with projects
+CREATE TABLE IF NOT EXISTS public.contract_projects (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    contract_id uuid NOT NULL,
+    project_id integer(32) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT contract_projects_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),
+    CONSTRAINT contract_projects_pkey PRIMARY KEY (id),
+    CONSTRAINT contract_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
+    CONSTRAINT contract_projects_unique UNIQUE (contract_id),
+    CONSTRAINT contract_projects_unique UNIQUE (project_id)
+);
+
+COMMENT ON TABLE public.contract_projects IS 'Many-to-many relationship table linking contracts with projects';
+COMMENT ON COLUMN public.contract_projects.contract_id IS 'Reference to contract';
+COMMENT ON COLUMN public.contract_projects.project_id IS 'Reference to project';
 
 -- Contract status reference table
 CREATE TABLE IF NOT EXISTS public.contract_statuses (
@@ -5093,6 +5110,15 @@ CREATE INDEX idx_contract_invoices_contract_id ON public.contract_invoices USING
 ;
 
 CREATE INDEX idx_contract_invoices_invoice_id ON public.contract_invoices USING btree (invoice_id)
+;
+
+CREATE UNIQUE INDEX contract_projects_unique ON public.contract_projects USING btree (contract_id, project_id)
+;
+
+CREATE INDEX idx_contract_projects_contract_id ON public.contract_projects USING btree (contract_id)
+;
+
+CREATE INDEX idx_contract_projects_project_id ON public.contract_projects USING btree (project_id)
 ;
 
 CREATE UNIQUE INDEX contract_statuses_code_key ON public.contract_statuses USING btree (code)

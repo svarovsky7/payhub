@@ -212,7 +212,10 @@ export const InvoicesPage = () => {
   })
 
   // Column settings
-  const { columnConfig, setColumnConfig, visibleColumns, defaultConfig } = useColumnSettings(allColumns)
+  const { columnConfig, setColumnConfig, visibleColumns, defaultConfig } = useColumnSettings(
+    allColumns,
+    'invoices_column_settings'
+  )
 
   // Expandable configuration
   const expandable: ExpandableConfig<Invoice> = {
@@ -301,8 +304,10 @@ export const InvoicesPage = () => {
         onRow={() => ({
           style: { cursor: 'pointer' }
         })}
-        className="expandable-table-smooth"
+        className="expandable-table-smooth compact-table"
+        tableLayout="auto"  // Изменено на auto (было fixed)
         style={{ width: '100%' }}
+        scroll={{ x: 'max-content' }}
       />
 
       {/* Invoice Form Modal */}

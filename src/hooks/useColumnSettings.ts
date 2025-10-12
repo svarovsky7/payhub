@@ -1,16 +1,15 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { ColumnsType } from 'antd/es/table'
 
-interface ColumnConfig {
+export interface ColumnConfig {
   key: string
   title: string
   visible: boolean
 }
 
-const STORAGE_KEY = 'invoices_column_settings'
-
 export const useColumnSettings = <T extends Record<string, any>>(
-  allColumns: ColumnsType<T>
+  allColumns: ColumnsType<T>,
+  storageKey: string = 'column_settings'
 ) => {
   const defaultConfig: ColumnConfig[] = useMemo(
     () =>
@@ -24,7 +23,7 @@ export const useColumnSettings = <T extends Record<string, any>>(
 
   const loadSettings = (): ColumnConfig[] => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
+      const saved = localStorage.getItem(storageKey)
       if (!saved) return defaultConfig
 
       const parsed = JSON.parse(saved) as ColumnConfig[]
@@ -50,11 +49,11 @@ export const useColumnSettings = <T extends Record<string, any>>(
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(columnConfig))
+      localStorage.setItem(storageKey, JSON.stringify(columnConfig))
     } catch (error) {
       console.error('[useColumnSettings] Error saving settings:', error)
     }
-  }, [columnConfig])
+  }, [columnConfig, storageKey])
 
   const visibleColumns = useMemo(() => {
     const configMap = new Map(columnConfig.map((c) => [c.key, c]))

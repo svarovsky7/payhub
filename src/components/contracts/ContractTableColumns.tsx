@@ -1,52 +1,38 @@
-import React, { useMemo } from 'react'
-import { Table, Button, Space, Tooltip, Popconfirm, Tag, Typography } from 'antd'
+import { Button, Space, Tooltip, Popconfirm, Tag, Typography } from 'antd'
 import { DeleteOutlined, LinkOutlined, EditOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import type { Contract, ContractProject } from '../../lib/supabase'
-import { ContractInvoices } from './ContractInvoices'
 
 const { Text } = Typography
 
-interface ContractsTableProps {
+interface GetContractTableColumnsProps {
   contracts: Contract[]
-  loading: boolean
   onDelete: (id: string) => void
   onEdit: (contract: Contract) => void
   onAddInvoice: (contract: Contract) => void
-  expandedRowKeys: string[]
-  onExpandedRowsChange: (keys: string[]) => void
-  onDataChange?: () => void
-  columns?: ColumnsType<Contract> // Optional: if provided, use these columns instead of generating them
 }
 
-export const ContractsTable: React.FC<ContractsTableProps> = ({
+export const getContractTableColumns = ({
   contracts,
-  loading,
   onDelete,
   onEdit,
-  onAddInvoice,
-  expandedRowKeys,
-  onExpandedRowsChange,
-  onDataChange,
-  columns: providedColumns
-}) => {
+  onAddInvoice
+}: GetContractTableColumnsProps): ColumnsType<Contract> => {
   // Генерируем уникальные значения для фильтров
-  const payerFilters = useMemo(() => {
-    const uniquePayers = Array.from(
-      new Set(contracts.map(c => c.payer?.name).filter(Boolean))
-    ).sort()
-    return uniquePayers.map(name => ({ text: name as string, value: name as string }))
-  }, [contracts])
+  const payerFilters = Array.from(
+    new Set(contracts.map(c => c.payer?.name).filter(Boolean))
+  )
+    .sort()
+    .map(name => ({ text: name as string, value: name as string }))
 
-  const supplierFilters = useMemo(() => {
-    const uniqueSuppliers = Array.from(
-      new Set(contracts.map(c => c.supplier?.name).filter(Boolean))
-    ).sort()
-    return uniqueSuppliers.map(name => ({ text: name as string, value: name as string }))
-  }, [contracts])
+  const supplierFilters = Array.from(
+    new Set(contracts.map(c => c.supplier?.name).filter(Boolean))
+  )
+    .sort()
+    .map(name => ({ text: name as string, value: name as string }))
 
-  const projectFilters = useMemo(() => {
+  const projectFilters = (() => {
     const uniqueProjects = new Set<string>()
     contracts.forEach(c => {
       const contractProjects = c.contract_projects as ContractProject[] | undefined
@@ -61,16 +47,15 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
     return Array.from(uniqueProjects)
       .sort()
       .map(name => ({ text: name, value: name }))
-  }, [contracts])
+  })()
 
-  const statusFilters = useMemo(() => {
-    const uniqueStatuses = Array.from(
-      new Set(contracts.map(c => c.status?.name).filter(Boolean))
-    ).sort()
-    return uniqueStatuses.map(name => ({ text: name as string, value: name as string }))
-  }, [contracts])
+  const statusFilters = Array.from(
+    new Set(contracts.map(c => c.status?.name).filter(Boolean))
+  )
+    .sort()
+    .map(name => ({ text: name as string, value: name as string }))
 
-  const columns: ColumnsType<Contract> = [
+  return [
     {
       title: 'Номер договора',
       dataIndex: 'contract_number',
@@ -263,29 +248,4 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
       )
     }
   ]
-
-  // Use provided columns or default columns
-  const finalColumns = providedColumns || columns
-
-  return (
-    <Table
-      dataSource={contracts}
-      columns={finalColumns}
-      loading={loading}
-      rowKey="id"
-      expandable={{
-        expandedRowRender: (record) => (
-          <ContractInvoices contract={record} onDataChange={onDataChange} />
-        ),
-        expandedRowKeys,
-        onExpandedRowsChange: (keys) => onExpandedRowsChange(keys as string[]),
-        rowExpandable: (record) => ((record.contract_invoices as any[] | undefined)?.length || 0) > 0
-      }}
-      pagination={{
-        pageSize: 10,
-        showSizeChanger: true,
-        showTotal: (total) => `Всего: ${total}`
-      }}
-    />
-  )
 }

@@ -327,14 +327,31 @@ export const PaymentsExpanded = memo(({
     )
   }
 
-  // Calculate total
-  const totalPaid = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
-  const remainingAmount = (invoice.amount_with_vat || 0) - totalPaid
+  // Calculate total (include delivery cost in invoice total)
+  // Only count payments with status "Оплачен" (3) or "В оплате" (5)
+  const PAID_STATUS_ID = 3  // Оплачен (paid)
+  const APPROVED_STATUS_ID = 5  // В оплате (approved)
+
+  const totalPaid = payments.reduce((sum, payment) => {
+    if (payment.status_id === PAID_STATUS_ID || payment.status_id === APPROVED_STATUS_ID) {
+      return sum + (payment.amount || 0)
+    }
+    return sum
+  }, 0)
+
+  const invoiceTotalWithDelivery = (invoice.amount_with_vat || 0) + (invoice.delivery_cost || 0)
+  const remainingAmount = invoiceTotalWithDelivery - totalPaid
 
   return (
     <div style={{ padding: '16px', backgroundColor: '#fafafa' }}>
       <div style={{ marginBottom: 16 }}>
         <Space size="large">
+          <Text>
+            <Text strong>Сумма счёта:</Text> {formatAmount(invoice.amount_with_vat || 0)} ₽
+            {invoice.delivery_cost && invoice.delivery_cost > 0 && (
+              <Text type="secondary"> + {formatAmount(invoice.delivery_cost)} ₽ (доставка)</Text>
+            )}
+          </Text>
           <Text>
             <Text strong>Оплачено:</Text> {formatAmount(totalPaid)} ₽
           </Text>

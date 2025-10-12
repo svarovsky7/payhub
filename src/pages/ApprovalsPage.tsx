@@ -18,6 +18,7 @@ import { EditAmountModal } from '../components/approvals/EditAmountModal'
 import { AddFilesModal } from '../components/approvals/AddFilesModal'
 import { PaymentsSummaryCard } from '../components/approvals/PaymentsSummaryCard'
 import { ViewMaterialRequestModal } from '../components/approvals/ViewMaterialRequestModal'
+import { ViewAllFilesModal } from '../components/approvals/ViewAllFilesModal'
 import ChangeHistoryDrawer from '../components/approvals/ChangeHistoryDrawer'
 import { getCurrentStagePermissions, calculateVatAmounts } from '../utils/approvalCalculations'
 import '../styles/compact-table.css'
@@ -53,6 +54,10 @@ export const ApprovalsPage = () => {
   // Change history drawer state
   const [changeHistoryDrawerVisible, setChangeHistoryDrawerVisible] = useState(false)
   const [selectedApprovalForHistory, setSelectedApprovalForHistory] = useState<any>(null)
+
+  // View all files modal state
+  const [viewFilesModalVisible, setViewFilesModalVisible] = useState(false)
+  const [selectedApprovalForFiles, setSelectedApprovalForFiles] = useState<any>(null)
 
   // Use custom hooks for modular functionality
   const approvalActions = useApprovalActions({
@@ -90,6 +95,13 @@ export const ApprovalsPage = () => {
     console.log('[ApprovalsPage] View change history:', approval)
     setSelectedApprovalForHistory(approval)
     setChangeHistoryDrawerVisible(true)
+  }
+
+  // Handle view all files
+  const handleViewAllFiles = (approval: any) => {
+    console.log('[ApprovalsPage] View all files:', approval)
+    setSelectedApprovalForFiles(approval)
+    setViewFilesModalVisible(true)
   }
 
   if (!userRole) {
@@ -195,6 +207,7 @@ export const ApprovalsPage = () => {
                   onAddFiles={invoiceEditing.handleAddFilesClick}
                   onEditAmount={invoiceEditing.handleEditAmountClick}
                   onViewMaterialRequest={handleViewMaterialRequest}
+                  onViewAllFiles={handleViewAllFiles}
                   getCurrentStagePermissions={getCurrentStagePermissions}
                   projectBudgets={canShowBudgets ? projectBudgets : []}
                 />
@@ -211,6 +224,7 @@ export const ApprovalsPage = () => {
                   onAddFiles={invoiceEditing.handleAddFilesClick}
                   onEditAmount={invoiceEditing.handleEditAmountClick}
                   onViewMaterialRequest={handleViewMaterialRequest}
+                  onViewAllFiles={handleViewAllFiles}
                   getCurrentStagePermissions={getCurrentStagePermissions}
                 />
               )}
@@ -317,6 +331,15 @@ export const ApprovalsPage = () => {
           setSelectedApprovalForHistory(null)
         }}
         approval={selectedApprovalForHistory}
+      />
+
+      <ViewAllFilesModal
+        visible={viewFilesModalVisible}
+        onClose={() => {
+          setViewFilesModalVisible(false)
+          setSelectedApprovalForFiles(null)
+        }}
+        approval={selectedApprovalForFiles}
       />
     </div>
   )

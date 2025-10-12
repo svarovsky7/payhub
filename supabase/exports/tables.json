@@ -3889,6 +3889,120 @@
     ],
     "sql": "-- Junction table linking contracts with invoices\nCREATE TABLE IF NOT EXISTS public.contract_invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    contract_id uuid NOT NULL,\n    invoice_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT contract_invoices_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_invoices IS 'Junction table linking contracts with invoices';\nCOMMENT ON COLUMN public.contract_invoices.id IS 'Primary key (UUID)';\nCOMMENT ON COLUMN public.contract_invoices.contract_id IS 'Contract ID';\nCOMMENT ON COLUMN public.contract_invoices.invoice_id IS 'Invoice ID';\nCOMMENT ON COLUMN public.contract_invoices.created_at IS 'Timestamp when the link was created';"
   },
+  "public.contract_projects": {
+    "schema": "public",
+    "name": "contract_projects",
+    "comment": "Many-to-many relationship table linking contracts with projects",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "contract_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Reference to contract"
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Reference to project"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_26920_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26920_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_26920_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_projects_contract_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "contract_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_projects_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_projects_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_projects_unique",
+        "type": "UNIQUE",
+        "column": "contract_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contract_projects_unique",
+        "type": "UNIQUE",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Many-to-many relationship table linking contracts with projects\nCREATE TABLE IF NOT EXISTS public.contract_projects (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    contract_id uuid NOT NULL,\n    project_id integer(32) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contract_projects_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT contract_projects_pkey PRIMARY KEY (id),\n    CONSTRAINT contract_projects_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT contract_projects_unique UNIQUE (contract_id),\n    CONSTRAINT contract_projects_unique UNIQUE (project_id)\n);\n\nCOMMENT ON TABLE public.contract_projects IS 'Many-to-many relationship table linking contracts with projects';\nCOMMENT ON COLUMN public.contract_projects.contract_id IS 'Reference to contract';\nCOMMENT ON COLUMN public.contract_projects.project_id IS 'Reference to project';"
+  },
   "public.contract_statuses": {
     "schema": "public",
     "name": "contract_statuses",
