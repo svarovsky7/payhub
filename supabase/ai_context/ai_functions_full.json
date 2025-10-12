@@ -61,24 +61,6 @@
     "side_effects": []
   },
   {
-    "function": "public.handle_new_user()",
-    "returns": "trigger",
-    "language": "plpgsql",
-    "security": "definer",
-    "summary": "Seeds public.user_profiles when auth.users gains a new row.",
-    "details": "Copies id, email, and derived full_name from the auth.users record into public.user_profiles for application lookups.",
-    "touches_tables": [
-      "public.roles",
-      "public.user_profiles"
-    ],
-    "invoked_by": [
-      "auth.on_auth_user_created"
-    ],
-    "side_effects": [
-      "INSERT into public.user_profiles"
-    ]
-  },
-  {
     "function": "public.is_weekend(check_date date)",
     "returns": "boolean",
     "language": "plpgsql",

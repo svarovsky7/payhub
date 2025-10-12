@@ -14,8 +14,13 @@ npm run build     # TypeScript check (tsc -b) + Vite production build to dist/
 npm run lint      # Run ESLint
 npm run preview   # Preview production build locally
 node scripts/generate-ai-context.cjs  # Regenerate database AI context from supabase/exports/
-node scripts/apply-migration.js <migration-file>  # Apply SQL migration (requires service_role key)
 ```
+
+**Build Optimization**: Vite is configured with manual chunk splitting to optimize bundle size:
+- `react-vendor` chunk: React, React DOM, React Router
+- `antd-vendor` chunk: Ant Design and icons
+- `supabase-vendor` chunk: Supabase client
+- Chunk size warning limit: 1500KB
 
 **Critical**: Always run `npm run lint` and `npm run build` before committing changes to ensure code quality and TypeScript compilation.
 
@@ -66,12 +71,22 @@ All database entity types are centralized in `src/lib/supabase.ts`:
 - Import Supabase client from `src/lib/supabase` (never create new instances)
 - Types mirror database schema structure with optional joined relations
 
-#### Authentication
-Single `AuthContext` (`src/contexts/AuthContext.tsx`) provides:
-- User session state from Supabase Auth
-- Role-based access via `currentRoleId` from `user_profiles` table
-- `useAuth()` hook for accessing auth state in components
-- Sign in/up/out methods with error handling
+#### Authentication & Authorization
+**Authentication System**:
+- `AuthContext` (`src/contexts/AuthContext.tsx`) - manages authentication state and user profile
+- `AuthPage` (`src/pages/AuthPage.tsx`) - login and registration forms with project assignment
+- `ProtectedRoute` (`src/components/ProtectedRoute.tsx`) - route protection with role-based access control
+- Supabase Auth integration with email/password (no password complexity requirements)
+- User profile creation in `user_profiles` table on signup with full_name field
+- Project assignment during registration via `user_projects` link table
+
+**Authorization System**:
+- Role-based access control via `roles` table with `own_projects_only` flag and `allowed_pages` JSON field
+- User roles stored in `user_profiles.role_id` (FK to roles.id)
+- Page-level permissions checked in `ProtectedRoute` component
+- Dynamic role switching in MainLayout header
+- Role query functions: `get_user_role()`, `check_user_access()` (see `supabase/ai_context/ai_functions_*.json`)
+
 
 ### Database Schema
 
@@ -98,6 +113,7 @@ Core tables:
 - `material_requests` + `material_request_items` - Material requisitions with auto-counted items
 - `material_classes` - Material classification hierarchy
 - `material_nomenclature` - Material catalog and specifications
+- `letters` + `letter_links` + `letter_attachments` - Letter management system with incoming/outgoing correspondence tracking
 
 Design principles:
 - No RLS - security in application layer
@@ -111,7 +127,7 @@ Migrations stored in `supabase/migrations/`:
 - `YYYYMMDD_description.sql` - Individual migration files for schema changes
 - After schema changes, export updated metadata from Supabase to `supabase/exports/`
 - Run `node scripts/generate-ai-context.cjs` to regenerate AI context files
-- Apply migrations via Supabase SQL Editor (preferred) or `scripts/apply-migration.js` (requires service_role key)
+- Apply migrations via Supabase SQL Editor
 
 ### Status Management
 
@@ -218,7 +234,7 @@ VITE_SUPABASE_URL=https://api-p1.fvds.ru
 VITE_SUPABASE_ANON_KEY=[your_key]
 ```
 
-**Note**: Storage URL is automatically derived from `VITE_SUPABASE_URL`. Do not add separate `VITE_STORAGE_BUCKET` variable.
+**Note**: Storage URL is automatically derived from `VITE_SUPABASE_URL` following the pattern `{SUPABASE_URL}/storage/v1/object/public/attachments/`. Do not add separate `VITE_STORAGE_BUCKET` variable.
 
 ### Windows Development Notes
 

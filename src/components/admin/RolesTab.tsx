@@ -10,6 +10,7 @@ const AVAILABLE_PAGES = [
   { value: '/invoices', label: 'Счета' },
   { value: '/material-requests', label: 'Заявки на материалы' },
   { value: '/contracts', label: 'Договоры' },
+  { value: '/letters', label: 'Письма' },
   { value: '/approvals', label: 'Согласования' },
   { value: '/project-budgets', label: 'Бюджеты проектов' },
   { value: '/admin', label: 'Администрирование' },

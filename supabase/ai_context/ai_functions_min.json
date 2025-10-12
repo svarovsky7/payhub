@@ -25,11 +25,6 @@
     "summary": ""
   },
   {
-    "function": "public.handle_new_user()",
-    "returns": "trigger",
-    "summary": "Seeds public.user_profiles when auth.users gains a new row."
-  },
-  {
     "function": "public.is_weekend(check_date date)",
     "returns": "boolean",
     "summary": ""

@@ -13,17 +13,11 @@
       ],
       "env": {}
     },
-    "playwright": {
+    "chrome-devtools": {
       "type": "stdio",
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "@playwright/mcp@latest"
-      ],
-      "env": {}
-    },
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },mcp
     "sequential-thinking": {
       "type": "stdio",
       "command": "cmd",

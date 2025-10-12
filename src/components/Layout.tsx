@@ -37,11 +37,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [allowedPages, setAllowedPages] = useState<string[]>([])
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, signOut, currentRoleId, updateCurrentRole } = useAuth()
+  const { user, userProfile, signOut, currentRoleId, updateCurrentRole } = useAuth()
 
-  const userFullName = (user?.user_metadata?.full_name ?? user?.user_metadata?.fullName ?? "").toString().trim()
-  const userEmail = (user?.email ?? "").toString().trim()
-  const userDisplayName = userFullName && userEmail ? `${userFullName} (${userEmail})` : userFullName || userEmail
+  const userDisplayName = userProfile?.full_name || user?.email || 'Пользователь'
 
   // Load roles and current role's allowed pages
   useEffect(() => {
