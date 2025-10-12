@@ -208,6 +208,7 @@
       "public.update_invoice_statuses_updated_at",
       "public.update_invoice_types_updated_at",
       "public.update_invoices_updated_at",
+      "public.update_letters_updated_at",
       "public.update_material_classes_updated_at",
       "public.update_material_nomenclature_updated_at",
       "public.update_material_requests_updated_at",

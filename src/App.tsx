@@ -9,6 +9,7 @@ import { ApprovalsPage } from './pages/ApprovalsPage'
 import { ContractsPage } from './pages/ContractsPage'
 import { MaterialRequestsPage } from './pages/MaterialRequestsPage'
 import { ProjectBudgetsPage } from './pages/ProjectBudgetsPage'
+import { LettersPage } from './pages/LettersPage'
 import { MainLayout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import 'antd/dist/reset.css'
@@ -78,6 +79,16 @@ function App() {
                 <ProtectedRoute requiredPath="/project-budgets">
                   <MainLayout>
                     <ProjectBudgetsPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/letters"
+              element={
+                <ProtectedRoute requiredPath="/letters">
+                  <MainLayout>
+                    <LettersPage />
                   </MainLayout>
                 </ProtectedRoute>
               }

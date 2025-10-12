@@ -146,6 +146,16 @@
     "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
   },
   {
+    "trigger": "public.update_letters_updated_at",
+    "table": "public.letters",
+    "timing": "BEFORE",
+    "events": [
+      "UPDATE"
+    ],
+    "function": "public.update_updated_at_column()",
+    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  },
+  {
     "trigger": "public.update_material_classes_updated_at",
     "table": "public.material_classes",
     "timing": "BEFORE",

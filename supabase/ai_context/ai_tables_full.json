@@ -2000,6 +2000,452 @@
     ]
   },
   {
+    "table": "public.letter_attachments",
+    "summary": "Связь писем с прикрепленными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()"
+      },
+      {
+        "name": "letter_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [
+        {
+          "name": "letter_attachments_letter_id_attachment_id_key",
+          "columns": [
+            "attachment_id",
+            "letter_id"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "2200_27206_1_not_null"
+        },
+        {
+          "name": "2200_27206_2_not_null"
+        },
+        {
+          "name": "2200_27206_3_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_letter_attachments_attachment_id",
+        "columns": [
+          "attachment_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letter_attachments_letter_id",
+        "columns": [
+          "letter_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "letter_attachments_letter_id_attachment_id_key",
+        "columns": [
+          "letter_id",
+          "attachment_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "public.letter_links",
+    "summary": "Связи между письмами (родительское письмо и его ответы/связанные письма)",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()"
+      },
+      {
+        "name": "parent_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "child_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [
+        {
+          "name": "letter_links_parent_id_child_id_key",
+          "columns": [
+            "child_id",
+            "parent_id"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "2200_27227_1_not_null"
+        },
+        {
+          "name": "2200_27227_2_not_null"
+        },
+        {
+          "name": "2200_27227_3_not_null"
+        },
+        {
+          "name": "letter_links_check"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_letter_links_child_id",
+        "columns": [
+          "child_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letter_links_parent_id",
+        "columns": [
+          "parent_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "letter_links_parent_id_child_id_key",
+        "columns": [
+          "parent_id",
+          "child_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "public.letter_statuses",
+    "summary": "Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "default": "nextval('letter_statuses_id_seq'::regclass)"
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "code",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "color",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [
+        {
+          "name": "letter_statuses_code_key",
+          "columns": [
+            "code"
+          ]
+        },
+        {
+          "name": "letter_statuses_name_key",
+          "columns": [
+            "name"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "2200_27153_1_not_null"
+        },
+        {
+          "name": "2200_27153_2_not_null"
+        },
+        {
+          "name": "2200_27153_3_not_null"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "letter_statuses_code_key",
+        "columns": [
+          "code"
+        ],
+        "unique": false
+      },
+      {
+        "name": "letter_statuses_name_key",
+        "columns": [
+          "name"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "table": "public.letters",
+    "summary": "Учет входящих и исходящих писем компании",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "default": "gen_random_uuid()"
+      },
+      {
+        "name": "project_id",
+        "type": "bigint",
+        "nullable": true,
+        "description": "Связанный проект"
+      },
+      {
+        "name": "number",
+        "type": "text",
+        "nullable": false,
+        "description": "Номер письма (внешний номер отправителя)"
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": true,
+        "default": "1",
+        "description": "Текущий статус письма"
+      },
+      {
+        "name": "letter_date",
+        "type": "date",
+        "nullable": false,
+        "description": "Дата письма"
+      },
+      {
+        "name": "subject",
+        "type": "text",
+        "nullable": true,
+        "description": "Тема/предмет письма"
+      },
+      {
+        "name": "content",
+        "type": "text",
+        "nullable": true,
+        "description": "Краткое содержание письма"
+      },
+      {
+        "name": "responsible_user_id",
+        "type": "uuid",
+        "nullable": true,
+        "description": "Ответственный за обработку письма"
+      },
+      {
+        "name": "sender",
+        "type": "text",
+        "nullable": true,
+        "description": "Отправитель письма"
+      },
+      {
+        "name": "recipient",
+        "type": "text",
+        "nullable": true,
+        "description": "Получатель письма"
+      },
+      {
+        "name": "direction",
+        "type": "text",
+        "nullable": false,
+        "default": "'incoming'::text",
+        "description": "Направление: incoming (входящее) или outgoing (исходящее)"
+      },
+      {
+        "name": "reg_number",
+        "type": "text",
+        "nullable": true,
+        "description": "Внутренний регистрационный номер"
+      },
+      {
+        "name": "reg_date",
+        "type": "date",
+        "nullable": true,
+        "description": "Дата регистрации в системе"
+      },
+      {
+        "name": "sent_via",
+        "type": "text",
+        "nullable": true,
+        "description": "Способ отправки (почта, email, курьер, ЭДО)"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "description": "Пользователь, создавший запись"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": true,
+        "default": "now()"
+      }
+    ],
+    "constraints": {
+      "primary_key": [
+        "id"
+      ],
+      "foreign_keys": [],
+      "unique": [],
+      "checks": [
+        {
+          "name": "2200_27166_11_not_null"
+        },
+        {
+          "name": "2200_27166_1_not_null"
+        },
+        {
+          "name": "2200_27166_3_not_null"
+        },
+        {
+          "name": "2200_27166_5_not_null"
+        },
+        {
+          "name": "letters_direction_check"
+        }
+      ]
+    },
+    "indexes": [
+      {
+        "name": "idx_letters_created_at",
+        "columns": [
+          "created_at"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_direction",
+        "columns": [
+          "direction"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_letter_date",
+        "columns": [
+          "letter_date"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_project_id",
+        "columns": [
+          "project_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_reg_date",
+        "columns": [
+          "reg_date"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_responsible_user_id",
+        "columns": [
+          "responsible_user_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_status_id",
+        "columns": [
+          "status_id"
+        ],
+        "unique": false
+      }
+    ],
+    "triggers": [
+      {
+        "trigger": "update_letters_updated_at",
+        "timing": "BEFORE",
+        "events": [
+          "UPDATE"
+        ],
+        "function": "public.update_updated_at_column()"
+      }
+    ]
+  },
+  {
     "table": "public.material_classes",
     "summary": "Material classification hierarchy",
     "columns": [

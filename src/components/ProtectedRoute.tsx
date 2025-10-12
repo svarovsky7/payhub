@@ -92,6 +92,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     const checkAccess = async () => {
       // Wait for auth to finish loading before checking access
       if (authLoading) {
+        setLoading(true)
         return
       }
 

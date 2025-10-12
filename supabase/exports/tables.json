@@ -5655,6 +5655,620 @@
     ],
     "sql": "-- Outbound invoices issued to contractors\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date date NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    contract_id uuid,\n    responsible_id uuid,\n    is_archived boolean NOT NULL DEFAULT false,\n    CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued to contractors';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key (UUID)';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created the invoice';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human-readable invoice number';\nCOMMENT ON COLUMN public.invoices.description IS 'Invoice description';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Payment due date (deprecated)';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice was last updated';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Invoice issue date';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project this invoice belongs to';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Total amount including VAT';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate percentage';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT amount (calculated)';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Amount excluding VAT (calculated)';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Type of days: working or calendar';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Preliminary delivery date';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Invoice status';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Delivery cost';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Invoice relevance/validity date';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Material request this invoice is linked to';\nCOMMENT ON COLUMN public.invoices.contract_id IS 'Contract this invoice is linked to';\nCOMMENT ON COLUMN public.invoices.responsible_id IS 'Responsible procurement manager (user_profiles UUID)';\nCOMMENT ON COLUMN public.invoices.is_archived IS 'Whether the invoice is archived';"
   },
+  "public.letter_attachments": {
+    "schema": "public",
+    "name": "letter_attachments",
+    "comment": "Связь писем с прикрепленными файлами",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "letter_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_27206_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27206_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27206_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_attachments_attachment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_attachments_letter_id_attachment_id_key",
+        "type": "UNIQUE",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_attachments_letter_id_attachment_id_key",
+        "type": "UNIQUE",
+        "column": "letter_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_attachments_letter_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "letter_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_attachments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Связь писем с прикрепленными файлами\nCREATE TABLE IF NOT EXISTS public.letter_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    letter_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT letter_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT letter_attachments_letter_id_attachment_id_key UNIQUE (attachment_id),\n    CONSTRAINT letter_attachments_letter_id_attachment_id_key UNIQUE (letter_id),\n    CONSTRAINT letter_attachments_letter_id_fkey FOREIGN KEY (letter_id) REFERENCES None.None(None),\n    CONSTRAINT letter_attachments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.letter_attachments IS 'Связь писем с прикрепленными файлами';"
+  },
+  "public.letter_links": {
+    "schema": "public",
+    "name": "letter_links",
+    "comment": "Связи между письмами (родительское письмо и его ответы/связанные письма)",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "parent_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "child_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_27227_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27227_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27227_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_links_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_links_child_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "child_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_links_parent_id_child_id_key",
+        "type": "UNIQUE",
+        "column": "child_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_links_parent_id_child_id_key",
+        "type": "UNIQUE",
+        "column": "parent_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_links_parent_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "parent_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_links_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Связи между письмами (родительское письмо и его ответы/связанные письма)\nCREATE TABLE IF NOT EXISTS public.letter_links (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    parent_id uuid NOT NULL,\n    child_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT letter_links_child_id_fkey FOREIGN KEY (child_id) REFERENCES None.None(None),\n    CONSTRAINT letter_links_parent_id_child_id_key UNIQUE (child_id),\n    CONSTRAINT letter_links_parent_id_child_id_key UNIQUE (parent_id),\n    CONSTRAINT letter_links_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES None.None(None),\n    CONSTRAINT letter_links_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.letter_links IS 'Связи между письмами (родительское письмо и его ответы/связанные письма)';"
+  },
+  "public.letter_statuses": {
+    "schema": "public",
+    "name": "letter_statuses",
+    "comment": "Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('letter_statuses_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "code",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "color",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_27153_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27153_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27153_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_statuses_code_key",
+        "type": "UNIQUE",
+        "column": "code",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_statuses_name_key",
+        "type": "UNIQUE",
+        "column": "name",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_statuses_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)\nCREATE TABLE IF NOT EXISTS public.letter_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('letter_statuses_id_seq'::regclass),\n    name text NOT NULL,\n    code text NOT NULL,\n    color text,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT letter_statuses_code_key UNIQUE (code),\n    CONSTRAINT letter_statuses_name_key UNIQUE (name),\n    CONSTRAINT letter_statuses_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.letter_statuses IS 'Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)';"
+  },
+  "public.letters": {
+    "schema": "public",
+    "name": "letters",
+    "comment": "Учет входящих и исходящих писем компании",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "project_id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Связанный проект"
+      },
+      {
+        "name": "number",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Номер письма (внешний номер отправителя)"
+      },
+      {
+        "name": "status_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "1",
+        "comment": "Текущий статус письма"
+      },
+      {
+        "name": "letter_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Дата письма"
+      },
+      {
+        "name": "subject",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Тема/предмет письма"
+      },
+      {
+        "name": "content",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Краткое содержание письма"
+      },
+      {
+        "name": "responsible_user_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Ответственный за обработку письма"
+      },
+      {
+        "name": "sender",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Отправитель письма"
+      },
+      {
+        "name": "recipient",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Получатель письма"
+      },
+      {
+        "name": "direction",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "'incoming'::text",
+        "comment": "Направление: incoming (входящее) или outgoing (исходящее)"
+      },
+      {
+        "name": "reg_number",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Внутренний регистрационный номер"
+      },
+      {
+        "name": "reg_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Дата регистрации в системе"
+      },
+      {
+        "name": "sent_via",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Способ отправки (почта, email, курьер, ЭДО)"
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Пользователь, создавший запись"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_27166_11_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27166_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27166_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_27166_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letters_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letters_direction_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letters_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letters_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letters_responsible_user_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "responsible_user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letters_status_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "status_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Учет входящих и исходящих писем компании\nCREATE TABLE IF NOT EXISTS public.letters (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    project_id bigint(64),\n    number text NOT NULL,\n    status_id integer(32) DEFAULT 1,\n    letter_date date NOT NULL,\n    subject text,\n    content text,\n    responsible_user_id uuid,\n    sender text,\n    recipient text,\n    direction text NOT NULL DEFAULT 'incoming'::text,\n    reg_number text,\n    reg_date date,\n    sent_via text,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT letters_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT letters_pkey PRIMARY KEY (id),\n    CONSTRAINT letters_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT letters_responsible_user_id_fkey FOREIGN KEY (responsible_user_id) REFERENCES None.None(None),\n    CONSTRAINT letters_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.letters IS 'Учет входящих и исходящих писем компании';\nCOMMENT ON COLUMN public.letters.project_id IS 'Связанный проект';\nCOMMENT ON COLUMN public.letters.number IS 'Номер письма (внешний номер отправителя)';\nCOMMENT ON COLUMN public.letters.status_id IS 'Текущий статус письма';\nCOMMENT ON COLUMN public.letters.letter_date IS 'Дата письма';\nCOMMENT ON COLUMN public.letters.subject IS 'Тема/предмет письма';\nCOMMENT ON COLUMN public.letters.content IS 'Краткое содержание письма';\nCOMMENT ON COLUMN public.letters.responsible_user_id IS 'Ответственный за обработку письма';\nCOMMENT ON COLUMN public.letters.sender IS 'Отправитель письма';\nCOMMENT ON COLUMN public.letters.recipient IS 'Получатель письма';\nCOMMENT ON COLUMN public.letters.direction IS 'Направление: incoming (входящее) или outgoing (исходящее)';\nCOMMENT ON COLUMN public.letters.reg_number IS 'Внутренний регистрационный номер';\nCOMMENT ON COLUMN public.letters.reg_date IS 'Дата регистрации в системе';\nCOMMENT ON COLUMN public.letters.sent_via IS 'Способ отправки (почта, email, курьер, ЭДО)';\nCOMMENT ON COLUMN public.letters.created_by IS 'Пользователь, создавший запись';"
+  },
   "public.material_classes": {
     "schema": "public",
     "name": "material_classes",

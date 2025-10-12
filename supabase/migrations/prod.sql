@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-08T06:51:42.802215
+-- Generated: 2025-10-12T16:46:53.654728
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -820,6 +820,93 @@ COMMENT ON COLUMN public.invoices.material_request_id IS 'Material request this 
 COMMENT ON COLUMN public.invoices.contract_id IS 'Contract this invoice is linked to';
 COMMENT ON COLUMN public.invoices.responsible_id IS 'Responsible procurement manager (user_profiles UUID)';
 COMMENT ON COLUMN public.invoices.is_archived IS 'Whether the invoice is archived';
+
+-- Связь писем с прикрепленными файлами
+CREATE TABLE IF NOT EXISTS public.letter_attachments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    letter_id uuid NOT NULL,
+    attachment_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT letter_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
+    CONSTRAINT letter_attachments_letter_id_attachment_id_key UNIQUE (attachment_id),
+    CONSTRAINT letter_attachments_letter_id_attachment_id_key UNIQUE (letter_id),
+    CONSTRAINT letter_attachments_letter_id_fkey FOREIGN KEY (letter_id) REFERENCES None.None(None),
+    CONSTRAINT letter_attachments_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.letter_attachments IS 'Связь писем с прикрепленными файлами';
+
+-- Связи между письмами (родительское письмо и его ответы/связанные письма)
+CREATE TABLE IF NOT EXISTS public.letter_links (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    parent_id uuid NOT NULL,
+    child_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT letter_links_child_id_fkey FOREIGN KEY (child_id) REFERENCES None.None(None),
+    CONSTRAINT letter_links_parent_id_child_id_key UNIQUE (child_id),
+    CONSTRAINT letter_links_parent_id_child_id_key UNIQUE (parent_id),
+    CONSTRAINT letter_links_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES None.None(None),
+    CONSTRAINT letter_links_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.letter_links IS 'Связи между письмами (родительское письмо и его ответы/связанные письма)';
+
+-- Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)
+CREATE TABLE IF NOT EXISTS public.letter_statuses (
+    id integer(32) NOT NULL DEFAULT nextval('letter_statuses_id_seq'::regclass),
+    name text NOT NULL,
+    code text NOT NULL,
+    color text,
+    description text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT letter_statuses_code_key UNIQUE (code),
+    CONSTRAINT letter_statuses_name_key UNIQUE (name),
+    CONSTRAINT letter_statuses_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.letter_statuses IS 'Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)';
+
+-- Учет входящих и исходящих писем компании
+CREATE TABLE IF NOT EXISTS public.letters (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    project_id bigint(64),
+    number text NOT NULL,
+    status_id integer(32) DEFAULT 1,
+    letter_date date NOT NULL,
+    subject text,
+    content text,
+    responsible_user_id uuid,
+    sender text,
+    recipient text,
+    direction text NOT NULL DEFAULT 'incoming'::text,
+    reg_number text,
+    reg_date date,
+    sent_via text,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT letters_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT letters_pkey PRIMARY KEY (id),
+    CONSTRAINT letters_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
+    CONSTRAINT letters_responsible_user_id_fkey FOREIGN KEY (responsible_user_id) REFERENCES None.None(None),
+    CONSTRAINT letters_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)
+);
+
+COMMENT ON TABLE public.letters IS 'Учет входящих и исходящих писем компании';
+COMMENT ON COLUMN public.letters.project_id IS 'Связанный проект';
+COMMENT ON COLUMN public.letters.number IS 'Номер письма (внешний номер отправителя)';
+COMMENT ON COLUMN public.letters.status_id IS 'Текущий статус письма';
+COMMENT ON COLUMN public.letters.letter_date IS 'Дата письма';
+COMMENT ON COLUMN public.letters.subject IS 'Тема/предмет письма';
+COMMENT ON COLUMN public.letters.content IS 'Краткое содержание письма';
+COMMENT ON COLUMN public.letters.responsible_user_id IS 'Ответственный за обработку письма';
+COMMENT ON COLUMN public.letters.sender IS 'Отправитель письма';
+COMMENT ON COLUMN public.letters.recipient IS 'Получатель письма';
+COMMENT ON COLUMN public.letters.direction IS 'Направление: incoming (входящее) или outgoing (исходящее)';
+COMMENT ON COLUMN public.letters.reg_number IS 'Внутренний регистрационный номер';
+COMMENT ON COLUMN public.letters.reg_date IS 'Дата регистрации в системе';
+COMMENT ON COLUMN public.letters.sent_via IS 'Способ отправки (почта, email, курьер, ЭДО)';
+COMMENT ON COLUMN public.letters.created_by IS 'Пользователь, создавший запись';
 
 -- Material classification hierarchy
 CREATE TABLE IF NOT EXISTS public.material_classes (
@@ -4847,6 +4934,9 @@ CREATE TRIGGER audit_invoice_changes AFTER INSERT OR DELETE OR UPDATE ON public.
 CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER update_letters_updated_at BEFORE UPDATE ON public.letters FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+;
+
 CREATE TRIGGER trigger_calculate_material_class_level BEFORE INSERT OR UPDATE OF parent_id ON public.material_classes FOR EACH ROW EXECUTE FUNCTION calculate_material_class_level()
 ;
 
@@ -5242,6 +5332,51 @@ CREATE INDEX idx_invoices_updated_at ON public.invoices USING btree (updated_at 
 ;
 
 CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)
+;
+
+CREATE INDEX idx_letter_attachments_attachment_id ON public.letter_attachments USING btree (attachment_id)
+;
+
+CREATE INDEX idx_letter_attachments_letter_id ON public.letter_attachments USING btree (letter_id)
+;
+
+CREATE UNIQUE INDEX letter_attachments_letter_id_attachment_id_key ON public.letter_attachments USING btree (letter_id, attachment_id)
+;
+
+CREATE INDEX idx_letter_links_child_id ON public.letter_links USING btree (child_id)
+;
+
+CREATE INDEX idx_letter_links_parent_id ON public.letter_links USING btree (parent_id)
+;
+
+CREATE UNIQUE INDEX letter_links_parent_id_child_id_key ON public.letter_links USING btree (parent_id, child_id)
+;
+
+CREATE UNIQUE INDEX letter_statuses_code_key ON public.letter_statuses USING btree (code)
+;
+
+CREATE UNIQUE INDEX letter_statuses_name_key ON public.letter_statuses USING btree (name)
+;
+
+CREATE INDEX idx_letters_created_at ON public.letters USING btree (created_at)
+;
+
+CREATE INDEX idx_letters_direction ON public.letters USING btree (direction)
+;
+
+CREATE INDEX idx_letters_letter_date ON public.letters USING btree (letter_date)
+;
+
+CREATE INDEX idx_letters_project_id ON public.letters USING btree (project_id)
+;
+
+CREATE INDEX idx_letters_reg_date ON public.letters USING btree (reg_date)
+;
+
+CREATE INDEX idx_letters_responsible_user_id ON public.letters USING btree (responsible_user_id)
+;
+
+CREATE INDEX idx_letters_status_id ON public.letters USING btree (status_id)
 ;
 
 CREATE INDEX idx_material_classes_is_active ON public.material_classes USING btree (is_active)

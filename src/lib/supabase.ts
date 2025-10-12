@@ -253,3 +253,67 @@ export type MaterialRequestItem = {
   }
 }
 
+// Letter Management System Types
+export type LetterStatus = {
+  id: number
+  code: string
+  name: string
+  color?: string
+  description?: string
+  created_at: string
+}
+
+export type Letter = {
+  id: string
+  project_id?: number | null
+  number: string
+  status_id?: number | null
+  letter_date: string
+  subject?: string | null
+  content?: string | null
+  responsible_user_id?: string | null
+  sender?: string | null
+  recipient?: string | null
+  direction: 'incoming' | 'outgoing'
+  reg_number?: string | null
+  reg_date?: string | null
+  sent_via?: string | null
+  created_by?: string | null
+  created_at: string
+  updated_at: string
+  // Relations
+  project?: Project
+  status?: LetterStatus
+  responsible_user?: UserProfile
+  creator?: UserProfile
+  parent_letters?: LetterLink[]
+  child_letters?: LetterLink[]
+  attachments?: LetterAttachment[]
+}
+
+export type LetterAttachment = {
+  id: string
+  letter_id: string
+  attachment_id: string
+  created_at: string
+  // Relations
+  attachment?: {
+    id: string
+    original_name: string
+    storage_path: string
+    size_bytes: number
+    mime_type?: string
+    created_at: string
+  }
+}
+
+export type LetterLink = {
+  id: string
+  parent_id: string
+  child_id: string
+  created_at: string
+  // Relations
+  parent_letter?: Letter
+  child_letter?: Letter
+}
+

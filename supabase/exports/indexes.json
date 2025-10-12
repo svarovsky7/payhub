@@ -847,6 +847,126 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_invoices_user_id ON public.invoices USING btree (user_id)"
   },
+  "public.letter_attachments.idx_letter_attachments_attachment_id": {
+    "schema": "public",
+    "name": "idx_letter_attachments_attachment_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letter_attachments_attachment_id ON public.letter_attachments USING btree (attachment_id)"
+  },
+  "public.letter_attachments.idx_letter_attachments_letter_id": {
+    "schema": "public",
+    "name": "idx_letter_attachments_letter_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letter_attachments_letter_id ON public.letter_attachments USING btree (letter_id)"
+  },
+  "public.letter_attachments.letter_attachments_letter_id_attachment_id_key": {
+    "schema": "public",
+    "name": "letter_attachments_letter_id_attachment_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX letter_attachments_letter_id_attachment_id_key ON public.letter_attachments USING btree (letter_id, attachment_id)"
+  },
+  "public.letter_links.idx_letter_links_child_id": {
+    "schema": "public",
+    "name": "idx_letter_links_child_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letter_links_child_id ON public.letter_links USING btree (child_id)"
+  },
+  "public.letter_links.idx_letter_links_parent_id": {
+    "schema": "public",
+    "name": "idx_letter_links_parent_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letter_links_parent_id ON public.letter_links USING btree (parent_id)"
+  },
+  "public.letter_links.letter_links_parent_id_child_id_key": {
+    "schema": "public",
+    "name": "letter_links_parent_id_child_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX letter_links_parent_id_child_id_key ON public.letter_links USING btree (parent_id, child_id)"
+  },
+  "public.letter_statuses.letter_statuses_code_key": {
+    "schema": "public",
+    "name": "letter_statuses_code_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX letter_statuses_code_key ON public.letter_statuses USING btree (code)"
+  },
+  "public.letter_statuses.letter_statuses_name_key": {
+    "schema": "public",
+    "name": "letter_statuses_name_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX letter_statuses_name_key ON public.letter_statuses USING btree (name)"
+  },
+  "public.letters.idx_letters_created_at": {
+    "schema": "public",
+    "name": "idx_letters_created_at",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_created_at ON public.letters USING btree (created_at)"
+  },
+  "public.letters.idx_letters_direction": {
+    "schema": "public",
+    "name": "idx_letters_direction",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_direction ON public.letters USING btree (direction)"
+  },
+  "public.letters.idx_letters_letter_date": {
+    "schema": "public",
+    "name": "idx_letters_letter_date",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_letter_date ON public.letters USING btree (letter_date)"
+  },
+  "public.letters.idx_letters_project_id": {
+    "schema": "public",
+    "name": "idx_letters_project_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_project_id ON public.letters USING btree (project_id)"
+  },
+  "public.letters.idx_letters_reg_date": {
+    "schema": "public",
+    "name": "idx_letters_reg_date",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_reg_date ON public.letters USING btree (reg_date)"
+  },
+  "public.letters.idx_letters_responsible_user_id": {
+    "schema": "public",
+    "name": "idx_letters_responsible_user_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_responsible_user_id ON public.letters USING btree (responsible_user_id)"
+  },
+  "public.letters.idx_letters_status_id": {
+    "schema": "public",
+    "name": "idx_letters_status_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_status_id ON public.letters USING btree (status_id)"
+  },
   "public.material_classes.idx_material_classes_is_active": {
     "schema": "public",
     "name": "idx_material_classes_is_active",

@@ -3,7 +3,7 @@ import type { RcFile } from 'antd/es/upload'
 import type { ExistingFile } from '../components/common/FileUploadBlock'
 
 // Типы сущностей
-export type EntityType = 'invoice' | 'payment' | 'contract' | 'material_request'
+export type EntityType = 'invoice' | 'payment' | 'contract' | 'material_request' | 'letter'
 
 // Интерфейс для загрузки файла
 interface UploadFileParams {
@@ -150,6 +150,13 @@ const linkFileToEntity = async ({
           attachment_id: attachmentId
         }
         break
+      case 'letter':
+        tableName = 'letter_attachments'
+        linkData = {
+          letter_id: entityId,
+          attachment_id: attachmentId
+        }
+        break
       default:
         throw new Error(`Unknown entity type: ${entityType}`)
     }
@@ -221,6 +228,10 @@ export const loadEntityFiles = async (
       case 'contract':
         tableName = 'contract_attachments'
         filterColumn = 'contract_id'
+        break
+      case 'letter':
+        tableName = 'letter_attachments'
+        filterColumn = 'letter_id'
         break
       default:
         throw new Error(`Unknown entity type: ${entityType}`)

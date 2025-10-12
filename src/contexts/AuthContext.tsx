@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
@@ -27,6 +27,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
   const [currentRoleId, setCurrentRoleId] = useState<number | null>(null)
 
+  // Extract role loading logic to a separate function to reuse
+  const loadUserRole = useCallback(async (userId: string) => {
+    console.log('[AuthProvider.loadUserRole] Loading role for user:', userId)
+    try {
+      const { data: userData } = await supabase
+        .from('user_profiles')
+        .select('role_id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      console.log('[AuthProvider.loadUserRole] Role loaded:', userData?.role_id)
+      setCurrentRoleId(userData?.role_id || null)
+    } catch (error) {
+      console.error('[AuthProvider.loadUserRole] Error loading user role:', error)
+      setCurrentRoleId(null)
+    }
+  }, [])
+
   useEffect(() => {
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -34,18 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Load current user role
       if (session?.user) {
-        try {
-          const { data: userData } = await supabase
-            .from('user_profiles')
-            .select('role_id')
-            .eq('id', session.user.id)
-            .maybeSingle()
-
-          setCurrentRoleId(userData?.role_id || null)
-        } catch (error) {
-          console.error('[AuthProvider] Error loading user role:', error)
-          setCurrentRoleId(null)
-        }
+        await loadUserRole(session.user.id)
       }
 
       setLoading(false)
@@ -53,8 +60,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('[AuthProvider.onAuthStateChange] Auth state changed, event:', _event, 'User:', session?.user?.id)
+
+      // Set loading to true while we load user data
+      console.log('[AuthProvider.onAuthStateChange] Setting loading to true')
+      setLoading(true)
       setUser(session?.user ?? null)
+
+      // CRITICAL FIX: Also load role when auth state changes
+      if (session?.user) {
+        console.log('[AuthProvider.onAuthStateChange] Loading role for user:', session.user.id)
+        await loadUserRole(session.user.id)
+      } else {
+        console.log('[AuthProvider.onAuthStateChange] No user, clearing role')
+        setCurrentRoleId(null)
+      }
+
+      // Mark loading complete after role is loaded
+      console.log('[AuthProvider.onAuthStateChange] Setting loading to false')
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
