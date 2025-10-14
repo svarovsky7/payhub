@@ -11,7 +11,8 @@ import {
   AuditOutlined,
   IdcardOutlined,
   BlockOutlined,
-  UnorderedListOutlined
+  UnorderedListOutlined,
+  FileTextOutlined
 } from '@ant-design/icons'
 import { UsersTab } from '../components/admin/UsersTab'
 import { ProjectsTab } from '../components/admin/ProjectsTab'
@@ -23,6 +24,7 @@ import { ApprovalRoutesTab } from '../components/admin/ApprovalRoutesTab'
 import { EmployeesTab } from '../components/admin/EmployeesTab'
 import { MaterialClassesTab } from '../components/admin/MaterialClassesTab'
 import MaterialNomenclatureTab from '../components/admin/MaterialNomenclatureTab'
+import { TemplatesTab } from '../components/admin/TemplatesTab'
 
 const tabMapping: { [key: string]: string } = {
   '/admin': 'users',
@@ -35,7 +37,8 @@ const tabMapping: { [key: string]: string } = {
   '/admin/statuses': 'statuses',
   '/admin/approval-routes': 'approval-routes',
   '/admin/material-classes': 'material-classes',
-  '/admin/material-nomenclature': 'material-nomenclature'
+  '/admin/material-nomenclature': 'material-nomenclature',
+  '/admin/templates': 'templates'
 }
 
 const pathMapping: { [key: string]: string } = {
@@ -48,7 +51,8 @@ const pathMapping: { [key: string]: string } = {
   'statuses': '/admin/statuses',
   'approval-routes': '/admin/approval-routes',
   'material-classes': '/admin/material-classes',
-  'material-nomenclature': '/admin/material-nomenclature'
+  'material-nomenclature': '/admin/material-nomenclature',
+  'templates': '/admin/templates'
 }
 
 export const AdminPage = () => {
@@ -132,6 +136,12 @@ export const AdminPage = () => {
       label: 'Номенклатура материалов',
       icon: <UnorderedListOutlined />,
       children: <MaterialNomenclatureTab />
+    },
+    {
+      key: 'templates',
+      label: 'Шаблоны документов',
+      icon: <FileTextOutlined />,
+      children: <TemplatesTab />
     }
   ]
 

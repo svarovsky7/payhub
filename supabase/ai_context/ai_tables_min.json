@@ -911,7 +911,7 @@
       {
         "name": "number",
         "type": "text",
-        "nullable": false
+        "nullable": true
       },
       {
         "name": "status_id",
@@ -964,7 +964,7 @@
         "nullable": true
       },
       {
-        "name": "sent_via",
+        "name": "delivery_method",
         "type": "text",
         "nullable": true
       },
@@ -981,6 +981,11 @@
       {
         "name": "updated_at",
         "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "responsible_person_name",
+        "type": "text",
         "nullable": true
       }
     ]

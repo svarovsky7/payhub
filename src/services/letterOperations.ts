@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase'
 import type { Letter, LetterStatus } from '../lib/supabase'
+import dayjs from 'dayjs'
+import { createAuditLogEntry } from './auditLogService'
 
 /**
  * Load all letter statuses
@@ -21,12 +23,97 @@ export async function loadLetterStatuses(): Promise<LetterStatus[]> {
 }
 
 /**
- * Load all letters with related data
+ * Generate registration number for a letter
+ * Format: <КОД_ОБЪЕКТА>-<ТИП>-<YYMM>-<ПОРЯДКОВЫЙ>
+ * Example: ПРИМ14-ВХ-2510-0001
  */
-export async function loadLetters(): Promise<Letter[]> {
-  console.log('[letterOperations.loadLetters] Loading letters')
+export async function generateRegNumber(
+  projectId: number,
+  direction: 'incoming' | 'outgoing'
+): Promise<string> {
+  console.log('[letterOperations.generateRegNumber] Generating reg number for:', { projectId, direction })
 
-  const { data, error } = await supabase
+  // Get project code
+  const { data: project, error: projectError } = await supabase
+    .from('projects')
+    .select('code')
+    .eq('id', projectId)
+    .single()
+
+  if (projectError || !project?.code) {
+    throw new Error('Проект не найден или не имеет кода')
+  }
+
+  const projectCode = project.code
+
+  // Determine type prefix
+  const typePrefix = direction === 'incoming' ? 'ВХ' : 'ИСХ'
+
+  // Generate YYMM (last 2 digits of year + 2 digits of month)
+  const now = dayjs()
+  const yymm = now.format('YYMM')
+
+  // Build search pattern for all letters in this project for current month (any direction)
+  const searchPattern = `${projectCode}-%-${yymm}-%`
+
+  // Find all letters with matching pattern for this project (both incoming and outgoing)
+  const { data: existingLetters, error: lettersError } = await supabase
+    .from('letters')
+    .select('reg_number')
+    .eq('project_id', projectId)
+    .not('reg_number', 'is', null)
+    .like('reg_number', searchPattern)
+
+  if (lettersError) {
+    console.error('[letterOperations.generateRegNumber] Error fetching existing letters:', lettersError)
+    throw lettersError
+  }
+
+  let nextNumber = 1
+
+  // Parse all existing numbers and find maximum
+  if (existingLetters && existingLetters.length > 0) {
+    const seqNumbers: number[] = []
+
+    for (const letter of existingLetters) {
+      if (letter.reg_number) {
+        const parts = letter.reg_number.split('-')
+        if (parts.length === 4) {
+          const seqNumber = parseInt(parts[3], 10)
+          if (!isNaN(seqNumber)) {
+            seqNumbers.push(seqNumber)
+          }
+        }
+      }
+    }
+
+    if (seqNumbers.length > 0) {
+      const maxNumber = Math.max(...seqNumbers)
+      nextNumber = maxNumber + 1
+    }
+  }
+
+  console.log('[letterOperations.generateRegNumber] Found existing numbers:', existingLetters?.length || 0, 'Next number:', nextNumber)
+
+  // Format sequential number as 4 digits
+  const seqNumberFormatted = nextNumber.toString().padStart(4, '0')
+
+  // Build final registration number with correct direction prefix
+  const regNumber = `${projectCode}-${typePrefix}-${yymm}-${seqNumberFormatted}`
+
+  console.log('[letterOperations.generateRegNumber] Generated:', regNumber)
+  return regNumber
+}
+
+/**
+ * Load all letters with related data and their children
+ * Filters by user projects if role has own_projects_only flag set
+ */
+export async function loadLetters(userId?: string): Promise<Letter[]> {
+  console.log('[letterOperations.loadLetters] Loading letters', { userId })
+
+  // Build base query
+  let query = supabase
     .from('letters')
     .select(`
       *,
@@ -35,14 +122,123 @@ export async function loadLetters(): Promise<Letter[]> {
       responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
       creator:user_profiles!letters_created_by_fkey(id, full_name, email)
     `)
-    .order('created_at', { ascending: false })
+
+  // If userId is provided, check role and filter by user projects if necessary
+  if (userId) {
+    // Load user profile and role
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('role_id')
+      .eq('id', userId)
+      .single()
+
+    if (profileError) {
+      console.error('[letterOperations.loadLetters] Error loading user profile:', profileError)
+      throw profileError
+    }
+
+    if (userProfile?.role_id) {
+      // Load role data
+      const { data: roleData, error: roleError } = await supabase
+        .from('roles')
+        .select('id, own_projects_only')
+        .eq('id', userProfile.role_id)
+        .single()
+
+      if (roleError) {
+        console.error('[letterOperations.loadLetters] Error loading role:', roleError)
+        throw roleError
+      }
+
+      // If role restricts to own projects only, filter by user's projects
+      if (roleData?.own_projects_only) {
+        console.log('[letterOperations.loadLetters] Filtering by user projects for role with own_projects_only')
+
+        const { data: userProjects, error: projectsError } = await supabase
+          .from('user_projects')
+          .select('project_id')
+          .eq('user_id', userId)
+
+        if (projectsError) {
+          console.error('[letterOperations.loadLetters] Error loading user projects:', projectsError)
+          throw projectsError
+        }
+
+        const projectIds = userProjects?.map(p => p.project_id) || []
+
+        if (projectIds.length > 0) {
+          query = query.in('project_id', projectIds)
+        } else {
+          // User has no projects, return empty array
+          console.log('[letterOperations.loadLetters] User has no assigned projects')
+          return []
+        }
+      }
+    }
+  }
+
+  // Execute query
+  const { data, error } = await query.order('created_at', { ascending: false })
 
   if (error) {
     console.error('[letterOperations.loadLetters] Error:', error)
     throw error
   }
 
-  return data || []
+  if (!data) return []
+
+  // Get all child letter IDs
+  const { data: childLinks } = await supabase
+    .from('letter_links')
+    .select('child_id')
+
+  const childLetterIds = new Set(childLinks?.map(link => link.child_id) || [])
+
+  // Filter out child letters from main list and load children for parent letters
+  const parentLetters = data.filter(letter => !childLetterIds.has(letter.id))
+
+  const lettersWithChildren = await Promise.all(
+    parentLetters.map(async (letter) => {
+      const children = await getChildLettersWithFullData(letter.id)
+      return {
+        ...letter,
+        children: children.length > 0 ? children : undefined
+      }
+    })
+  )
+
+  return lettersWithChildren
+}
+
+/**
+ * Get child letters with full data for expandable rows
+ */
+async function getChildLettersWithFullData(letterId: string): Promise<Letter[]> {
+  console.log('[letterOperations.getChildLettersWithFullData] Loading children for:', letterId)
+
+  const { data, error } = await supabase
+    .from('letter_links')
+    .select(`
+      child_letter:letters!letter_links_child_id_fkey(
+        *,
+        project:projects(id, name, code),
+        status:letter_statuses(id, name, code, color),
+        responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
+        creator:user_profiles!letters_created_by_fkey(id, full_name, email)
+      )
+    `)
+    .eq('parent_id', letterId)
+
+  if (error) {
+    console.error('[letterOperations.getChildLettersWithFullData] Error:', error)
+    throw error
+  }
+
+  // Add parent_id to each child letter for unlinking
+  return data?.map(d => {
+    const childLetter = (d as any).child_letter
+    return childLetter ? { ...childLetter, parent_id: letterId } : null
+  }).filter(Boolean) || []
 }
 
 /**
@@ -96,6 +292,18 @@ export async function createLetter(
     await processLetterFiles(data.id, files)
   }
 
+  // Log creation
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.user?.id) {
+    await createAuditLogEntry('letter', data.id, 'create', session.user.id, {
+      metadata: {
+        letter_number: data.number,
+        subject: data.subject,
+        direction: data.direction
+      }
+    })
+  }
+
   return data
 }
 
@@ -109,6 +317,13 @@ export async function updateLetter(
   originalFiles?: any[]
 ): Promise<Letter> {
   console.log('[letterOperations.updateLetter] Updating letter:', letterId, letterData)
+
+  // Get old letter data before updating
+  const { data: oldLetter } = await supabase
+    .from('letters')
+    .select('*')
+    .eq('id', letterId)
+    .single()
 
   const { data, error } = await supabase
     .from('letters')
@@ -125,6 +340,30 @@ export async function updateLetter(
   // Handle file operations
   if (files || originalFiles) {
     await processLetterFiles(letterId, files || [], originalFiles || [])
+  }
+
+  // Log updates for changed fields
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.user?.id && oldLetter) {
+    const fieldsToLog = [
+      'number', 'reg_number', 'letter_date', 'reg_date', 'subject', 'content',
+      'sender', 'recipient', 'direction', 'delivery_method', 'status_id',
+      'project_id', 'responsible_user_id', 'responsible_person_name'
+    ] as const
+
+    for (const field of fieldsToLog) {
+      const oldValue = oldLetter[field]
+      const newValue = (letterData as any)[field]
+
+      // Only log if field was actually changed
+      if (newValue !== undefined && oldValue !== newValue) {
+        await createAuditLogEntry('letter', letterId, 'update', session.user.id, {
+          fieldName: field,
+          oldValue: oldValue != null ? String(oldValue) : undefined,
+          newValue: newValue != null ? String(newValue) : undefined
+        })
+      }
+    }
   }
 
   return data

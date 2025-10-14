@@ -5,7 +5,9 @@ export type AuditEntityType =
   | 'payment'
   | 'invoice_attachment'
   | 'payment_attachment'
-  | 'approval';
+  | 'approval'
+  | 'letter'
+  | 'letter_attachment';
 
 export type AuditAction =
   | 'create'
@@ -14,7 +16,8 @@ export type AuditAction =
   | 'file_add'
   | 'file_delete'
   | 'status_change'
-  | 'approval_action';
+  | 'approval_action'
+  | 'view';
 
 export interface AuditLog {
   id: string;

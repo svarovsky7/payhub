@@ -2269,8 +2269,8 @@
       {
         "name": "number",
         "type": "text",
-        "nullable": false,
-        "description": "Номер письма (внешний номер отправителя)"
+        "nullable": true,
+        "description": "Номер письма (необязательное поле)"
       },
       {
         "name": "status_id",
@@ -2301,19 +2301,19 @@
         "name": "responsible_user_id",
         "type": "uuid",
         "nullable": true,
-        "description": "Ответственный за обработку письма"
+        "description": "Ответственный за обработку письма (ссылка на зарегистрированного пользователя)"
       },
       {
         "name": "sender",
         "type": "text",
         "nullable": true,
-        "description": "Отправитель письма"
+        "description": "Отправитель письма (может быть как компания, так и физическое лицо)"
       },
       {
         "name": "recipient",
         "type": "text",
         "nullable": true,
-        "description": "Получатель письма"
+        "description": "Получатель письма (может быть как компания, так и физическое лицо)"
       },
       {
         "name": "direction",
@@ -2326,7 +2326,7 @@
         "name": "reg_number",
         "type": "text",
         "nullable": true,
-        "description": "Внутренний регистрационный номер"
+        "description": "Регистрационный номер (необязательное поле)"
       },
       {
         "name": "reg_date",
@@ -2335,10 +2335,10 @@
         "description": "Дата регистрации в системе"
       },
       {
-        "name": "sent_via",
+        "name": "delivery_method",
         "type": "text",
         "nullable": true,
-        "description": "Способ отправки (почта, email, курьер, ЭДО)"
+        "description": "Способ доставки/отправки письма (почта, email, курьер, ЭДО, факс, другое)"
       },
       {
         "name": "created_by",
@@ -2357,6 +2357,12 @@
         "type": "timestamptz",
         "nullable": true,
         "default": "now()"
+      },
+      {
+        "name": "responsible_person_name",
+        "type": "text",
+        "nullable": true,
+        "description": "Ответственный за обработку письма (произвольное текстовое поле для физических лиц)"
       }
     ],
     "constraints": {
@@ -2371,9 +2377,6 @@
         },
         {
           "name": "2200_27166_1_not_null"
-        },
-        {
-          "name": "2200_27166_3_not_null"
         },
         {
           "name": "2200_27166_5_not_null"

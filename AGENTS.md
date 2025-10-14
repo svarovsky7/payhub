@@ -1,33 +1,35 @@
-﻿# Repository Guidelines
+# Repository Guidelines
+
+This guide keeps PayHub contributors in sync on structure, tooling, and review expectations. Follow it whenever you add features, fix bugs, or refine the developer experience.
 
 ## Project Structure & Module Organization
-- Keep feature code in `src/`; route screens belong under `src/pages`, shared UI in `src/components`, hooks in `src/hooks`.
-- Store bundlable assets in `src/assets`, while immutable static files stay in `public/`.
-- Co-locate tests beside implementations (`src/components/InvoiceTable.tsx` + `InvoiceTable.test.tsx`) to keep behavior discoverable.
-- Track backend schema adjustments in `supabase/ai_context` alongside feature branches.
+- Place app code in `src/`; route components live under `src/pages`, shared UI under `src/components`, and reusable logic under `src/hooks`.
+- Bundle-ready assets belong in `src/assets`; immutable static files stay in `public/`.
+- Co-locate tests with their subjects (for example, `src/components/InvoiceTable.tsx` pairs with `src/components/InvoiceTable.test.tsx`).
+- Track backend schema adjustments in `supabase/ai_context` alongside the feature branch that requires them.
 
 ## Build, Test, and Development Commands
-- `npm run dev`: launch Vite at http://localhost:5173 with hot reload for UI iteration.
-- `npm run build`: run `tsc -b` and emit the production bundle into `dist/`; use before publishing.
-- `npm run preview`: serve the latest build for a production-like smoke test.
-- `npm run lint`: apply ESLint + Prettier; resolve any warnings prior to review.
-- `npm test` or `npm test -- --watch`: execute the Vitest suite once or in watch mode while developing.
+- `npm run dev`: start Vite at http://localhost:5173 for hot-reload UI work.
+- `npm run build`: run `tsc -b` and emit the optimized bundle to `dist/` before shipping.
+- `npm run preview`: serve the latest build for production-like smoke testing.
+- `npm run lint`: apply ESLint + Prettier and resolve all warnings prior to review.
+- `npm test` or `npm test -- --watch`: execute the Vitest suite once or in watch mode.
 
 ## Coding Style & Naming Conventions
-- TypeScript everywhere; adhere to 2-space indentation, single quotes, and trailing commas enforced by repo formatters.
-- Name React components in PascalCase (`PaymentPanel.tsx`), hooks/utilities in camelCase (`useInvoices.ts`), and keep filenames descriptive.
-- Group imports by external packages, project aliases, then relative paths to reduce noisy diffs.
+- Write everything in TypeScript with 2-space indentation, single quotes, and trailing commas enforced by project formatters.
+- Prefer concise descriptive filenames: PascalCase for components (`PaymentPanel.tsx`), camelCase for hooks/utilities (`useInvoices.ts`).
+- Group imports by external packages, project aliases, then relative paths to minimize noisy diffs.
 
 ## Testing Guidelines
-- Use Vitest with React Testing Library; aim for ~80% coverage on critical flows.
-- Mirror filenames for tests and focus on behavior-driven `describe`/`it` statements.
-- Run `npm test` before commits; add manual verification notes when automation cannot cover edge cases.
+- Use Vitest with React Testing Library; target ~80% coverage on critical flows.
+- Mirror implementation filenames and emphasize behavior-driven `describe`/`it` names.
+- Run `npm test` before pushing and note any manual verification steps that automation misses.
 
 ## Commit & Pull Request Guidelines
-- Follow Conventional Commits (`feat: add invoice filters`, `fix: correct auth redirect`) to keep history searchable.
-- Before opening a PR, run lint, test, and build commands locally and ensure screenshots or videos accompany UI changes.
-- PR descriptions should link relevant tasks, summarize schema updates, and note any deployment considerations.
+- Follow Conventional Commits (e.g., `feat: add invoice filters`, `fix: correct auth redirect`) to keep history searchable.
+- Before opening a PR, run lint, test, and build; attach screenshots or videos for UI updates.
+- Summarize schema changes, link related tasks, and highlight deployment considerations in the PR description.
 
 ## Security & Configuration Tips
-- Store secrets in `.env` with `VITE_` prefixes; never commit Supabase keys or leak them in logs.
+- Store secrets in `.env` with `VITE_` prefixes and keep Supabase keys out of logs and commits.
 - After dependency updates, reinstall packages, rerun lint/test/build, and document schema diffs under `supabase/ai_context`.

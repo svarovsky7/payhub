@@ -7,6 +7,7 @@ import {
   DeleteOutlined,
   SwapOutlined,
   MinusCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -56,6 +57,19 @@ const fieldNameMap: Record<string, string> = {
   amount: 'Сумма',
   payment_type_id: 'Тип платежа',
   allocated_amount: 'Распределенная сумма',
+  // Поля для писем
+  number: 'Номер письма',
+  reg_number: 'Регистрационный номер',
+  letter_date: 'Дата письма',
+  reg_date: 'Дата регистрации',
+  subject: 'Тема',
+  content: 'Содержание',
+  sender: 'Отправитель',
+  recipient: 'Получатель',
+  direction: 'Направление',
+  delivery_method: 'Способ доставки',
+  responsible_user_id: 'Ответственный пользователь',
+  responsible_person_name: 'Ответственное лицо',
 };
 
 // Маппинг действий на русский и цвета
@@ -97,6 +111,11 @@ const actionConfig: Record<
     label: 'Действие согласования',
     color: 'blue',
     icon: <CheckCircleOutlined />,
+  },
+  view: {
+    label: 'Просмотр',
+    color: 'default',
+    icon: <EyeOutlined />,
   },
 };
 
@@ -288,10 +307,14 @@ function renderActionDetails(entry: AuditLogView): React.ReactNode {
         const deleteMeta = metadata as any;
         return (
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {deleteMeta.invoice_number || deleteMeta.payment_number}
+            {deleteMeta.invoice_number || deleteMeta.payment_number || deleteMeta.letter_number}
           </Text>
         );
       }
+      return null;
+
+    case 'view':
+      // Просто отображаем факт просмотра без дополнительных деталей
       return null;
 
     default:

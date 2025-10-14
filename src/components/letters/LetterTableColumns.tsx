@@ -1,5 +1,5 @@
 import { Tag, Space, Button, Popconfirm, Tooltip } from 'antd'
-import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, EyeOutlined, PlusCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import type { Letter, LetterStatus, Project, UserProfile } from '../../lib/supabase'
@@ -11,6 +11,8 @@ interface GetLetterTableColumnsProps {
   handleViewLetter: (letter: Letter) => void
   handleEditLetter: (letter: Letter) => void
   handleDeleteLetter: (letterId: string) => void
+  handleLinkLetter: (letter: Letter) => void
+  handleUnlinkLetter: (parentId: string, childId: string) => void
 }
 
 export const getLetterTableColumns = ({
@@ -19,14 +21,16 @@ export const getLetterTableColumns = ({
   users,
   handleViewLetter,
   handleEditLetter,
-  handleDeleteLetter
+  handleDeleteLetter,
+  handleLinkLetter,
+  handleUnlinkLetter
 }: GetLetterTableColumnsProps): ColumnsType<Letter> => {
   return [
     {
       title: 'Направление',
       dataIndex: 'direction',
       key: 'direction',
-      width: 120,
+      width: 90,
       filters: [
         { text: 'Входящие', value: 'incoming' },
         { text: 'Исходящие', value: 'outgoing' }
@@ -34,7 +38,7 @@ export const getLetterTableColumns = ({
       onFilter: (value, record) => record.direction === value,
       render: (direction: 'incoming' | 'outgoing') => (
         <Tag color={direction === 'incoming' ? 'blue' : 'green'}>
-          {direction === 'incoming' ? 'Входящее' : 'Исходящее'}
+          {direction === 'incoming' ? 'Вхд' : 'Исх'}
         </Tag>
       )
     },
@@ -43,10 +47,10 @@ export const getLetterTableColumns = ({
       dataIndex: 'number',
       key: 'number',
       width: 150,
-      sorter: (a, b) => a.number.localeCompare(b.number),
+      sorter: (a, b) => (a.number || '').localeCompare(b.number || ''),
       render: (text: string, record: Letter) => (
         <Button type="link" onClick={() => handleViewLetter(record)}>
-          {text}
+          {text || '—'}
         </Button>
       )
     },
@@ -55,7 +59,8 @@ export const getLetterTableColumns = ({
       dataIndex: 'reg_number',
       key: 'reg_number',
       width: 130,
-      sorter: (a, b) => (a.reg_number || '').localeCompare(b.reg_number || '')
+      sorter: (a, b) => (a.reg_number || '').localeCompare(b.reg_number || ''),
+      render: (text: string) => text || '—'
     },
     {
       title: 'Дата письма',
@@ -149,10 +154,10 @@ export const getLetterTableColumns = ({
         showTitle: false
       },
       render: (_: any, record: Letter) => {
-        const userName = record.responsible_user?.full_name
-        return userName ? (
-          <Tooltip placement="topLeft" title={userName}>
-            {userName}
+        const responsibleName = record.responsible_user?.full_name || record.responsible_person_name
+        return responsibleName ? (
+          <Tooltip placement="topLeft" title={responsibleName}>
+            {responsibleName}
           </Tooltip>
         ) : '—'
       }
@@ -174,25 +179,46 @@ export const getLetterTableColumns = ({
       }
     },
     {
-      title: 'Способ отправки',
-      dataIndex: 'sent_via',
-      key: 'sent_via',
+      title: 'Способ доставки',
+      dataIndex: 'delivery_method',
+      key: 'delivery_method',
       width: 150,
       filters: [
         { text: 'Почта', value: 'почта' },
         { text: 'Email', value: 'email' },
         { text: 'Курьер', value: 'курьер' },
-        { text: 'ЭДО', value: 'ЭДО' }
+        { text: 'ЭДО', value: 'ЭДО' },
+        { text: 'Факс', value: 'факс' }
       ],
-      onFilter: (value, record) => record.sent_via === value
+      onFilter: (value, record) => record.delivery_method === value
     },
     {
       title: 'Действия',
       key: 'actions',
-      width: 150,
+      width: 210,
       fixed: 'right',
       render: (_: any, record: Letter) => (
         <Space size="small">
+          {!record.parent_id && (
+            <Tooltip title="Связать письмо">
+              <Button
+                type="text"
+                icon={<PlusCircleOutlined />}
+                onClick={() => handleLinkLetter(record)}
+                style={{ color: '#52c41a' }}
+              />
+            </Tooltip>
+          )}
+          {record.parent_id && (
+            <Tooltip title="Отвязать от родительского письма">
+              <Button
+                type="text"
+                danger
+                icon={<CloseCircleOutlined />}
+                onClick={() => handleUnlinkLetter(record.parent_id!, record.id)}
+              />
+            </Tooltip>
+          )}
           <Tooltip title="Просмотр">
             <Button
               type="text"

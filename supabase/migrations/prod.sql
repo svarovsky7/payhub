@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-12T18:48:03.474627
+-- Generated: 2025-10-14T06:42:52.881719
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -870,7 +870,7 @@ COMMENT ON TABLE public.letter_statuses IS 'Статусы писем (ново�
 CREATE TABLE IF NOT EXISTS public.letters (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     project_id bigint(64),
-    number text NOT NULL,
+    number text,
     status_id integer(32) DEFAULT 1,
     letter_date date NOT NULL,
     subject text,
@@ -881,10 +881,11 @@ CREATE TABLE IF NOT EXISTS public.letters (
     direction text NOT NULL DEFAULT 'incoming'::text,
     reg_number text,
     reg_date date,
-    sent_via text,
+    delivery_method text,
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
+    responsible_person_name text,
     CONSTRAINT letters_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT letters_pkey PRIMARY KEY (id),
     CONSTRAINT letters_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
@@ -894,19 +895,20 @@ CREATE TABLE IF NOT EXISTS public.letters (
 
 COMMENT ON TABLE public.letters IS 'Учет входящих и исходящих писем компании';
 COMMENT ON COLUMN public.letters.project_id IS 'Связанный проект';
-COMMENT ON COLUMN public.letters.number IS 'Номер письма (внешний номер отправителя)';
+COMMENT ON COLUMN public.letters.number IS 'Номер письма (необязательное поле)';
 COMMENT ON COLUMN public.letters.status_id IS 'Текущий статус письма';
 COMMENT ON COLUMN public.letters.letter_date IS 'Дата письма';
 COMMENT ON COLUMN public.letters.subject IS 'Тема/предмет письма';
 COMMENT ON COLUMN public.letters.content IS 'Краткое содержание письма';
-COMMENT ON COLUMN public.letters.responsible_user_id IS 'Ответственный за обработку письма';
-COMMENT ON COLUMN public.letters.sender IS 'Отправитель письма';
-COMMENT ON COLUMN public.letters.recipient IS 'Получатель письма';
+COMMENT ON COLUMN public.letters.responsible_user_id IS 'Ответственный за обработку письма (ссылка на зарегистрированного пользователя)';
+COMMENT ON COLUMN public.letters.sender IS 'Отправитель письма (может быть как компания, так и физическое лицо)';
+COMMENT ON COLUMN public.letters.recipient IS 'Получатель письма (может быть как компания, так и физическое лицо)';
 COMMENT ON COLUMN public.letters.direction IS 'Направление: incoming (входящее) или outgoing (исходящее)';
-COMMENT ON COLUMN public.letters.reg_number IS 'Внутренний регистрационный номер';
+COMMENT ON COLUMN public.letters.reg_number IS 'Регистрационный номер (необязательное поле)';
 COMMENT ON COLUMN public.letters.reg_date IS 'Дата регистрации в системе';
-COMMENT ON COLUMN public.letters.sent_via IS 'Способ отправки (почта, email, курьер, ЭДО)';
+COMMENT ON COLUMN public.letters.delivery_method IS 'Способ доставки/отправки письма (почта, email, курьер, ЭДО, факс, другое)';
 COMMENT ON COLUMN public.letters.created_by IS 'Пользователь, создавший запись';
+COMMENT ON COLUMN public.letters.responsible_person_name IS 'Ответственный за обработку письма (произвольное текстовое поле для физических лиц)';
 
 -- Material classification hierarchy
 CREATE TABLE IF NOT EXISTS public.material_classes (

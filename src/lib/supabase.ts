@@ -272,12 +272,13 @@ export type Letter = {
   subject?: string | null
   content?: string | null
   responsible_user_id?: string | null
+  responsible_person_name?: string | null
   sender?: string | null
   recipient?: string | null
   direction: 'incoming' | 'outgoing'
   reg_number?: string | null
   reg_date?: string | null
-  sent_via?: string | null
+  delivery_method?: string | null
   created_by?: string | null
   created_at: string
   updated_at: string
@@ -289,6 +290,8 @@ export type Letter = {
   parent_letters?: LetterLink[]
   child_letters?: LetterLink[]
   attachments?: LetterAttachment[]
+  children?: Letter[] // Для expandable таблицы
+  parent_id?: string // ID родительского письма (только для дочерних писем)
 }
 
 export type LetterAttachment = {

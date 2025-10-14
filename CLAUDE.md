@@ -24,17 +24,18 @@ node scripts/generate-ai-context.cjs  # Regenerate database AI context from supa
 
 **Critical**: Always run `npm run lint` and `npm run build` before committing changes to ensure code quality and TypeScript compilation.
 
-**Note**: No test framework is currently configured. Tests referenced in AGENTS.md (`npm test`, Vitest) are not yet implemented.
+**Note**: No test framework is currently configured.
 
 ## Architecture
 
 ### Technology Stack
-- **React 19.1** with Ant Design 5.x (using React 19 compatibility patch)
+- **React 19.1** with Ant Design 5.x (using `@ant-design/v5-patch-for-react-19` compatibility package)
 - **TypeScript 5.8** with strict mode enabled
 - **Vite 7.1** for build and dev server
-- **Supabase** for backend (PostgreSQL at http://31.128.51.210:8001)
+- **Supabase** for backend (PostgreSQL + Storage for file uploads)
 - **React Router 7** for client-side routing
 - **Day.js** for date handling (Russian locale)
+- **Additional libraries**: docxtemplater (Word templates), xlsx (Excel export), qrcode (QR generation), fuse.js (fuzzy search), lodash (utilities)
 
 ### Core Application Structure
 
@@ -56,14 +57,20 @@ src/
 **Critical**: Services **must** be split when exceeding 600 lines:
 - Main service file (e.g., `invoiceOperations.ts`) re-exports from modules
 - Create subdirectory with split modules by concern
-- Examples:
-  - `services/invoice/`: `invoiceCrud.ts`, `invoiceStatus.ts`, `invoiceFiles.ts`, `invoiceReferences.ts`
-  - `services/approval/`: `approvalRoutes.ts`, `approvalActions.ts`, `approvalProcess.ts`, `approvalQueries.ts`
-- Keep service files focused and maintainable
+- Current split services:
+  - `services/invoice/`: `invoiceCrud.ts`, `invoiceStatus.ts`, `invoiceFiles.ts`, `invoiceReferences.ts`, `invoiceArchive.ts`
+  - `services/approval/`: `approvalRoutes.ts`, `approvalActions.ts`, `approvalProcess.ts`, `approvalQueries.ts`, `approvalBulk.ts`
+- Keep service files focused and maintainable (each module should handle a single concern)
 
 #### Hook-Service Separation
 - **Hooks** (`src/hooks/`): React state management, UI interactions, optimistic updates
+  - Naming pattern: `use{Feature}Management.ts` (e.g., `useInvoiceManagement.ts`)
+  - Key hooks: `useInvoiceManagement`, `usePaymentManagement`, `useLetterManagement`, `useApprovalManagement`, `useMaterialRequestManagement`, `useBudgetManagement`
+  - Specialized hooks: `useFileAttachment`, `useColumnSettings`, `useAuditLog`
 - **Services** (`src/services/`): Pure business logic, database operations, no React dependencies
+  - Naming pattern: `{feature}Operations.ts` (e.g., `invoiceOperations.ts`)
+  - Services should not import React or use hooks
+  - All Supabase operations should be in service layer
 
 #### TypeScript Types
 All database entity types are centralized in `src/lib/supabase.ts`:
@@ -77,15 +84,17 @@ All database entity types are centralized in `src/lib/supabase.ts`:
 - `AuthPage` (`src/pages/AuthPage.tsx`) - login and registration forms with project assignment
 - `ProtectedRoute` (`src/components/ProtectedRoute.tsx`) - route protection with role-based access control
 - Supabase Auth integration with email/password (no password complexity requirements)
-- User profile creation in `user_profiles` table on signup with full_name field
+- User profile creation in `user_profiles` table on signup with `full_name` field
+- Default guest role (id=4) assigned on registration
 - Project assignment during registration via `user_projects` link table
 
 **Authorization System**:
 - Role-based access control via `roles` table with `own_projects_only` flag and `allowed_pages` JSON field
 - User roles stored in `user_profiles.role_id` (FK to roles.id)
 - Page-level permissions checked in `ProtectedRoute` component
-- Dynamic role switching in MainLayout header
+- Dynamic role switching in MainLayout header (users can switch between assigned roles)
 - Role query functions: `get_user_role()`, `check_user_access()` (see `supabase/ai_context/ai_functions_*.json`)
+- No RLS (Row Level Security) - all authorization implemented in application layer
 
 
 ### Database Schema
@@ -94,7 +103,7 @@ All database entity types are centralized in `src/lib/supabase.ts`:
 - `ai_tables_min.json` / `ai_tables_full.json` - Table structures
 - `ai_functions_min.json` / `ai_functions_full.json` - Database functions
 - `ai_relations.json` - Foreign key relationships
-- `ai_manifest.json` - Schema metadata
+- `ai_manifest.json` - Schema metadata and file hashes
 - `ai_enums_min.json` - Database enumerations
 - `ai_triggers_min.json` - Database triggers
 
@@ -104,12 +113,13 @@ node scripts/generate-ai-context.cjs
 ```
 
 Core tables:
-- `invoices` - Main invoice records with status_id (FK to invoice_statuses)
+- `invoices` - Main invoice records with status_id (FK to invoice_statuses), includes VAT calculations and delivery tracking
 - `payments` - Payment records with status_id (FK to payment_statuses)
-- `invoice_payments` - M:N payment allocation
+- `invoice_payments` - M:N payment allocation linking invoices to payments
+- `contracts` - Contract management with M:N project relationships via `contract_projects`
 - `approval_routes` + `workflow_stages` - Configurable approval workflows
 - `payment_approvals` + `approval_steps` - Approval instances and history
-- `attachments` + entity-specific link tables - File metadata
+- `attachments` + entity-specific link tables (`invoice_attachments`, `payment_attachments`, `contract_attachments`, `letter_attachments`) - File metadata and relationships
 - `material_requests` + `material_request_items` - Material requisitions with auto-counted items
 - `material_classes` - Material classification hierarchy
 - `material_nomenclature` - Material catalog and specifications
@@ -118,16 +128,16 @@ Core tables:
 Design principles:
 - No RLS - security in application layer
 - Cascade deletion for related records
-- UUID for user tables, serial for others
+- UUID primary keys for main entities, serial for reference/lookup tables
 - All timestamps use `timestamp with time zone`
+- Automatic trigger maintenance for `updated_at`, VAT calculations, and item counts
 
 #### Database Migration Workflow
 Migrations stored in `supabase/migrations/`:
-- `prod.sql` - Complete production schema (primary source of truth)
-- `YYYYMMDD_description.sql` - Individual migration files for schema changes
-- After schema changes, export updated metadata from Supabase to `supabase/exports/`
-- Run `node scripts/generate-ai-context.cjs` to regenerate AI context files
-- Apply migrations via Supabase SQL Editor
+- `prod.sql` - Complete production schema (primary source of truth, ~212KB)
+- After schema changes, export updated metadata from Supabase to `supabase/exports/tables.json`
+- Run `node scripts/generate-ai-context.cjs` to regenerate AI context files in `supabase/ai_context/`
+- Apply migrations via Supabase SQL Editor or database client
 
 ### Status Management
 
@@ -179,13 +189,14 @@ Automatic field maintenance:
 #### File Upload System
 - Storage bucket: `attachments` (must be created in Supabase Storage)
 - Path pattern: `{entity}/{id}/{timestamp}_{filename}`
-- **File size limit: 50 MB** (enforced in all upload services - see `fileAttachmentService.ts:43` and `paymentOperations.ts:336`)
-- Metadata in `attachments` table
-- Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`
+- **File size limit: 50 MB** (enforced in `fileAttachmentService.ts:43`)
+- Metadata in `attachments` table with `created_by` field
+- Link tables: `invoice_attachments`, `contract_attachments`, `payment_attachments`, `letter_attachments`
 - Cascade deletion removes both storage and database records
-- Universal component: `FileUploadBlock` (src/components/common/)
-- Service: `fileAttachmentService.ts`, Hook: `useFileAttachment.ts`
-- Upload implementations: `paymentOperations.ts::processPaymentFiles()`, `invoice/invoiceFiles.ts::processInvoiceFiles()`, `fileAttachmentService.ts::uploadFile()`
+- Universal component: `FileUploadBlock` (`src/components/common/`)
+- Service: `fileAttachmentService.ts` (centralized upload/download/delete operations)
+- Hook: `useFileAttachment.ts` (state management for file operations)
+- Supported entity types: `invoice`, `payment`, `contract`, `material_request`, `letter`
 
 #### Bulk Data Import Pattern
 Multi-step import modals for JSON/CSV data:
@@ -211,11 +222,37 @@ Common pattern:
 console.log('[ComponentName.methodName] Action:', { data });
 ```
 
-#### Component Naming
+#### Component Organization
+**Naming Conventions**:
 - Pages: `{Feature}Page.tsx` (e.g., `InvoicesPage.tsx`)
 - Modals: `{Action}{Entity}Modal.tsx` (e.g., `AddContractModal.tsx`)
 - Forms: `{Entity}Form.tsx` (e.g., `InvoiceForm.tsx`)
 - Tables: `{Entity}Table.tsx` (e.g., `PaymentsTable.tsx`)
+- Filters: `{Entity}Filters.tsx` (e.g., `LetterFilters.tsx`)
+
+**Component Structure**:
+- `components/common/` - Reusable UI components (FileUploadBlock, etc.)
+- `components/{feature}/` - Feature-specific components grouped by domain:
+  - `admin/` - Admin panel components (tabs for contractors, projects, roles, etc.)
+  - `approvals/` - Approval workflow components
+  - `contracts/` - Contract management components
+  - `invoices/` - Invoice management components
+  - `letters/` - Letter management components
+  - `materialRequests/` - Material request components
+  - `projects/` - Project-related components
+- `Layout.tsx` - Main application layout with header, navigation
+- `ProtectedRoute.tsx` - Route guard component
+
+**Main Application Routes** (defined in `App.tsx`):
+- `/login` - AuthPage (public)
+- `/invoices` - InvoicesPage (protected)
+- `/admin/*` - AdminPage with nested tabs (protected)
+- `/approvals` - ApprovalsPage (protected)
+- `/contracts` - ContractsPage (protected)
+- `/material-requests` - MaterialRequestsPage (protected)
+- `/project-budgets` - ProjectBudgetsPage (protected)
+- `/letters` - LettersPage (protected)
+- `/` - Redirects to `/login`
 
 ### TypeScript Configuration
 
@@ -228,13 +265,16 @@ Strict mode with:
 
 ### Environment Configuration
 
-Required `.env`:
+Required `.env` (see `.env` file in root):
 ```
 VITE_SUPABASE_URL=https://api-p1.fvds.ru
 VITE_SUPABASE_ANON_KEY=[your_key]
 ```
 
-**Note**: Storage URL is automatically derived from `VITE_SUPABASE_URL` following the pattern `{SUPABASE_URL}/storage/v1/object/public/attachments/`. Do not add separate `VITE_STORAGE_BUCKET` variable.
+**Important Notes**:
+- Storage URL is automatically derived from `VITE_SUPABASE_URL` following the pattern `{SUPABASE_URL}/storage/v1/object/public/attachments/`
+- Do not add separate `VITE_STORAGE_BUCKET` variable
+- Supabase client is initialized in `src/lib/supabase.ts` with persistent session and auto-refresh enabled
 
 ### Windows Development Notes
 
@@ -242,8 +282,8 @@ This project is developed on Windows. Important considerations:
 - Use forward slashes in file paths when possible for cross-platform compatibility
 - Git line endings: Repository uses LF (`core.autocrlf=input` recommended)
 - File operations: Use Node.js path utilities for path manipulation
-- Bash scripts: May require Git Bash or WSL for execution
-- Database connection: Direct IP connection to remote Supabase (no localhost)
+- Bash scripts: May require Git Bash or WSL for execution (e.g., `scripts/generate-ai-context.cjs`)
+- Database connection: Direct connection to remote Supabase instance (no localhost)
 
 ### Code Quality Checks
 

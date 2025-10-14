@@ -1,8 +1,10 @@
-import { Modal, Descriptions, Tag, Typography, List, Button } from 'antd'
-import { DownloadOutlined, FileOutlined } from '@ant-design/icons'
+import { Modal, Descriptions, Tag, Typography, List, Button, Row, Col, Divider } from 'antd'
+import { DownloadOutlined, FileOutlined, HistoryOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Letter } from '../../lib/supabase'
 import { supabase } from '../../lib/supabase'
+import { useAuditLog } from '../../hooks/useAuditLog'
+import AuditLogTimeline from '../common/AuditLogTimeline'
 
 const { Title } = Typography
 
@@ -17,6 +19,9 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
   onClose,
   letter
 }) => {
+  // Load audit log for the letter
+  const { auditLog, loading: auditLoading } = useAuditLog('letter', letter?.id)
+
   if (!letter) return null
 
   const handleDownloadFile = async (storagePath: string, fileName: string) => {
@@ -51,9 +56,11 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
           Закрыть
         </Button>
       ]}
-      width={800}
+      width={1200}
     >
-      <Descriptions bordered column={2}>
+      <Row gutter={24}>
+        <Col span={14}>
+          <Descriptions bordered column={2}>
         <Descriptions.Item label="Направление" span={2}>
           <Tag color={letter.direction === 'incoming' ? 'blue' : 'green'}>
             {letter.direction === 'incoming' ? 'Входящее' : 'Исходящее'}
@@ -110,11 +117,11 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
         </Descriptions.Item>
 
         <Descriptions.Item label="Ответственный" span={2}>
-          {letter.responsible_user?.full_name || '—'}
+          {letter.responsible_user?.full_name || letter.responsible_person_name || '—'}
         </Descriptions.Item>
 
-        <Descriptions.Item label="Способ отправки">
-          {letter.sent_via || '—'}
+        <Descriptions.Item label={letter.direction === 'incoming' ? 'Способ доставки' : 'Способ отправки'}>
+          {letter.delivery_method || '—'}
         </Descriptions.Item>
 
         <Descriptions.Item label="Создано">
@@ -128,42 +135,62 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
         <Descriptions.Item label="Обновлено">
           {dayjs(letter.updated_at).format('DD.MM.YYYY HH:mm')}
         </Descriptions.Item>
-      </Descriptions>
+          </Descriptions>
 
-      {/* Attachments */}
-      {letter.attachments && letter.attachments.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <Title level={5}>Прикрепленные файлы:</Title>
-          <List
-            size="small"
-            bordered
-            dataSource={letter.attachments}
-            renderItem={(item: any) => (
-              <List.Item
-                actions={[
-                  <Button
-                    key="download"
-                    type="link"
-                    icon={<DownloadOutlined />}
-                    onClick={() => handleDownloadFile(
-                      item.attachments.storage_path,
-                      item.attachments.original_name
-                    )}
+          {/* Attachments */}
+          {letter.attachments && letter.attachments.length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <Title level={5}>Прикрепленные файлы:</Title>
+              <List
+                size="small"
+                bordered
+                dataSource={letter.attachments}
+                renderItem={(item: any) => (
+                  <List.Item
+                    actions={[
+                      <Button
+                        key="download"
+                        type="link"
+                        icon={<DownloadOutlined />}
+                        onClick={() => handleDownloadFile(
+                          item.attachments.storage_path,
+                          item.attachments.original_name
+                        )}
+                      >
+                        Скачать
+                      </Button>
+                    ]}
                   >
-                    Скачать
-                  </Button>
-                ]}
-              >
-                <List.Item.Meta
-                  avatar={<FileOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
-                  title={item.attachments.original_name}
-                  description={`Размер: ${(item.attachments.size_bytes / 1024).toFixed(2)} КБ`}
-                />
-              </List.Item>
-            )}
-          />
-        </div>
-      )}
+                    <List.Item.Meta
+                      avatar={<FileOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                      title={item.attachments.original_name}
+                      description={`Размер: ${(item.attachments.size_bytes / 1024).toFixed(2)} КБ`}
+                    />
+                  </List.Item>
+                )}
+              />
+            </div>
+          )}
+        </Col>
+
+        <Col span={10}>
+          <div style={{
+            padding: '16px',
+            background: '#fafafa',
+            borderRadius: '8px',
+            minHeight: '500px',
+            maxHeight: '70vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <HistoryOutlined style={{ fontSize: 18 }} />
+              <Title level={5} style={{ margin: 0 }}>История письма</Title>
+            </div>
+            <Divider style={{ margin: '12px 0' }} />
+            <AuditLogTimeline auditLog={auditLog} loading={auditLoading} />
+          </div>
+        </Col>
+      </Row>
     </Modal>
   )
 }

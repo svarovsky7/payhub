@@ -1,9 +1,19 @@
 import { Table, Button, Space } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, FilterOutlined } from '@ant-design/icons'
+import { useMemo, useState } from 'react'
+import dayjs from 'dayjs'
+import isBetween from 'dayjs/plugin/isBetween'
 import { useLetterManagement } from '../hooks/useLetterManagement'
+import { useColumnSettings } from '../hooks/useColumnSettings'
 import { getLetterTableColumns } from '../components/letters/LetterTableColumns'
 import { LetterFormModal } from '../components/letters/LetterFormModal'
 import { LetterViewModal } from '../components/letters/LetterViewModal'
+import { LinkLetterModal } from '../components/letters/LinkLetterModal'
+import { LetterFilters, type LetterFilterValues } from '../components/letters/LetterFilters'
+import { ColumnSettings } from '../components/common/ColumnSettings'
+import type { Letter } from '../lib/supabase'
+
+dayjs.extend(isBetween)
 
 export const LettersPage = () => {
   const {
@@ -20,23 +30,130 @@ export const LettersPage = () => {
     setViewModalVisible,
     viewingLetter,
     setViewingLetter,
+    linkModalVisible,
+    setLinkModalVisible,
+    linkingLetter,
+    setLinkingLetter,
     handleOpenCreateModal,
     handleOpenEditModal,
     handleViewLetter,
     handleCreateLetter,
     handleUpdateLetter,
-    handleDeleteLetter
+    handleDeleteLetter,
+    handleOpenLinkModal,
+    handleLinkLetters,
+    handleUnlinkLetters
   } = useLetterManagement()
 
+  const [filterValues, setFilterValues] = useState<LetterFilterValues>({})
+  const [filtersVisible, setFiltersVisible] = useState(false)
+
+  // Get unique senders for filter
+  const senders = useMemo(() => {
+    const senderSet = new Set<string>()
+    const collectSenders = (lettersList: Letter[]) => {
+      lettersList.forEach(letter => {
+        if (letter.sender) {
+          senderSet.add(letter.sender)
+        }
+        if (letter.children) {
+          collectSenders(letter.children)
+        }
+      })
+    }
+    collectSenders(letters)
+    return Array.from(senderSet).sort()
+  }, [letters])
+
+  // Filter letters
+  const filteredLetters = useMemo(() => {
+    const filterLetter = (letter: Letter): boolean => {
+      // Filter by sender
+      if (filterValues.sender && letter.sender !== filterValues.sender) {
+        return false
+      }
+
+      // Filter by number
+      if (filterValues.number && !letter.number.toLowerCase().includes(filterValues.number.toLowerCase())) {
+        return false
+      }
+
+      // Filter by date range
+      if (filterValues.dateRange && filterValues.dateRange.length === 2) {
+        const letterDate = dayjs(letter.letter_date)
+        const [startDate, endDate] = filterValues.dateRange
+        if (!letterDate.isBetween(startDate, endDate, 'day', '[]')) {
+          return false
+        }
+      }
+
+      // Filter by search text (in subject and content)
+      if (filterValues.searchText) {
+        const searchLower = filterValues.searchText.toLowerCase()
+        const subjectMatch = letter.subject?.toLowerCase().includes(searchLower)
+        const contentMatch = letter.content?.toLowerCase().includes(searchLower)
+        if (!subjectMatch && !contentMatch) {
+          return false
+        }
+      }
+
+      return true
+    }
+
+    const filterLettersRecursive = (lettersList: Letter[]): Letter[] => {
+      return lettersList
+        .filter(letter => {
+          // Check if parent letter matches
+          const parentMatches = filterLetter(letter)
+
+          // Check if any child matches
+          const childrenMatch = letter.children?.some(child => filterLetter(child))
+
+          return parentMatches || childrenMatch
+        })
+        .map(letter => {
+          // Filter children if they exist
+          if (letter.children && letter.children.length > 0) {
+            const filteredChildren = letter.children.filter(child => filterLetter(child))
+            return {
+              ...letter,
+              children: filteredChildren.length > 0 ? filteredChildren : undefined
+            }
+          }
+          return letter
+        })
+    }
+
+    return filterLettersRecursive(letters)
+  }, [letters, filterValues])
+
+  const handleFilter = (values: LetterFilterValues) => {
+    console.log('[LettersPage.handleFilter] Applying filters:', values)
+    setFilterValues(values)
+  }
+
+  const handleResetFilters = () => {
+    console.log('[LettersPage.handleResetFilters] Resetting filters')
+    setFilterValues({})
+  }
+
   // Table columns
-  const columns = getLetterTableColumns({
+  const allColumns = getLetterTableColumns({
     letterStatuses,
     projects,
     users,
     handleViewLetter,
     handleEditLetter: handleOpenEditModal,
-    handleDeleteLetter
+    handleDeleteLetter,
+    handleLinkLetter: handleOpenLinkModal,
+    handleUnlinkLetter: handleUnlinkLetters
   })
+
+  // Column settings
+  const { columnConfig, setColumnConfig, visibleColumns, defaultConfig } = useColumnSettings(
+    allColumns,
+    'letters_column_settings'
+  )
 
   // Handle form submit
   const handleFormSubmit = async (values: any, files: File[], originalFiles: string[]) => {
@@ -53,6 +170,17 @@ export const LettersPage = () => {
         <h1 style={{ margin: 0 }}>Письма</h1>
         <Space>
           <Button
+            icon={<FilterOutlined />}
+            onClick={() => setFiltersVisible(!filtersVisible)}
+          >
+            Фильтры
+          </Button>
+          <ColumnSettings
+            columns={columnConfig}
+            onChange={setColumnConfig}
+            defaultColumns={defaultConfig}
+          />
+          <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleOpenCreateModal}
@@ -62,9 +190,17 @@ export const LettersPage = () => {
         </Space>
       </div>
 
+      {filtersVisible && (
+        <LetterFilters
+          senders={senders}
+          onFilter={handleFilter}
+          onReset={handleResetFilters}
+        />
+      )}
+
       <Table
-        columns={columns}
-        dataSource={letters}
+        columns={visibleColumns}
+        dataSource={filteredLetters}
         rowKey="id"
         loading={loading}
         pagination={{
@@ -75,6 +211,9 @@ export const LettersPage = () => {
         }}
         scroll={{ x: 'max-content' }}
         className="compact-table"
+        childrenColumnName="children"
+        indentSize={24}
+        defaultExpandAllRows={false}
       />
 
       {/* Letter Form Modal */}
@@ -99,6 +238,18 @@ export const LettersPage = () => {
           setViewingLetter(null)
         }}
         letter={viewingLetter}
+      />
+
+      {/* Link Letter Modal */}
+      <LinkLetterModal
+        visible={linkModalVisible}
+        onCancel={() => {
+          setLinkModalVisible(false)
+          setLinkingLetter(null)
+        }}
+        onLink={handleLinkLetters}
+        currentLetter={linkingLetter}
+        availableLetters={letters}
       />
     </div>
   )
