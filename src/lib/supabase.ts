@@ -279,6 +279,7 @@ export type Letter = {
   reg_number?: string | null
   reg_date?: string | null
   delivery_method?: string | null
+  response_deadline?: string | null
   created_by?: string | null
   created_at: string
   updated_at: string

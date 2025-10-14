@@ -118,7 +118,8 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         direction: editingLetter.direction,
         reg_number: editingLetter.reg_number,
         reg_date: editingLetter.reg_date ? dayjs(editingLetter.reg_date) : null,
-        delivery_method: editingLetter.delivery_method
+        delivery_method: editingLetter.delivery_method,
+        response_deadline: editingLetter.response_deadline ? dayjs(editingLetter.response_deadline) : null
       })
 
       // Set direction for dynamic label
@@ -226,6 +227,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         delivery_method: values.delivery_method?.trim() || null,
         letter_date: values.letter_date ? values.letter_date.format('YYYY-MM-DD') : null,
         reg_date: values.reg_date ? values.reg_date.format('YYYY-MM-DD') : null,
+        response_deadline: values.response_deadline ? values.response_deadline.format('YYYY-MM-DD') : null,
         created_by: editingLetter ? editingLetter.created_by : user?.id
       }
 
@@ -437,7 +439,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
               label="Регистрационный номер"
               name="reg_number"
             >
-              <Input placeholder="Внутренний номер (необязательно)" onChange={handleRegNumberChange} />
+              <Input placeholder="Внутренний номер (необязательно)" onChange={handleRegNumberChange} autoComplete="off" />
             </Form.Item>
             <Button
               type="primary"
@@ -472,6 +474,68 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
               name="reg_date"
             >
               <DatePicker format="DD.MM.YYYY" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              label={
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>Регламентный срок ответа</span>
+                  <Space size={4}>
+                    <Button
+                      size="small"
+                      type="default"
+                      onClick={() => {
+                        const regDate = form.getFieldValue('reg_date')
+                        if (regDate) {
+                          form.setFieldsValue({ response_deadline: regDate.add(3, 'day') })
+                        } else {
+                          message.warning('Сначала заполните дату регистрации')
+                        }
+                      }}
+                      style={{ fontSize: 11, height: 22, padding: '0 8px' }}
+                    >
+                      +3 дня
+                    </Button>
+                    <Button
+                      size="small"
+                      type="default"
+                      onClick={() => {
+                        const regDate = form.getFieldValue('reg_date')
+                        if (regDate) {
+                          form.setFieldsValue({ response_deadline: regDate.add(5, 'day') })
+                        } else {
+                          message.warning('Сначала заполните дату регистрации')
+                        }
+                      }}
+                      style={{ fontSize: 11, height: 22, padding: '0 8px' }}
+                    >
+                      +5 дней
+                    </Button>
+                    <Button
+                      size="small"
+                      type="default"
+                      onClick={() => {
+                        const regDate = form.getFieldValue('reg_date')
+                        if (regDate) {
+                          form.setFieldsValue({ response_deadline: regDate.add(10, 'day') })
+                        } else {
+                          message.warning('Сначала заполните дату регистрации')
+                        }
+                      }}
+                      style={{ fontSize: 11, height: 22, padding: '0 8px' }}
+                    >
+                      +10 дней
+                    </Button>
+                  </Space>
+                </div>
+              }
+              name="response_deadline"
+            >
+              <DatePicker format="DD.MM.YYYY" style={{ width: '100%' }} placeholder="Выберите срок ответа" />
             </Form.Item>
           </Col>
         </Row>

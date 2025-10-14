@@ -62,6 +62,7 @@ const fieldNameMap: Record<string, string> = {
   reg_number: 'Регистрационный номер',
   letter_date: 'Дата письма',
   reg_date: 'Дата регистрации',
+  response_deadline: 'Регламентный срок ответа',
   subject: 'Тема',
   content: 'Содержание',
   sender: 'Отправитель',

@@ -1,5 +1,6 @@
-import { Tag, Space, Button, Popconfirm, Tooltip } from 'antd'
-import { EditOutlined, DeleteOutlined, EyeOutlined, PlusCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { Tag, Space, Button, Popconfirm, Tooltip, Dropdown } from 'antd'
+import type { MenuProps } from 'antd'
+import { EditOutlined, DeleteOutlined, EyeOutlined, PlusCircleOutlined, CloseCircleOutlined, DownOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import type { Letter, LetterStatus, Project, UserProfile } from '../../lib/supabase'
@@ -13,6 +14,7 @@ interface GetLetterTableColumnsProps {
   handleDeleteLetter: (letterId: string) => void
   handleLinkLetter: (letter: Letter) => void
   handleUnlinkLetter: (parentId: string, childId: string) => void
+  handleStatusChange: (letterId: string, newStatusId: number) => void
 }
 
 export const getLetterTableColumns = ({
@@ -23,7 +25,8 @@ export const getLetterTableColumns = ({
   handleEditLetter,
   handleDeleteLetter,
   handleLinkLetter,
-  handleUnlinkLetter
+  handleUnlinkLetter,
+  handleStatusChange
 }: GetLetterTableColumnsProps): ColumnsType<Letter> => {
   return [
     {
@@ -101,6 +104,7 @@ export const getLetterTableColumns = ({
       dataIndex: 'sender',
       key: 'sender',
       width: 180,
+      sorter: (a, b) => (a.sender || '').localeCompare(b.sender || ''),
       ellipsis: {
         showTitle: false
       },
@@ -115,6 +119,7 @@ export const getLetterTableColumns = ({
       dataIndex: 'recipient',
       key: 'recipient',
       width: 180,
+      sorter: (a, b) => (a.recipient || '').localeCompare(b.recipient || ''),
       ellipsis: {
         showTitle: false
       },
@@ -129,6 +134,7 @@ export const getLetterTableColumns = ({
       dataIndex: ['project', 'name'],
       key: 'project',
       width: 200,
+      sorter: (a, b) => (a.project?.name || '').localeCompare(b.project?.name || ''),
       filters: projects.map(p => ({ text: p.name, value: p.id })),
       onFilter: (value, record) => record.project_id === value,
       ellipsis: {
@@ -148,6 +154,11 @@ export const getLetterTableColumns = ({
       dataIndex: ['responsible_user', 'full_name'],
       key: 'responsible_user',
       width: 180,
+      sorter: (a, b) => {
+        const aName = a.responsible_user?.full_name || a.responsible_person_name || ''
+        const bName = b.responsible_user?.full_name || b.responsible_person_name || ''
+        return aName.localeCompare(bName)
+      },
       filters: users.map(u => ({ text: u.full_name, value: u.id })),
       onFilter: (value, record) => record.responsible_user_id === value,
       ellipsis: {
@@ -167,14 +178,33 @@ export const getLetterTableColumns = ({
       dataIndex: ['status', 'name'],
       key: 'status',
       width: 150,
+      sorter: (a, b) => (a.status?.name || '').localeCompare(b.status?.name || ''),
       filters: letterStatuses.map(s => ({ text: s.name, value: s.id })),
       onFilter: (value, record) => record.status_id === value,
       render: (_: any, record: Letter) => {
         const status = record.status
+
+        const menuItems: MenuProps['items'] = letterStatuses.map(s => ({
+          key: s.id.toString(),
+          label: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Tag color={s.color || 'default'} style={{ margin: 0 }}>
+                {s.name}
+              </Tag>
+            </div>
+          ),
+          onClick: () => handleStatusChange(record.id, s.id)
+        }))
+
         return status ? (
-          <Tag color={status.color || 'default'}>
-            {status.name}
-          </Tag>
+          <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+            <Tag
+              color={status.color || 'default'}
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+            >
+              {status.name} <DownOutlined style={{ fontSize: 10, marginLeft: 4 }} />
+            </Tag>
+          </Dropdown>
         ) : '—'
       }
     },
@@ -191,6 +221,44 @@ export const getLetterTableColumns = ({
         { text: 'Факс', value: 'факс' }
       ],
       onFilter: (value, record) => record.delivery_method === value
+    },
+    {
+      title: 'Просрочено на ответ',
+      dataIndex: 'response_deadline',
+      key: 'response_overdue',
+      width: 150,
+      align: 'center',
+      sorter: (a, b) => {
+        if (!a.response_deadline && !b.response_deadline) return 0
+        if (!a.response_deadline) return 1
+        if (!b.response_deadline) return -1
+        const aDiff = dayjs(a.response_deadline).diff(dayjs(), 'day')
+        const bDiff = dayjs(b.response_deadline).diff(dayjs(), 'day')
+        return aDiff - bDiff
+      },
+      render: (_: any, record: Letter) => {
+        if (!record.response_deadline) return '—'
+
+        const today = dayjs().startOf('day')
+        const deadline = dayjs(record.response_deadline).startOf('day')
+        const diff = deadline.diff(today, 'day')
+
+        if (diff < 0) {
+          // Просрочено - красный цвет с минусом
+          return (
+            <Tag color="red" style={{ margin: 0, fontWeight: 'bold' }}>
+              {diff} дн.
+            </Tag>
+          )
+        } else {
+          // Еще есть время - зеленый цвет с плюсом
+          return (
+            <Tag color="green" style={{ margin: 0, fontWeight: 'bold' }}>
+              +{diff} дн.
+            </Tag>
+          )
+        }
+      }
     },
     {
       title: 'Действия',

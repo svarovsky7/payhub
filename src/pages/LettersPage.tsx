@@ -65,9 +65,60 @@ export const LettersPage = () => {
     return Array.from(senderSet).sort()
   }, [letters])
 
+  // Get unique responsible persons (from both users and custom names)
+  const responsiblePersons = useMemo(() => {
+    const responsibleSet = new Set<string>()
+
+    // Add all users
+    users.forEach(user => {
+      responsibleSet.add(user.full_name)
+    })
+
+    // Add custom responsible person names from letters
+    const collectResponsible = (lettersList: Letter[]) => {
+      lettersList.forEach(letter => {
+        if (letter.responsible_person_name) {
+          responsibleSet.add(letter.responsible_person_name)
+        }
+        if (letter.children) {
+          collectResponsible(letter.children)
+        }
+      })
+    }
+    collectResponsible(letters)
+
+    return Array.from(responsibleSet).sort()
+  }, [letters, users])
+
   // Filter letters
   const filteredLetters = useMemo(() => {
     const filterLetter = (letter: Letter): boolean => {
+      // Filter by project
+      if (filterValues.project_id && letter.project_id !== filterValues.project_id) {
+        return false
+      }
+
+      // Filter by reg_number
+      if (filterValues.reg_number && (!letter.reg_number || !letter.reg_number.toLowerCase().includes(filterValues.reg_number.toLowerCase()))) {
+        return false
+      }
+
+      // Filter by responsible (check both responsible_user full_name and responsible_person_name)
+      if (filterValues.responsible) {
+        const responsibleUserName = letter.responsible_user?.full_name
+        const responsiblePersonName = letter.responsible_person_name
+        const matchesUser = responsibleUserName === filterValues.responsible
+        const matchesPerson = responsiblePersonName === filterValues.responsible
+        if (!matchesUser && !matchesPerson) {
+          return false
+        }
+      }
+
+      // Filter by status
+      if (filterValues.status_id && letter.status_id !== filterValues.status_id) {
+        return false
+      }
+
       // Filter by sender
       if (filterValues.sender && letter.sender !== filterValues.sender) {
         return false
@@ -137,6 +188,15 @@ export const LettersPage = () => {
     setFilterValues({})
   }
 
+  const handleStatusChange = async (letterId: string, newStatusId: number) => {
+    console.log('[LettersPage.handleStatusChange] Changing status:', { letterId, newStatusId })
+    try {
+      await handleUpdateLetter(letterId, { status_id: newStatusId }, [], [])
+    } catch (error) {
+      console.error('[LettersPage.handleStatusChange] Error:', error)
+    }
+  }
+
   // Table columns
   const allColumns = getLetterTableColumns({
     letterStatuses,
@@ -146,7 +206,8 @@ export const LettersPage = () => {
     handleEditLetter: handleOpenEditModal,
     handleDeleteLetter,
     handleLinkLetter: handleOpenLinkModal,
-    handleUnlinkLetter: handleUnlinkLetters
+    handleUnlinkLetter: handleUnlinkLetters,
+    handleStatusChange
   })
 
   // Column settings
@@ -193,6 +254,9 @@ export const LettersPage = () => {
       {filtersVisible && (
         <LetterFilters
           senders={senders}
+          projects={projects}
+          letterStatuses={letterStatuses}
+          responsiblePersons={responsiblePersons}
           onFilter={handleFilter}
           onReset={handleResetFilters}
         />

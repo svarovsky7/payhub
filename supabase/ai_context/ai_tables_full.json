@@ -2363,6 +2363,12 @@
         "type": "text",
         "nullable": true,
         "description": "Ответственный за обработку письма (произвольное текстовое поле для физических лиц)"
+      },
+      {
+        "name": "response_deadline",
+        "type": "date",
+        "nullable": true,
+        "description": "Регламентный срок ответа на письмо"
       }
     ],
     "constraints": {

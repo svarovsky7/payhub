@@ -83,6 +83,10 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
           {letter.reg_date ? dayjs(letter.reg_date).format('DD.MM.YYYY') : '—'}
         </Descriptions.Item>
 
+        <Descriptions.Item label="Регламентный срок ответа" span={2}>
+          {letter.response_deadline ? dayjs(letter.response_deadline).format('DD.MM.YYYY') : '—'}
+        </Descriptions.Item>
+
         <Descriptions.Item label="Статус" span={2}>
           {letter.status ? (
             <Tag color={letter.status.color || 'default'}>

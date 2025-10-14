@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-14T06:42:52.881719
+-- Generated: 2025-10-14T07:46:23.356052
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -886,6 +886,7 @@ CREATE TABLE IF NOT EXISTS public.letters (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     responsible_person_name text,
+    response_deadline date,
     CONSTRAINT letters_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT letters_pkey PRIMARY KEY (id),
     CONSTRAINT letters_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
@@ -909,6 +910,7 @@ COMMENT ON COLUMN public.letters.reg_date IS 'Дата регистрации в
 COMMENT ON COLUMN public.letters.delivery_method IS 'Способ доставки/отправки письма (почта, email, курьер, ЭДО, факс, другое)';
 COMMENT ON COLUMN public.letters.created_by IS 'Пользователь, создавший запись';
 COMMENT ON COLUMN public.letters.responsible_person_name IS 'Ответственный за обработку письма (произвольное текстовое поле для физических лиц)';
+COMMENT ON COLUMN public.letters.response_deadline IS 'Регламентный срок ответа на письмо';
 
 -- Material classification hierarchy
 CREATE TABLE IF NOT EXISTS public.material_classes (
