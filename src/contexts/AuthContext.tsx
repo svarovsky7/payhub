@@ -137,21 +137,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('[AuthContext.signUp] Auth user created:', authData.user.id)
 
-      // Create or update user profile with default guest role (id=4)
+      // Create or update user profile with default clerk role (id=9)
       const { error: profileError } = await supabase
         .from('user_profiles')
         .upsert({
           id: authData.user.id,
           email,
           full_name: fullName,
-          role_id: 4, // Default guest role
+          role_id: 9, // Default clerk role
         }, {
           onConflict: 'id'
         })
 
       if (profileError) throw profileError
 
-      console.log('[AuthContext.signUp] Profile created/updated with guest role')
+      console.log('[AuthContext.signUp] Profile created/updated with clerk role')
 
       // Link user to projects
       if (projectIds.length > 0) {

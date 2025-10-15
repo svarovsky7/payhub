@@ -3790,7 +3790,7 @@
   },
   {
     "table": "public.roles",
-    "summary": "User roles for approval workflow and permissions",
+    "summary": "User roles with page-level permissions",
     "columns": [
       {
         "name": "id",

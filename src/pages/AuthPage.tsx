@@ -15,17 +15,43 @@ export function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const navigate = useNavigate()
-  const { signIn, signUp, user } = useAuth()
+  const { signIn, signUp, user, userRole, loading: authLoading } = useAuth()
 
   console.log('[AuthPage] Rendering, user:', user?.email || 'none')
 
   useEffect(() => {
     // Redirect if already logged in
-    if (user) {
-      console.log('[AuthPage.useEffect] User already logged in, redirecting...')
-      navigate('/invoices')
+    if (user && !authLoading) {
+      console.log('[AuthPage.useEffect] User already logged in, redirecting...', {
+        userRole: userRole?.name,
+        allowedPages: userRole?.allowed_pages
+      })
+
+      // Determine redirect path based on user role
+      let redirectPath = '/invoices' // Default
+
+      if (userRole?.allowed_pages) {
+        let allowedPages: string[] = []
+        try {
+          if (typeof userRole.allowed_pages === 'string') {
+            allowedPages = JSON.parse(userRole.allowed_pages)
+          } else if (Array.isArray(userRole.allowed_pages)) {
+            allowedPages = userRole.allowed_pages
+          }
+        } catch (error) {
+          console.error('[AuthPage] Error parsing allowed_pages:', error)
+        }
+
+        // Use first allowed page if available
+        if (allowedPages.length > 0 && typeof allowedPages[0] === 'string') {
+          redirectPath = allowedPages[0]
+        }
+      }
+
+      console.log('[AuthPage.useEffect] Redirecting to:', redirectPath)
+      navigate(redirectPath)
     }
-  }, [user, navigate])
+  }, [user, userRole, authLoading, navigate])
 
   useEffect(() => {
     // Load projects for registration form
@@ -55,7 +81,7 @@ export function AuthPage() {
     setLoading(true)
     try {
       await signIn(values.email, values.password)
-      navigate('/invoices')
+      // useEffect will handle the redirect based on user role
     } catch (error) {
       console.error('[AuthPage.handleLogin] Error:', error)
     } finally {

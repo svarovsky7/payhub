@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-14T07:46:23.356052
+-- Generated: 2025-10-14T08:14:21.628066
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -1198,7 +1198,7 @@ COMMENT ON COLUMN public.projects.created_by IS 'User ID who created the project
 COMMENT ON COLUMN public.projects.created_at IS 'Timestamp when the project was created';
 COMMENT ON COLUMN public.projects.updated_at IS 'Timestamp when the project was last updated';
 
--- User roles for approval workflow and permissions
+-- User roles with page-level permissions
 CREATE TABLE IF NOT EXISTS public.roles (
     id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),
     code character varying(50) NOT NULL,
@@ -1212,7 +1212,7 @@ CREATE TABLE IF NOT EXISTS public.roles (
     CONSTRAINT roles_pkey PRIMARY KEY (id)
 );
 
-COMMENT ON TABLE public.roles IS 'User roles for approval workflow and permissions';
+COMMENT ON TABLE public.roles IS 'User roles with page-level permissions';
 COMMENT ON COLUMN public.roles.id IS 'Primary key';
 COMMENT ON COLUMN public.roles.code IS 'Unique role code';
 COMMENT ON COLUMN public.roles.name IS 'Role name';

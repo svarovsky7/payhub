@@ -41,23 +41,38 @@ export function ProtectedRoute({ children, requiredPath }: ProtectedRouteProps) 
 
   // Check page access if user has a role with allowed_pages
   if (requiredPath && userRole?.allowed_pages) {
-    const allowedPages = userRole.allowed_pages as string[]
+    // Parse allowed_pages if it's a string, otherwise use as is
+    let allowedPages: string[] = []
+
+    try {
+      if (typeof userRole.allowed_pages === 'string') {
+        allowedPages = JSON.parse(userRole.allowed_pages)
+      } else if (Array.isArray(userRole.allowed_pages)) {
+        allowedPages = userRole.allowed_pages
+      }
+    } catch (error) {
+      console.error('[ProtectedRoute] Error parsing allowed_pages:', error)
+      allowedPages = []
+    }
+
     const hasAccess = allowedPages.includes(requiredPath)
 
     console.log('[ProtectedRoute] Checking page access:', {
       requiredPath,
       allowedPages,
+      allowedPagesType: typeof userRole.allowed_pages,
+      allowedPagesRaw: userRole.allowed_pages,
       hasAccess,
     })
 
     if (!hasAccess) {
       // If user has no access to this page, redirect to first allowed page or show error
-      if (allowedPages.length > 0) {
+      if (allowedPages.length > 0 && typeof allowedPages[0] === 'string') {
         const firstAllowedPage = allowedPages[0]
         console.log('[ProtectedRoute] Access denied, redirecting to:', firstAllowedPage)
         return <Navigate to={firstAllowedPage} replace />
       } else {
-        console.log('[ProtectedRoute] User has no allowed pages')
+        console.log('[ProtectedRoute] User has no allowed pages or invalid format')
         return (
           <div
             style={{

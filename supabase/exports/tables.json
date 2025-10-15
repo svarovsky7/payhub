@@ -7932,7 +7932,7 @@
   "public.roles": {
     "schema": "public",
     "name": "roles",
-    "comment": "User roles for approval workflow and permissions",
+    "comment": "User roles with page-level permissions",
     "columns": [
       {
         "name": "id",
@@ -8057,7 +8057,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- User roles for approval workflow and permissions\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    own_projects_only boolean DEFAULT false,\n    allowed_pages jsonb,\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'User roles for approval workflow and permissions';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key';\nCOMMENT ON COLUMN public.roles.code IS 'Unique role code';\nCOMMENT ON COLUMN public.roles.name IS 'Role name';\nCOMMENT ON COLUMN public.roles.description IS 'Role description';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role was created';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role was last updated';\nCOMMENT ON COLUMN public.roles.own_projects_only IS 'Whether user can only see their own projects';\nCOMMENT ON COLUMN public.roles.allowed_pages IS 'JSON array of allowed page routes';"
+    "sql": "-- User roles with page-level permissions\nCREATE TABLE IF NOT EXISTS public.roles (\n    id integer(32) NOT NULL DEFAULT nextval('roles_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    own_projects_only boolean DEFAULT false,\n    allowed_pages jsonb,\n    CONSTRAINT roles_code_key UNIQUE (code),\n    CONSTRAINT roles_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.roles IS 'User roles with page-level permissions';\nCOMMENT ON COLUMN public.roles.id IS 'Primary key';\nCOMMENT ON COLUMN public.roles.code IS 'Unique role code';\nCOMMENT ON COLUMN public.roles.name IS 'Role name';\nCOMMENT ON COLUMN public.roles.description IS 'Role description';\nCOMMENT ON COLUMN public.roles.created_at IS 'Timestamp when the role was created';\nCOMMENT ON COLUMN public.roles.updated_at IS 'Timestamp when the role was last updated';\nCOMMENT ON COLUMN public.roles.own_projects_only IS 'Whether user can only see their own projects';\nCOMMENT ON COLUMN public.roles.allowed_pages IS 'JSON array of allowed page routes';"
   },
   "public.user_profiles": {
     "schema": "public",

@@ -85,7 +85,7 @@ All database entity types are centralized in `src/lib/supabase.ts`:
 - `ProtectedRoute` (`src/components/ProtectedRoute.tsx`) - route protection with role-based access control
 - Supabase Auth integration with email/password (no password complexity requirements)
 - User profile creation in `user_profiles` table on signup with `full_name` field
-- Default guest role (id=4) assigned on registration
+- Default clerk role (id=9, code='clerk') assigned on registration
 - Project assignment during registration via `user_projects` link table
 
 **Authorization System**:

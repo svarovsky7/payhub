@@ -88,7 +88,10 @@ export const LinkLetterModal: React.FC<LinkLetterModalProps> = ({
           >
             {filteredLetters.map(letter => (
               <Option key={letter.id} value={letter.id}>
-                {letter.number} - {dayjs(letter.letter_date).format('DD.MM.YYYY')}
+                {letter.number}
+                {letter.reg_number ? ` (Рег. ${letter.reg_number})` : ''}
+                {' - '}
+                {dayjs(letter.letter_date).format('DD.MM.YYYY')}
                 {letter.subject ? ` - ${letter.subject}` : ''}
               </Option>
             ))}
@@ -100,6 +103,7 @@ export const LinkLetterModal: React.FC<LinkLetterModalProps> = ({
             <div><strong>Связываемое письмо:</strong></div>
             <div style={{ marginTop: 8 }}>
               <div>Номер: {currentLetter.number}</div>
+              {currentLetter.reg_number && <div>Рег. номер: {currentLetter.reg_number}</div>}
               <div>Дата: {dayjs(currentLetter.letter_date).format('DD.MM.YYYY')}</div>
               {currentLetter.subject && <div>Тема: {currentLetter.subject}</div>}
             </div>
