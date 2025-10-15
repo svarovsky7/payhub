@@ -53,14 +53,15 @@ export async function generateRegNumber(
   const now = dayjs()
   const yymm = now.format('YYMM')
 
-  // Build search pattern for all letters in this project for current month (any direction)
-  const searchPattern = `${projectCode}-%-${yymm}-%`
+  // Build search pattern for letters in this project for current month with specific direction
+  const searchPattern = `${projectCode}-${typePrefix}-${yymm}-%`
 
-  // Find all letters with matching pattern for this project (both incoming and outgoing)
+  // Find all letters with matching pattern for this project and direction type
   const { data: existingLetters, error: lettersError } = await supabase
     .from('letters')
     .select('reg_number')
     .eq('project_id', projectId)
+    .eq('direction', direction)
     .not('reg_number', 'is', null)
     .like('reg_number', searchPattern)
 
