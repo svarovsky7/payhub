@@ -228,60 +228,99 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
   // This ensures we only filter out children that belong to currently loaded parents
   const parentLetterIds = data.map(l => l.id)
 
-  const { data: childLinks } = await supabase
-    .from('letter_links')
-    .select('child_id')
-    .in('parent_id', parentLetterIds)
+  // Use batching to avoid URL length issues (max 50 UUIDs per request)
+  const BATCH_SIZE = 50
 
-  const childLetterIds = new Set(childLinks?.map(link => link.child_id) || [])
+  // Load child IDs in batches
+  const idBatches: string[][] = []
+  for (let i = 0; i < parentLetterIds.length; i += BATCH_SIZE) {
+    idBatches.push(parentLetterIds.slice(i, i + BATCH_SIZE))
+  }
 
-  // Filter out child letters from main list and load children for parent letters
-  const parentLetters = data.filter(letter => !childLetterIds.has(letter.id))
-
-  const lettersWithChildren = await Promise.all(
-    parentLetters.map(async (letter) => {
-      const children = await getChildLettersWithFullData(letter.id)
-      return {
-        ...letter,
-        children: children.length > 0 ? children : undefined
-      }
+  const childIdResults = await Promise.all(
+    idBatches.map(async (batch) => {
+      const { data } = await supabase
+        .from('letter_links')
+        .select('child_id')
+        .in('parent_id', batch)
+      return data || []
     })
   )
 
-  return lettersWithChildren
-}
+  const childLinks = childIdResults.flat()
+  const childLetterIds = new Set(childLinks?.map(link => link.child_id) || [])
 
-/**
- * Get child letters with full data for expandable rows
- */
-async function getChildLettersWithFullData(letterId: string): Promise<Letter[]> {
-  console.log('[letterOperations.getChildLettersWithFullData] Loading children for:', letterId)
+  // Filter out child letters from main list
+  const parentLetters = data.filter(letter => !childLetterIds.has(letter.id))
 
-  const { data, error } = await supabase
-    .from('letter_links')
-    .select(`
-      child_letter:letters!letter_links_child_id_fkey(
-        *,
-        project:projects(id, name, code),
-        status:letter_statuses(id, name, code, color),
-        responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
-        creator:user_profiles!letters_created_by_fkey(id, full_name, email),
-        sender_contractor:contractors!fk_letters_sender_contractor(id, name),
-        recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
-      )
-    `)
-    .eq('parent_id', letterId)
-
-  if (error) {
-    console.error('[letterOperations.getChildLettersWithFullData] Error:', error)
-    throw error
+  // Load ALL children for all parent letters (with batching to avoid URL length limit)
+  if (parentLetterIds.length === 0) {
+    return []
   }
 
-  // Add parent_id to each child letter for unlinking
-  return data?.map(d => {
-    const childLetter = (d as any).child_letter
-    return childLetter ? { ...childLetter, parent_id: letterId } : null
-  }).filter(Boolean) || []
+  // Split into batches for loading full child data
+  const batches: string[][] = []
+  for (let i = 0; i < parentLetterIds.length; i += BATCH_SIZE) {
+    batches.push(parentLetterIds.slice(i, i + BATCH_SIZE))
+  }
+
+  console.log(`[letterOperations.loadLetters] Loading children in ${batches.length} batches`)
+
+  // Load children for each batch in parallel
+  const batchResults = await Promise.all(
+    batches.map(async (batch) => {
+      const { data, error } = await supabase
+        .from('letter_links')
+        .select(`
+          parent_id,
+          child_letter:letters!letter_links_child_id_fkey(
+            *,
+            project:projects(id, name, code),
+            status:letter_statuses(id, name, code, color),
+            responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
+            creator:user_profiles!letters_created_by_fkey(id, full_name, email),
+            sender_contractor:contractors!fk_letters_sender_contractor(id, name),
+            recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
+          )
+        `)
+        .in('parent_id', batch)
+
+      if (error) {
+        console.error('[letterOperations.loadLetters] Error loading batch:', error)
+        throw error
+      }
+
+      return data || []
+    })
+  )
+
+  // Flatten all batch results
+  const allChildLinks = batchResults.flat()
+
+  // Group children by parent_id
+  const childrenByParent = new Map<string, Letter[]>()
+  allChildLinks?.forEach((link: any) => {
+    const parentId = link.parent_id
+    const child = link.child_letter
+    if (child) {
+      const childWithParent = { ...child, parent_id: parentId }
+      if (!childrenByParent.has(parentId)) {
+        childrenByParent.set(parentId, [])
+      }
+      childrenByParent.get(parentId)!.push(childWithParent)
+    }
+  })
+
+  // Attach children to parent letters
+  const lettersWithChildren = parentLetters.map((letter) => {
+    const children = childrenByParent.get(letter.id) || []
+    return {
+      ...letter,
+      children: children.length > 0 ? children : undefined
+    }
+  })
+
+  return lettersWithChildren
 }
 
 /**

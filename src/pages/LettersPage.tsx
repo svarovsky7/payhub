@@ -268,12 +268,13 @@ export const LettersPage = () => {
         rowKey="id"
         loading={loading}
         pagination={{
-          defaultPageSize: 20,
+          defaultPageSize: 100,
           showSizeChanger: true,
           showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
-          pageSizeOptions: ['10', '20', '50', '100']
+          pageSizeOptions: ['50', '100', '200']
         }}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+        sticky
         className="compact-table"
         childrenColumnName="children"
         indentSize={24}

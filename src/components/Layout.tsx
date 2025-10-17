@@ -213,6 +213,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         collapsed={collapsed}
         width={250}
         collapsedWidth={80}
+        style={{
+          position: 'fixed',
+          height: '100vh',
+          left: 0,
+          top: 0,
+          overflow: 'auto',
+          zIndex: 1000
+        }}
       >
         <div
           style={{
@@ -238,7 +246,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }}
         />
       </Sider>
-      <Layout>
+      <Layout style={{ marginLeft: collapsed ? 80 : 250, transition: 'margin-left 0.2s' }}>
         <Header
           style={{
             padding: 0,
@@ -247,6 +255,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingRight: 24,
+            position: 'sticky',
+            top: 0,
+            zIndex: 999
           }}
         >
           <Button
