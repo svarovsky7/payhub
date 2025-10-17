@@ -6,7 +6,8 @@ import { supabase } from '../../lib/supabase'
 export async function processLetterFiles(
   letterId: string,
   newFiles: File[] = [],
-  originalFiles: any[] = []
+  originalFiles: any[] = [],
+  fileDescriptions?: Record<string, string>
 ): Promise<void> {
   console.log('[letterFiles.processLetterFiles] Processing files for letter:', letterId)
 
@@ -42,10 +43,12 @@ export async function processLetterFiles(
   }
 
   for (const file of newFiles) {
+    const description = fileDescriptions?.[file.name] || undefined
     await uploadAndLinkFile({
       file,
       entityType: 'letter',
       entityId: letterId,
+      description,
       userId
     })
   }
@@ -68,6 +71,7 @@ export async function getLetterAttachments(letterId: string): Promise<any[]> {
         storage_path,
         size_bytes,
         mime_type,
+        description,
         created_at
       )
     `)
@@ -77,6 +81,15 @@ export async function getLetterAttachments(letterId: string): Promise<any[]> {
     console.error('[letterFiles.getLetterAttachments] Error:', error)
     throw error
   }
+
+  console.log('[letterFiles.getLetterAttachments] Loaded attachments:', {
+    count: data?.length || 0,
+    attachments: data?.map(item => ({
+      id: (item as any).attachments?.id,
+      name: (item as any).attachments?.original_name,
+      description: (item as any).attachments?.description
+    }))
+  })
 
   return data || []
 }

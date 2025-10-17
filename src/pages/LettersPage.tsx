@@ -217,11 +217,11 @@ export const LettersPage = () => {
   )
 
   // Handle form submit
-  const handleFormSubmit = async (values: any, files: File[], originalFiles: string[]) => {
+  const handleFormSubmit = async (values: any, files: File[], originalFiles: string[], fileDescriptions: Record<string, string>, existingFileDescriptions: Record<string, string>) => {
     if (editingLetter) {
-      await handleUpdateLetter(editingLetter.id, values, files, originalFiles)
+      await handleUpdateLetter(editingLetter.id, values, files, originalFiles, fileDescriptions, existingFileDescriptions)
     } else {
-      await handleCreateLetter(values, files)
+      await handleCreateLetter(values, files, fileDescriptions)
     }
   }
 

@@ -1,10 +1,8 @@
-import React, { useState } from 'react'
-import { List, Button, Input, Space, Typography, Tooltip, Popconfirm } from 'antd'
-import { EyeOutlined, DeleteOutlined, DownloadOutlined, EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons'
-import { supabase } from '../../lib/supabase'
+import React from 'react'
+import { List, Button, Input, Typography, Tooltip, Popconfirm } from 'antd'
+import { EyeOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons'
 import { getFileIcon } from './FilePreviewModal'
 import dayjs from 'dayjs'
-import { message } from 'antd'
 import type { UploadFile } from 'antd/es/upload'
 import type { ExistingFile } from './FileUploadBlock'
 
@@ -82,7 +80,7 @@ interface ExistingFileListItemProps {
   onPreview: (file: ExistingFile) => void
   onDownload: (file: ExistingFile) => void
   onDelete: (file: ExistingFile) => void
-  onUpdate?: () => Promise<void>
+  onDescriptionChange?: (fileId: string, description: string) => void
 }
 
 export const ExistingFileListItem: React.FC<ExistingFileListItemProps> = ({
@@ -91,36 +89,8 @@ export const ExistingFileListItem: React.FC<ExistingFileListItemProps> = ({
   onPreview,
   onDownload,
   onDelete,
-  onUpdate
+  onDescriptionChange
 }) => {
-  const [isEditingDescription, setIsEditingDescription] = useState(false)
-  const [editingDescription, setEditingDescription] = useState(file.description || '')
-
-  const handleSaveDescription = async () => {
-    try {
-      const { error } = await supabase
-        .from('attachments')
-        .update({ description: editingDescription })
-        .eq('id', file.id)
-
-      if (error) throw error
-
-      message.success('Описание сохранено')
-      setIsEditingDescription(false)
-
-      if (onUpdate) {
-        await onUpdate()
-      }
-    } catch (error) {
-      console.error('[ExistingFileListItem] Save description error:', error)
-      message.error('Ошибка сохранения описания')
-    }
-  }
-
-  const handleCancelEdit = () => {
-    setEditingDescription(file.description || '')
-    setIsEditingDescription(false)
-  }
 
   return (
     <List.Item
@@ -171,65 +141,18 @@ export const ExistingFileListItem: React.FC<ExistingFileListItemProps> = ({
             {dayjs(file.created_at).format('DD.MM.YYYY HH:mm')}
           </Text>
         </div>
-        {isEditingDescription ? (
-          <Space.Compact>
-            <Input
-              size="small"
-              value={editingDescription}
-              onChange={(e) => setEditingDescription(e.target.value)}
-              placeholder="Описание файла"
-              style={{ width: 250, textAlign: 'right' }}
-            />
-            <Button
-              size="small"
-              icon={<SaveOutlined />}
-              onClick={handleSaveDescription}
-            />
-            <Button
-              size="small"
-              icon={<CloseOutlined />}
-              onClick={handleCancelEdit}
-            />
-          </Space.Compact>
-        ) : (
-          <div
-            style={{
-              width: 300,
-              cursor: disabled ? 'default' : 'pointer',
-              padding: '4px 8px',
-              border: '1px solid transparent',
-              borderRadius: '4px',
-              transition: 'all 0.2s',
-              textAlign: 'right'
-            }}
-            onClick={() => {
-              if (!disabled) {
-                setIsEditingDescription(true)
-              }
-            }}
-            onMouseEnter={(e) => {
-              if (!disabled) {
-                e.currentTarget.style.border = '1px solid #d9d9d9'
-                e.currentTarget.style.background = '#fafafa'
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.border = '1px solid transparent'
-              e.currentTarget.style.background = 'transparent'
-            }}
-          >
-            {file.description ? (
-              <Text>{file.description}</Text>
-            ) : (
-              <Text type="secondary">
-                {disabled ? 'Нет описания' : 'Нажмите для добавления описания'}
-              </Text>
-            )}
-            {!disabled && (
-              <EditOutlined style={{ marginLeft: 8, fontSize: 12, opacity: 0.5 }} />
-            )}
-          </div>
-        )}
+        <Input
+          size="small"
+          placeholder="Описание файла"
+          style={{ width: 300, textAlign: 'right' }}
+          value={file.description || ''}
+          onChange={(e) => {
+            if (onDescriptionChange) {
+              onDescriptionChange(file.id, e.target.value)
+            }
+          }}
+          disabled={disabled}
+        />
       </div>
     </List.Item>
   )

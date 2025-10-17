@@ -40,6 +40,7 @@ interface FileUploadBlockProps {
   // Описания файлов
   fileDescriptions?: FileDescriptions // Описания для новых файлов
   onFileDescriptionChange?: (uid: string, description: string) => void // Изменение описания нового файла
+  onExistingFileDescriptionChange?: (fileId: string, description: string) => void // Изменение описания существующего файла
 
   // Настройки
   multiple?: boolean // Множественная загрузка
@@ -62,6 +63,7 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
   onExistingFilesChange,
   fileDescriptions = {},
   onFileDescriptionChange,
+  onExistingFileDescriptionChange,
   multiple = true,
   maxSize = 10,
   accept,
@@ -306,7 +308,7 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
                 onPreview={handlePreviewFile}
                 onDownload={handleDownloadFile}
                 onDelete={handleDeleteExistingFile}
-                onUpdate={onExistingFilesChange}
+                onDescriptionChange={onExistingFileDescriptionChange}
               />
             )}
           />

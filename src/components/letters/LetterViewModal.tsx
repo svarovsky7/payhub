@@ -149,29 +149,35 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
                 size="small"
                 bordered
                 dataSource={letter.attachments}
-                renderItem={(item: any) => (
-                  <List.Item
-                    actions={[
-                      <Button
-                        key="download"
-                        type="link"
-                        icon={<DownloadOutlined />}
-                        onClick={() => handleDownloadFile(
-                          item.attachments.storage_path,
-                          item.attachments.original_name
-                        )}
-                      >
-                        Скачать
-                      </Button>
-                    ]}
-                  >
-                    <List.Item.Meta
-                      avatar={<FileOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
-                      title={item.attachments.original_name}
-                      description={`Размер: ${(item.attachments.size_bytes / 1024).toFixed(2)} КБ`}
-                    />
-                  </List.Item>
-                )}
+                renderItem={(item: any) => {
+                  const fileSize = `Размер: ${(item.attachments.size_bytes / 1024).toFixed(2)} КБ`
+                  const description = item.attachments.description
+                  const descriptionText = description ? `${fileSize} • ${description}` : fileSize
+
+                  return (
+                    <List.Item
+                      actions={[
+                        <Button
+                          key="download"
+                          type="link"
+                          icon={<DownloadOutlined />}
+                          onClick={() => handleDownloadFile(
+                            item.attachments.storage_path,
+                            item.attachments.original_name
+                          )}
+                        >
+                          Скачать
+                        </Button>
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={<FileOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                        title={item.attachments.original_name}
+                        description={descriptionText}
+                      />
+                    </List.Item>
+                  )
+                }}
               />
             </div>
           )}

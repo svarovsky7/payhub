@@ -52,7 +52,7 @@ export const LetterParticipantsSection: React.FC<LetterParticipantsSectionProps>
 
             {senderType === 'individual' ? (
               <Form.Item name="sender" noStyle>
-                <Input placeholder="Введите ФИО" allowClear />
+                <Input placeholder="Введите ФИО" allowClear autoComplete="off" />
               </Form.Item>
             ) : (
               <Form.Item name="sender_contractor_id" noStyle>
@@ -137,7 +137,7 @@ export const LetterParticipantsSection: React.FC<LetterParticipantsSectionProps>
 
             {recipientType === 'individual' ? (
               <Form.Item name="recipient" noStyle>
-                <Input placeholder="Введите ФИО" allowClear />
+                <Input placeholder="Введите ФИО" allowClear autoComplete="off" />
               </Form.Item>
             ) : (
               <Form.Item name="recipient_contractor_id" noStyle>

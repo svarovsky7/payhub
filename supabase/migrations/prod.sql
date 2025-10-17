@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-17T05:49:50.471625
+-- Generated: 2025-10-17T07:54:20.526990
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -3097,7 +3097,12 @@ BEGIN
     current_user_id := current_setting('app.current_user_id', true)::uuid;
 
     IF current_user_id IS NULL THEN
-        current_user_id := NEW.user_id; -- fallback на создателя
+        -- Для DELETE используем OLD.user_id, для INSERT/UPDATE используем NEW.user_id
+        IF (TG_OP = 'DELETE') THEN
+            current_user_id := OLD.user_id;
+        ELSE
+            current_user_id := NEW.user_id;
+        END IF;
     END IF;
 
     IF (TG_OP = 'INSERT') THEN
@@ -3259,7 +3264,12 @@ BEGIN
     current_user_id := current_setting('app.current_user_id', true)::uuid;
 
     IF current_user_id IS NULL THEN
-        current_user_id := NEW.created_by; -- fallback на создателя
+        -- Для DELETE используем OLD.created_by, для INSERT/UPDATE используем NEW.created_by
+        IF (TG_OP = 'DELETE') THEN
+            current_user_id := OLD.created_by;
+        ELSE
+            current_user_id := NEW.created_by;
+        END IF;
     END IF;
 
     IF (TG_OP = 'INSERT') THEN
@@ -3277,14 +3287,14 @@ BEGIN
             VALUES ('payment', NEW.id, 'update', 'payment_number', OLD.payment_number::text, NEW.payment_number::text, current_user_id);
         END IF;
 
-        IF OLD.payment_date IS DISTINCT FROM NEW.payment_date THEN
-            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
-            VALUES ('payment', NEW.id, 'update', 'payment_date', OLD.payment_date::text, NEW.payment_date::text, current_user_id);
-        END IF;
-
         IF OLD.amount IS DISTINCT FROM NEW.amount THEN
             INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
             VALUES ('payment', NEW.id, 'update', 'amount', OLD.amount::text, NEW.amount::text, current_user_id);
+        END IF;
+
+        IF OLD.payment_date IS DISTINCT FROM NEW.payment_date THEN
+            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
+            VALUES ('payment', NEW.id, 'update', 'payment_date', OLD.payment_date::text, NEW.payment_date::text, current_user_id);
         END IF;
 
         IF OLD.status_id IS DISTINCT FROM NEW.status_id THEN
@@ -3292,16 +3302,6 @@ BEGIN
             VALUES ('payment', NEW.id, 'status_change', 'status_id', OLD.status_id::text, NEW.status_id::text, current_user_id,
                     jsonb_build_object('old_status_name', (SELECT name FROM payment_statuses WHERE id = OLD.status_id),
                                      'new_status_name', (SELECT name FROM payment_statuses WHERE id = NEW.status_id)));
-        END IF;
-
-        IF OLD.description IS DISTINCT FROM NEW.description THEN
-            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
-            VALUES ('payment', NEW.id, 'update', 'description', OLD.description, NEW.description, current_user_id);
-        END IF;
-
-        IF OLD.payment_type_id IS DISTINCT FROM NEW.payment_type_id THEN
-            INSERT INTO public.audit_log (entity_type, entity_id, action, field_name, old_value, new_value, user_id)
-            VALUES ('payment', NEW.id, 'update', 'payment_type_id', OLD.payment_type_id::text, NEW.payment_type_id::text, current_user_id);
         END IF;
 
         IF OLD.is_archived IS DISTINCT FROM NEW.is_archived THEN

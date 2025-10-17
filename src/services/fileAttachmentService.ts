@@ -350,3 +350,36 @@ export const updateFileDescription = async (
   }
 }
 
+/**
+ * Массово обновляет описания файлов
+ */
+export const updateFileDescriptionsBatch = async (
+  descriptions: Record<string, string>
+): Promise<void> => {
+  try {
+    console.log('[fileAttachmentService.updateFileDescriptionsBatch] Updating descriptions:', {
+      count: Object.keys(descriptions).length,
+      fileIds: Object.keys(descriptions)
+    })
+
+    // Если нет изменений, ничего не делаем
+    if (Object.keys(descriptions).length === 0) {
+      console.log('[fileAttachmentService.updateFileDescriptionsBatch] No descriptions to update')
+      return
+    }
+
+    // Обновляем каждый файл по отдельности
+    // (В PostgreSQL можно использовать batch update, но для простоты делаем последовательно)
+    const promises = Object.entries(descriptions).map(([fileId, description]) =>
+      updateFileDescription(fileId, description)
+    )
+
+    await Promise.all(promises)
+
+    console.log('[fileAttachmentService.updateFileDescriptionsBatch] All descriptions updated successfully')
+  } catch (error) {
+    console.error('[fileAttachmentService.updateFileDescriptionsBatch] Error:', error)
+    throw error
+  }
+}
+

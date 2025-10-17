@@ -1,9 +1,8 @@
 import { supabase } from '../lib/supabase'
-import type { Contractor, Project, Contract, ContractStatus, ContractProject } from '../lib/supabase'
+import type { Contractor, Project, Contract, ContractStatus } from '../lib/supabase'
 import { message } from 'antd'
-import { isErrorWithCode } from '../types/common'
 
-export type { Contract, ContractStatus, ContractProject }
+export type { Contract }
 
 
 // Load contracts with related data
@@ -131,34 +130,6 @@ export const deleteContract = async (id: string) => {
   }
 }
 
-// Add invoice to contract
-export const addInvoiceToContract = async (contractId: string, invoiceId: string) => {
-
-  try {
-    const { data, error } = await supabase
-      .from('contract_invoices')
-      .insert({
-        contract_id: contractId,
-        invoice_id: invoiceId
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    message.success('Счет успешно привязан к договору')
-    return data
-  } catch (error: unknown) {
-    console.error('[ContractOperations.addInvoiceToContract] Error:', error)
-    if (isErrorWithCode(error) && error.code === '23505') {
-      message.error('Этот счет уже привязан к договору')
-    } else {
-      message.error('Ошибка привязки счета к договору')
-    }
-    throw error
-  }
-}
-
 // Remove invoice from contract
 export const removeInvoiceFromContract = async (contractId: string, invoiceId: string) => {
 
@@ -176,47 +147,6 @@ export const removeInvoiceFromContract = async (contractId: string, invoiceId: s
     console.error('[ContractOperations.removeInvoiceFromContract] Error:', error)
     message.error('Ошибка отвязки счета от договора')
     throw error
-  }
-}
-
-
-
-// Load available invoices (not linked to any contract)
-export const loadAvailableInvoices = async () => {
-
-  try {
-    // First get all invoice IDs that are already linked to contracts
-    const { data: linkedInvoices, error: linkedError } = await supabase
-      .from('contract_invoices')
-      .select('invoice_id')
-
-    if (linkedError) throw linkedError
-
-    const linkedInvoiceIds = linkedInvoices?.map(li => li.invoice_id) || []
-
-    // Then get all invoices that are not in the linked list
-    let query = supabase
-      .from('invoices')
-      .select(`
-        *,
-        payer:contractors!invoices_payer_id_fkey(*),
-        supplier:contractors!invoices_supplier_id_fkey(*)
-      `)
-      .order('invoice_date', { ascending: false })
-
-    if (linkedInvoiceIds.length > 0) {
-      query = query.not('id', 'in', `(${linkedInvoiceIds.join(',')})`)
-    }
-
-    const { data, error } = await query
-
-    if (error) throw error
-
-    return data || []
-  } catch (error) {
-    console.error('[ContractOperations.loadAvailableInvoices] Error:', error)
-    message.error('Ошибка загрузки доступных счетов')
-    return []
   }
 }
 

@@ -31,6 +31,7 @@ export const useLetterFormData = ({
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [existingFiles, setExistingFiles] = useState<ExistingFile[]>([])
   const [fileDescriptions, setFileDescriptions] = useState<FileDescriptions>({})
+  const [existingFileDescriptions, setExistingFileDescriptions] = useState<Record<string, string>>({})
   const [direction, setDirection] = useState<'incoming' | 'outgoing'>('incoming')
   const [senderType, setSenderType] = useState<'individual' | 'contractor'>('contractor')
   const [recipientType, setRecipientType] = useState<'individual' | 'contractor'>('contractor')
@@ -65,9 +66,19 @@ export const useLetterFormData = ({
         storage_path: att.attachments.storage_path,
         size_bytes: att.attachments.size_bytes,
         mime_type: att.attachments.mime_type || '',
+        description: att.attachments.description,
         created_at: att.attachments.created_at,
         attachment_id: att.id
       }))
+
+      console.log('[useLetterFormData] Setting existing files:', {
+        count: files.length,
+        files: files.map(f => ({
+          name: f.original_name,
+          description: f.description
+        }))
+      })
+
       setExistingFiles(files)
     } catch (error) {
       console.error('[useLetterFormData] Error loading files:', error)
@@ -130,6 +141,7 @@ export const useLetterFormData = ({
       setFileList([])
       setExistingFiles([])
       setFileDescriptions({})
+      setExistingFileDescriptions({})
       setSenderType('contractor')
       setRecipientType('contractor')
 
@@ -151,6 +163,19 @@ export const useLetterFormData = ({
     }
   }, [visible, editingLetter, form, userId, users])
 
+  // Handle existing file description change
+  const handleExistingFileDescriptionChange = (fileId: string, description: string) => {
+    setExistingFileDescriptions(prev => ({
+      ...prev,
+      [fileId]: description
+    }))
+
+    // Update the existingFiles array to reflect the change in UI
+    setExistingFiles(prev => prev.map(file =>
+      file.id === fileId ? { ...file, description } : file
+    ))
+  }
+
   return {
     contractors,
     fileList,
@@ -159,6 +184,9 @@ export const useLetterFormData = ({
     setExistingFiles,
     fileDescriptions,
     setFileDescriptions,
+    existingFileDescriptions,
+    setExistingFileDescriptions,
+    handleExistingFileDescriptionChange,
     direction,
     setDirection,
     senderType,

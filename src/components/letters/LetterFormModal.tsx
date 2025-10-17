@@ -18,7 +18,7 @@ const LAST_SELECTED_PROJECT_KEY = 'lastSelectedLetterProject'
 interface LetterFormModalProps {
   visible: boolean
   onCancel: () => void
-  onSubmit: (values: any, files: File[], originalFiles: string[]) => Promise<void>
+  onSubmit: (values: any, files: File[], originalFiles: string[], fileDescriptions: Record<string, string>, existingFileDescriptions: Record<string, string>) => Promise<void>
   editingLetter: Letter | null
   letterStatuses: LetterStatus[]
   projects: Project[]
@@ -53,6 +53,9 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
     setExistingFiles,
     fileDescriptions,
     setFileDescriptions,
+    existingFileDescriptions,
+    setExistingFileDescriptions,
+    handleExistingFileDescriptionChange,
     direction,
     setDirection,
     senderType,
@@ -166,7 +169,15 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
 
       const originalFiles = existingFiles.map(f => f.original_name)
 
-      await onSubmit(formData, newFiles, originalFiles)
+      // Convert fileDescriptions from uid-based to filename-based
+      const fileDescriptionsByName: Record<string, string> = {}
+      fileList.forEach(f => {
+        if (f.uid && fileDescriptions[f.uid] && f.originFileObj) {
+          fileDescriptionsByName[f.originFileObj.name] = fileDescriptions[f.uid]
+        }
+      })
+
+      await onSubmit(formData, newFiles, originalFiles, fileDescriptionsByName, existingFileDescriptions)
 
       form.resetFields()
       setFileList([])
@@ -184,6 +195,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
     setFileList([])
     setExistingFiles([])
     setFileDescriptions({})
+    setExistingFileDescriptions({})
     onCancel()
   }
 
@@ -360,6 +372,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
             onExistingFilesChange={editingLetter?.id ? () => loadExistingFiles(editingLetter.id) : undefined}
             fileDescriptions={fileDescriptions}
             onFileDescriptionChange={handleFileDescriptionChange}
+            onExistingFileDescriptionChange={handleExistingFileDescriptionChange}
             multiple={true}
             maxSize={50}
           />

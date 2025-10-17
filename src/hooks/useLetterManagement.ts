@@ -162,7 +162,7 @@ export const useLetterManagement = () => {
   }, [user?.id])
 
   // Create letter
-  const handleCreateLetter = useCallback(async (letterData: Partial<Letter>, files?: File[]) => {
+  const handleCreateLetter = useCallback(async (letterData: Partial<Letter>, files?: File[], fileDescriptions?: Record<string, string>) => {
     console.log('[useLetterManagement.handleCreateLetter] Data:', letterData)
 
     try {
@@ -171,7 +171,7 @@ export const useLetterManagement = () => {
       message.success('Письмо создано')
 
       // Create in background and add to list when complete
-      const newLetter = await createLetter(letterData, files)
+      const newLetter = await createLetter(letterData, files, fileDescriptions)
 
       // Add new letter to the list
       setLetters(prev => [newLetter, ...prev])
@@ -187,7 +187,9 @@ export const useLetterManagement = () => {
     letterId: string,
     letterData: Partial<Letter>,
     files?: File[],
-    originalFiles?: any[]
+    originalFiles?: any[],
+    fileDescriptions?: Record<string, string>,
+    existingFileDescriptions?: Record<string, string>
   ) => {
     console.log('[useLetterManagement.handleUpdateLetter] ID:', letterId, 'Data:', letterData)
 
@@ -201,7 +203,7 @@ export const useLetterManagement = () => {
       message.success('Письмо обновлено')
 
       // Update in background and get full data with JOINs
-      const updatedLetter = await updateLetter(letterId, letterData, files, originalFiles)
+      const updatedLetter = await updateLetter(letterId, letterData, files, originalFiles, fileDescriptions, existingFileDescriptions)
 
       // Update letter in tree with full data from server
       const updateLetterInTree = (lettersList: Letter[]): Letter[] => {

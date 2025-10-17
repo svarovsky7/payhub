@@ -23,12 +23,3 @@ export const loadApprovalRoutes = async (invoiceTypeId: number) => {
     return []
   }
 }
-
-/**
- * Check if there is at least one active approval route for invoice type
- * @deprecated Use loadApprovalRoutes instead
- */
-export const checkApprovalRoute = async (invoiceTypeId: number) => {
-  const routes = await loadApprovalRoutes(invoiceTypeId)
-  return routes.length > 0 ? routes[0] : null
-}

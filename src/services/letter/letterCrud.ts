@@ -2,13 +2,15 @@ import { supabase } from '../../lib/supabase'
 import type { Letter } from '../../lib/supabase'
 import { createAuditLogEntry } from '../auditLogService'
 import { processLetterFiles } from './letterFiles'
+import { updateFileDescriptionsBatch } from '../fileAttachmentService'
 
 /**
  * Create a new letter
  */
 export async function createLetter(
   letterData: Partial<Letter>,
-  files?: File[]
+  files?: File[],
+  fileDescriptions?: Record<string, string>
 ): Promise<Letter> {
   console.log('[letterCrud.createLetter] Creating letter:', letterData)
 
@@ -33,7 +35,7 @@ export async function createLetter(
 
   // Upload files if provided
   if (files && files.length > 0 && data) {
-    await processLetterFiles(data.id, files)
+    await processLetterFiles(data.id, files, [], fileDescriptions)
   }
 
   // Log creation
@@ -58,7 +60,9 @@ export async function updateLetter(
   letterId: string,
   letterData: Partial<Letter>,
   files?: File[],
-  originalFiles?: any[]
+  originalFiles?: any[],
+  fileDescriptions?: Record<string, string>,
+  existingFileDescriptions?: Record<string, string>
 ): Promise<Letter> {
   console.log('[letterCrud.updateLetter] Updating letter:', letterId, letterData)
 
@@ -91,7 +95,15 @@ export async function updateLetter(
 
   // Handle file operations
   if (files || originalFiles) {
-    await processLetterFiles(letterId, files || [], originalFiles || [])
+    await processLetterFiles(letterId, files || [], originalFiles || [], fileDescriptions)
+  }
+
+  // Update existing file descriptions
+  if (existingFileDescriptions && Object.keys(existingFileDescriptions).length > 0) {
+    console.log('[letterCrud.updateLetter] Updating existing file descriptions:', {
+      count: Object.keys(existingFileDescriptions).length
+    })
+    await updateFileDescriptionsBatch(existingFileDescriptions)
   }
 
   // Log updates for changed fields

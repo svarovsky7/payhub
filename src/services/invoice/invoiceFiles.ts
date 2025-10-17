@@ -143,10 +143,12 @@ export const processInvoiceFiles = async (invoiceId: string, files: FileWithDesc
       }
 
       // Генерируем уникальное имя файла
-      const fileName = `${Date.now()}_${file.name}`
+      // Очищаем имя файла от кириллицы и специальных символов для совместимости с storage
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+      const fileName = `${Date.now()}_${cleanFileName}`
       const filePath = `invoices/${invoiceId}/${fileName}`
 
-      console.log('[InvoiceOperations.processFiles] Uploading file:', { name: file.name, size: fileSize, path: filePath })
+      console.log('[InvoiceOperations.processFiles] Uploading file:', { name: file.name, cleanName: cleanFileName, size: fileSize, path: filePath })
 
       // Загружаем файл в Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
