@@ -797,7 +797,7 @@
       {
         "name": "inn",
         "type": "varchar(12)",
-        "nullable": true,
+        "nullable": false,
         "description": "Russian tax identifier (INN)"
       },
       {
@@ -840,6 +840,9 @@
         },
         {
           "name": "2200_18404_3_not_null"
+        },
+        {
+          "name": "2200_18404_4_not_null"
         }
       ]
     },
@@ -2307,13 +2310,13 @@
         "name": "sender",
         "type": "text",
         "nullable": true,
-        "description": "Отправитель письма (может быть как компания, так и физическое лицо)"
+        "description": "Отправитель письма (текст для физ.лица, используется когда sender_type = individual)"
       },
       {
         "name": "recipient",
         "type": "text",
         "nullable": true,
-        "description": "Получатель письма (может быть как компания, так и физическое лицо)"
+        "description": "Получатель письма (текст для физ.лица, используется когда recipient_type = individual)"
       },
       {
         "name": "direction",
@@ -2369,6 +2372,32 @@
         "type": "date",
         "nullable": true,
         "description": "Регламентный срок ответа на письмо"
+      },
+      {
+        "name": "sender_type",
+        "type": "text",
+        "nullable": true,
+        "default": "'individual'::text",
+        "description": "Type of sender: individual (физ.лицо) or contractor (контрагент)"
+      },
+      {
+        "name": "sender_contractor_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Reference to contractor if sender_type = contractor"
+      },
+      {
+        "name": "recipient_type",
+        "type": "text",
+        "nullable": true,
+        "default": "'individual'::text",
+        "description": "Type of recipient: individual (физ.лицо) or contractor (контрагент)"
+      },
+      {
+        "name": "recipient_contractor_id",
+        "type": "integer",
+        "nullable": true,
+        "description": "Reference to contractor if recipient_type = contractor"
       }
     ],
     "constraints": {
@@ -2389,6 +2418,12 @@
         },
         {
           "name": "letters_direction_check"
+        },
+        {
+          "name": "letters_recipient_type_check"
+        },
+        {
+          "name": "letters_sender_type_check"
         }
       ]
     },
@@ -2422,6 +2457,20 @@
         "unique": false
       },
       {
+        "name": "idx_letters_recipient_contractor_id",
+        "columns": [
+          "recipient_contractor_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_recipient_type",
+        "columns": [
+          "recipient_type"
+        ],
+        "unique": false
+      },
+      {
         "name": "idx_letters_reg_date",
         "columns": [
           "reg_date"
@@ -2432,6 +2481,20 @@
         "name": "idx_letters_responsible_user_id",
         "columns": [
           "responsible_user_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_sender_contractor_id",
+        "columns": [
+          "sender_contractor_id"
+        ],
+        "unique": false
+      },
+      {
+        "name": "idx_letters_sender_type",
+        "columns": [
+          "sender_type"
         ],
         "unique": false
       },

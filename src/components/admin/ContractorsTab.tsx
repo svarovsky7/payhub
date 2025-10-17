@@ -328,6 +328,7 @@ export const ContractorsTab = () => {
             name="inn"
             label="ИНН"
             rules={[
+              { required: true, message: 'Укажите ИНН' },
               { pattern: /^\d{10}$|^\d{12}$/, message: 'ИНН должен содержать 10 или 12 цифр' }
             ]}
             validateTrigger="onBlur"

@@ -4164,7 +4164,7 @@
         "max_length": 12,
         "numeric_precision": null,
         "numeric_scale": null,
-        "is_nullable": "YES",
+        "is_nullable": "NO",
         "default": null,
         "comment": "Russian tax identifier (INN)"
       },
@@ -4217,6 +4217,14 @@
         "foreign_column": null
       },
       {
+        "name": "2200_18404_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
         "name": "contractors_created_by_fkey",
         "type": "FOREIGN KEY",
         "column": "created_by",
@@ -4241,7 +4249,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Registry of contractors linked to invoices and projects\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    inn character varying(12),\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects';\nCOMMENT ON COLUMN public.contractors.id IS 'Primary key';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN)';\nCOMMENT ON COLUMN public.contractors.created_by IS 'User ID who created the contractor record';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor was created';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor was last updated';"
+    "sql": "-- Registry of contractors linked to invoices and projects\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    inn character varying(12) NOT NULL,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects';\nCOMMENT ON COLUMN public.contractors.id IS 'Primary key';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN)';\nCOMMENT ON COLUMN public.contractors.created_by IS 'User ID who created the contractor record';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor was created';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor was last updated';"
   },
   "public.contracts": {
     "schema": "public",
@@ -6102,7 +6110,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Отправитель письма (может быть как компания, так и физическое лицо)"
+        "comment": "Отправитель письма (текст для физ.лица, используется когда sender_type = individual)"
       },
       {
         "name": "recipient",
@@ -6112,7 +6120,7 @@
         "numeric_scale": null,
         "is_nullable": "YES",
         "default": null,
-        "comment": "Получатель письма (может быть как компания, так и физическое лицо)"
+        "comment": "Получатель письма (текст для физ.лица, используется когда recipient_type = individual)"
       },
       {
         "name": "direction",
@@ -6203,6 +6211,46 @@
         "is_nullable": "YES",
         "default": null,
         "comment": "Регламентный срок ответа на письмо"
+      },
+      {
+        "name": "sender_type",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "'individual'::text",
+        "comment": "Type of sender: individual (физ.лицо) or contractor (контрагент)"
+      },
+      {
+        "name": "sender_contractor_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Reference to contractor if sender_type = contractor"
+      },
+      {
+        "name": "recipient_type",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "'individual'::text",
+        "comment": "Type of recipient: individual (физ.лицо) or contractor (контрагент)"
+      },
+      {
+        "name": "recipient_contractor_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Reference to contractor if recipient_type = contractor"
       }
     ],
     "constraints": [
@@ -6226,6 +6274,22 @@
         "name": "2200_27166_5_not_null",
         "type": "CHECK",
         "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "fk_letters_recipient_contractor",
+        "type": "FOREIGN KEY",
+        "column": "recipient_contractor_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "fk_letters_sender_contractor",
+        "type": "FOREIGN KEY",
+        "column": "sender_contractor_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
@@ -6263,9 +6327,25 @@
         "foreign_column": null
       },
       {
+        "name": "letters_recipient_type_check",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
         "name": "letters_responsible_user_id_fkey",
         "type": "FOREIGN KEY",
         "column": "responsible_user_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letters_sender_type_check",
+        "type": "CHECK",
+        "column": null,
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
@@ -6279,7 +6359,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Учет входящих и исходящих писем компании\nCREATE TABLE IF NOT EXISTS public.letters (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    project_id bigint(64),\n    number text,\n    status_id integer(32) DEFAULT 1,\n    letter_date date NOT NULL,\n    subject text,\n    content text,\n    responsible_user_id uuid,\n    sender text,\n    recipient text,\n    direction text NOT NULL DEFAULT 'incoming'::text,\n    reg_number text,\n    reg_date date,\n    delivery_method text,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    responsible_person_name text,\n    response_deadline date,\n    CONSTRAINT letters_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT letters_pkey PRIMARY KEY (id),\n    CONSTRAINT letters_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT letters_responsible_user_id_fkey FOREIGN KEY (responsible_user_id) REFERENCES None.None(None),\n    CONSTRAINT letters_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.letters IS 'Учет входящих и исходящих писем компании';\nCOMMENT ON COLUMN public.letters.project_id IS 'Связанный проект';\nCOMMENT ON COLUMN public.letters.number IS 'Номер письма (необязательное поле)';\nCOMMENT ON COLUMN public.letters.status_id IS 'Текущий статус письма';\nCOMMENT ON COLUMN public.letters.letter_date IS 'Дата письма';\nCOMMENT ON COLUMN public.letters.subject IS 'Тема/предмет письма';\nCOMMENT ON COLUMN public.letters.content IS 'Краткое содержание письма';\nCOMMENT ON COLUMN public.letters.responsible_user_id IS 'Ответственный за обработку письма (ссылка на зарегистрированного пользователя)';\nCOMMENT ON COLUMN public.letters.sender IS 'Отправитель письма (может быть как компания, так и физическое лицо)';\nCOMMENT ON COLUMN public.letters.recipient IS 'Получатель письма (может быть как компания, так и физическое лицо)';\nCOMMENT ON COLUMN public.letters.direction IS 'Направление: incoming (входящее) или outgoing (исходящее)';\nCOMMENT ON COLUMN public.letters.reg_number IS 'Регистрационный номер (необязательное поле)';\nCOMMENT ON COLUMN public.letters.reg_date IS 'Дата регистрации в системе';\nCOMMENT ON COLUMN public.letters.delivery_method IS 'Способ доставки/отправки письма (почта, email, курьер, ЭДО, факс, другое)';\nCOMMENT ON COLUMN public.letters.created_by IS 'Пользователь, создавший запись';\nCOMMENT ON COLUMN public.letters.responsible_person_name IS 'Ответственный за обработку письма (произвольное текстовое поле для физических лиц)';\nCOMMENT ON COLUMN public.letters.response_deadline IS 'Регламентный срок ответа на письмо';"
+    "sql": "-- Учет входящих и исходящих писем компании\nCREATE TABLE IF NOT EXISTS public.letters (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    project_id bigint(64),\n    number text,\n    status_id integer(32) DEFAULT 1,\n    letter_date date NOT NULL,\n    subject text,\n    content text,\n    responsible_user_id uuid,\n    sender text,\n    recipient text,\n    direction text NOT NULL DEFAULT 'incoming'::text,\n    reg_number text,\n    reg_date date,\n    delivery_method text,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    responsible_person_name text,\n    response_deadline date,\n    sender_type text DEFAULT 'individual'::text,\n    sender_contractor_id integer(32),\n    recipient_type text DEFAULT 'individual'::text,\n    recipient_contractor_id integer(32),\n    CONSTRAINT fk_letters_recipient_contractor FOREIGN KEY (recipient_contractor_id) REFERENCES None.None(None),\n    CONSTRAINT fk_letters_sender_contractor FOREIGN KEY (sender_contractor_id) REFERENCES None.None(None),\n    CONSTRAINT letters_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT letters_pkey PRIMARY KEY (id),\n    CONSTRAINT letters_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT letters_responsible_user_id_fkey FOREIGN KEY (responsible_user_id) REFERENCES None.None(None),\n    CONSTRAINT letters_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.letters IS 'Учет входящих и исходящих писем компании';\nCOMMENT ON COLUMN public.letters.project_id IS 'Связанный проект';\nCOMMENT ON COLUMN public.letters.number IS 'Номер письма (необязательное поле)';\nCOMMENT ON COLUMN public.letters.status_id IS 'Текущий статус письма';\nCOMMENT ON COLUMN public.letters.letter_date IS 'Дата письма';\nCOMMENT ON COLUMN public.letters.subject IS 'Тема/предмет письма';\nCOMMENT ON COLUMN public.letters.content IS 'Краткое содержание письма';\nCOMMENT ON COLUMN public.letters.responsible_user_id IS 'Ответственный за обработку письма (ссылка на зарегистрированного пользователя)';\nCOMMENT ON COLUMN public.letters.sender IS 'Отправитель письма (текст для физ.лица, используется когда sender_type = individual)';\nCOMMENT ON COLUMN public.letters.recipient IS 'Получатель письма (текст для физ.лица, используется когда recipient_type = individual)';\nCOMMENT ON COLUMN public.letters.direction IS 'Направление: incoming (входящее) или outgoing (исходящее)';\nCOMMENT ON COLUMN public.letters.reg_number IS 'Регистрационный номер (необязательное поле)';\nCOMMENT ON COLUMN public.letters.reg_date IS 'Дата регистрации в системе';\nCOMMENT ON COLUMN public.letters.delivery_method IS 'Способ доставки/отправки письма (почта, email, курьер, ЭДО, факс, другое)';\nCOMMENT ON COLUMN public.letters.created_by IS 'Пользователь, создавший запись';\nCOMMENT ON COLUMN public.letters.responsible_person_name IS 'Ответственный за обработку письма (произвольное текстовое поле для физических лиц)';\nCOMMENT ON COLUMN public.letters.response_deadline IS 'Регламентный срок ответа на письмо';\nCOMMENT ON COLUMN public.letters.sender_type IS 'Type of sender: individual (физ.лицо) or contractor (контрагент)';\nCOMMENT ON COLUMN public.letters.sender_contractor_id IS 'Reference to contractor if sender_type = contractor';\nCOMMENT ON COLUMN public.letters.recipient_type IS 'Type of recipient: individual (физ.лицо) or contractor (контрагент)';\nCOMMENT ON COLUMN public.letters.recipient_contractor_id IS 'Reference to contractor if recipient_type = contractor';"
   },
   "public.material_classes": {
     "schema": "public",

@@ -54,7 +54,7 @@ export type Project = {
 export type Contractor = {
   id: number
   name: string
-  inn?: string
+  inn: string
   created_by?: string
   created_at: string
   updated_at: string
@@ -274,7 +274,11 @@ export type Letter = {
   responsible_user_id?: string | null
   responsible_person_name?: string | null
   sender?: string | null
+  sender_type?: 'individual' | 'contractor'
+  sender_contractor_id?: number | null
   recipient?: string | null
+  recipient_type?: 'individual' | 'contractor'
+  recipient_contractor_id?: number | null
   direction: 'incoming' | 'outgoing'
   reg_number?: string | null
   reg_date?: string | null
@@ -293,6 +297,8 @@ export type Letter = {
   attachments?: LetterAttachment[]
   children?: Letter[] // Для expandable таблицы
   parent_id?: string // ID родительского письма (только для дочерних писем)
+  sender_contractor?: Contractor // Связанный контрагент-отправитель
+  recipient_contractor?: Contractor // Связанный контрагент-получатель
 }
 
 export type LetterAttachment = {

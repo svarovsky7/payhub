@@ -943,6 +943,22 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_letters_project_id ON public.letters USING btree (project_id)"
   },
+  "public.letters.idx_letters_recipient_contractor_id": {
+    "schema": "public",
+    "name": "idx_letters_recipient_contractor_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_recipient_contractor_id ON public.letters USING btree (recipient_contractor_id)"
+  },
+  "public.letters.idx_letters_recipient_type": {
+    "schema": "public",
+    "name": "idx_letters_recipient_type",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_recipient_type ON public.letters USING btree (recipient_type)"
+  },
   "public.letters.idx_letters_reg_date": {
     "schema": "public",
     "name": "idx_letters_reg_date",
@@ -958,6 +974,22 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE INDEX idx_letters_responsible_user_id ON public.letters USING btree (responsible_user_id)"
+  },
+  "public.letters.idx_letters_sender_contractor_id": {
+    "schema": "public",
+    "name": "idx_letters_sender_contractor_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_sender_contractor_id ON public.letters USING btree (sender_contractor_id)"
+  },
+  "public.letters.idx_letters_sender_type": {
+    "schema": "public",
+    "name": "idx_letters_sender_type",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letters_sender_type ON public.letters USING btree (sender_type)"
   },
   "public.letters.idx_letters_status_id": {
     "schema": "public",

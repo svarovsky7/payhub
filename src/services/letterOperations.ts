@@ -53,27 +53,54 @@ export async function generateRegNumber(
   const now = dayjs()
   const yymm = now.format('YYMM')
 
-  // Build search pattern for letters in this project for current month with specific direction
-  const searchPattern = `${projectCode}-${typePrefix}-${yymm}-%`
+  // Build search pattern for all letters in this project for current month (any direction)
+  const searchPattern = `${projectCode}-%-${yymm}-%`
 
-  // Find all letters with matching pattern for this project and direction type
+  console.log('[letterOperations.generateRegNumber] Query parameters:', {
+    projectId,
+    projectCode,
+    typePrefix,
+    yymm,
+    searchPattern
+  })
+
+  // First, check all letters with reg_number for this project (for debugging)
+  const { data: allProjectLetters } = await supabase
+    .from('letters')
+    .select('reg_number')
+    .eq('project_id', projectId)
+    .not('reg_number', 'is', null)
+
+  console.log('[letterOperations.generateRegNumber] All letters with reg_number for this project:', allProjectLetters)
+
+  // Find all letters with matching pattern for this project (both incoming and outgoing)
   const { data: existingLetters, error: lettersError } = await supabase
     .from('letters')
     .select('reg_number')
     .eq('project_id', projectId)
-    .eq('direction', direction)
     .not('reg_number', 'is', null)
     .like('reg_number', searchPattern)
+
+  console.log('[letterOperations.generateRegNumber] Query result:', {
+    found: existingLetters?.length || 0,
+    data: existingLetters,
+    error: lettersError
+  })
 
   if (lettersError) {
     console.error('[letterOperations.generateRegNumber] Error fetching existing letters:', lettersError)
     throw lettersError
   }
 
+  console.log('[letterOperations.generateRegNumber] Search pattern:', searchPattern)
+  console.log('[letterOperations.generateRegNumber] Found letters matching pattern:', existingLetters?.length || 0)
+
   let nextNumber = 1
 
   // Parse all existing numbers and find maximum
   if (existingLetters && existingLetters.length > 0) {
+    console.log('[letterOperations.generateRegNumber] Existing registration numbers:', existingLetters.map(l => l.reg_number))
+
     const seqNumbers: number[] = []
 
     for (const letter of existingLetters) {
@@ -83,18 +110,25 @@ export async function generateRegNumber(
           const seqNumber = parseInt(parts[3], 10)
           if (!isNaN(seqNumber)) {
             seqNumbers.push(seqNumber)
+            console.log(`[letterOperations.generateRegNumber] Parsed number from ${letter.reg_number}: ${seqNumber}`)
           }
         }
       }
     }
 
+    console.log('[letterOperations.generateRegNumber] All parsed sequence numbers:', seqNumbers)
+
     if (seqNumbers.length > 0) {
       const maxNumber = Math.max(...seqNumbers)
       nextNumber = maxNumber + 1
+      console.log('[letterOperations.generateRegNumber] Maximum number found:', maxNumber)
+      console.log('[letterOperations.generateRegNumber] Next number (max + 1):', nextNumber)
+    } else {
+      console.log('[letterOperations.generateRegNumber] No valid sequence numbers found, using default:', nextNumber)
     }
+  } else {
+    console.log('[letterOperations.generateRegNumber] No existing letters found, starting from:', nextNumber)
   }
-
-  console.log('[letterOperations.generateRegNumber] Found existing numbers:', existingLetters?.length || 0, 'Next number:', nextNumber)
 
   // Format sequential number as 4 digits
   const seqNumberFormatted = nextNumber.toString().padStart(4, '0')
@@ -121,7 +155,9 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
       project:projects(id, name, code),
       status:letter_statuses(id, name, code, color),
       responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
-      creator:user_profiles!letters_created_by_fkey(id, full_name, email)
+      creator:user_profiles!letters_created_by_fkey(id, full_name, email),
+      sender_contractor:contractors!fk_letters_sender_contractor(id, name),
+      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
     `)
 
   // If userId is provided, check role and filter by user projects if necessary
@@ -188,10 +224,14 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
 
   if (!data) return []
 
-  // Get all child letter IDs
+  // Get child letter IDs only for letters in the current dataset
+  // This ensures we only filter out children that belong to currently loaded parents
+  const parentLetterIds = data.map(l => l.id)
+
   const { data: childLinks } = await supabase
     .from('letter_links')
     .select('child_id')
+    .in('parent_id', parentLetterIds)
 
   const childLetterIds = new Set(childLinks?.map(link => link.child_id) || [])
 
@@ -225,7 +265,9 @@ async function getChildLettersWithFullData(letterId: string): Promise<Letter[]> 
         project:projects(id, name, code),
         status:letter_statuses(id, name, code, color),
         responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
-        creator:user_profiles!letters_created_by_fkey(id, full_name, email)
+        creator:user_profiles!letters_created_by_fkey(id, full_name, email),
+        sender_contractor:contractors!fk_letters_sender_contractor(id, name),
+        recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
       )
     `)
     .eq('parent_id', letterId)
@@ -280,7 +322,15 @@ export async function createLetter(
   const { data, error } = await supabase
     .from('letters')
     .insert(letterData)
-    .select()
+    .select(`
+      *,
+      project:projects(id, name, code),
+      status:letter_statuses(id, name, code, color),
+      responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
+      creator:user_profiles!letters_created_by_fkey(id, full_name, email),
+      sender_contractor:contractors!fk_letters_sender_contractor(id, name),
+      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
+    `)
     .single()
 
   if (error) {
@@ -330,7 +380,15 @@ export async function updateLetter(
     .from('letters')
     .update(letterData)
     .eq('id', letterId)
-    .select()
+    .select(`
+      *,
+      project:projects(id, name, code),
+      status:letter_statuses(id, name, code, color),
+      responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
+      creator:user_profiles!letters_created_by_fkey(id, full_name, email),
+      sender_contractor:contractors!fk_letters_sender_contractor(id, name),
+      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
+    `)
     .single()
 
   if (error) {

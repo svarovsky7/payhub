@@ -104,30 +104,48 @@ export const getLetterTableColumns = ({
       dataIndex: 'sender',
       key: 'sender',
       width: 180,
-      sorter: (a, b) => (a.sender || '').localeCompare(b.sender || ''),
+      sorter: (a, b) => {
+        const aValue = a.sender_type === 'contractor' ? (a.sender_contractor?.name || '') : (a.sender || '')
+        const bValue = b.sender_type === 'contractor' ? (b.sender_contractor?.name || '') : (b.sender || '')
+        return aValue.localeCompare(bValue)
+      },
       ellipsis: {
         showTitle: false
       },
-      render: (text: string) => (
-        <Tooltip placement="topLeft" title={text}>
-          {text || '—'}
-        </Tooltip>
-      )
+      render: (_: any, record: Letter) => {
+        const displayValue = record.sender_type === 'contractor'
+          ? record.sender_contractor?.name
+          : record.sender
+        return displayValue ? (
+          <Tooltip placement="topLeft" title={displayValue}>
+            {displayValue}
+          </Tooltip>
+        ) : '—'
+      }
     },
     {
       title: 'Получатель',
       dataIndex: 'recipient',
       key: 'recipient',
       width: 180,
-      sorter: (a, b) => (a.recipient || '').localeCompare(b.recipient || ''),
+      sorter: (a, b) => {
+        const aValue = a.recipient_type === 'contractor' ? (a.recipient_contractor?.name || '') : (a.recipient || '')
+        const bValue = b.recipient_type === 'contractor' ? (b.recipient_contractor?.name || '') : (b.recipient || '')
+        return aValue.localeCompare(bValue)
+      },
       ellipsis: {
         showTitle: false
       },
-      render: (text: string) => (
-        <Tooltip placement="topLeft" title={text}>
-          {text || '—'}
-        </Tooltip>
-      )
+      render: (_: any, record: Letter) => {
+        const displayValue = record.recipient_type === 'contractor'
+          ? record.recipient_contractor?.name
+          : record.recipient
+        return displayValue ? (
+          <Tooltip placement="topLeft" title={displayValue}>
+            {displayValue}
+          </Tooltip>
+        ) : '—'
+      }
     },
     {
       title: 'Проект',

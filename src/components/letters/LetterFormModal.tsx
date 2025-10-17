@@ -1,5 +1,5 @@
-import { Modal, Form, Input, DatePicker, Select, Radio, Button, Row, Col, message, Space, Tooltip, AutoComplete } from 'antd'
-import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons'
+import { Modal, Form, Input, DatePicker, Select, Radio, Button, Row, Col, message, Space, Tooltip, AutoComplete, Tag } from 'antd'
+import { ReloadOutlined, DownloadOutlined, UserAddOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
 import type { UploadFile } from 'antd'
 import dayjs from 'dayjs'
@@ -9,6 +9,7 @@ import { generateRegNumber, getLetterAttachments } from '../../services/letterOp
 import { supabase } from '../../lib/supabase'
 import { FileUploadBlock, type ExistingFile, type FileDescriptions } from '../common/FileUploadBlock'
 import { downloadLetterDocument } from '../../services/letterDocumentService'
+import { AddContractorModal } from '../common/AddContractorModal'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -23,6 +24,7 @@ interface LetterFormModalProps {
   letterStatuses: LetterStatus[]
   projects: Project[]
   users: UserProfile[]
+  letters?: Letter[] // History for popular contractors calculation
 }
 
 export const LetterFormModal: React.FC<LetterFormModalProps> = ({
@@ -32,7 +34,8 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
   editingLetter,
   letterStatuses,
   projects,
-  users
+  users,
+  letters = []
 }) => {
   const [form] = Form.useForm()
   const { user } = useAuth()
@@ -45,6 +48,57 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
   const [direction, setDirection] = useState<'incoming' | 'outgoing'>('incoming')
   const [downloadingDocument, setDownloadingDocument] = useState(false)
   const [, setFormChanged] = useState(0) // Counter to trigger re-render
+  const [senderType, setSenderType] = useState<'individual' | 'contractor'>('contractor')
+  const [recipientType, setRecipientType] = useState<'individual' | 'contractor'>('contractor')
+  const [addContractorModalVisible, setAddContractorModalVisible] = useState(false)
+  const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>()
+  const [topSenders, setTopSenders] = useState<Contractor[]>([])
+  const [topRecipients, setTopRecipients] = useState<Contractor[]>([])
+
+  // Calculate top 2 popular contractors based on letter history and selected project
+  useEffect(() => {
+    if (!selectedProjectId || !letters.length || !contractors.length) {
+      setTopSenders([])
+      setTopRecipients([])
+      return
+    }
+
+    // Filter letters by selected project
+    const projectLetters = letters.filter(letter => letter.project_id === selectedProjectId)
+
+    // Count sender contractors
+    const senderCounts = new Map<number, number>()
+    projectLetters.forEach(letter => {
+      if (letter.sender_contractor_id) {
+        senderCounts.set(letter.sender_contractor_id, (senderCounts.get(letter.sender_contractor_id) || 0) + 1)
+      }
+    })
+
+    // Count recipient contractors
+    const recipientCounts = new Map<number, number>()
+    projectLetters.forEach(letter => {
+      if (letter.recipient_contractor_id) {
+        recipientCounts.set(letter.recipient_contractor_id, (recipientCounts.get(letter.recipient_contractor_id) || 0) + 1)
+      }
+    })
+
+    // Get top 2 senders
+    const sortedSenders = Array.from(senderCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([id]) => contractors.find(c => c.id === id))
+      .filter(Boolean) as Contractor[]
+
+    // Get top 2 recipients
+    const sortedRecipients = Array.from(recipientCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([id]) => contractors.find(c => c.id === id))
+      .filter(Boolean) as Contractor[]
+
+    setTopSenders(sortedSenders)
+    setTopRecipients(sortedRecipients)
+  }, [selectedProjectId, letters, contractors])
 
   // Load existing files for a letter
   const loadExistingFiles = async (letterId: string) => {
@@ -67,24 +121,24 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
   }
 
   // Load contractors
-  useEffect(() => {
-    const loadContractors = async () => {
-      console.log('[LetterFormModal] Loading contractors')
-      try {
-        const { data, error } = await supabase
-          .from('contractors')
-          .select('*')
-          .order('name')
+  const loadContractors = async () => {
+    console.log('[LetterFormModal] Loading contractors')
+    try {
+      const { data, error } = await supabase
+        .from('contractors')
+        .select('*')
+        .order('name')
 
-        if (error) throw error
+      if (error) throw error
 
-        console.log('[LetterFormModal] Loaded contractors:', data?.length || 0)
-        setContractors(data || [])
-      } catch (error) {
-        console.error('[LetterFormModal] Error loading contractors:', error)
-      }
+      console.log('[LetterFormModal] Loaded contractors:', data?.length || 0)
+      setContractors(data || [])
+    } catch (error) {
+      console.error('[LetterFormModal] Error loading contractors:', error)
     }
+  }
 
+  useEffect(() => {
     if (visible) {
       loadContractors()
     }
@@ -114,7 +168,11 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         content: editingLetter.content,
         responsible_person_name: responsibleName,
         sender: editingLetter.sender,
+        sender_type: editingLetter.sender_type || 'individual',
+        sender_contractor_id: editingLetter.sender_contractor_id,
         recipient: editingLetter.recipient,
+        recipient_type: editingLetter.recipient_type || 'individual',
+        recipient_contractor_id: editingLetter.recipient_contractor_id,
         direction: editingLetter.direction,
         reg_number: editingLetter.reg_number,
         reg_date: editingLetter.reg_date ? dayjs(editingLetter.reg_date) : null,
@@ -122,8 +180,11 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         response_deadline: editingLetter.response_deadline ? dayjs(editingLetter.response_deadline) : null
       })
 
-      // Set direction for dynamic label
+      // Set direction and types for dynamic UI
       setDirection(editingLetter.direction)
+      setSenderType(editingLetter.sender_type || 'individual')
+      setRecipientType(editingLetter.recipient_type || 'individual')
+      setSelectedProjectId(editingLetter.project_id || undefined)
 
       // Load existing files
       if (editingLetter.id) {
@@ -135,6 +196,8 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
       setFileList([])
       setExistingFiles([])
       setFileDescriptions({})
+      setSenderType('contractor')
+      setRecipientType('contractor')
 
       // Load last selected project from localStorage
       const lastProjectId = localStorage.getItem(LAST_SELECTED_PROJECT_KEY)
@@ -147,8 +210,12 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         reg_date: dayjs(), // Registration date is today
         created_by: user?.id,
         project_id: projectId,
-        recipient: 'ООО «СУ-10»' // Default recipient
+        sender_type: 'contractor',
+        recipient_type: 'contractor'
       })
+
+      // Set selected project ID for popular contractors calculation
+      setSelectedProjectId(projectId)
     }
   }, [visible, editingLetter, form, user])
 
@@ -157,6 +224,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
     if (projectId) {
       localStorage.setItem(LAST_SELECTED_PROJECT_KEY, projectId.toString())
     }
+    setSelectedProjectId(projectId)
     setFormChanged(prev => prev + 1) // Trigger re-render
   }
 
@@ -223,7 +291,11 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         subject: values.subject?.trim() || null,
         content: values.content?.trim() || null,
         sender: values.sender?.trim() || null,
+        sender_type: values.sender_type || 'contractor',
+        sender_contractor_id: values.sender_contractor_id || null,
         recipient: values.recipient?.trim() || null,
+        recipient_type: values.recipient_type || 'contractor',
+        recipient_contractor_id: values.recipient_contractor_id || null,
         delivery_method: values.delivery_method?.trim() || null,
         letter_date: values.letter_date ? values.letter_date.format('YYYY-MM-DD') : null,
         reg_date: values.reg_date ? values.reg_date.format('YYYY-MM-DD') : null,
@@ -236,10 +308,8 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         .filter(f => f.originFileObj)
         .map(f => f.originFileObj as File)
 
-      // Get original file names (from server)
-      const originalFiles = fileList
-        .filter(f => !f.originFileObj && f.status === 'done')
-        .map(f => f.name)
+      // Get original file names (from existing files on server)
+      const originalFiles = existingFiles.map(f => f.original_name)
 
       await onSubmit(formData, newFiles, originalFiles)
 
@@ -342,6 +412,21 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
     }
   }
 
+  const handleContractorCreated = async (newContractor: Contractor) => {
+    console.log('[LetterFormModal.handleContractorCreated] New contractor:', newContractor)
+    // Reload contractors list
+    await loadContractors()
+    // Auto-select the new contractor
+    setRecipientType('contractor')
+    form.setFieldsValue({
+      recipient_type: 'contractor',
+      recipient_contractor_id: newContractor.id,
+      recipient: null
+    })
+    // Close modal
+    setAddContractorModalVisible(false)
+  }
+
   // Show download button only for outgoing letters
   const showDownloadButton = direction === 'outgoing'
   const downloadButtonEnabled = canDownloadDocument()
@@ -387,7 +472,9 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         size="middle"
         initialValues={{
           direction: 'incoming',
-          status_id: 1
+          status_id: 1,
+          sender_type: 'contractor',
+          recipient_type: 'contractor'
         }}
       >
         <Row gutter={16}>
@@ -556,39 +643,158 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              label="Отправитель"
-              name="sender"
-            >
-              <AutoComplete
-                placeholder="Выберите из списка или введите имя"
-                allowClear
-                options={contractors.map(contractor => ({
-                  value: contractor.name,
-                  label: contractor.name
-                }))}
-                filterOption={(inputValue, option) =>
-                  option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-                }
-              />
+            <Form.Item label="Отправитель">
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Form.Item name="sender_type" noStyle>
+                  <Radio.Group
+                    value={senderType}
+                    onChange={(e) => {
+                      setSenderType(e.target.value)
+                      form.setFieldValue('sender_type', e.target.value)
+                      // Clear fields when switching type
+                      if (e.target.value === 'individual') {
+                        form.setFieldValue('sender_contractor_id', null)
+                      } else {
+                        form.setFieldValue('sender', null)
+                      }
+                    }}
+                    size="small"
+                  >
+                    <Radio value="contractor">Контрагент</Radio>
+                    <Radio value="individual">Физ. лицо</Radio>
+                  </Radio.Group>
+                </Form.Item>
+
+                {senderType === 'individual' ? (
+                  <Form.Item name="sender" noStyle>
+                    <Input placeholder="Введите ФИО" allowClear />
+                  </Form.Item>
+                ) : (
+                  <Form.Item name="sender_contractor_id" noStyle>
+                    <Select
+                      placeholder="Выберите контрагента"
+                      allowClear
+                      showSearch
+                      optionFilterProp="children"
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={contractors.map(contractor => ({
+                        value: contractor.id,
+                        label: contractor.name
+                      }))}
+                    />
+                  </Form.Item>
+                )}
+
+                {topSenders.length > 0 && (
+                  <Space wrap style={{ marginTop: 4 }}>
+                    {topSenders.map((contractor, index) => (
+                      <Tag
+                        key={contractor.id}
+                        color={index === 0 ? 'green' : 'cyan'}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setSenderType('contractor')
+                          form.setFieldsValue({
+                            sender_type: 'contractor',
+                            sender_contractor_id: contractor.id,
+                            sender: null
+                          })
+                        }}
+                      >
+                        {contractor.name}
+                      </Tag>
+                    ))}
+                  </Space>
+                )}
+              </Space>
             </Form.Item>
           </Col>
+
           <Col span={12}>
             <Form.Item
-              label="Получатель"
-              name="recipient"
+              label={
+                <Space>
+                  <span>Получатель</span>
+                  <Tooltip title="Добавить контрагента">
+                    <UserAddOutlined
+                      style={{
+                        fontSize: 14,
+                        color: '#1890ff',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => setAddContractorModalVisible(true)}
+                    />
+                  </Tooltip>
+                </Space>
+              }
             >
-              <AutoComplete
-                placeholder="Выберите из списка или введите имя"
-                allowClear
-                options={contractors.map(contractor => ({
-                  value: contractor.name,
-                  label: contractor.name
-                }))}
-                filterOption={(inputValue, option) =>
-                  option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-                }
-              />
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Form.Item name="recipient_type" noStyle>
+                  <Radio.Group
+                    value={recipientType}
+                    onChange={(e) => {
+                      setRecipientType(e.target.value)
+                      form.setFieldValue('recipient_type', e.target.value)
+                      // Clear fields when switching type
+                      if (e.target.value === 'individual') {
+                        form.setFieldValue('recipient_contractor_id', null)
+                      } else {
+                        form.setFieldValue('recipient', null)
+                      }
+                    }}
+                    size="small"
+                  >
+                    <Radio value="contractor">Контрагент</Radio>
+                    <Radio value="individual">Физ. лицо</Radio>
+                  </Radio.Group>
+                </Form.Item>
+
+                {recipientType === 'individual' ? (
+                  <Form.Item name="recipient" noStyle>
+                    <Input placeholder="Введите ФИО" allowClear />
+                  </Form.Item>
+                ) : (
+                  <Form.Item name="recipient_contractor_id" noStyle>
+                    <Select
+                      placeholder="Выберите контрагента"
+                      allowClear
+                      showSearch
+                      optionFilterProp="children"
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={contractors.map(contractor => ({
+                        value: contractor.id,
+                        label: contractor.name
+                      }))}
+                    />
+                  </Form.Item>
+                )}
+
+                {topRecipients.length > 0 && (
+                  <Space wrap style={{ marginTop: 4 }}>
+                    {topRecipients.map((contractor, index) => (
+                      <Tag
+                        key={contractor.id}
+                        color={index === 0 ? 'green' : 'cyan'}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setRecipientType('contractor')
+                          form.setFieldsValue({
+                            recipient_type: 'contractor',
+                            recipient_contractor_id: contractor.id,
+                            recipient: null
+                          })
+                        }}
+                      >
+                        {contractor.name}
+                      </Tag>
+                    ))}
+                  </Space>
+                )}
+              </Space>
             </Form.Item>
           </Col>
         </Row>
@@ -660,6 +866,12 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
           />
         </Form.Item>
       </Form>
+
+      <AddContractorModal
+        visible={addContractorModalVisible}
+        onCancel={() => setAddContractorModalVisible(false)}
+        onSuccess={handleContractorCreated}
+      />
     </Modal>
   )
 }

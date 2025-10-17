@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-14T08:14:21.628066
+-- Generated: 2025-10-17T05:49:50.471625
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -560,7 +560,7 @@ COMMENT ON COLUMN public.contract_statuses.sort_order IS 'Sort order for display
 CREATE TABLE IF NOT EXISTS public.contractors (
     id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),
     name character varying(255) NOT NULL,
-    inn character varying(12),
+    inn character varying(12) NOT NULL,
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
@@ -887,6 +887,12 @@ CREATE TABLE IF NOT EXISTS public.letters (
     updated_at timestamp with time zone DEFAULT now(),
     responsible_person_name text,
     response_deadline date,
+    sender_type text DEFAULT 'individual'::text,
+    sender_contractor_id integer(32),
+    recipient_type text DEFAULT 'individual'::text,
+    recipient_contractor_id integer(32),
+    CONSTRAINT fk_letters_recipient_contractor FOREIGN KEY (recipient_contractor_id) REFERENCES None.None(None),
+    CONSTRAINT fk_letters_sender_contractor FOREIGN KEY (sender_contractor_id) REFERENCES None.None(None),
     CONSTRAINT letters_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT letters_pkey PRIMARY KEY (id),
     CONSTRAINT letters_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
@@ -902,8 +908,8 @@ COMMENT ON COLUMN public.letters.letter_date IS 'Дата письма';
 COMMENT ON COLUMN public.letters.subject IS 'Тема/предмет письма';
 COMMENT ON COLUMN public.letters.content IS 'Краткое содержание письма';
 COMMENT ON COLUMN public.letters.responsible_user_id IS 'Ответственный за обработку письма (ссылка на зарегистрированного пользователя)';
-COMMENT ON COLUMN public.letters.sender IS 'Отправитель письма (может быть как компания, так и физическое лицо)';
-COMMENT ON COLUMN public.letters.recipient IS 'Получатель письма (может быть как компания, так и физическое лицо)';
+COMMENT ON COLUMN public.letters.sender IS 'Отправитель письма (текст для физ.лица, используется когда sender_type = individual)';
+COMMENT ON COLUMN public.letters.recipient IS 'Получатель письма (текст для физ.лица, используется когда recipient_type = individual)';
 COMMENT ON COLUMN public.letters.direction IS 'Направление: incoming (входящее) или outgoing (исходящее)';
 COMMENT ON COLUMN public.letters.reg_number IS 'Регистрационный номер (необязательное поле)';
 COMMENT ON COLUMN public.letters.reg_date IS 'Дата регистрации в системе';
@@ -911,6 +917,10 @@ COMMENT ON COLUMN public.letters.delivery_method IS 'Способ доставк
 COMMENT ON COLUMN public.letters.created_by IS 'Пользователь, создавший запись';
 COMMENT ON COLUMN public.letters.responsible_person_name IS 'Ответственный за обработку письма (произвольное текстовое поле для физических лиц)';
 COMMENT ON COLUMN public.letters.response_deadline IS 'Регламентный срок ответа на письмо';
+COMMENT ON COLUMN public.letters.sender_type IS 'Type of sender: individual (физ.лицо) or contractor (контрагент)';
+COMMENT ON COLUMN public.letters.sender_contractor_id IS 'Reference to contractor if sender_type = contractor';
+COMMENT ON COLUMN public.letters.recipient_type IS 'Type of recipient: individual (физ.лицо) or contractor (контрагент)';
+COMMENT ON COLUMN public.letters.recipient_contractor_id IS 'Reference to contractor if recipient_type = contractor';
 
 -- Material classification hierarchy
 CREATE TABLE IF NOT EXISTS public.material_classes (
@@ -5320,10 +5330,22 @@ CREATE INDEX idx_letters_letter_date ON public.letters USING btree (letter_date)
 CREATE INDEX idx_letters_project_id ON public.letters USING btree (project_id)
 ;
 
+CREATE INDEX idx_letters_recipient_contractor_id ON public.letters USING btree (recipient_contractor_id)
+;
+
+CREATE INDEX idx_letters_recipient_type ON public.letters USING btree (recipient_type)
+;
+
 CREATE INDEX idx_letters_reg_date ON public.letters USING btree (reg_date)
 ;
 
 CREATE INDEX idx_letters_responsible_user_id ON public.letters USING btree (responsible_user_id)
+;
+
+CREATE INDEX idx_letters_sender_contractor_id ON public.letters USING btree (sender_contractor_id)
+;
+
+CREATE INDEX idx_letters_sender_type ON public.letters USING btree (sender_type)
 ;
 
 CREATE INDEX idx_letters_status_id ON public.letters USING btree (status_id)

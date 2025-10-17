@@ -292,6 +292,7 @@ export const LettersPage = () => {
         letterStatuses={letterStatuses}
         projects={projects}
         users={users}
+        letters={letters}
       />
 
       {/* Letter View Modal */}

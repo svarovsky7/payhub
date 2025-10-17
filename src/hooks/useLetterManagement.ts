@@ -166,16 +166,21 @@ export const useLetterManagement = () => {
     console.log('[useLetterManagement.handleCreateLetter] Data:', letterData)
 
     try {
-      await createLetter(letterData, files)
-      message.success('Письмо создано')
+      // Close modal immediately for better UX
       setLetterModalVisible(false)
-      await loadData()
+      message.success('Письмо создано')
+
+      // Create in background and add to list when complete
+      const newLetter = await createLetter(letterData, files)
+
+      // Add new letter to the list
+      setLetters(prev => [newLetter, ...prev])
     } catch (error) {
       console.error('[useLetterManagement.handleCreateLetter] Error:', error)
       message.error('Ошибка создания письма')
       throw error
     }
-  }, [loadData])
+  }, [])
 
   // Update letter
   const handleUpdateLetter = useCallback(async (
@@ -186,33 +191,80 @@ export const useLetterManagement = () => {
   ) => {
     console.log('[useLetterManagement.handleUpdateLetter] ID:', letterId, 'Data:', letterData)
 
+    // Store original state for rollback
+    const originalLetters = letters
+
     try {
-      await updateLetter(letterId, letterData, files, originalFiles)
-      message.success('Письмо обновлено')
+      // Close modal immediately for better UX
       setLetterModalVisible(false)
       setEditingLetter(null)
-      await loadData()
+      message.success('Письмо обновлено')
+
+      // Update in background and get full data with JOINs
+      const updatedLetter = await updateLetter(letterId, letterData, files, originalFiles)
+
+      // Update letter in tree with full data from server
+      const updateLetterInTree = (lettersList: Letter[]): Letter[] => {
+        return lettersList.map(letter => {
+          if (letter.id === letterId) {
+            return { ...letter, ...updatedLetter }
+          }
+          if (letter.children && letter.children.length > 0) {
+            return {
+              ...letter,
+              children: updateLetterInTree(letter.children)
+            }
+          }
+          return letter
+        })
+      }
+
+      setLetters(updateLetterInTree(letters))
     } catch (error) {
       console.error('[useLetterManagement.handleUpdateLetter] Error:', error)
+      // Rollback on error
+      setLetters(originalLetters)
       message.error('Ошибка обновления письма')
       throw error
     }
-  }, [loadData])
+  }, [letters])
 
   // Delete letter
   const handleDeleteLetter = useCallback(async (letterId: string) => {
     console.log('[useLetterManagement.handleDeleteLetter] ID:', letterId)
 
+    // Store original state for rollback
+    const originalLetters = letters
+
     try {
-      await deleteLetter(letterId)
+      // Optimistic delete: remove from UI immediately
+      const removeLetterFromTree = (lettersList: Letter[]): Letter[] => {
+        return lettersList
+          .filter(letter => letter.id !== letterId)
+          .map(letter => {
+            if (letter.children && letter.children.length > 0) {
+              return {
+                ...letter,
+                children: removeLetterFromTree(letter.children)
+              }
+            }
+            return letter
+          })
+      }
+
+      setLetters(removeLetterFromTree(letters))
       message.success('Письмо удалено')
-      await loadData()
+
+      // Delete in background
+      await deleteLetter(letterId)
     } catch (error) {
       console.error('[useLetterManagement.handleDeleteLetter] Error:', error)
+      // Rollback on error
+      setLetters(originalLetters)
       message.error('Ошибка удаления письма')
       throw error
     }
-  }, [loadData])
+  }, [letters])
 
   // Open link modal
   const handleOpenLinkModal = useCallback((letter: Letter) => {
