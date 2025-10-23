@@ -116,6 +116,7 @@ export type Invoice = {
   invoice_type?: InvoiceType
   invoice_status?: InvoiceStatus
   employee?: Employee
+  responsible_user?: UserProfile
 }
 
 export type Employee = {
@@ -299,6 +300,7 @@ export type Letter = {
   parent_id?: string // ID родительского письма (только для дочерних писем)
   sender_contractor?: Contractor // Связанный контрагент-отправитель
   recipient_contractor?: Contractor // Связанный контрагент-получатель
+  letter_attachments?: { count: number }[] // Счётчик файлов
 }
 
 export type LetterAttachment = {

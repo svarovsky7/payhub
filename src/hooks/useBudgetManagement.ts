@@ -83,7 +83,11 @@ export function useBudgetManagement(userId: string) {
   /**
    * Allocate or update budget for a project
    */
-  const allocateBudget = useCallback(async (budgetData: BudgetFormData) => {
+  const allocateBudget = useCallback(async (projectId: number, allocatedAmount: number) => {
+    const budgetData: BudgetFormData = {
+      project_id: projectId,
+      allocated_amount: allocatedAmount,
+    };
     console.log('[useBudgetManagement.allocateBudget] Allocating budget:', budgetData);
 
     try {

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FormValues } from '../../types/common'
-import { Table, Space, Button, Modal, Form, Input, Select, message, Tag } from 'antd'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import { Table, Space, Button, Modal, Form, Input, Select, message, Tag, type InputRef } from 'antd'
+import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
+import type { ColumnsType, ColumnType } from 'antd/es/table'
 import { supabase, type UserProfile, type Project } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
 
 interface Role {
   id: number
@@ -18,6 +19,8 @@ interface UserWithProjects extends UserProfile {
   role_id?: number
 }
 
+type DataIndex = keyof UserWithProjects
+
 export const UsersTab = () => {
   const [users, setUsers] = useState<UserWithProjects[]>([])
   const [projects, setProjects] = useState<Project[]>([])
@@ -27,6 +30,7 @@ export const UsersTab = () => {
   const [editingUser, setEditingUser] = useState<UserWithProjects | null>(null)
   const [form] = Form.useForm()
   const { user: currentUser, currentRoleId } = useAuth()
+  const searchInput = useRef<InputRef>(null)
 
   useEffect(() => {
     loadUsers()
@@ -237,6 +241,70 @@ export const UsersTab = () => {
     })
   }
 
+  const handleSearch = (
+    confirm: (param?: FilterConfirmProps) => void
+  ) => {
+    confirm()
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+  }
+
+  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<UserWithProjects> => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Поиск по ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(confirm)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(confirm)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Поиск
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Сброс
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            Закрыть
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
+        : false,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    }
+  })
+
   const getProjectNames = (projectIds?: number[]) => {
     if (!projectIds || projectIds.length === 0) return '-'
 
@@ -252,16 +320,24 @@ export const UsersTab = () => {
     {
       title: 'Email',
       dataIndex: 'email',
-      key: 'email'
+      key: 'email',
+      sorter: (a, b) => a.email.localeCompare(b.email),
+      ...getColumnSearchProps('email')
     },
     {
       title: 'ФИО',
       dataIndex: 'full_name',
-      key: 'full_name'
+      key: 'full_name',
+      sorter: (a, b) => (a.full_name || '').localeCompare(b.full_name || ''),
+      ...getColumnSearchProps('full_name')
     },
     {
       title: 'Роль',
       key: 'role',
+      dataIndex: 'role',
+      filters: roles.map(role => ({ text: role.name, value: role.id })),
+      onFilter: (value, record) => record.role_id === value,
+      sorter: (a, b) => (a.role?.name || '').localeCompare(b.role?.name || ''),
       render: (_, record) => {
         if (record.role) {
           return <Tag color="blue">{record.role.name}</Tag>
@@ -273,12 +349,15 @@ export const UsersTab = () => {
       title: 'Проекты',
       dataIndex: 'projects',
       key: 'projects',
+      filters: projects.map(p => ({ text: p.name, value: p.id })),
+      onFilter: (value, record) => record.projects?.includes(value as number) ?? false,
       render: (projectIds) => getProjectNames(projectIds)
     },
     {
       title: 'Дата регистрации',
       dataIndex: 'created_at',
       key: 'created_at',
+      sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       render: (date) => new Date(date).toLocaleDateString('ru-RU')
     },
     {
@@ -310,9 +389,12 @@ export const UsersTab = () => {
         loading={loading}
         rowKey="id"
         pagination={{
-          pageSize: 10,
-          showTotal: (total) => `Всего: ${total} пользователей`
+          defaultPageSize: 100,
+          pageSizeOptions: ['50', '100', '200'],
+          showTotal: (total) => `Всего: ${total} пользователей`,
+          showSizeChanger: true
         }}
+        tableLayout="auto"
       />
 
       <Modal

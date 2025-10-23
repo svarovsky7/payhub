@@ -1,7 +1,1 @@
-[
-  {
-    "from": "public.user_profiles",
-    "column": "id",
-    "to": "auth.users.id"
-  }
-]
+{}

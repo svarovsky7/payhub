@@ -1,5 +1,5 @@
 import React from 'react'
-import { List, Button, Input, Typography, Tooltip, Popconfirm } from 'antd'
+import { List, Button, Input, Typography, Tooltip, Popconfirm, Tag, Space } from 'antd'
 import { EyeOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons'
 import { getFileIcon } from './FilePreviewModal'
 import dayjs from 'dayjs'
@@ -7,6 +7,8 @@ import type { UploadFile } from 'antd/es/upload'
 import type { ExistingFile } from './FileUploadBlock'
 
 const { Text } = Typography
+
+const QUICK_DESCRIPTIONS = ['Счет', 'Платежное поручение']
 
 interface NewFileListItemProps {
   file: UploadFile
@@ -17,6 +19,11 @@ interface NewFileListItemProps {
   onDescriptionChange?: (uid: string, description: string) => void
 }
 
+const QUICK_DESCRIPTION_COLORS: Record<string, string> = {
+  'Счет': 'blue',
+  'Платежное поручение': 'green'
+}
+
 export const NewFileListItem: React.FC<NewFileListItemProps> = ({
   file,
   description,
@@ -25,6 +32,12 @@ export const NewFileListItem: React.FC<NewFileListItemProps> = ({
   onRemove,
   onDescriptionChange
 }) => {
+  const handleQuickSelect = (text: string) => {
+    if (onDescriptionChange) {
+      onDescriptionChange(file.uid, text)
+    }
+  }
+
   return (
     <List.Item
       actions={[
@@ -49,26 +62,40 @@ export const NewFileListItem: React.FC<NewFileListItemProps> = ({
         </Tooltip>
       ]}
     >
-      <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '12px' }}>
-        <span style={{ fontSize: 18 }}>{getFileIcon(file.name)}</span>
+      <div style={{ display: 'flex', width: '100%', alignItems: 'flex-start', gap: '12px' }}>
+        <span style={{ fontSize: 18, marginTop: 4 }}>{getFileIcon(file.name)}</span>
         <div style={{ flex: 1 }}>
           <div>{file.name}</div>
           {file.status === 'error' && (
             <Text type="danger" style={{ fontSize: 12 }}>Ошибка загрузки</Text>
           )}
         </div>
-        <Input
-          size="small"
-          placeholder="Описание файла"
-          style={{ width: 300, textAlign: 'right' }}
-          value={description || ''}
-          onChange={(e) => {
-            if (onDescriptionChange) {
-              onDescriptionChange(file.uid, e.target.value)
-            }
-          }}
-          disabled={disabled}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+          <Input
+            size="small"
+            placeholder="Описание файла"
+            style={{ width: 250 }}
+            value={description || ''}
+            onChange={(e) => {
+              if (onDescriptionChange) {
+                onDescriptionChange(file.uid, e.target.value)
+              }
+            }}
+            disabled={disabled}
+          />
+          <Space size="small">
+            {QUICK_DESCRIPTIONS.map((text) => (
+              <Tag
+                key={text}
+                color={QUICK_DESCRIPTION_COLORS[text]}
+                onClick={() => handleQuickSelect(text)}
+                style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
+              >
+                {text}
+              </Tag>
+            ))}
+          </Space>
+        </div>
       </div>
     </List.Item>
   )

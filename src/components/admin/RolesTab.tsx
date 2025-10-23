@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FormValues } from '../../types/common'
-import { Table, Space, Button, Modal, Form, Input, Switch, message, Tooltip, Select, Tag } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import { Table, Space, Button, Modal, Form, Input, Switch, message, Tooltip, Select, Tag, type InputRef } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
+import type { ColumnsType, ColumnType } from 'antd/es/table'
 import { supabase, type Role } from '../../lib/supabase'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
 
 // Определение доступных страниц
 const AVAILABLE_PAGES = [
@@ -16,12 +17,15 @@ const AVAILABLE_PAGES = [
   { value: '/admin', label: 'Администрирование' },
 ]
 
+type DataIndex = keyof Role
+
 export const RolesTab = () => {
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
   const [form] = Form.useForm()
+  const searchInput = useRef<InputRef>(null)
 
   useEffect(() => {
     loadRoles()
@@ -126,26 +130,106 @@ export const RolesTab = () => {
     })
   }
 
+  const handleSearch = (
+    confirm: (param?: FilterConfirmProps) => void
+  ) => {
+    confirm()
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+  }
+
+  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Role> => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Поиск по ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(confirm)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(confirm)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Поиск
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Сброс
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            Закрыть
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
+        : false,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    }
+  })
+
+
   const columns: ColumnsType<Role> = [
     {
       title: 'Код',
       dataIndex: 'code',
-      key: 'code'
+      key: 'code',
+      sorter: (a, b) => a.code.localeCompare(b.code),
+      ...getColumnSearchProps('code')
     },
     {
       title: 'Название',
       dataIndex: 'name',
-      key: 'name'
+      key: 'name',
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      ...getColumnSearchProps('name')
     },
     {
       title: 'Описание',
       dataIndex: 'description',
-      key: 'description'
+      key: 'description',
+      sorter: (a, b) => (a.description || '').localeCompare(b.description || ''),
+      ...getColumnSearchProps('description')
     },
     {
       title: 'Доступные страницы',
       dataIndex: 'allowed_pages',
       key: 'allowed_pages',
+      filters: AVAILABLE_PAGES.map(p => ({ text: p.label, value: p.value })),
+      onFilter: (value, record) => {
+        const pages = record.allowed_pages
+          ? (typeof record.allowed_pages === 'string'
+              ? JSON.parse(record.allowed_pages)
+              : record.allowed_pages)
+          : []
+        return pages.includes(value)
+      },
       render: (value: any) => {
         const pages = value
           ? (typeof value === 'string' ? JSON.parse(value) : value)
@@ -183,6 +267,12 @@ export const RolesTab = () => {
       dataIndex: 'own_projects_only',
       key: 'own_projects_only',
       align: 'center',
+      filters: [
+        { text: 'Да', value: true },
+        { text: 'Нет', value: false }
+      ],
+      onFilter: (value, record) => record.own_projects_only === value,
+      sorter: (a, b) => Number(a.own_projects_only) - Number(b.own_projects_only),
       render: (value: boolean) => (
         <Tooltip title={value ? 'Видит только данные своих проектов' : 'Видит данные всех проектов'}>
           <Switch checked={value} disabled />
@@ -228,9 +318,12 @@ export const RolesTab = () => {
         loading={loading}
         rowKey="id"
         pagination={{
-          pageSize: 10,
-          showTotal: (total) => `Всего: ${total} ролей`
+          defaultPageSize: 100,
+          pageSizeOptions: ['50', '100', '200'],
+          showTotal: (total) => `Всего: ${total} ролей`,
+          showSizeChanger: true
         }}
+        tableLayout="auto"
       />
 
       <Modal

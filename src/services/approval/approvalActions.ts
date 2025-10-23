@@ -1,6 +1,6 @@
 import { supabase } from '../../lib/supabase'
 import { message } from 'antd'
-import type { WorkflowStage } from '../../types/approval'
+import type { WorkflowStage } from '../../components/admin/approval-routes/types'
 import { recalculateInvoiceStatus } from '../invoiceOperations'
 
 export const approvePayment = async (
@@ -76,22 +76,17 @@ export const approvePayment = async (
     const nextStageIndex = approval.current_stage_index + 1
     const nextStage = stages.find((s: WorkflowStage) => s.order_index === nextStageIndex)
 
-    // Обновляем статус платежа согласно настройкам текущего этапа
-    if (currentStage.payment_status_id) {
-      console.log('[ApprovalActions.approvePayment] Updating payment status to:', currentStage.payment_status_id, 'for payment_id:', approval.payment_id)
-      const { error: paymentStatusError } = await supabase
-        .from('payments')
-        .update({ status_id: currentStage.payment_status_id })
-        .eq('id', approval.payment_id)
-
-      if (paymentStatusError) {
-        console.error('[ApprovalActions.approvePayment] Error updating payment status:', paymentStatusError)
-        throw paymentStatusError
-      }
-      console.log('[ApprovalActions.approvePayment] Payment status successfully updated to:', currentStage.payment_status_id)
-    }
-
     if (nextStage) {
+      // Это НЕ последний этап. Обновляем статус платежа, если он указан.
+      if (currentStage.payment_status_id) {
+        const { error: paymentStatusError } = await supabase
+          .from('payments')
+          .update({ status_id: currentStage.payment_status_id })
+          .eq('id', approval.payment_id)
+
+        if (paymentStatusError) throw paymentStatusError
+      }
+      
       // Переходим к следующему этапу
       const { error: approvalUpdateError } = await supabase
         .from('payment_approvals')
@@ -124,6 +119,15 @@ export const approvePayment = async (
         .eq('id', approvalId)
 
       if (approvalCompleteError) throw approvalCompleteError
+
+      // Устанавливаем статус платежа согласно настройкам ЭТАПА, по умолчанию - "В оплате"
+      const finalPaymentStatus = currentStage.payment_status_id || 5
+      const { error: paymentStatusError } = await supabase
+        .from('payments')
+        .update({ status_id: finalPaymentStatus }) // Используем статус из настроек
+        .eq('id', approval.payment_id)
+
+      if (paymentStatusError) throw paymentStatusError
 
       message.success('Платёж полностью согласован')
     }
@@ -243,6 +247,24 @@ export const rejectPayment = async (
       throw paymentError
     }
     console.log('[ApprovalActions.rejectPayment] Payment status successfully updated to 4 (Отменён)')
+
+    const { data: paymentForInvoice } = await supabase
+      .from('payments')
+      .select('invoice_id')
+      .eq('id', approval.payment_id)
+      .single();
+
+    if (paymentForInvoice?.invoice_id) {
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .update({ status_id: 5 }) // cancelled
+        .eq('id', paymentForInvoice.invoice_id);
+
+      if (invoiceError) {
+        console.error('[ApprovalActions.rejectPayment] Error updating invoice status:', invoiceError);
+        // Можно обработать ошибку дальше, если это необходимо
+      }
+    }
 
     // Пересчитываем статус счета
     const { data: payment } = await supabase

@@ -34,6 +34,17 @@ export const loadReferences = async () => {
     if (invoiceStatusesResponse.error) throw invoiceStatusesResponse.error
     if (employeesResponse.error) throw employeesResponse.error
 
+    const invoiceStatuses = invoiceStatusesResponse.data as InvoiceStatus[]
+    
+    console.log('[InvoiceOperations.loadReferences] Loaded invoice statuses:', 
+      invoiceStatuses.map(s => ({
+        id: s.id,
+        code: s.code,
+        name: s.name,
+        sort_order: s.sort_order
+      }))
+    )
+
     // Используем один и тот же список контрагентов для плательщиков и поставщиков
     const contractors = contractorsResponse.data as Contractor[]
 
@@ -42,7 +53,7 @@ export const loadReferences = async () => {
       suppliers: contractors,
       projects: projectsResponse.data as Project[],
       invoiceTypes: invoiceTypesResponse.data as InvoiceType[],
-      invoiceStatuses: invoiceStatusesResponse.data as InvoiceStatus[],
+      invoiceStatuses: invoiceStatuses,
       employees: employeesResponse.data as Employee[]
     }
   } catch (error) {

@@ -17,6 +17,14 @@ interface GetLetterTableColumnsProps {
   handleStatusChange: (letterId: string, newStatusId: number) => void
 }
 
+const truncateText = (text: string, maxLength: number = 25) => {
+  if (!text) return '—'
+  if (text.length > maxLength) {
+    return text.substring(0, maxLength) + '...'
+  }
+  return text
+}
+
 export const getLetterTableColumns = ({
   letterStatuses,
   projects,
@@ -33,7 +41,7 @@ export const getLetterTableColumns = ({
       title: 'Направление',
       dataIndex: 'direction',
       key: 'direction',
-      width: 90,
+      width: 70,
       filters: [
         { text: 'Входящие', value: 'incoming' },
         { text: 'Исходящие', value: 'outgoing' }
@@ -49,53 +57,63 @@ export const getLetterTableColumns = ({
       title: 'Номер письма',
       dataIndex: 'number',
       key: 'number',
-      width: 150,
+      width: 100,
       sorter: (a, b) => (a.number || '').localeCompare(b.number || ''),
+      ellipsis: {
+        showTitle: false
+      },
       render: (text: string, record: Letter) => (
-        <Button type="link" onClick={() => handleViewLetter(record)}>
-          {text || '—'}
-        </Button>
+        <Tooltip placement="topLeft" title={text || '—'}>
+          <Button type="link" onClick={() => handleViewLetter(record)} style={{ padding: 0 }}>
+            {truncateText(text, 15)}
+          </Button>
+        </Tooltip>
       )
     },
     {
       title: 'Рег. номер',
       dataIndex: 'reg_number',
       key: 'reg_number',
-      width: 130,
+      width: 90,
       sorter: (a, b) => (a.reg_number || '').localeCompare(b.reg_number || ''),
-      render: (text: string) => text || '—'
+      render: (text: string) => (
+        <Tooltip title={text || '—'}>
+          {truncateText(text, 12)}
+        </Tooltip>
+      )
     },
     {
       title: 'Дата письма',
       dataIndex: 'letter_date',
       key: 'letter_date',
-      width: 120,
+      width: 95,
       sorter: (a, b) => dayjs(a.letter_date).unix() - dayjs(b.letter_date).unix(),
-      render: (date: string) => dayjs(date).format('DD.MM.YYYY')
+      render: (date: string) => dayjs(date).format('DD.MM.YY')
     },
     {
-      title: 'Дата регистрации',
+      title: 'Дата рег.',
       dataIndex: 'reg_date',
       key: 'reg_date',
-      width: 130,
+      width: 95,
       sorter: (a, b) => {
         if (!a.reg_date && !b.reg_date) return 0
         if (!a.reg_date) return 1
         if (!b.reg_date) return -1
         return dayjs(a.reg_date).unix() - dayjs(b.reg_date).unix()
       },
-      render: (date: string) => date ? dayjs(date).format('DD.MM.YYYY') : '—'
+      render: (date: string) => date ? dayjs(date).format('DD.MM.YY') : '—'
     },
     {
       title: 'Тема',
       dataIndex: 'subject',
       key: 'subject',
+      width: 150,
       ellipsis: {
         showTitle: false
       },
       render: (text: string) => (
-        <Tooltip placement="topLeft" title={text}>
-          {text || '—'}
+        <Tooltip placement="topLeft" title={text || '—'}>
+          {truncateText(text, 25)}
         </Tooltip>
       )
     },
@@ -103,7 +121,7 @@ export const getLetterTableColumns = ({
       title: 'Отправитель',
       dataIndex: 'sender',
       key: 'sender',
-      width: 180,
+      width: 120,
       sorter: (a, b) => {
         const aValue = a.sender_type === 'contractor' ? (a.sender_contractor?.name || '') : (a.sender || '')
         const bValue = b.sender_type === 'contractor' ? (b.sender_contractor?.name || '') : (b.sender || '')
@@ -118,7 +136,7 @@ export const getLetterTableColumns = ({
           : record.sender
         return displayValue ? (
           <Tooltip placement="topLeft" title={displayValue}>
-            {displayValue}
+            {truncateText(displayValue, 20)}
           </Tooltip>
         ) : '—'
       }
@@ -127,7 +145,7 @@ export const getLetterTableColumns = ({
       title: 'Получатель',
       dataIndex: 'recipient',
       key: 'recipient',
-      width: 180,
+      width: 120,
       sorter: (a, b) => {
         const aValue = a.recipient_type === 'contractor' ? (a.recipient_contractor?.name || '') : (a.recipient || '')
         const bValue = b.recipient_type === 'contractor' ? (b.recipient_contractor?.name || '') : (b.recipient || '')
@@ -142,7 +160,7 @@ export const getLetterTableColumns = ({
           : record.recipient
         return displayValue ? (
           <Tooltip placement="topLeft" title={displayValue}>
-            {displayValue}
+            {truncateText(displayValue, 20)}
           </Tooltip>
         ) : '—'
       }
@@ -151,7 +169,7 @@ export const getLetterTableColumns = ({
       title: 'Проект',
       dataIndex: ['project', 'name'],
       key: 'project',
-      width: 200,
+      width: 120,
       sorter: (a, b) => (a.project?.name || '').localeCompare(b.project?.name || ''),
       filters: projects.map(p => ({ text: p.name, value: p.id })),
       onFilter: (value, record) => record.project_id === value,
@@ -162,7 +180,7 @@ export const getLetterTableColumns = ({
         const projectName = record.project?.name
         return projectName ? (
           <Tooltip placement="topLeft" title={projectName}>
-            {projectName}
+            {truncateText(projectName, 20)}
           </Tooltip>
         ) : '—'
       }
@@ -171,7 +189,7 @@ export const getLetterTableColumns = ({
       title: 'Ответственный',
       dataIndex: ['responsible_user', 'full_name'],
       key: 'responsible_user',
-      width: 180,
+      width: 120,
       sorter: (a, b) => {
         const aName = a.responsible_user?.full_name || a.responsible_person_name || ''
         const bName = b.responsible_user?.full_name || b.responsible_person_name || ''
@@ -186,7 +204,7 @@ export const getLetterTableColumns = ({
         const responsibleName = record.responsible_user?.full_name || record.responsible_person_name
         return responsibleName ? (
           <Tooltip placement="topLeft" title={responsibleName}>
-            {responsibleName}
+            {truncateText(responsibleName, 20)}
           </Tooltip>
         ) : '—'
       }
@@ -195,7 +213,7 @@ export const getLetterTableColumns = ({
       title: 'Статус',
       dataIndex: ['status', 'name'],
       key: 'status',
-      width: 150,
+      width: 110,
       sorter: (a, b) => (a.status?.name || '').localeCompare(b.status?.name || ''),
       filters: letterStatuses.map(s => ({ text: s.name, value: s.id })),
       onFilter: (value, record) => record.status_id === value,
@@ -220,17 +238,17 @@ export const getLetterTableColumns = ({
               color={status.color || 'default'}
               style={{ cursor: 'pointer', userSelect: 'none' }}
             >
-              {status.name} <DownOutlined style={{ fontSize: 10, marginLeft: 4 }} />
+              {truncateText(status.name, 15)} <DownOutlined style={{ fontSize: 10, marginLeft: 4 }} />
             </Tag>
           </Dropdown>
         ) : '—'
       }
     },
     {
-      title: 'Способ доставки',
+      title: 'Доставка',
       dataIndex: 'delivery_method',
       key: 'delivery_method',
-      width: 150,
+      width: 85,
       filters: [
         { text: 'Почта', value: 'почта' },
         { text: 'Email', value: 'email' },
@@ -238,13 +256,36 @@ export const getLetterTableColumns = ({
         { text: 'ЭДО', value: 'ЭДО' },
         { text: 'Факс', value: 'факс' }
       ],
-      onFilter: (value, record) => record.delivery_method === value
+      onFilter: (value, record) => record.delivery_method === value,
+      render: (text: string) => (
+        <Tooltip title={text || '—'}>
+          {truncateText(text, 12)}
+        </Tooltip>
+      )
     },
     {
-      title: 'Просрочено на ответ',
+      title: 'Файлы',
+      dataIndex: 'letter_attachments',
+      key: 'attachments_count',
+      width: 60,
+      align: 'center',
+      sorter: (a, b) => {
+        const aCount = (a.letter_attachments?.length || 0) > 0 ? (a.letter_attachments?.[0]?.count || 0) : 0
+        const bCount = (b.letter_attachments?.length || 0) > 0 ? (b.letter_attachments?.[0]?.count || 0) : 0
+        return aCount - bCount
+      },
+      render: (_: any) => {
+        const count = (_?.length || 0) > 0 ? (_?.[0]?.count || 0) : 0
+        return count > 0 ? (
+          <Tag color="blue">{count}</Tag>
+        ) : '—'
+      }
+    },
+    {
+      title: 'Просрочено',
       dataIndex: 'response_deadline',
       key: 'response_overdue',
-      width: 150,
+      width: 85,
       align: 'center',
       sorter: (a, b) => {
         if (!a.response_deadline && !b.response_deadline) return 0
@@ -262,18 +303,20 @@ export const getLetterTableColumns = ({
         const diff = deadline.diff(today, 'day')
 
         if (diff < 0) {
-          // Просрочено - красный цвет с минусом
           return (
-            <Tag color="red" style={{ margin: 0, fontWeight: 'bold' }}>
-              {diff} дн.
-            </Tag>
+            <Tooltip title={`Просрочено на ${Math.abs(diff)} дней`}>
+              <Tag color="red" style={{ margin: 0, fontWeight: 'bold' }}>
+                {diff} дн.
+              </Tag>
+            </Tooltip>
           )
         } else {
-          // Еще есть время - зеленый цвет с плюсом
           return (
-            <Tag color="green" style={{ margin: 0, fontWeight: 'bold' }}>
-              +{diff} дн.
-            </Tag>
+            <Tooltip title={`Осталось ${diff} дней`}>
+              <Tag color="green" style={{ margin: 0, fontWeight: 'bold' }}>
+                +{diff} дн.
+              </Tag>
+            </Tooltip>
           )
         }
       }
@@ -281,7 +324,7 @@ export const getLetterTableColumns = ({
     {
       title: 'Действия',
       key: 'actions',
-      width: 210,
+      width: 150,
       fixed: 'right',
       render: (_: any, record: Letter) => (
         <Space size="small">

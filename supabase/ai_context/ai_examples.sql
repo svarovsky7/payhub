@@ -1,155 +1,285 @@
--- Keep reference dictionaries up to date for the demo flow
-INSERT INTO public.invoice_statuses (code, name)
-VALUES ('draft', 'Draft'), ('approved', 'Approved')
-ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
+-- PayHub Database Examples
+-- Демонстрирующие работу основных операций и триггеров
 
-INSERT INTO public.payment_statuses (code, name)
-VALUES ('posted', 'Posted')
-ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
+-- ========== PROJECTS ==========
 
-INSERT INTO public.payment_types (code, name)
-VALUES ('wire', 'Wire transfer')
-ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
+-- 1. Create project
+INSERT INTO public.projects (code, name, is_active)
+VALUES ('PROJ-001', 'Office Building A', true);
 
-INSERT INTO public.contractor_types (code, name)
-VALUES ('payer', 'Payer company'), ('supplier', 'Supplier company')
-ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
+-- 2. Create project budget
+INSERT INTO public.project_budgets (project_id, total_budget, spent_amount, created_by)
+VALUES (
+  (SELECT id FROM projects WHERE code = 'PROJ-001'),
+  1000000,
+  0,
+  auth.uid()
+);
 
--- Register counterparties used by invoices and payments
-WITH typed AS (
-  SELECT ct.code, ct.id FROM public.contractor_types ct WHERE ct.code IN ('payer', 'supplier')
-)
-INSERT INTO public.contractors (type_id, name, inn, created_by)
-VALUES
-  ((SELECT id FROM typed WHERE code = 'payer'), 'Acme Facilities LLC', '7701234567', '00000000-0000-0000-0000-000000000001'),
-  ((SELECT id FROM typed WHERE code = 'supplier'), 'Orbit Trading LLC', '7712345678', '00000000-0000-0000-0000-000000000001')
-ON CONFLICT (name) DO NOTHING;
+-- ========== CONTRACTORS ==========
 
--- Create a draft invoice; calculate_vat_amounts() derives VAT fields before insert
-WITH payer AS (
-  SELECT id FROM public.contractors WHERE name = 'Acme Facilities LLC'
-), supplier AS (
-  SELECT id FROM public.contractors WHERE name = 'Orbit Trading LLC'
-), status AS (
-  SELECT id FROM public.invoice_statuses WHERE code = 'draft'
-)
+-- 3. Create contractor
+INSERT INTO public.contractors (inn, company_name, contact_person, phone, email)
+VALUES ('7701234567', 'OOO TechServices', 'Ivan Petrov', '+7-999-888-7766', 'info@tech.ru');
+
+-- ========== INVOICE TYPES & STATUSES ==========
+
+-- 4. Check available invoice types
+SELECT * FROM public.invoice_types;
+
+-- 5. Check invoice statuses
+SELECT * FROM public.invoice_statuses;
+
+-- ========== INVOICES ==========
+
+-- 6. Create invoice with automatic status assignment (DRAFT)
 INSERT INTO public.invoices (
-  user_id,
   invoice_number,
   invoice_date,
+  invoice_type_id,
+  contract_id,
+  project_id,
   payer_id,
   supplier_id,
-  status_id,
-  amount_with_vat,
+  amount_without_vat,
   vat_rate,
-  description
+  created_by,
+  responsible_id,
+  user_id
 )
 VALUES (
-  '00000000-0000-0000-0000-000000000001',
-  'INV-2025-0001',
+  'INV-2025-001',
   CURRENT_DATE,
-  (SELECT id FROM payer),
-  (SELECT id FROM supplier),
-  (SELECT id FROM status),
-  120000,
-  20,
-  'Office fit-out milestone'
-)
-ON CONFLICT (invoice_number) DO NOTHING
-RETURNING amount_with_vat, amount_without_vat, vat_amount;
+  (SELECT id FROM invoice_types WHERE code = 'STANDARD' LIMIT 1),
+  (SELECT id FROM contracts LIMIT 1),
+  (SELECT id FROM projects WHERE code = 'PROJ-001'),
+  (SELECT id FROM contractors LIMIT 1),
+  (SELECT id FROM contractors OFFSET 1 LIMIT 1),
+  100000,
+  18,
+  auth.uid(),
+  (SELECT id FROM employees LIMIT 1),
+  auth.uid()
+);
 
--- Adjust the invoice total; update_updated_at_column() refreshes updated_at automatically
-UPDATE public.invoices
-SET amount_with_vat = 150000,
-    vat_rate = 10
-WHERE invoice_number = 'INV-2025-0001'
-RETURNING amount_without_vat, vat_amount, updated_at;
+-- 7. Query invoice with calculated VATamount
+SELECT 
+  id,
+  invoice_number,
+  amount_without_vat,
+  vat_rate,
+  (amount_without_vat * vat_rate / 100)::NUMERIC(15,2) AS vat_amount,
+  (amount_without_vat + amount_without_vat * vat_rate / 100)::NUMERIC(15,2) AS total_amount,
+  status_id
+FROM invoices
+WHERE invoice_number = 'INV-2025-001';
 
--- Record a payment; triggers assign payment_number and touch updated_at
-WITH inv AS (
-  SELECT id FROM public.invoices WHERE invoice_number = 'INV-2025-0001'
-), status AS (
-  SELECT id FROM public.payment_statuses WHERE code = 'posted'
-), ptype AS (
-  SELECT id FROM public.payment_types WHERE code = 'wire'
-)
+-- ========== PAYMENTS ==========
+
+-- 8. Create payment (triggers will update invoice status)
 INSERT INTO public.payments (
+  payment_number,
   invoice_id,
-  amount,
   payment_date,
-  description,
+  amount_without_vat,
+  vat_rate,
   status_id,
-  payment_type_id,
   created_by
 )
 VALUES (
-  (SELECT id FROM inv),
-  80000,
+  'PAY-2025-001',
+  (SELECT id FROM invoices WHERE invoice_number = 'INV-2025-001'),
   CURRENT_DATE,
-  'First installment',
-  (SELECT id FROM status),
-  (SELECT id FROM ptype),
-  '00000000-0000-0000-0000-000000000001'
-)
-RETURNING id, payment_number, updated_at;
+  100000,
+  18,
+  (SELECT id FROM payment_statuses WHERE code = 'PENDING' LIMIT 1),
+  auth.uid()
+);
 
--- Link the payment to the invoice allocation table
-WITH inv AS (
-  SELECT id FROM public.invoices WHERE invoice_number = 'INV-2025-0001'
-), pay AS (
-  SELECT id FROM public.payments WHERE invoice_id = (SELECT id FROM inv) ORDER BY created_at DESC LIMIT 1
-)
-INSERT INTO public.invoice_payments (invoice_id, payment_id, allocated_amount)
+-- 9. Link payment to invoice via invoice_payments
+INSERT INTO public.invoice_payments (invoice_id, payment_id)
 VALUES (
-  (SELECT id FROM inv),
-  (SELECT id FROM pay),
-  80000
+  (SELECT id FROM invoices WHERE invoice_number = 'INV-2025-001'),
+  (SELECT id FROM payments WHERE payment_number = 'PAY-2025-001')
+);
+
+-- 10. Update payment status to COMPLETED (triggers will sync invoice status)
+UPDATE payments
+SET status_id = (SELECT id FROM payment_statuses WHERE code = 'COMPLETED' LIMIT 1)
+WHERE payment_number = 'PAY-2025-001';
+
+-- ========== APPROVAL WORKFLOW ==========
+
+-- 11. Create approval route for invoices
+INSERT INTO public.approval_routes (invoice_type_id, route_number)
+VALUES (
+  (SELECT id FROM invoice_types WHERE code = 'STANDARD' LIMIT 1),
+  1
+);
+
+-- 12. Add stages to workflow
+INSERT INTO public.workflow_stages (
+  route_id,
+  stage_number,
+  role_id,
+  payment_status_id,
+  order_index,
+  is_active
 )
-ON CONFLICT (invoice_id, payment_id) DO UPDATE SET allocated_amount = EXCLUDED.allocated_amount;
+VALUES (
+  (SELECT id FROM approval_routes LIMIT 1),
+  1,
+  (SELECT id FROM roles WHERE code = 'accountant' LIMIT 1),
+  (SELECT id FROM payment_statuses WHERE code = 'PENDING' LIMIT 1),
+  1,
+  true
+);
 
--- Show invoice ledger view with allocations applied
-SELECT
-  i.invoice_number,
-  i.amount_with_vat,
-  i.amount_without_vat,
-  COALESCE(SUM(ip.allocated_amount), 0) AS paid_amount,
-  i.updated_at
-FROM public.invoices i
-LEFT JOIN public.invoice_payments ip ON ip.invoice_id = i.id
-WHERE i.invoice_number = 'INV-2025-0001'
-GROUP BY i.id;
+-- 13. Create payment approval
+INSERT INTO public.payment_approvals (payment_id, status_id)
+VALUES (
+  (SELECT id FROM payments WHERE payment_number = 'PAY-2025-001'),
+  (SELECT id FROM payment_statuses WHERE code = 'PENDING' LIMIT 1)
+);
 
--- Create a material request; update_material_requests_updated_at() maintains timestamps
+-- 14. Add approval step (triggers will log action)
+INSERT INTO public.approval_steps (
+  payment_approval_id,
+  stage_id,
+  acted_by,
+  action,
+  created_at
+)
+VALUES (
+  (SELECT id FROM payment_approvals LIMIT 1),
+  (SELECT id FROM workflow_stages LIMIT 1),
+  auth.uid(),
+  'APPROVED',
+  CURRENT_TIMESTAMP
+);
+
+-- ========== AUDIT LOG ==========
+
+-- 15. View audit log for invoice
+SELECT * FROM public.audit_log
+WHERE entity_type = 'invoice'
+AND entity_id = (SELECT id FROM invoices WHERE invoice_number = 'INV-2025-001')
+ORDER BY created_at DESC;
+
+-- 16. View audit log for payment
+SELECT * FROM public.audit_log
+WHERE entity_type = 'payment'
+AND entity_id = (SELECT id FROM payments WHERE payment_number = 'PAY-2025-001')
+ORDER BY created_at DESC;
+
+-- ========== MATERIAL REQUESTS ==========
+
+-- 17. Create material request
 INSERT INTO public.material_requests (
-  request_number,
-  request_date,
-  created_by
+  employee_id,
+  project_id,
+  request_date
 )
 VALUES (
-  'MR-2025-0005',
-  CURRENT_DATE,
-  '00000000-0000-0000-0000-000000000001'
-)
-ON CONFLICT (request_number) DO UPDATE SET request_date = EXCLUDED.request_date
-RETURNING id, total_items, updated_at;
+  (SELECT id FROM employees LIMIT 1),
+  (SELECT id FROM projects WHERE code = 'PROJ-001'),
+  CURRENT_DATE
+);
 
--- Add items: update_material_request_items_count() recalculates total_items after insert
-WITH req AS (
-  SELECT id FROM public.material_requests WHERE request_number = 'MR-2025-0005'
-)
+-- 18. Add material items to request
 INSERT INTO public.material_request_items (
   material_request_id,
-  material_name,
-  unit,
+  nomenclature_id,
   quantity,
+  unit_price,
   sort_order
 )
-VALUES
-  ((SELECT id FROM req), 'Cable tray 50mm', 'pcs', 40, 1),
-  ((SELECT id FROM req), 'Mounting brackets', 'pcs', 80, 2)
-ON CONFLICT DO NOTHING;
+VALUES (
+  (SELECT id FROM material_requests LIMIT 1),
+  (SELECT id FROM material_nomenclature LIMIT 1),
+  100,
+  1500,
+  1
+);
 
--- Verify the trigger kept the parent counter in sync
-SELECT request_number, total_items
-FROM public.material_requests
-WHERE request_number = 'MR-2025-0005';
+-- ========== LETTERS ==========
+
+-- 19. Create outgoing letter
+INSERT INTO public.letters (
+  letter_number,
+  letter_date,
+  direction,
+  sender_type,
+  recipient_type,
+  sender_contractor_id,
+  recipient_contractor_id,
+  project_id,
+  status_id,
+  responsible_user_id
+)
+VALUES (
+  'LTR-OUT-001',
+  CURRENT_DATE,
+  'OUTGOING',
+  'CONTRACTOR',
+  'CONTRACTOR',
+  (SELECT id FROM contractors LIMIT 1),
+  (SELECT id FROM contractors OFFSET 1 LIMIT 1),
+  (SELECT id FROM projects WHERE code = 'PROJ-001'),
+  (SELECT id FROM letter_statuses WHERE code = 'DRAFT' LIMIT 1),
+  auth.uid()
+);
+
+-- 20. Create contracts
+INSERT INTO public.contracts (
+  contract_number,
+  contract_date,
+  payer_id,
+  supplier_id,
+  project_id,
+  status_id
+)
+VALUES (
+  'CON-2025-001',
+  CURRENT_DATE,
+  (SELECT id FROM contractors LIMIT 1),
+  (SELECT id FROM contractors OFFSET 1 LIMIT 1),
+  (SELECT id FROM projects WHERE code = 'PROJ-001'),
+  (SELECT id FROM contract_statuses WHERE code = 'ACTIVE' LIMIT 1)
+);
+
+-- ========== QUERY EXAMPLES ==========
+
+-- 21. Complete invoice summary with payment info
+SELECT 
+  i.invoice_number,
+  i.invoice_date,
+  i.amount_without_vat,
+  i.vat_rate,
+  ist.name AS invoice_status,
+  c.company_name AS supplier,
+  COUNT(p.id) AS payment_count,
+  COALESCE(SUM(p.amount_without_vat), 0) AS total_paid
+FROM invoices i
+LEFT JOIN invoice_types it ON i.invoice_type_id = it.id
+LEFT JOIN invoice_statuses ist ON i.status_id = ist.id
+LEFT JOIN contractors c ON i.supplier_id = c.id
+LEFT JOIN invoice_payments ip ON i.id = ip.invoice_id
+LEFT JOIN payments p ON ip.payment_id = p.id
+GROUP BY i.id, i.invoice_number, i.invoice_date, i.amount_without_vat, i.vat_rate, ist.name, c.company_name;
+
+-- 22. Approval workflow status
+SELECT 
+  p.payment_number,
+  pa.status_id,
+  ps.name AS approval_status,
+  ws.stage_number,
+  r.code AS required_role,
+  MAX(ap.created_at) AS last_action
+FROM payments p
+LEFT JOIN payment_approvals pa ON p.id = pa.payment_id
+LEFT JOIN payment_statuses ps ON pa.status_id = ps.id
+LEFT JOIN approval_steps ap ON pa.id = ap.payment_approval_id
+LEFT JOIN workflow_stages ws ON ap.stage_id = ws.id
+LEFT JOIN roles r ON ws.role_id = r.id
+GROUP BY p.id, p.payment_number, pa.status_id, ps.name, ws.stage_number, r.code;

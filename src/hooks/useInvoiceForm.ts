@@ -15,6 +15,8 @@ export const useInvoiceForm = () => {
   const [vatRate, setVatRate] = useState<number>(20)
   const [vatAmount, setVatAmount] = useState<number>(0)
   const [amountWithoutVat, setAmountWithoutVat] = useState<number>(0)
+  const [deliveryCost, setDeliveryCost] = useState<number>(0)
+  const [totalWithVat, setTotalWithVat] = useState<number>(0)
   const [deliveryDays, setDeliveryDays] = useState<number | undefined>()
   const [deliveryDaysType, setDeliveryDaysType] = useState<'working' | 'calendar'>('calendar')
   const [invoiceDate, setInvoiceDate] = useState<Dayjs>(dayjs())
@@ -93,6 +95,8 @@ export const useInvoiceForm = () => {
     setVatRate(20)
     setVatAmount(0)
     setAmountWithoutVat(0)
+    setDeliveryCost(0)
+    setTotalWithVat(0)
     setDeliveryDays(undefined)
     setDeliveryDaysType('calendar')
     setInvoiceDate(dayjs())
@@ -104,6 +108,10 @@ export const useInvoiceForm = () => {
   const populateForm = useCallback((invoice: Invoice) => {
     console.log('[useInvoiceForm.populateForm] Populating form with invoice:', invoice)
 
+    const deliveryCostValue = invoice.delivery_cost || 0
+    const amountWithVatValue = invoice.amount_with_vat || 0
+    const totalValue = amountWithVatValue + deliveryCostValue
+
     const formValues = {
       invoice_number: invoice.invoice_number,
       invoice_date: invoice.invoice_date ? dayjs(invoice.invoice_date) : dayjs(),
@@ -114,23 +122,26 @@ export const useInvoiceForm = () => {
       description: invoice.description,
       contract_id: invoice.contract_id,
       material_request_id: invoice.material_request_id,
-      amount_with_vat: invoice.amount_with_vat || 0,
+      amount_with_vat: amountWithVatValue,
       vat_rate: invoice.vat_rate || 20,
-      delivery_cost: invoice.delivery_cost || 0,
+      delivery_cost: deliveryCostValue,
+      total_with_vat: totalValue,
       delivery_days: invoice.delivery_days,
       delivery_days_type: invoice.delivery_days_type || 'calendar',
       preliminary_delivery_date: invoice.preliminary_delivery_date ? dayjs(invoice.preliminary_delivery_date) : null,
-      responsible_id: invoice.responsible_id, // Исправлено: используем responsible_id из типа Invoice
-      payment_deadline_date: invoice.relevance_date ? dayjs(invoice.relevance_date) : null // Конечная дата актуальности счета
+      responsible_id: invoice.responsible_id,
+      payment_deadline_date: invoice.relevance_date ? dayjs(invoice.relevance_date) : null
     }
 
     console.log('[useInvoiceForm.populateForm] Setting form values:', formValues)
     form.setFieldsValue(formValues)
 
-    setAmountWithVat(invoice.amount_with_vat || 0)
+    setAmountWithVat(amountWithVatValue)
     setVatRate(invoice.vat_rate || 20)
     setVatAmount(invoice.vat_amount || 0)
     setAmountWithoutVat(invoice.amount_without_vat || 0)
+    setDeliveryCost(deliveryCostValue)
+    setTotalWithVat(totalValue)
     setDeliveryDays(invoice.delivery_days || undefined)
     setDeliveryDaysType(invoice.delivery_days_type || 'calendar')
     setInvoiceDate(invoice.invoice_date ? dayjs(invoice.invoice_date) : dayjs())
@@ -145,6 +156,10 @@ export const useInvoiceForm = () => {
     setVatRate,
     vatAmount,
     amountWithoutVat,
+    deliveryCost,
+    setDeliveryCost,
+    totalWithVat,
+    setTotalWithVat,
     deliveryDays,
     setDeliveryDays,
     deliveryDaysType,

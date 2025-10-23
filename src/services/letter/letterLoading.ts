@@ -37,7 +37,8 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
       responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
       creator:user_profiles!letters_created_by_fkey(id, full_name, email),
       sender_contractor:contractors!fk_letters_sender_contractor(id, name),
-      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
+      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name),
+      letter_attachments(count)
     `)
 
   // If userId is provided, check role and filter by user projects if necessary
@@ -104,100 +105,100 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
 
   if (!data) return []
 
-  // Get child letter IDs only for letters in the current dataset
-  const parentLetterIds = data.map(l => l.id)
+  // Get ALL letter links once to identify parent-child relationships
+  const { data: allLinks, error: linksError } = await supabase
+    .from('letter_links')
+    .select('parent_id, child_id')
 
-  // Use batching to avoid URL length issues (max 50 UUIDs per request)
-  const BATCH_SIZE = 50
-
-  // Load child IDs in batches
-  const idBatches: string[][] = []
-  for (let i = 0; i < parentLetterIds.length; i += BATCH_SIZE) {
-    idBatches.push(parentLetterIds.slice(i, i + BATCH_SIZE))
+  if (linksError) {
+    console.error('[letterLoading.loadLetters] Error loading letter_links:', linksError)
+    throw linksError
   }
 
-  const childIdResults = await Promise.all(
-    idBatches.map(async (batch) => {
-      const { data } = await supabase
-        .from('letter_links')
-        .select('child_id')
-        .in('parent_id', batch)
-      return data || []
-    })
-  )
+  console.log('[letterLoading.loadLetters] Total letter_links found:', allLinks?.length || 0)
 
-  const childLinks = childIdResults.flat()
-  const childLetterIds = new Set(childLinks?.map(link => link.child_id) || [])
-
-  // Filter out child letters from main list
-  const parentLetters = data.filter(letter => !childLetterIds.has(letter.id))
-
-  // Load ALL children for all parent letters (with batching)
-  if (parentLetterIds.length === 0) {
-    return []
-  }
-
-  // Split into batches for loading full child data
-  const batches: string[][] = []
-  for (let i = 0; i < parentLetterIds.length; i += BATCH_SIZE) {
-    batches.push(parentLetterIds.slice(i, i + BATCH_SIZE))
-  }
-
-  console.log(`[letterLoading.loadLetters] Loading children in ${batches.length} batches`)
-
-  // Load children for each batch in parallel
-  const batchResults = await Promise.all(
-    batches.map(async (batch) => {
-      const { data, error } = await supabase
-        .from('letter_links')
-        .select(`
-          parent_id,
-          child_letter:letters!letter_links_child_id_fkey(
-            *,
-            project:projects(id, name, code),
-            status:letter_statuses(id, name, code, color),
-            responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
-            creator:user_profiles!letters_created_by_fkey(id, full_name, email),
-            sender_contractor:contractors!fk_letters_sender_contractor(id, name),
-            recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
-          )
-        `)
-        .in('parent_id', batch)
-
-      if (error) {
-        console.error('[letterLoading.loadLetters] Error loading batch:', error)
-        throw error
-      }
-
-      return data || []
-    })
-  )
-
-  // Flatten all batch results
-  const allChildLinks = batchResults.flat()
-
-  // Group children by parent_id
-  const childrenByParent = new Map<string, Letter[]>()
-  allChildLinks?.forEach((link: any) => {
-    const parentId = link.parent_id
-    const child = link.child_letter
-    if (child) {
-      const childWithParent = { ...child, parent_id: parentId }
-      if (!childrenByParent.has(parentId)) {
-        childrenByParent.set(parentId, [])
-      }
-      childrenByParent.get(parentId)!.push(childWithParent)
-    }
+  // Build a map: parent_id -> array of child_ids for O(1) lookup
+  const parentToChildrenMap = new Map<string, string[]>()
+  allLinks?.forEach(link => {
+    const children = parentToChildrenMap.get(link.parent_id) || []
+    children.push(link.child_id)
+    parentToChildrenMap.set(link.parent_id, children)
   })
 
-  // Attach children to parent letters
+  // Create a set of all child letter IDs
+  const childLetterIds = new Set(allLinks?.map(link => link.child_id) || [])
+
+  // Filter out child letters from main list to get only top-level parents
+  const parentLetters = data.filter(letter => !childLetterIds.has(letter.id))
+
+  console.log('[letterLoading.loadLetters] Total letters loaded:', data.length)
+  console.log('[letterLoading.loadLetters] Top-level parent letters:', parentLetters.length)
+
+  // Create a map of all letters by ID for easy lookup
+  const lettersById = new Map<string, Letter>()
+  data.forEach(letter => lettersById.set(letter.id, letter))
+
+  // Function to get all descendants of a parent letter (flattened to one level) - NO DB QUERIES
+  const getAllDescendants = (parentId: string): Letter[] => {
+    const allDescendants: Letter[] = []
+    const visited = new Set<string>()
+    const queue: string[] = [parentId]
+
+    // BFS to collect all descendants using in-memory map
+    while (queue.length > 0) {
+      const currentId = queue.shift()!
+
+      if (visited.has(currentId)) {
+        continue
+      }
+      visited.add(currentId)
+
+      const childIds = parentToChildrenMap.get(currentId) || []
+
+      for (const childId of childIds) {
+        const childLetter = lettersById.get(childId)
+        if (childLetter) {
+          // Add all descendants to the same level
+          allDescendants.push({
+            ...childLetter,
+            parent_id: parentId
+          })
+          // Add to queue to find its children
+          queue.push(childId)
+        }
+      }
+    }
+
+    return allDescendants
+  }
+
+  // Build hierarchy for all parent letters (NO MORE ASYNC CALLS)
+  console.log('[letterLoading.loadLetters] Building one-level hierarchy in memory')
   const lettersWithChildren = parentLetters.map((letter) => {
-    const children = childrenByParent.get(letter.id) || []
+    const children = getAllDescendants(letter.id)
     return {
       ...letter,
       children: children.length > 0 ? children : undefined
     }
   })
+
+  console.log('[letterLoading.loadLetters] Finished loading, returning', lettersWithChildren.length, 'letters')
+
+  // Log the final structure for debugging (one-level only)
+  const logStructure = (lettersList: Letter[]) => {
+    lettersList.forEach(letter => {
+      console.log(`Letter: ${letter.number} (ID: ${letter.id})`)
+      if (letter.children && letter.children.length > 0) {
+        console.log(`  Children: ${letter.children.length}`)
+        letter.children.forEach(child => {
+          console.log(`    - ${child.number} (ID: ${child.id})`)
+        })
+      }
+    })
+  }
+
+  console.log('[letterLoading.loadLetters] Final structure (one-level hierarchy):')
+  logStructure(lettersWithChildren)
 
   return lettersWithChildren
 }

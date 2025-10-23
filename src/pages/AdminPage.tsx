@@ -146,7 +146,7 @@ export const AdminPage = () => {
   ]
 
   return (
-    <div>
+    <div style={{ padding: '0 24px' }}>
       <h1 style={{ marginBottom: 24 }}>Администрирование</h1>
       <Tabs
         activeKey={activeTab}

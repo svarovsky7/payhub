@@ -46,24 +46,10 @@ export const PaymentStatusIndicator: React.FC<PaymentStatusIndicatorProps> = ({
             percent={Number(progressPercent.toFixed(1))}
             strokeColor={progressColor}
             size="small"
-            showInfo={false}
+            showInfo={true}
+            format={(percent) => `${percent?.toFixed(0)}%`}
             style={{ marginBottom: 2 }}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', lineHeight: '14px' }}>
-            <span style={{ color: isFullyPaid ? '#52c41a' : '#1890ff' }}>
-              {formatAmountInMillions(totalPaid)}
-            </span>
-            {remainingAmount > 0 && (
-              <span style={{ color: '#ff4d4f' }}>
-                -{formatAmountInMillions(Math.abs(remainingAmount))}
-              </span>
-            )}
-            {isOverpaid && (
-              <span style={{ color: '#faad14' }}>
-                +{formatAmountInMillions(Math.abs(remainingAmount))}
-              </span>
-            )}
-          </div>
         </div>
       </Tooltip>
     </div>

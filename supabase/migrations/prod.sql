@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-17T07:54:20.526990
+-- Generated: 2025-10-23T07:55:48.386944
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -1160,6 +1160,23 @@ COMMENT ON COLUMN public.positions.description IS 'Position description';
 COMMENT ON COLUMN public.positions.created_at IS 'Timestamp when the position was created';
 COMMENT ON COLUMN public.positions.updated_at IS 'Timestamp when the position was last updated';
 
+-- Alternative names for projects (aliases, abbreviations, translations, etc.)
+CREATE TABLE IF NOT EXISTS public.project_alternative_names (
+    id bigint(64) NOT NULL,
+    project_id integer(32) NOT NULL,
+    alternative_name character varying(255) NOT NULL,
+    sort_order integer(32) DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT project_alternative_names_pkey PRIMARY KEY (id),
+    CONSTRAINT project_alternative_names_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)
+);
+
+COMMENT ON TABLE public.project_alternative_names IS 'Alternative names for projects (aliases, abbreviations, translations, etc.)';
+COMMENT ON COLUMN public.project_alternative_names.project_id IS 'Reference to the main project';
+COMMENT ON COLUMN public.project_alternative_names.alternative_name IS 'Alternative name/alias for the project';
+COMMENT ON COLUMN public.project_alternative_names.sort_order IS 'Display order of the alternative name';
+
 -- Project budgets and financial allocations
 CREATE TABLE IF NOT EXISTS public.project_budgets (
     id integer(32) NOT NULL DEFAULT nextval('project_budgets_id_seq'::regclass),
@@ -1285,6 +1302,8 @@ CREATE TABLE IF NOT EXISTS public.workflow_stages (
     payment_status_id integer(32),
     permissions jsonb DEFAULT '{}'::jsonb,
     is_active boolean DEFAULT true,
+    invoice_status_id integer(32),
+    CONSTRAINT workflow_stages_invoice_status_id_fkey FOREIGN KEY (invoice_status_id) REFERENCES None.None(None),
     CONSTRAINT workflow_stages_payment_status_id_fkey FOREIGN KEY (payment_status_id) REFERENCES None.None(None),
     CONSTRAINT workflow_stages_pkey PRIMARY KEY (id),
     CONSTRAINT workflow_stages_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None),
@@ -1304,6 +1323,7 @@ COMMENT ON COLUMN public.workflow_stages.updated_at IS 'Timestamp when the stage
 COMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'Payment status to set when this stage is reached';
 COMMENT ON COLUMN public.workflow_stages.permissions IS 'JSON permissions object for this stage';
 COMMENT ON COLUMN public.workflow_stages.is_active IS 'Whether this stage is currently active';
+COMMENT ON COLUMN public.workflow_stages.invoice_status_id IS 'Invoice status to set when this stage is reached';
 
 CREATE TABLE IF NOT EXISTS realtime.messages (
     topic text NOT NULL,
@@ -3404,6 +3424,18 @@ $function$
 
 ;
 
+CREATE OR REPLACE FUNCTION public.update_project_alternative_names_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$function$
+
+;
+
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -4933,6 +4965,9 @@ CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON public.payments FOR E
 CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON public.positions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER trigger_project_alternative_names_updated_at BEFORE UPDATE ON public.project_alternative_names FOR EACH ROW EXECUTE FUNCTION update_project_alternative_names_updated_at()
+;
+
 CREATE TRIGGER update_project_budgets_updated_at BEFORE UPDATE ON public.project_budgets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -5433,6 +5468,12 @@ CREATE UNIQUE INDEX payments_payment_number_key ON public.payments USING btree (
 ;
 
 CREATE UNIQUE INDEX positions_name_key ON public.positions USING btree (name)
+;
+
+CREATE INDEX idx_project_alternative_names_name ON public.project_alternative_names USING btree (alternative_name)
+;
+
+CREATE INDEX idx_project_alternative_names_project_id ON public.project_alternative_names USING btree (project_id)
 ;
 
 CREATE INDEX idx_project_budgets_created_by ON public.project_budgets USING btree (created_by)

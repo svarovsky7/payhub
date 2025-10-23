@@ -160,6 +160,18 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
     }
   }
 
+  // Кастомный фильтр для поиска по проектам (название и описание)
+  const filterProject = (input: string, option?: { label: string; value: number }): boolean => {
+    if (!input) return true
+    const project = filteredProjects.find(p => p.id === option?.value)
+    const searchText = input.toLowerCase()
+    return (
+      (project?.name && project.name.toLowerCase().includes(searchText)) ||
+      (project?.description && project.description.toLowerCase().includes(searchText)) ||
+      false
+    )
+  }
+
   // Дополнительная информация о договоре для отображения
   const getContractLabel = (contract: Contract) => {
     const contractProjectIds = getContractProjects(contract)
@@ -174,6 +186,15 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
       label += ` (${contractProjectNames.join(', ')})`
     }
 
+    return label
+  }
+
+  // Получаем label проекта для выпадающего списка
+  const getProjectLabel = (project: Project) => {
+    let label = project.name
+    if (project.description) {
+      label += ` — ${project.description}`
+    }
     return label
   }
 
@@ -198,11 +219,13 @@ export const InvoiceContractProjectFields: React.FC<InvoiceContractProjectFields
             placeholder="Выберите проект"
             showSearch
             allowClear
-            optionFilterProp="label"
+            optionLabelProp="projectName"
+            filterOption={filterProject}
             onChange={handleProjectChange}
             options={filteredProjects.map((project) => ({
               value: project.id,
-              label: project.name,
+              projectName: project.name,
+              label: getProjectLabel(project)
             }))}
             notFoundContent={
               selectedContractId && filteredProjects.length === 0

@@ -1,4309 +1,1773 @@
-[
-  {
-    "table": "public.approval_routes",
-    "summary": "Payment approval routes. One invoice type can have multiple routes.",
-    "columns": [
-      {
-        "name": "id",
+{
+  "public.approval_routes": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_type_id",
+      "invoice_type_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Invoice type ID this route applies to"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Route name"
+        "foreign_key": null
       },
-      {
-        "name": "is_active",
+      "is_active": {
         "type": "boolean",
         "nullable": true,
-        "default": "true",
-        "description": "Whether this route is currently active"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the route was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the route was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_20081_1_not_null"
-        },
-        {
-          "name": "2200_20081_2_not_null"
-        },
-        {
-          "name": "2200_20081_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_approval_routes_invoice_type",
-        "columns": [
-          "invoice_type_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_approval_routes_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Payment approval routes. One invoice type can have multiple routes."
   },
-  {
-    "table": "public.approval_steps",
-    "summary": "Audit log of actions performed during payment approval process",
-    "columns": [
-      {
-        "name": "id",
+  "public.approval_steps": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "payment_approval_id",
+      "payment_approval_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Payment approval ID this step belongs to"
+        "foreign_key": null
       },
-      {
-        "name": "stage_id",
+      "stage_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Workflow stage ID"
+        "foreign_key": null
       },
-      {
-        "name": "action",
+      "action": {
         "type": "text",
         "nullable": false,
-        "description": "Action taken: approved, rejected, or returned"
+        "foreign_key": null
       },
-      {
-        "name": "acted_by",
+      "acted_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who performed the approval action"
+        "foreign_key": null
       },
-      {
-        "name": "acted_at",
-        "type": "timestamptz",
+      "acted_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "description": "Timestamp when the action was performed"
+        "foreign_key": null
       },
-      {
-        "name": "comment",
+      "comment": {
         "type": "text",
         "nullable": true,
-        "description": "Optional comment explaining the decision"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the record was created"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "approval_steps_payment_approval_id_stage_id_key",
-          "columns": [
-            "payment_approval_id",
-            "stage_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_20143_1_not_null"
-        },
-        {
-          "name": "2200_20143_2_not_null"
-        },
-        {
-          "name": "2200_20143_3_not_null"
-        },
-        {
-          "name": "2200_20143_4_not_null"
-        },
-        {
-          "name": "approval_steps_action_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "approval_steps_payment_approval_id_stage_id_key",
-        "columns": [
-          "payment_approval_id",
-          "stage_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_approval_steps_acted_by",
-        "columns": [
-          "acted_by"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_approval_steps_approval",
-        "columns": [
-          "payment_approval_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "audit_approval_steps",
-        "timing": "AFTER",
-        "events": [
-          "INSERT",
-          "UPDATE"
-        ],
-        "function": "public.log_approval_actions()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Audit log of actions performed during payment approval process"
   },
-  {
-    "table": "public.attachments",
-    "summary": "Metadata for files uploaded to Supabase Storage",
-    "columns": [
-      {
-        "name": "id",
+  "public.attachments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "original_name",
-        "type": "varchar(255)",
+      "original_name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Original filename as uploaded by user"
+        "foreign_key": null
       },
-      {
-        "name": "storage_path",
-        "type": "varchar(500)",
+      "storage_path": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Path to file in Supabase Storage"
+        "foreign_key": null
       },
-      {
-        "name": "size_bytes",
+      "size_bytes": {
         "type": "integer",
         "nullable": false,
-        "description": "File size in bytes"
+        "foreign_key": null
       },
-      {
-        "name": "mime_type",
-        "type": "varchar(100)",
+      "mime_type": {
+        "type": "character varying",
         "nullable": false,
-        "description": "MIME type of the file"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": false,
-        "description": "User ID who uploaded the file"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the file was uploaded"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when metadata was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Optional description of the attachment"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_19364_1_not_null"
-        },
-        {
-          "name": "2200_19364_2_not_null"
-        },
-        {
-          "name": "2200_19364_3_not_null"
-        },
-        {
-          "name": "2200_19364_4_not_null"
-        },
-        {
-          "name": "2200_19364_5_not_null"
-        },
-        {
-          "name": "2200_19364_6_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_attachments_created_by",
-        "columns": [
-          "created_by"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_attachments_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Metadata for files uploaded to Supabase Storage"
   },
-  {
-    "table": "public.audit_log",
-    "summary": "Centralized audit log for tracking changes to invoices, payments, and related entities",
-    "columns": [
-      {
-        "name": "id",
+  "public.audit_log": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "entity_type",
+      "entity_type": {
         "type": "text",
         "nullable": false,
-        "description": "Type of entity: invoice, payment, invoice_attachment, payment_attachment, approval"
+        "foreign_key": null
       },
-      {
-        "name": "entity_id",
+      "entity_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "ID of the affected entity"
+        "foreign_key": null
       },
-      {
-        "name": "action",
+      "action": {
         "type": "text",
         "nullable": false,
-        "description": "Action performed: create, update, delete, file_add, file_delete, status_change, approval_action"
+        "foreign_key": null
       },
-      {
-        "name": "field_name",
+      "field_name": {
         "type": "text",
         "nullable": true,
-        "description": "Name of the field that was changed (for update actions)"
+        "foreign_key": null
       },
-      {
-        "name": "old_value",
+      "old_value": {
         "type": "text",
         "nullable": true,
-        "description": "Previous value (for update actions)"
+        "foreign_key": null
       },
-      {
-        "name": "new_value",
+      "new_value": {
         "type": "text",
         "nullable": true,
-        "description": "New value (for update actions)"
+        "foreign_key": null
       },
-      {
-        "name": "user_id",
+      "user_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "User ID who performed the action"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the action was performed"
+        "foreign_key": null
       },
-      {
-        "name": "metadata",
+      "metadata": {
         "type": "jsonb",
         "nullable": true,
-        "description": "Additional JSON metadata (file info, status names, comments)"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_26302_1_not_null"
-        },
-        {
-          "name": "2200_26302_2_not_null"
-        },
-        {
-          "name": "2200_26302_3_not_null"
-        },
-        {
-          "name": "2200_26302_4_not_null"
-        },
-        {
-          "name": "2200_26302_8_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_audit_log_action",
-        "columns": [
-          "action"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_audit_log_created_at",
-        "columns": [
-          "created_at DESC"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_audit_log_entity",
-        "columns": [
-          "entity_type",
-          "entity_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_audit_log_user_id",
-        "columns": [
-          "user_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
+    "indexes": [],
+    "comment": "Centralized audit log for tracking changes to invoices, payments, and related entities"
   },
-  {
-    "table": "public.contract_attachments",
-    "summary": "Junction table linking contracts with attached files",
-    "columns": [
-      {
-        "name": "id",
+  "public.contract_attachments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "uuid_generate_v4()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "contract_id",
+      "contract_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Contract ID"
+        "foreign_key": null
       },
-      {
-        "name": "attachment_id",
+      "attachment_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Attachment ID"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the link was created"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_21097_1_not_null"
-        },
-        {
-          "name": "2200_21097_2_not_null"
-        },
-        {
-          "name": "2200_21097_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_contract_attachments_attachment_id",
-        "columns": [
-          "attachment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contract_attachments_contract_id",
-        "columns": [
-          "contract_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
+    "indexes": [],
+    "comment": "Junction table linking contracts with attached files"
   },
-  {
-    "table": "public.contract_invoices",
-    "summary": "Junction table linking contracts with invoices",
-    "columns": [
-      {
-        "name": "id",
+  "public.contract_invoices": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "uuid_generate_v4()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "contract_id",
+      "contract_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Contract ID"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_id",
+      "invoice_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Invoice ID"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the link was created"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_21078_1_not_null"
-        },
-        {
-          "name": "2200_21078_2_not_null"
-        },
-        {
-          "name": "2200_21078_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_contract_invoices_contract_id",
-        "columns": [
-          "contract_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contract_invoices_invoice_id",
-        "columns": [
-          "invoice_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
+    "indexes": [],
+    "comment": "Junction table linking contracts with invoices"
   },
-  {
-    "table": "public.contract_projects",
-    "summary": "Many-to-many relationship table linking contracts with projects",
-    "columns": [
-      {
-        "name": "id",
+  "public.contract_projects": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()"
+        "foreign_key": null
       },
-      {
-        "name": "contract_id",
+      "contract_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Reference to contract"
+        "foreign_key": null
       },
-      {
-        "name": "project_id",
+      "project_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Reference to project"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "contract_projects_unique",
-          "columns": [
-            "contract_id",
-            "project_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_26920_1_not_null"
-        },
-        {
-          "name": "2200_26920_2_not_null"
-        },
-        {
-          "name": "2200_26920_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "contract_projects_unique",
-        "columns": [
-          "contract_id",
-          "project_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contract_projects_contract_id",
-        "columns": [
-          "contract_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contract_projects_project_id",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
+    "indexes": [],
+    "comment": "Many-to-many relationship table linking contracts with projects"
   },
-  {
-    "table": "public.contract_statuses",
-    "summary": "Contract status reference table",
-    "columns": [
-      {
-        "name": "id",
+  "public.contract_statuses": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('contract_statuses_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "code",
-        "type": "varchar(50)",
+      "code": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unique status code"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Status name"
+        "foreign_key": null
       },
-      {
-        "name": "color",
-        "type": "varchar(7)",
+      "color": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Display color for UI"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Status description"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the status was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the status was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "sort_order",
+      "sort_order": {
         "type": "integer",
         "nullable": true,
-        "default": "100",
-        "description": "Sort order for display"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "contract_statuses_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_22407_1_not_null"
-        },
-        {
-          "name": "2200_22407_2_not_null"
-        },
-        {
-          "name": "2200_22407_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "contract_statuses_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contract_statuses_code",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contract_statuses_sort_order",
-        "columns": [
-          "sort_order"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_contract_statuses_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Contract status reference table"
   },
-  {
-    "table": "public.contractors",
-    "summary": "Registry of contractors linked to invoices and projects",
-    "columns": [
-      {
-        "name": "id",
+  "public.contractors": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('contractors_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Official contractor name"
+        "foreign_key": null
       },
-      {
-        "name": "inn",
-        "type": "varchar(12)",
+      "inn": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Russian tax identifier (INN)"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who created the contractor record"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the contractor was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the contractor was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "contractors_inn_key",
-          "columns": [
-            "inn"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_18404_1_not_null"
-        },
-        {
-          "name": "2200_18404_3_not_null"
-        },
-        {
-          "name": "2200_18404_4_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "contractors_inn_key",
-        "columns": [
-          "inn"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contractors_inn",
-        "columns": [
-          "inn"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contractors_updated_at",
-        "columns": [
-          "updated_at DESC"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_contractors_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Registry of contractors linked to invoices and projects"
   },
-  {
-    "table": "public.contracts",
-    "summary": "Contracts with counterparties",
-    "columns": [
-      {
-        "name": "id",
+  "public.contracts": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "uuid_generate_v4()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "contract_number",
-        "type": "varchar(255)",
+      "contract_number": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Contract number"
+        "foreign_key": null
       },
-      {
-        "name": "contract_date",
+      "contract_date": {
         "type": "date",
         "nullable": false,
-        "description": "Contract signing date"
+        "foreign_key": null
       },
-      {
-        "name": "payer_id",
+      "payer_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Payer contractor ID"
+        "foreign_key": null
       },
-      {
-        "name": "supplier_id",
+      "supplier_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Supplier contractor ID"
+        "foreign_key": null
       },
-      {
-        "name": "vat_rate",
-        "type": "numeric(5,2)",
+      "vat_rate": {
+        "type": "numeric",
         "nullable": true,
-        "default": "20",
-        "description": "VAT rate percentage"
+        "foreign_key": null
       },
-      {
-        "name": "warranty_period_days",
+      "warranty_period_days": {
         "type": "integer",
         "nullable": true,
-        "description": "Warranty period in days"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Contract description"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the contract was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the contract was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who created the contract"
+        "foreign_key": null
       },
-      {
-        "name": "project_id",
+      "project_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Project ID this contract belongs to"
+        "foreign_key": null
       },
-      {
-        "name": "status_id",
+      "status_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Contract status ID"
+        "foreign_key": null
       },
-      {
-        "name": "payment_terms",
+      "payment_terms": {
         "type": "text",
         "nullable": true,
-        "description": "Payment terms (free text)"
+        "foreign_key": null
       },
-      {
-        "name": "advance_percentage",
-        "type": "numeric(5,2)",
+      "advance_percentage": {
+        "type": "numeric",
         "nullable": true,
-        "default": "0",
-        "description": "Advance payment percentage (0-100)"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_21052_1_not_null"
-        },
-        {
-          "name": "2200_21052_2_not_null"
-        },
-        {
-          "name": "2200_21052_3_not_null"
-        },
-        {
-          "name": "contracts_advance_percentage_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_contracts_contract_date",
-        "columns": [
-          "contract_date"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contracts_contract_number",
-        "columns": [
-          "contract_number"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contracts_payer_id",
-        "columns": [
-          "payer_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contracts_project_id",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contracts_status_id",
-        "columns": [
-          "status_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contracts_supplier_id",
-        "columns": [
-          "supplier_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_contracts_updated_at",
-        "columns": [
-          "updated_at DESC"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_contracts_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Contracts with counterparties"
   },
-  {
-    "table": "public.departments",
-    "summary": "Organizational departments",
-    "columns": [
-      {
-        "name": "id",
+  "public.departments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('departments_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Department name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Department description"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the department was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the department was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "departments_name_key",
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_20791_1_not_null"
-        },
-        {
-          "name": "2200_20791_2_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "departments_name_key",
-        "columns": [
-          "name"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_departments_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Organizational departments"
   },
-  {
-    "table": "public.employees",
-    "summary": "Company employees registry",
-    "columns": [
-      {
-        "name": "id",
+  "public.employees": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('employees_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "last_name",
-        "type": "varchar(255)",
+      "last_name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Employee last name"
+        "foreign_key": null
       },
-      {
-        "name": "first_name",
-        "type": "varchar(255)",
+      "first_name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Employee first name"
+        "foreign_key": null
       },
-      {
-        "name": "middle_name",
-        "type": "varchar(255)",
+      "middle_name": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Employee middle name (patronymic)"
+        "foreign_key": null
       },
-      {
-        "name": "full_name",
-        "type": "varchar(765)",
+      "full_name": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Full name (auto-computed)"
+        "foreign_key": null
       },
-      {
-        "name": "department_id",
+      "department_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Department ID"
+        "foreign_key": null
       },
-      {
-        "name": "position_id",
+      "position_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Position ID"
+        "foreign_key": null
       },
-      {
-        "name": "email",
-        "type": "varchar(255)",
+      "email": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Employee email address"
+        "foreign_key": null
       },
-      {
-        "name": "phone",
-        "type": "varchar(50)",
+      "phone": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Employee phone number"
+        "foreign_key": null
       },
-      {
-        "name": "is_active",
+      "is_active": {
         "type": "boolean",
         "nullable": false,
-        "default": "true",
-        "description": "Whether the employee is currently active"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the employee was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the employee was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who created the employee record"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_20817_10_not_null"
-        },
-        {
-          "name": "2200_20817_1_not_null"
-        },
-        {
-          "name": "2200_20817_2_not_null"
-        },
-        {
-          "name": "2200_20817_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_employees_department_id",
-        "columns": [
-          "department_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_employees_full_name",
-        "columns": [
-          "full_name"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_employees_is_active",
-        "columns": [
-          "is_active"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_employees_position_id",
-        "columns": [
-          "position_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_employees_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Company employees registry"
   },
-  {
-    "table": "public.invoice_attachments",
-    "summary": "Junction table linking invoices with attached files",
-    "columns": [
-      {
-        "name": "id",
+  "public.invoice_attachments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_id",
+      "invoice_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Invoice ID"
+        "foreign_key": null
       },
-      {
-        "name": "attachment_id",
+      "attachment_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Attachment ID"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the link was created"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_19379_1_not_null"
-        },
-        {
-          "name": "2200_19379_2_not_null"
-        },
-        {
-          "name": "2200_19379_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_invoice_attachments_attachment_id",
-        "columns": [
-          "attachment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoice_attachments_invoice_id",
-        "columns": [
-          "invoice_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "audit_invoice_attachments",
-        "timing": "AFTER",
-        "events": [
-          "INSERT",
-          "DELETE"
-        ],
-        "function": "public.log_attachment_changes()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Junction table linking invoices with attached files"
   },
-  {
-    "table": "public.invoice_payments",
-    "summary": "Junction table linking invoices with payments and allocation amounts",
-    "columns": [
-      {
-        "name": "id",
+  "public.invoice_payments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_id",
+      "invoice_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Invoice ID"
+        "foreign_key": null
       },
-      {
-        "name": "payment_id",
+      "payment_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Payment ID"
+        "foreign_key": null
       },
-      {
-        "name": "allocated_amount",
-        "type": "numeric(15,2)",
+      "allocated_amount": {
+        "type": "numeric",
         "nullable": false,
-        "description": "Amount of payment allocated to this invoice"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the allocation was created"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_19891_1_not_null"
-        },
-        {
-          "name": "2200_19891_2_not_null"
-        },
-        {
-          "name": "2200_19891_3_not_null"
-        },
-        {
-          "name": "2200_19891_4_not_null"
-        },
-        {
-          "name": "positive_allocated_amount"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_invoice_payments_invoice_id",
-        "columns": [
-          "invoice_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoice_payments_payment_id",
-        "columns": [
-          "payment_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_delivery_date_on_payment_change",
-        "timing": "AFTER",
-        "events": [
-          "INSERT",
-          "DELETE",
-          "UPDATE"
-        ],
-        "function": "public.recalculate_invoice_delivery_date()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Junction table linking invoices with payments and allocation amounts"
   },
-  {
-    "table": "public.invoice_statuses",
-    "summary": "Invoice status reference table",
-    "columns": [
-      {
-        "name": "id",
+  "public.invoice_statuses": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('invoice_statuses_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "code",
-        "type": "varchar(50)",
+      "code": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unique status code"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Status name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Status description"
+        "foreign_key": null
       },
-      {
-        "name": "sort_order",
+      "sort_order": {
         "type": "integer",
         "nullable": true,
-        "description": "Sort order for display"
+        "foreign_key": null
       },
-      {
-        "name": "color",
-        "type": "varchar(20)",
+      "color": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Display color for UI"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the status was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the status was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "invoice_statuses_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_19183_1_not_null"
-        },
-        {
-          "name": "2200_19183_2_not_null"
-        },
-        {
-          "name": "2200_19183_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_invoice_statuses_code",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoice_statuses_sort_order",
-        "columns": [
-          "sort_order"
-        ],
-        "unique": false
-      },
-      {
-        "name": "invoice_statuses_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_invoice_statuses_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Invoice status reference table"
   },
-  {
-    "table": "public.invoice_types",
-    "summary": "Invoice type reference table",
-    "columns": [
-      {
-        "name": "id",
+  "public.invoice_types": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('invoice_types_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "code",
-        "type": "varchar(50)",
+      "code": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unique type code"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Invoice type name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Invoice type description"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the type was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the type was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "invoice_types_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_18911_1_not_null"
-        },
-        {
-          "name": "2200_18911_2_not_null"
-        },
-        {
-          "name": "2200_18911_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_invoice_types_code",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      },
-      {
-        "name": "invoice_types_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_invoice_types_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Invoice type reference table"
   },
-  {
-    "table": "public.invoices",
-    "summary": "Outbound invoices issued to contractors",
-    "columns": [
-      {
-        "name": "id",
+  "public.invoices": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "uuid_generate_v4()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "user_id",
+      "user_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Supabase auth user who created the invoice"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_number",
+      "invoice_number": {
         "type": "text",
         "nullable": false,
-        "description": "Human-readable invoice number"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Invoice description"
+        "foreign_key": null
       },
-      {
-        "name": "due_date",
+      "due_date": {
         "type": "date",
         "nullable": true,
-        "description": "Payment due date (deprecated)"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the invoice was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the invoice was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_date",
+      "invoice_date": {
         "type": "date",
         "nullable": false,
-        "default": "CURRENT_DATE",
-        "description": "Invoice issue date"
+        "foreign_key": null
       },
-      {
-        "name": "payer_id",
+      "payer_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Contractor acting as payer"
+        "foreign_key": null
       },
-      {
-        "name": "supplier_id",
+      "supplier_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Contractor acting as supplier"
+        "foreign_key": null
       },
-      {
-        "name": "project_id",
+      "project_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Project this invoice belongs to"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_type_id",
+      "invoice_type_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Invoice type"
+        "foreign_key": null
       },
-      {
-        "name": "amount_with_vat",
-        "type": "numeric(15,2)",
+      "amount_with_vat": {
+        "type": "numeric",
         "nullable": true,
-        "description": "Total amount including VAT"
+        "foreign_key": null
       },
-      {
-        "name": "vat_rate",
-        "type": "numeric(5,2)",
+      "vat_rate": {
+        "type": "numeric",
         "nullable": true,
-        "default": "20",
-        "description": "VAT rate percentage"
+        "foreign_key": null
       },
-      {
-        "name": "vat_amount",
-        "type": "numeric(15,2)",
+      "vat_amount": {
+        "type": "numeric",
         "nullable": true,
-        "description": "VAT amount (calculated)"
+        "foreign_key": null
       },
-      {
-        "name": "amount_without_vat",
-        "type": "numeric(15,2)",
+      "amount_without_vat": {
+        "type": "numeric",
         "nullable": true,
-        "description": "Amount excluding VAT (calculated)"
+        "foreign_key": null
       },
-      {
-        "name": "delivery_days",
+      "delivery_days": {
         "type": "integer",
         "nullable": true,
-        "description": "Number of days for delivery"
+        "foreign_key": null
       },
-      {
-        "name": "delivery_days_type",
-        "type": "varchar(20)",
+      "delivery_days_type": {
+        "type": "character varying",
         "nullable": true,
-        "default": "'working'::character varying",
-        "description": "Type of days: working or calendar"
+        "foreign_key": null
       },
-      {
-        "name": "preliminary_delivery_date",
+      "preliminary_delivery_date": {
         "type": "date",
         "nullable": true,
-        "description": "Preliminary delivery date"
+        "foreign_key": null
       },
-      {
-        "name": "status_id",
+      "status_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Invoice status"
+        "foreign_key": null
       },
-      {
-        "name": "delivery_cost",
-        "type": "numeric(12,2)",
+      "delivery_cost": {
+        "type": "numeric",
         "nullable": true,
-        "default": "0",
-        "description": "Delivery cost"
+        "foreign_key": null
       },
-      {
-        "name": "relevance_date",
+      "relevance_date": {
         "type": "date",
         "nullable": false,
-        "default": "CURRENT_TIMESTAMP",
-        "description": "Invoice relevance/validity date"
+        "foreign_key": null
       },
-      {
-        "name": "material_request_id",
+      "material_request_id": {
         "type": "uuid",
         "nullable": true,
-        "description": "Material request this invoice is linked to"
+        "foreign_key": null
       },
-      {
-        "name": "contract_id",
+      "contract_id": {
         "type": "uuid",
         "nullable": true,
-        "description": "Contract this invoice is linked to"
+        "foreign_key": null
       },
-      {
-        "name": "responsible_id",
+      "responsible_id": {
         "type": "uuid",
         "nullable": true,
-        "description": "Responsible procurement manager (user_profiles UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "is_archived",
+      "is_archived": {
         "type": "boolean",
         "nullable": false,
-        "default": "false",
-        "description": "Whether the invoice is archived"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_18252_10_not_null"
-        },
-        {
-          "name": "2200_18252_1_not_null"
-        },
-        {
-          "name": "2200_18252_22_not_null"
-        },
-        {
-          "name": "2200_18252_24_not_null"
-        },
-        {
-          "name": "2200_18252_29_not_null"
-        },
-        {
-          "name": "2200_18252_2_not_null"
-        },
-        {
-          "name": "2200_18252_3_not_null"
-        },
-        {
-          "name": "invoices_delivery_days_type_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_invoices_contract_id",
-        "columns": [
-          "contract_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_created_at",
-        "columns": [
-          "created_at DESC"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_invoice_date",
-        "columns": [
-          "invoice_date"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_invoice_type_id",
-        "columns": [
-          "invoice_type_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_is_archived",
-        "columns": [
-          "is_archived"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_material_request",
-        "columns": [
-          "material_request_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_material_request_id",
-        "columns": [
-          "material_request_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_payer_id",
-        "columns": [
-          "payer_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_project_id",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_responsible_id",
-        "columns": [
-          "responsible_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_status_id",
-        "columns": [
-          "status_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_supplier_id",
-        "columns": [
-          "supplier_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_updated_at",
-        "columns": [
-          "updated_at DESC"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_invoices_user_id",
-        "columns": [
-          "user_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "audit_invoice_changes",
-        "timing": "AFTER",
-        "events": [
-          "INSERT",
-          "DELETE",
-          "UPDATE"
-        ],
-        "function": "public.log_invoice_changes()"
-      },
-      {
-        "trigger": "update_invoices_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Outbound invoices issued to contractors"
   },
-  {
-    "table": "public.letter_attachments",
-    "summary": "Связь писем с прикрепленными файлами",
-    "columns": [
-      {
-        "name": "id",
+  "public.letter_attachments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()"
+        "foreign_key": null
       },
-      {
-        "name": "letter_id",
-        "type": "uuid",
-        "nullable": false
-      },
-      {
-        "name": "attachment_id",
-        "type": "uuid",
-        "nullable": false
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
-        "nullable": true,
-        "default": "now()"
-      }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "letter_attachments_letter_id_attachment_id_key",
-          "columns": [
-            "attachment_id",
-            "letter_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_27206_1_not_null"
-        },
-        {
-          "name": "2200_27206_2_not_null"
-        },
-        {
-          "name": "2200_27206_3_not_null"
-        }
-      ]
-    },
-    "indexes": [
-      {
-        "name": "idx_letter_attachments_attachment_id",
-        "columns": [
-          "attachment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letter_attachments_letter_id",
-        "columns": [
-          "letter_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "letter_attachments_letter_id_attachment_id_key",
-        "columns": [
-          "letter_id",
-          "attachment_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
-  },
-  {
-    "table": "public.letter_links",
-    "summary": "Связи между письмами (родительское письмо и его ответы/связанные письма)",
-    "columns": [
-      {
-        "name": "id",
+      "letter_id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()"
+        "foreign_key": null
       },
-      {
-        "name": "parent_id",
+      "attachment_id": {
         "type": "uuid",
-        "nullable": false
+        "nullable": false,
+        "foreign_key": null
       },
-      {
-        "name": "child_id",
-        "type": "uuid",
-        "nullable": false
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "letter_links_parent_id_child_id_key",
-          "columns": [
-            "child_id",
-            "parent_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_27227_1_not_null"
-        },
-        {
-          "name": "2200_27227_2_not_null"
-        },
-        {
-          "name": "2200_27227_3_not_null"
-        },
-        {
-          "name": "letter_links_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_letter_links_child_id",
-        "columns": [
-          "child_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letter_links_parent_id",
-        "columns": [
-          "parent_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "letter_links_parent_id_child_id_key",
-        "columns": [
-          "parent_id",
-          "child_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
+    "indexes": [],
+    "comment": "Связь писем с прикрепленными файлами"
   },
-  {
-    "table": "public.letter_statuses",
-    "summary": "Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)",
-    "columns": [
-      {
-        "name": "id",
+  "public.letter_links": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "parent_id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "child_id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      }
+    },
+    "indexes": [],
+    "comment": "Связи между письмами (родительское письмо и его ответы/связанные письма)"
+  },
+  "public.letter_statuses": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('letter_statuses_id_seq'::regclass)"
+        "foreign_key": null
       },
-      {
-        "name": "name",
+      "name": {
         "type": "text",
-        "nullable": false
+        "nullable": false,
+        "foreign_key": null
       },
-      {
-        "name": "code",
+      "code": {
         "type": "text",
-        "nullable": false
+        "nullable": false,
+        "foreign_key": null
       },
-      {
-        "name": "color",
+      "color": {
         "type": "text",
-        "nullable": true
-      },
-      {
-        "name": "description",
-        "type": "text",
-        "nullable": true
-      },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
         "nullable": true,
-        "default": "now()"
-      }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "letter_statuses_code_key",
-          "columns": [
-            "code"
-          ]
-        },
-        {
-          "name": "letter_statuses_name_key",
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_27153_1_not_null"
-        },
-        {
-          "name": "2200_27153_2_not_null"
-        },
-        {
-          "name": "2200_27153_3_not_null"
-        }
-      ]
-    },
-    "indexes": [
-      {
-        "name": "letter_statuses_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
+        "foreign_key": null
       },
-      {
-        "name": "letter_statuses_name_key",
-        "columns": [
-          "name"
-        ],
-        "unique": false
+      "description": {
+        "type": "text",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
       }
-    ],
-    "triggers": []
+    },
+    "indexes": [],
+    "comment": "Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)"
   },
-  {
-    "table": "public.letters",
-    "summary": "Учет входящих и исходящих писем компании",
-    "columns": [
-      {
-        "name": "id",
+  "public.letters": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()"
+        "foreign_key": null
       },
-      {
-        "name": "project_id",
+      "project_id": {
         "type": "bigint",
         "nullable": true,
-        "description": "Связанный проект"
+        "foreign_key": null
       },
-      {
-        "name": "number",
+      "number": {
         "type": "text",
         "nullable": true,
-        "description": "Номер письма (необязательное поле)"
+        "foreign_key": null
       },
-      {
-        "name": "status_id",
+      "status_id": {
         "type": "integer",
         "nullable": true,
-        "default": "1",
-        "description": "Текущий статус письма"
+        "foreign_key": null
       },
-      {
-        "name": "letter_date",
+      "letter_date": {
         "type": "date",
         "nullable": false,
-        "description": "Дата письма"
+        "foreign_key": null
       },
-      {
-        "name": "subject",
+      "subject": {
         "type": "text",
         "nullable": true,
-        "description": "Тема/предмет письма"
+        "foreign_key": null
       },
-      {
-        "name": "content",
+      "content": {
         "type": "text",
         "nullable": true,
-        "description": "Краткое содержание письма"
+        "foreign_key": null
       },
-      {
-        "name": "responsible_user_id",
+      "responsible_user_id": {
         "type": "uuid",
         "nullable": true,
-        "description": "Ответственный за обработку письма (ссылка на зарегистрированного пользователя)"
+        "foreign_key": null
       },
-      {
-        "name": "sender",
+      "sender": {
         "type": "text",
         "nullable": true,
-        "description": "Отправитель письма (текст для физ.лица, используется когда sender_type = individual)"
+        "foreign_key": null
       },
-      {
-        "name": "recipient",
+      "recipient": {
         "type": "text",
         "nullable": true,
-        "description": "Получатель письма (текст для физ.лица, используется когда recipient_type = individual)"
+        "foreign_key": null
       },
-      {
-        "name": "direction",
+      "direction": {
         "type": "text",
         "nullable": false,
-        "default": "'incoming'::text",
-        "description": "Направление: incoming (входящее) или outgoing (исходящее)"
+        "foreign_key": null
       },
-      {
-        "name": "reg_number",
+      "reg_number": {
         "type": "text",
         "nullable": true,
-        "description": "Регистрационный номер (необязательное поле)"
+        "foreign_key": null
       },
-      {
-        "name": "reg_date",
+      "reg_date": {
         "type": "date",
         "nullable": true,
-        "description": "Дата регистрации в системе"
+        "foreign_key": null
       },
-      {
-        "name": "delivery_method",
+      "delivery_method": {
         "type": "text",
         "nullable": true,
-        "description": "Способ доставки/отправки письма (почта, email, курьер, ЭДО, факс, другое)"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "Пользователь, создавший запись"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()"
+        "foreign_key": null
       },
-      {
-        "name": "responsible_person_name",
+      "responsible_person_name": {
         "type": "text",
         "nullable": true,
-        "description": "Ответственный за обработку письма (произвольное текстовое поле для физических лиц)"
+        "foreign_key": null
       },
-      {
-        "name": "response_deadline",
+      "response_deadline": {
         "type": "date",
         "nullable": true,
-        "description": "Регламентный срок ответа на письмо"
+        "foreign_key": null
       },
-      {
-        "name": "sender_type",
+      "sender_type": {
         "type": "text",
         "nullable": true,
-        "default": "'individual'::text",
-        "description": "Type of sender: individual (физ.лицо) or contractor (контрагент)"
+        "foreign_key": null
       },
-      {
-        "name": "sender_contractor_id",
+      "sender_contractor_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Reference to contractor if sender_type = contractor"
+        "foreign_key": null
       },
-      {
-        "name": "recipient_type",
+      "recipient_type": {
         "type": "text",
         "nullable": true,
-        "default": "'individual'::text",
-        "description": "Type of recipient: individual (физ.лицо) or contractor (контрагент)"
+        "foreign_key": null
       },
-      {
-        "name": "recipient_contractor_id",
+      "recipient_contractor_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Reference to contractor if recipient_type = contractor"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_27166_11_not_null"
-        },
-        {
-          "name": "2200_27166_1_not_null"
-        },
-        {
-          "name": "2200_27166_5_not_null"
-        },
-        {
-          "name": "letters_direction_check"
-        },
-        {
-          "name": "letters_recipient_type_check"
-        },
-        {
-          "name": "letters_sender_type_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_letters_created_at",
-        "columns": [
-          "created_at"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_direction",
-        "columns": [
-          "direction"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_letter_date",
-        "columns": [
-          "letter_date"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_project_id",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_recipient_contractor_id",
-        "columns": [
-          "recipient_contractor_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_recipient_type",
-        "columns": [
-          "recipient_type"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_reg_date",
-        "columns": [
-          "reg_date"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_responsible_user_id",
-        "columns": [
-          "responsible_user_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_sender_contractor_id",
-        "columns": [
-          "sender_contractor_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_sender_type",
-        "columns": [
-          "sender_type"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_letters_status_id",
-        "columns": [
-          "status_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_letters_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Учет входящих и исходящих писем компании"
   },
-  {
-    "table": "public.material_classes",
-    "summary": "Material classification hierarchy",
-    "columns": [
-      {
-        "name": "id",
+  "public.material_classes": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "bigint",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "name",
+      "name": {
         "type": "text",
         "nullable": false,
-        "description": "Class name"
+        "foreign_key": null
       },
-      {
-        "name": "is_active",
+      "is_active": {
         "type": "boolean",
         "nullable": true,
-        "default": "true",
-        "description": "Whether the class is currently active"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "CURRENT_TIMESTAMP",
-        "description": "Timestamp when the class was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "CURRENT_TIMESTAMP",
-        "description": "Timestamp when the class was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "parent_id",
+      "parent_id": {
         "type": "bigint",
         "nullable": true,
-        "description": "Parent class ID (for hierarchical structure)"
+        "foreign_key": null
       },
-      {
-        "name": "level",
+      "level": {
         "type": "integer",
         "nullable": true,
-        "default": "0",
-        "description": "Hierarchy level (depth in tree)"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "material_classes_name_parent_key",
-          "columns": [
-            "name",
-            "parent_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_21264_1_not_null"
-        },
-        {
-          "name": "2200_21264_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_material_classes_is_active",
-        "columns": [
-          "is_active"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_classes_level",
-        "columns": [
-          "level"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_classes_parent",
-        "columns": [
-          "parent_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_classes_parent_active",
-        "columns": [
-          "parent_id",
-          "is_active"
-        ],
-        "unique": false
-      },
-      {
-        "name": "material_classes_name_parent_key",
-        "columns": [
-          "name",
-          "parent_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_material_classes_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Material classification hierarchy"
   },
-  {
-    "table": "public.material_nomenclature",
-    "summary": "Material catalog and specifications",
-    "columns": [
-      {
-        "name": "id",
+  "public.material_nomenclature": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('material_nomenclature_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(500)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Material name"
+        "foreign_key": null
       },
-      {
-        "name": "unit",
-        "type": "varchar(50)",
+      "unit": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unit of measurement"
+        "foreign_key": null
       },
-      {
-        "name": "is_active",
+      "is_active": {
         "type": "boolean",
         "nullable": true,
-        "default": "true",
-        "description": "Whether the material is currently active"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the material was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the material was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "material_class_id",
+      "material_class_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Material class ID"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_23111_1_not_null"
-        },
-        {
-          "name": "2200_23111_2_not_null"
-        },
-        {
-          "name": "2200_23111_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_material_nomenclature_active",
-        "columns": [
-          "is_active"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_nomenclature_class",
-        "columns": [
-          "material_class_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_nomenclature_name",
-        "columns": [
-          "name"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_material_nomenclature_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Material catalog and specifications"
   },
-  {
-    "table": "public.material_request_items",
-    "summary": "Individual items within material requests",
-    "columns": [
-      {
-        "name": "id",
+  "public.material_request_items": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "material_request_id",
+      "material_request_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Material request ID this item belongs to"
+        "foreign_key": null
       },
-      {
-        "name": "material_name",
-        "type": "varchar(500)",
+      "material_name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Material name"
+        "foreign_key": null
       },
-      {
-        "name": "unit",
-        "type": "varchar(50)",
+      "unit": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unit of measurement"
+        "foreign_key": null
       },
-      {
-        "name": "quantity",
-        "type": "numeric(15,3)",
+      "quantity": {
+        "type": "numeric",
         "nullable": false,
-        "description": "Requested quantity"
+        "foreign_key": null
       },
-      {
-        "name": "sort_order",
+      "sort_order": {
         "type": "integer",
         "nullable": true,
-        "default": "0",
-        "description": "Sort order for display"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the item was created"
+        "foreign_key": null
       },
-      {
-        "name": "nomenclature_id",
+      "nomenclature_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Material nomenclature ID (optional link)"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_21636_1_not_null"
-        },
-        {
-          "name": "2200_21636_2_not_null"
-        },
-        {
-          "name": "2200_21636_3_not_null"
-        },
-        {
-          "name": "2200_21636_4_not_null"
-        },
-        {
-          "name": "2200_21636_5_not_null"
-        },
-        {
-          "name": "material_request_items_quantity_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_material_request_items_nomenclature",
-        "columns": [
-          "nomenclature_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_request_items_request",
-        "columns": [
-          "material_request_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_request_items_sort",
-        "columns": [
-          "sort_order"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_material_request_items_count_trigger",
-        "timing": "AFTER",
-        "events": [
-          "INSERT",
-          "DELETE"
-        ],
-        "function": "public.update_material_request_items_count()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Individual items within material requests"
   },
-  {
-    "table": "public.material_requests",
-    "summary": "Material requisitions submitted by employees",
-    "columns": [
-      {
-        "name": "id",
+  "public.material_requests": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "request_number",
-        "type": "varchar(255)",
+      "request_number": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Human-readable request number"
+        "foreign_key": null
       },
-      {
-        "name": "request_date",
+      "request_date": {
         "type": "date",
         "nullable": false,
-        "default": "CURRENT_DATE",
-        "description": "Date when the request was submitted"
+        "foreign_key": null
       },
-      {
-        "name": "project_id",
+      "project_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Project this request belongs to"
+        "foreign_key": null
       },
-      {
-        "name": "employee_id",
+      "employee_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Employee who submitted the request"
+        "foreign_key": null
       },
-      {
-        "name": "total_items",
+      "total_items": {
         "type": "integer",
         "nullable": true,
-        "default": "0",
-        "description": "Total number of items (auto-counted)"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who created the request"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the request was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the request was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_21608_1_not_null"
-        },
-        {
-          "name": "2200_21608_2_not_null"
-        },
-        {
-          "name": "2200_21608_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_material_requests_date",
-        "columns": [
-          "request_date"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_requests_employee",
-        "columns": [
-          "employee_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_material_requests_project",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_material_requests_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Material requisitions submitted by employees"
   },
-  {
-    "table": "public.payment_approvals",
-    "summary": "Payment approval instances tracking approval workflow progress",
-    "columns": [
-      {
-        "name": "id",
+  "public.payment_approvals": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "payment_id",
+      "payment_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Payment ID being approved"
+        "foreign_key": null
       },
-      {
-        "name": "route_id",
+      "route_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Approval route ID being used"
+        "foreign_key": null
       },
-      {
-        "name": "status_id",
+      "status_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Current approval status ID"
+        "foreign_key": null
       },
-      {
-        "name": "current_stage_index",
+      "current_stage_index": {
         "type": "integer",
         "nullable": false,
-        "default": "0",
-        "description": "Index of current workflow stage (0-based)"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the approval was initiated"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the approval was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_20117_1_not_null"
-        },
-        {
-          "name": "2200_20117_2_not_null"
-        },
-        {
-          "name": "2200_20117_3_not_null"
-        },
-        {
-          "name": "2200_20117_4_not_null"
-        },
-        {
-          "name": "2200_20117_5_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_payment_approvals_payment",
-        "columns": [
-          "payment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_payment_approvals_status",
-        "columns": [
-          "status_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_payment_approvals_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Payment approval instances tracking approval workflow progress"
   },
-  {
-    "table": "public.payment_attachments",
-    "summary": "Junction table linking payments with attached files",
-    "columns": [
-      {
-        "name": "id",
+  "public.payment_attachments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "payment_id",
+      "payment_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Payment ID"
+        "foreign_key": null
       },
-      {
-        "name": "attachment_id",
+      "attachment_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Attachment ID"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the link was created"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_19998_1_not_null"
-        },
-        {
-          "name": "2200_19998_2_not_null"
-        },
-        {
-          "name": "2200_19998_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_payment_attachments_attachment_id",
-        "columns": [
-          "attachment_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_payment_attachments_payment_id",
-        "columns": [
-          "payment_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "audit_payment_attachments",
-        "timing": "AFTER",
-        "events": [
-          "INSERT",
-          "DELETE"
-        ],
-        "function": "public.log_attachment_changes()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Junction table linking payments with attached files"
   },
-  {
-    "table": "public.payment_statuses",
-    "summary": "Payment status reference table",
-    "columns": [
-      {
-        "name": "id",
+  "public.payment_statuses": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('payment_statuses_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "code",
-        "type": "varchar(50)",
+      "code": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unique status code"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Status name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Status description"
+        "foreign_key": null
       },
-      {
-        "name": "sort_order",
+      "sort_order": {
         "type": "integer",
         "nullable": true,
-        "description": "Sort order for display"
+        "foreign_key": null
       },
-      {
-        "name": "color",
-        "type": "varchar(20)",
+      "color": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Display color for UI"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the status was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the status was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "payment_statuses_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_19825_1_not_null"
-        },
-        {
-          "name": "2200_19825_2_not_null"
-        },
-        {
-          "name": "2200_19825_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "payment_statuses_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_payment_statuses_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Payment status reference table"
   },
-  {
-    "table": "public.payment_types",
-    "summary": "Payment type reference table",
-    "columns": [
-      {
-        "name": "id",
+  "public.payment_types": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('payment_types_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "code",
-        "type": "varchar(50)",
+      "code": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unique type code"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Payment type name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Payment type description"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the type was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the type was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "payment_types_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_19838_1_not_null"
-        },
-        {
-          "name": "2200_19838_2_not_null"
-        },
-        {
-          "name": "2200_19838_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "payment_types_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_payment_types_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Payment type reference table"
   },
-  {
-    "table": "public.payments",
-    "summary": "Payment records for invoices",
-    "columns": [
-      {
-        "name": "id",
+  "public.payments": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "default": "gen_random_uuid()",
-        "description": "Primary key (UUID)"
+        "foreign_key": null
       },
-      {
-        "name": "invoice_id",
+      "invoice_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "Primary invoice this payment is for"
+        "foreign_key": null
       },
-      {
-        "name": "payment_number",
+      "payment_number": {
         "type": "integer",
         "nullable": false,
-        "default": "nextval('payment_number_seq'::regclass)",
-        "description": "Sequential payment number"
+        "foreign_key": null
       },
-      {
-        "name": "payment_date",
+      "payment_date": {
         "type": "date",
         "nullable": false,
-        "default": "CURRENT_DATE",
-        "description": "Payment date"
+        "foreign_key": null
       },
-      {
-        "name": "amount",
-        "type": "numeric(15,2)",
+      "amount": {
+        "type": "numeric",
         "nullable": false,
-        "description": "Total payment amount"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Payment description or notes"
+        "foreign_key": null
       },
-      {
-        "name": "payment_type_id",
+      "payment_type_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Payment type"
+        "foreign_key": null
       },
-      {
-        "name": "status_id",
+      "status_id": {
         "type": "integer",
         "nullable": true,
-        "default": "1",
-        "description": "Payment status"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who created the payment"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the payment was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the payment was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "is_archived",
+      "is_archived": {
         "type": "boolean",
         "nullable": false,
-        "default": "false",
-        "description": "Whether the payment is archived"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "payments_payment_number_key",
-          "columns": [
-            "payment_number"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_19851_12_not_null"
-        },
-        {
-          "name": "2200_19851_1_not_null"
-        },
-        {
-          "name": "2200_19851_2_not_null"
-        },
-        {
-          "name": "2200_19851_3_not_null"
-        },
-        {
-          "name": "2200_19851_4_not_null"
-        },
-        {
-          "name": "2200_19851_5_not_null"
-        },
-        {
-          "name": "positive_amount"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_payments_created_by",
-        "columns": [
-          "created_by"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_payments_invoice_id",
-        "columns": [
-          "invoice_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_payments_is_archived",
-        "columns": [
-          "is_archived"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_payments_payment_date",
-        "columns": [
-          "payment_date"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_payments_status_id",
-        "columns": [
-          "status_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_payments_updated_at",
-        "columns": [
-          "updated_at DESC"
-        ],
-        "unique": false
-      },
-      {
-        "name": "payments_payment_number_key",
-        "columns": [
-          "payment_number"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "audit_payment_changes",
-        "timing": "AFTER",
-        "events": [
-          "INSERT",
-          "DELETE",
-          "UPDATE"
-        ],
-        "function": "public.log_payment_changes()"
-      },
-      {
-        "trigger": "update_payments_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Payment records for invoices"
   },
-  {
-    "table": "public.positions",
-    "summary": "Employee positions/job titles",
-    "columns": [
-      {
-        "name": "id",
+  "public.positions": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('positions_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Position name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Position description"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the position was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the position was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "positions_name_key",
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_20804_1_not_null"
-        },
-        {
-          "name": "2200_20804_2_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "positions_name_key",
-        "columns": [
-          "name"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_positions_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Employee positions/job titles"
   },
-  {
-    "table": "public.project_budgets",
-    "summary": "Project budgets and financial allocations",
-    "columns": [
-      {
-        "name": "id",
+  "public.project_alternative_names": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "project_id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('project_budgets_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "project_id",
+      "alternative_name": {
+        "type": "character varying",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "sort_order": {
+        "type": "integer",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      }
+    },
+    "indexes": [],
+    "comment": "Alternative names for projects (aliases, abbreviations, translations, etc.)"
+  },
+  "public.project_budgets": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "description": "Project ID"
+        "foreign_key": null
       },
-      {
-        "name": "allocated_amount",
-        "type": "numeric(15,2)",
+      "project_id": {
+        "type": "integer",
         "nullable": false,
-        "default": "0",
-        "description": "Total allocated budget amount"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "allocated_amount": {
+        "type": "numeric",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Budget description or notes"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who created the budget record"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the budget was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the budget was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [],
-      "checks": [
-        {
-          "name": "2200_26027_1_not_null"
-        },
-        {
-          "name": "2200_26027_2_not_null"
-        },
-        {
-          "name": "2200_26027_3_not_null"
-        },
-        {
-          "name": "project_budgets_allocated_amount_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_project_budgets_created_by",
-        "columns": [
-          "created_by"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_project_budgets_project_id",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "project_budgets_project_id_key",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_project_budgets_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Project budgets and financial allocations"
   },
-  {
-    "table": "public.projects",
-    "summary": "Company projects",
-    "columns": [
-      {
-        "name": "id",
+  "public.projects": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('projects_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "code",
-        "type": "varchar(50)",
+      "code": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Project code/identifier"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Project name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Project description"
+        "foreign_key": null
       },
-      {
-        "name": "is_active",
+      "is_active": {
         "type": "boolean",
         "nullable": true,
-        "default": "true",
-        "description": "Whether the project is currently active"
+        "foreign_key": null
       },
-      {
-        "name": "created_by",
+      "created_by": {
         "type": "uuid",
         "nullable": true,
-        "description": "User ID who created the project"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the project was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the project was last updated"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "projects_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_18372_1_not_null"
-        },
-        {
-          "name": "2200_18372_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_projects_code",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_projects_is_active",
-        "columns": [
-          "is_active"
-        ],
-        "unique": false
-      },
-      {
-        "name": "projects_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_projects_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Company projects"
   },
-  {
-    "table": "public.roles",
-    "summary": "User roles with page-level permissions",
-    "columns": [
-      {
-        "name": "id",
+  "public.roles": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('roles_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "code",
-        "type": "varchar(50)",
+      "code": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Unique role code"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": false,
-        "description": "Role name"
+        "foreign_key": null
       },
-      {
-        "name": "description",
+      "description": {
         "type": "text",
         "nullable": true,
-        "description": "Role description"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the role was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the role was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "own_projects_only",
+      "own_projects_only": {
         "type": "boolean",
         "nullable": true,
-        "default": "false",
-        "description": "Whether user can only see their own projects"
+        "foreign_key": null
       },
-      {
-        "name": "allowed_pages",
+      "allowed_pages": {
         "type": "jsonb",
         "nullable": true,
-        "description": "JSON array of allowed page routes"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "roles_code_key",
-          "columns": [
-            "code"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_18359_1_not_null"
-        },
-        {
-          "name": "2200_18359_2_not_null"
-        },
-        {
-          "name": "2200_18359_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_roles_allowed_pages",
-        "columns": [
-          "allowed_pages"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_roles_code",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      },
-      {
-        "name": "roles_code_key",
-        "columns": [
-          "code"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_roles_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "User roles with page-level permissions"
   },
-  {
-    "table": "public.user_profiles",
-    "summary": "Extended user profiles linked to Supabase auth users",
-    "columns": [
-      {
-        "name": "id",
+  "public.user_profiles": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "uuid",
         "nullable": false,
-        "pk": true,
-        "fk": "auth.users.id",
-        "description": "Primary key (matches auth.users.id)"
+        "foreign_key": null
       },
-      {
-        "name": "email",
+      "email": {
         "type": "text",
         "nullable": false,
-        "description": "User email address"
+        "foreign_key": null
       },
-      {
-        "name": "full_name",
+      "full_name": {
         "type": "text",
         "nullable": false,
-        "description": "User full name"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the profile was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the profile was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "role_id",
+      "role_id": {
         "type": "integer",
         "nullable": true,
-        "description": "User role ID for approval workflow"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [
-        {
-          "column": "id",
-          "references": "auth.users.id",
-          "description": "Primary key (matches auth.users.id)"
-        }
-      ],
-      "unique": [
-        {
-          "name": "user_profiles_email_key",
-          "columns": [
-            "email"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_18236_1_not_null"
-        },
-        {
-          "name": "2200_18236_2_not_null"
-        },
-        {
-          "name": "2200_18236_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "user_profiles_email_key",
-        "columns": [
-          "email"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_user_profiles_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Extended user profiles linked to Supabase auth users"
   },
-  {
-    "table": "public.user_projects",
-    "summary": "Junction table linking users with projects they have access to",
-    "columns": [
-      {
-        "name": "id",
+  "public.user_projects": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "default": "nextval('user_projects_id_seq'::regclass)",
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "user_id",
+      "user_id": {
         "type": "uuid",
         "nullable": false,
-        "description": "User ID"
+        "foreign_key": null
       },
-      {
-        "name": "project_id",
+      "project_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Project ID"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the link was created"
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "user_projects_user_project_unique",
-          "columns": [
-            "project_id",
-            "user_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_18517_1_not_null"
-        },
-        {
-          "name": "2200_18517_2_not_null"
-        },
-        {
-          "name": "2200_18517_3_not_null"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_user_projects_project_id",
-        "columns": [
-          "project_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_user_projects_user_id",
-        "columns": [
-          "user_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "user_projects_user_project_unique",
-        "columns": [
-          "user_id",
-          "project_id"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": []
+    "indexes": [],
+    "comment": "Junction table linking users with projects they have access to"
   },
-  {
-    "table": "public.workflow_stages",
-    "summary": "Workflow stages for approval routes",
-    "columns": [
-      {
-        "name": "id",
+  "public.workflow_stages": {
+    "schema": "public",
+    "columns": {
+      "id": {
         "type": "integer",
         "nullable": false,
-        "pk": true,
-        "description": "Primary key"
+        "foreign_key": null
       },
-      {
-        "name": "route_id",
+      "route_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Approval route ID this stage belongs to"
+        "foreign_key": null
       },
-      {
-        "name": "order_index",
+      "order_index": {
         "type": "integer",
         "nullable": false,
-        "description": "Stage order index (0-based)"
+        "foreign_key": null
       },
-      {
-        "name": "role_id",
+      "role_id": {
         "type": "integer",
         "nullable": false,
-        "description": "Role ID required for this stage"
+        "foreign_key": null
       },
-      {
-        "name": "name",
-        "type": "varchar(255)",
+      "name": {
+        "type": "character varying",
         "nullable": true,
-        "description": "Stage name"
+        "foreign_key": null
       },
-      {
-        "name": "created_at",
-        "type": "timestamptz",
+      "created_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the stage was created"
+        "foreign_key": null
       },
-      {
-        "name": "updated_at",
-        "type": "timestamptz",
+      "updated_at": {
+        "type": "timestamp with time zone",
         "nullable": true,
-        "default": "now()",
-        "description": "Timestamp when the stage was last updated"
+        "foreign_key": null
       },
-      {
-        "name": "payment_status_id",
+      "payment_status_id": {
         "type": "integer",
         "nullable": true,
-        "description": "Payment status to set when this stage is reached"
+        "foreign_key": null
       },
-      {
-        "name": "permissions",
+      "permissions": {
         "type": "jsonb",
         "nullable": true,
-        "default": "'{}'::jsonb",
-        "description": "JSON permissions object for this stage"
+        "foreign_key": null
       },
-      {
-        "name": "is_active",
+      "is_active": {
         "type": "boolean",
         "nullable": true,
-        "default": "true",
-        "description": "Whether this stage is currently active"
+        "foreign_key": null
+      },
+      "invoice_status_id": {
+        "type": "integer",
+        "nullable": true,
+        "foreign_key": null
       }
-    ],
-    "constraints": {
-      "primary_key": [
-        "id"
-      ],
-      "foreign_keys": [],
-      "unique": [
-        {
-          "name": "workflow_stages_route_id_order_index_key",
-          "columns": [
-            "order_index",
-            "route_id"
-          ]
-        }
-      ],
-      "checks": [
-        {
-          "name": "2200_20097_1_not_null"
-        },
-        {
-          "name": "2200_20097_2_not_null"
-        },
-        {
-          "name": "2200_20097_3_not_null"
-        },
-        {
-          "name": "2200_20097_4_not_null"
-        },
-        {
-          "name": "workflow_stages_order_index_check"
-        }
-      ]
     },
-    "indexes": [
-      {
-        "name": "idx_workflow_stages_is_active",
-        "columns": [
-          "is_active"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_workflow_stages_payment_status",
-        "columns": [
-          "payment_status_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_workflow_stages_permissions",
-        "columns": [
-          "permissions"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_workflow_stages_role",
-        "columns": [
-          "role_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "idx_workflow_stages_route",
-        "columns": [
-          "route_id"
-        ],
-        "unique": false
-      },
-      {
-        "name": "workflow_stages_route_id_order_index_key",
-        "columns": [
-          "route_id",
-          "order_index"
-        ],
-        "unique": false
-      }
-    ],
-    "triggers": [
-      {
-        "trigger": "update_workflow_stages_updated_at",
-        "timing": "BEFORE",
-        "events": [
-          "UPDATE"
-        ],
-        "function": "public.update_updated_at_column()"
-      }
-    ]
+    "indexes": [],
+    "comment": "Workflow stages for approval routes"
   }
-]
+}

@@ -49,6 +49,7 @@ interface InvoiceFormModalProps {
   contracts?: Contract[]
   onContractSelect?: (contractId: string | null) => void
   loadingReferences?: boolean
+  onSaveAsDraft?: (values: any, files: UploadFile[], originalFiles?: UploadFile[]) => void
 }
 
 export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
@@ -75,6 +76,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
   contracts = [],
   onContractSelect,
   loadingReferences = false,
+  onSaveAsDraft,
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [fileDescriptions, setFileDescriptions] = useState<FileDescriptions>({})
@@ -183,6 +185,37 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     }
   }
 
+  const handleSaveAsDraft = async () => {
+    if (submitting || !onSaveAsDraft) return
+
+    setSubmitting(true)
+
+    try {
+      // Attach descriptions to files
+      const filesWithDescriptions = fileList.map(file => ({
+        ...file,
+        description: fileDescriptions[file.uid] || ''
+      }))
+
+      const allFiles = [...originalFiles, ...filesWithDescriptions]
+      const invoiceDateValue = form.getFieldValue('invoice_date')
+      const formValues = {
+        ...form.getFieldsValue(),
+        invoice_number: form.getFieldValue('invoice_number') || 'б/н',
+        invoice_date: invoiceDateValue ? invoiceDateValue.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+        status_id: 6 // not_filled status
+      }
+
+      // Закрываем форму сразу
+      onClose()
+
+      // Отправляем данные
+      await onSaveAsDraft(formValues, allFiles, originalFiles)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const handleAmountChange = useCallback((value: number | null) => {
     if (value !== null) {
       onAmountWithVatChange(value)
@@ -243,6 +276,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       width={1100}
       footer={null}
       destroyOnHidden
+      maskClosable={false}
     >
       <Form
         form={form}
@@ -373,6 +407,15 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
             >
               {editingInvoice ? 'Сохранить' : 'Создать'}
             </Button>
+            {!editingInvoice && onSaveAsDraft && (
+              <Button
+                onClick={handleSaveAsDraft}
+                loading={submitting}
+                disabled={submitting}
+              >
+                Сохранить как черновик
+              </Button>
+            )}
             <Button onClick={onClose} disabled={submitting}>
               Отмена
             </Button>

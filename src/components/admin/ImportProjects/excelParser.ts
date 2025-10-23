@@ -1,11 +1,13 @@
 import { message } from 'antd'
 import * as XLSX from 'xlsx'
+import { SupabaseClient } from '@supabase/supabase-js'
 
 export interface ProjectData {
   code: string
   name: string
   description?: string
   is_active?: boolean
+  alternative_names?: string[]
 }
 
 // Функция для очистки и нормализации строковых значений
@@ -184,4 +186,175 @@ export const downloadTemplate = () => {
 
   XLSX.writeFile(wb, 'projects_template.xlsx')
   message.success('Шаблон скачан')
+}
+
+// Экспорт проектов в Excel
+export const exportProjectsToExcel = (projects: Array<{ code?: string | null; name: string; description?: string | null; is_active?: boolean; project_alternative_names?: Array<{ alternative_name: string }> }>) => {
+  if (!projects || projects.length === 0) {
+    message.warning('Нет проектов для экспорта')
+    return
+  }
+
+  const ws_data = [
+    ['Код', 'Название', 'Связанные названия', 'Описание', 'Статус']
+  ]
+
+  projects.forEach((project) => {
+    const altNames = project.project_alternative_names?.map(n => n.alternative_name).join('; ') || ''
+    ws_data.push([
+      project.code || '',
+      project.name,
+      altNames,
+      project.description || '',
+      project.is_active ? 'Активен' : 'Неактивен'
+    ])
+  })
+
+  const ws = XLSX.utils.aoa_to_sheet(ws_data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Projects')
+
+  ws['!cols'] = [
+    { wch: 15 }, // Код
+    { wch: 40 }, // Название
+    { wch: 50 }, // Связанные названия
+    { wch: 60 }, // Описание
+    { wch: 15 }  // Статус
+  ]
+
+  const fileName = `projects_${new Date().toISOString().split('T')[0]}.xlsx`
+  XLSX.writeFile(wb, fileName)
+  message.success('Проекты экспортированы')
+}
+
+// Импорт проектов из Excel с альтернативными названиями
+export const importProjectsFromExcel = async (
+  file: File,
+  supabase: SupabaseClient,
+  userId?: string
+) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = async (e) => {
+      try {
+        const data = e.target?.result
+        if (!data) {
+          throw new Error('Не удалось прочитать файл')
+        }
+
+        const workbook = XLSX.read(data, { type: 'array' })
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false })
+
+        if (!jsonData || jsonData.length === 0) {
+          throw new Error('Файл пуст')
+        }
+
+        const hideLoading = message.loading('Импортируем проекты...', 0)
+
+        // Группируем данные по коду проекта
+        const projectsMap = new Map<string, { code: string; names: string[] }>()
+
+        for (const row of jsonData as Record<string, unknown>[]) {
+          const keys = Object.keys(row)
+
+          const findValue = (possibleNames: string[]): string => {
+            for (const key of keys) {
+              if (key.startsWith('__EMPTY')) continue
+              const normalizedKey = key.toLowerCase().trim()
+              for (const name of possibleNames) {
+                if (normalizedKey.includes(name.toLowerCase())) {
+                  return cleanString(row[key])
+                }
+              }
+            }
+            return ''
+          }
+
+          const code = findValue(['код', 'code'])
+          const altName = findValue(['связанные', 'alternative', 'названия', 'aliases', 'название'])
+
+          if (!code || !altName) continue
+
+          if (!projectsMap.has(code)) {
+            projectsMap.set(code, { code, names: [] })
+          }
+
+          const project = projectsMap.get(code)!
+          if (!project.names.includes(altName)) {
+            project.names.push(altName)
+          }
+        }
+
+        // Обрабатываем каждый проект
+        for (const [code, projectData] of projectsMap) {
+          // Проверяем, существует ли проект
+          const { data: existingProject } = await supabase
+            .from('projects')
+            .select('id')
+            .eq('code', code)
+            .single()
+
+          let projectId: number
+
+          if (existingProject) {
+            // Проект существует
+            projectId = existingProject.id
+          } else {
+            // Создаем новый проект
+            const { data: newProject, error: insertError } = await supabase
+              .from('projects')
+              .insert([{
+                code,
+                name: code, // Используем код как название, если проект новый
+                is_active: true,
+                created_by: userId
+              }])
+              .select()
+
+            if (insertError) throw insertError
+            if (!newProject || !newProject[0]) throw new Error('Ошибка создания проекта')
+            projectId = newProject[0].id
+          }
+
+          // Удаляем старые альтернативные названия
+          await supabase
+            .from('project_alternative_names')
+            .delete()
+            .eq('project_id', projectId)
+
+          // Добавляем новые альтернативные названия
+          if (projectData.names.length > 0) {
+            const { error: namesError } = await supabase
+              .from('project_alternative_names')
+              .insert(
+                projectData.names.map((name, idx) => ({
+                  project_id: projectId,
+                  alternative_name: name,
+                  sort_order: idx
+                }))
+              )
+            if (namesError) throw namesError
+          }
+        }
+
+        hideLoading()
+        message.success(`Импортированы проекты: ${projectsMap.size}`)
+        resolve(true)
+      } catch (error) {
+        console.error('Import error:', error)
+        message.error(error instanceof Error ? error.message : 'Ошибка импорта')
+        reject(error)
+      }
+    }
+
+    reader.onerror = () => {
+      message.error('Ошибка чтения файла')
+      reject(new Error('Ошибка чтения файла'))
+    }
+
+    reader.readAsArrayBuffer(file)
+  })
 }

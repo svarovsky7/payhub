@@ -7743,6 +7743,116 @@
     ],
     "sql": "-- Employee positions/job titles\nCREATE TABLE IF NOT EXISTS public.positions (\n    id integer(32) NOT NULL DEFAULT nextval('positions_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT positions_name_key UNIQUE (name),\n    CONSTRAINT positions_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.positions IS 'Employee positions/job titles';\nCOMMENT ON COLUMN public.positions.id IS 'Primary key';\nCOMMENT ON COLUMN public.positions.name IS 'Position name';\nCOMMENT ON COLUMN public.positions.description IS 'Position description';\nCOMMENT ON COLUMN public.positions.created_at IS 'Timestamp when the position was created';\nCOMMENT ON COLUMN public.positions.updated_at IS 'Timestamp when the position was last updated';"
   },
+  "public.project_alternative_names": {
+    "schema": "public",
+    "name": "project_alternative_names",
+    "comment": "Alternative names for projects (aliases, abbreviations, translations, etc.)",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Reference to the main project"
+      },
+      {
+        "name": "alternative_name",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "Alternative name/alias for the project"
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": "0",
+        "comment": "Display order of the alternative name"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_33385_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_33385_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_33385_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_alternative_names_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_alternative_names_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Alternative names for projects (aliases, abbreviations, translations, etc.)\nCREATE TABLE IF NOT EXISTS public.project_alternative_names (\n    id bigint(64) NOT NULL,\n    project_id integer(32) NOT NULL,\n    alternative_name character varying(255) NOT NULL,\n    sort_order integer(32) DEFAULT 0,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT project_alternative_names_pkey PRIMARY KEY (id),\n    CONSTRAINT project_alternative_names_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.project_alternative_names IS 'Alternative names for projects (aliases, abbreviations, translations, etc.)';\nCOMMENT ON COLUMN public.project_alternative_names.project_id IS 'Reference to the main project';\nCOMMENT ON COLUMN public.project_alternative_names.alternative_name IS 'Alternative name/alias for the project';\nCOMMENT ON COLUMN public.project_alternative_names.sort_order IS 'Display order of the alternative name';"
+  },
   "public.project_budgets": {
     "schema": "public",
     "name": "project_budgets",
@@ -8483,6 +8593,16 @@
         "is_nullable": "YES",
         "default": "true",
         "comment": "Whether this stage is currently active"
+      },
+      {
+        "name": "invoice_status_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Invoice status to set when this stage is reached"
       }
     ],
     "constraints": [
@@ -8514,6 +8634,14 @@
         "name": "2200_20097_4_not_null",
         "type": "CHECK",
         "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "workflow_stages_invoice_status_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "invoice_status_id",
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
@@ -8575,7 +8703,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Workflow stages for approval routes\nCREATE TABLE IF NOT EXISTS public.workflow_stages (\n    id integer(32) NOT NULL,\n    route_id integer(32) NOT NULL,\n    order_index integer(32) NOT NULL,\n    role_id integer(32) NOT NULL,\n    name character varying(255),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    payment_status_id integer(32),\n    permissions jsonb DEFAULT '{}'::jsonb,\n    is_active boolean DEFAULT true,\n    CONSTRAINT workflow_stages_payment_status_id_fkey FOREIGN KEY (payment_status_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_pkey PRIMARY KEY (id),\n    CONSTRAINT workflow_stages_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (order_index),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (route_id)\n);\n\nCOMMENT ON TABLE public.workflow_stages IS 'Workflow stages for approval routes';\nCOMMENT ON COLUMN public.workflow_stages.id IS 'Primary key';\nCOMMENT ON COLUMN public.workflow_stages.route_id IS 'Approval route ID this stage belongs to';\nCOMMENT ON COLUMN public.workflow_stages.order_index IS 'Stage order index (0-based)';\nCOMMENT ON COLUMN public.workflow_stages.role_id IS 'Role ID required for this stage';\nCOMMENT ON COLUMN public.workflow_stages.name IS 'Stage name';\nCOMMENT ON COLUMN public.workflow_stages.created_at IS 'Timestamp when the stage was created';\nCOMMENT ON COLUMN public.workflow_stages.updated_at IS 'Timestamp when the stage was last updated';\nCOMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'Payment status to set when this stage is reached';\nCOMMENT ON COLUMN public.workflow_stages.permissions IS 'JSON permissions object for this stage';\nCOMMENT ON COLUMN public.workflow_stages.is_active IS 'Whether this stage is currently active';"
+    "sql": "-- Workflow stages for approval routes\nCREATE TABLE IF NOT EXISTS public.workflow_stages (\n    id integer(32) NOT NULL,\n    route_id integer(32) NOT NULL,\n    order_index integer(32) NOT NULL,\n    role_id integer(32) NOT NULL,\n    name character varying(255),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    payment_status_id integer(32),\n    permissions jsonb DEFAULT '{}'::jsonb,\n    is_active boolean DEFAULT true,\n    invoice_status_id integer(32),\n    CONSTRAINT workflow_stages_invoice_status_id_fkey FOREIGN KEY (invoice_status_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_payment_status_id_fkey FOREIGN KEY (payment_status_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_pkey PRIMARY KEY (id),\n    CONSTRAINT workflow_stages_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_fkey FOREIGN KEY (route_id) REFERENCES None.None(None),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (order_index),\n    CONSTRAINT workflow_stages_route_id_order_index_key UNIQUE (route_id)\n);\n\nCOMMENT ON TABLE public.workflow_stages IS 'Workflow stages for approval routes';\nCOMMENT ON COLUMN public.workflow_stages.id IS 'Primary key';\nCOMMENT ON COLUMN public.workflow_stages.route_id IS 'Approval route ID this stage belongs to';\nCOMMENT ON COLUMN public.workflow_stages.order_index IS 'Stage order index (0-based)';\nCOMMENT ON COLUMN public.workflow_stages.role_id IS 'Role ID required for this stage';\nCOMMENT ON COLUMN public.workflow_stages.name IS 'Stage name';\nCOMMENT ON COLUMN public.workflow_stages.created_at IS 'Timestamp when the stage was created';\nCOMMENT ON COLUMN public.workflow_stages.updated_at IS 'Timestamp when the stage was last updated';\nCOMMENT ON COLUMN public.workflow_stages.payment_status_id IS 'Payment status to set when this stage is reached';\nCOMMENT ON COLUMN public.workflow_stages.permissions IS 'JSON permissions object for this stage';\nCOMMENT ON COLUMN public.workflow_stages.is_active IS 'Whether this stage is currently active';\nCOMMENT ON COLUMN public.workflow_stages.invoice_status_id IS 'Invoice status to set when this stage is reached';"
   },
   "realtime.messages": {
     "schema": "realtime",

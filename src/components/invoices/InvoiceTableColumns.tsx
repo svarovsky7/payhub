@@ -116,11 +116,25 @@ export const getInvoiceTableColumns = ({
       value: status.code || '',
     }))
 
+  const responsibleManagerFilters = Array.from(
+    new Set(
+      invoices
+        .map((invoice) => invoice.responsible_user?.full_name)
+        .filter((name): name is string => Boolean(name))
+    )
+  )
+    .sort((a, b) => a.localeCompare(b, 'ru'))
+    .map((name) => ({
+      text: name,
+      value: name,
+    }))
+
   return [
     {
       title: 'Номер',
       dataIndex: 'invoice_number',
       key: 'invoice_number',
+      width: 100,
       ellipsis: true,
       sorter: (a, b) => (a.invoice_number || '').localeCompare(b.invoice_number || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
@@ -133,6 +147,7 @@ export const getInvoiceTableColumns = ({
       title: 'Дата',
       dataIndex: 'invoice_date',
       key: 'invoice_date',
+      width: 95,
       render: (date: string | null) => (date ? new Date(date).toLocaleDateString('ru-RU') : '-'),
       sorter: (a, b) => {
         const dateA = a.invoice_date ? dayjs(a.invoice_date).valueOf() : 0
@@ -154,7 +169,15 @@ export const getInvoiceTableColumns = ({
       title: 'Плательщик',
       dataIndex: ['payer', 'name'],
       key: 'payer',
-      ellipsis: true,
+      width: 140,
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (text: string) => (
+        <div title={text} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {text || '-'}
+        </div>
+      ),
       sorter: (a, b) => (a.payer?.name || '').localeCompare(b.payer?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
       filters: payerFilters,
@@ -165,7 +188,15 @@ export const getInvoiceTableColumns = ({
       title: 'Поставщик',
       dataIndex: ['supplier', 'name'],
       key: 'supplier',
-      ellipsis: true,
+      width: 140,
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (text: string) => (
+        <div title={text} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {text || '-'}
+        </div>
+      ),
       sorter: (a, b) => (a.supplier?.name || '').localeCompare(b.supplier?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
       filters: supplierFilters,
@@ -176,7 +207,15 @@ export const getInvoiceTableColumns = ({
       title: 'Проект',
       dataIndex: ['project', 'name'],
       key: 'project',
-      ellipsis: true,
+      width: 140,
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (text: string) => (
+        <div title={text} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {text || '-'}
+        </div>
+      ),
       sorter: (a, b) => (a.project?.name || '').localeCompare(b.project?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
       filters: projectFilters,
@@ -187,7 +226,15 @@ export const getInvoiceTableColumns = ({
       title: 'Тип',
       dataIndex: ['invoice_type', 'name'],
       key: 'invoice_type',
-      ellipsis: true,
+      width: 100,
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (text: string) => (
+        <div title={text} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {text || '-'}
+        </div>
+      ),
       sorter: (a, b) => (a.invoice_type?.name || '').localeCompare(b.invoice_type?.name || '', 'ru'),
       sortDirections: ['ascend', 'descend'],
       filters: invoiceTypeFilters,
@@ -195,31 +242,23 @@ export const getInvoiceTableColumns = ({
       onFilter: (value, record) => (record.invoice_type?.id ?? record.invoice_type_id ?? 0) === Number(value),
     },
     {
-      title: 'Сумма с НДС',
-      dataIndex: 'amount_with_vat',
-      key: 'amount_with_vat',
+      title: 'Сумма с НДС и доставкой',
+      key: 'amount_with_delivery',
       align: 'right',
-      width: 150,
-      render: (amount: number | null) => (
-        <span style={{ whiteSpace: 'nowrap' }}>
-          {amount ? `${formatAmount(amount)} ₽` : '-'}
-        </span>
-      ),
-      sorter: (a, b) => (a.amount_with_vat ?? 0) - (b.amount_with_vat ?? 0),
-      sortDirections: ['ascend', 'descend'],
-    },
-    {
-      title: 'Доставка',
-      dataIndex: 'delivery_cost',
-      key: 'delivery_cost',
-      align: 'right',
-      width: 130,
-      render: (cost: number | null) => (
-        <span style={{ whiteSpace: 'nowrap' }}>
-          {cost ? `${formatAmount(cost)} ₽` : '-'}
-        </span>
-      ),
-      sorter: (a, b) => (a.delivery_cost ?? 0) - (b.delivery_cost ?? 0),
+      width: 180,
+      render: (_: unknown, record: Invoice) => {
+        const total = (record.amount_with_vat ?? 0) + (record.delivery_cost ?? 0)
+        return (
+          <span style={{ whiteSpace: 'nowrap' }}>
+            {total ? `${formatAmount(total)} ₽` : '-'}
+          </span>
+        )
+      },
+      sorter: (a, b) => {
+        const totalA = (a.amount_with_vat ?? 0) + (a.delivery_cost ?? 0)
+        const totalB = (b.amount_with_vat ?? 0) + (b.delivery_cost ?? 0)
+        return totalA - totalB
+      },
       sortDirections: ['ascend', 'descend'],
     },
     {
@@ -233,6 +272,25 @@ export const getInvoiceTableColumns = ({
         return dateA - dateB
       },
       sortDirections: ['ascend', 'descend'],
+    },
+    {
+      title: 'Ответственный менеджер снабжения',
+      dataIndex: ['responsible_user', 'full_name'],
+      key: 'responsible_manager',
+      width: 150,
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (text: string) => (
+        <div title={text} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {text || '-'}
+        </div>
+      ),
+      sorter: (a, b) => (a.responsible_user?.full_name || '').localeCompare(b.responsible_user?.full_name || '', 'ru'),
+      sortDirections: ['ascend', 'descend'],
+      filters: responsibleManagerFilters,
+      filterSearch: true,
+      onFilter: (value, record) => record.responsible_user?.full_name === String(value),
     },
     {
       title: 'Статус',

@@ -1,322 +1,254 @@
-[
-  {
-    "trigger": "public.update_approval_routes_updated_at",
-    "table": "public.approval_routes",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+{
+  "cron.job.cron_job_cache_invalidate": {
+    "schema": "cron",
+    "name": "cron_job_cache_invalidate",
+    "table": null,
+    "sql": "CREATE TRIGGER cron_job_cache_invalidate AFTER INSERT OR DELETE OR UPDATE OR TRUNCATE ON cron.job FOR EACH STATEMENT EXECUTE FUNCTION cron.job_cache_invalidate()"
   },
-  {
-    "trigger": "public.audit_approval_steps",
-    "table": "public.approval_steps",
-    "timing": "AFTER",
-    "events": [
-      "INSERT",
-      "UPDATE"
-    ],
-    "function": "public.log_approval_actions()",
-    "purpose": ""
+  "public.approval_routes.update_approval_routes_updated_at": {
+    "schema": "public",
+    "name": "update_approval_routes_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_approval_routes_updated_at BEFORE UPDATE ON public.approval_routes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_attachments_updated_at",
-    "table": "public.attachments",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.approval_steps.audit_approval_steps": {
+    "schema": "public",
+    "name": "audit_approval_steps",
+    "table": null,
+    "sql": "CREATE TRIGGER audit_approval_steps AFTER INSERT OR UPDATE ON public.approval_steps FOR EACH ROW EXECUTE FUNCTION log_approval_actions()"
   },
-  {
-    "trigger": "public.update_contract_statuses_updated_at",
-    "table": "public.contract_statuses",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.attachments.update_attachments_updated_at": {
+    "schema": "public",
+    "name": "update_attachments_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_attachments_updated_at BEFORE UPDATE ON public.attachments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_contractors_updated_at",
-    "table": "public.contractors",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.contract_statuses.update_contract_statuses_updated_at": {
+    "schema": "public",
+    "name": "update_contract_statuses_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_contract_statuses_updated_at BEFORE UPDATE ON public.contract_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_contracts_updated_at",
-    "table": "public.contracts",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.contractors.update_contractors_updated_at": {
+    "schema": "public",
+    "name": "update_contractors_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_contractors_updated_at BEFORE UPDATE ON public.contractors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_departments_updated_at",
-    "table": "public.departments",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.contracts.update_contracts_updated_at": {
+    "schema": "public",
+    "name": "update_contracts_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_contracts_updated_at BEFORE UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_employees_updated_at",
-    "table": "public.employees",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.departments.update_departments_updated_at": {
+    "schema": "public",
+    "name": "update_departments_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON public.departments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.audit_invoice_attachments",
-    "table": "public.invoice_attachments",
-    "timing": "AFTER",
-    "events": [
-      "INSERT",
-      "DELETE"
-    ],
-    "function": "public.log_attachment_changes()",
-    "purpose": ""
+  "public.employees.update_employees_updated_at": {
+    "schema": "public",
+    "name": "update_employees_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_employees_updated_at BEFORE UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_delivery_date_on_payment_change",
-    "table": "public.invoice_payments",
-    "timing": "AFTER",
-    "events": [
-      "INSERT",
-      "DELETE",
-      "UPDATE"
-    ],
-    "function": "public.recalculate_invoice_delivery_date()",
-    "purpose": ""
+  "public.invoice_attachments.audit_invoice_attachments": {
+    "schema": "public",
+    "name": "audit_invoice_attachments",
+    "table": null,
+    "sql": "CREATE TRIGGER audit_invoice_attachments AFTER INSERT OR DELETE ON public.invoice_attachments FOR EACH ROW EXECUTE FUNCTION log_attachment_changes()"
   },
-  {
-    "trigger": "public.update_invoice_statuses_updated_at",
-    "table": "public.invoice_statuses",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.invoice_payments.update_delivery_date_on_payment_change": {
+    "schema": "public",
+    "name": "update_delivery_date_on_payment_change",
+    "table": null,
+    "sql": "CREATE TRIGGER update_delivery_date_on_payment_change AFTER INSERT OR DELETE OR UPDATE ON public.invoice_payments FOR EACH ROW EXECUTE FUNCTION recalculate_invoice_delivery_date()"
   },
-  {
-    "trigger": "public.update_invoice_types_updated_at",
-    "table": "public.invoice_types",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.invoice_statuses.update_invoice_statuses_updated_at": {
+    "schema": "public",
+    "name": "update_invoice_statuses_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_invoice_statuses_updated_at BEFORE UPDATE ON public.invoice_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.audit_invoice_changes",
-    "table": "public.invoices",
-    "timing": "AFTER",
-    "events": [
-      "INSERT",
-      "DELETE",
-      "UPDATE"
-    ],
-    "function": "public.log_invoice_changes()",
-    "purpose": ""
+  "public.invoice_types.update_invoice_types_updated_at": {
+    "schema": "public",
+    "name": "update_invoice_types_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_invoice_types_updated_at BEFORE UPDATE ON public.invoice_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_invoices_updated_at",
-    "table": "public.invoices",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.invoices.audit_invoice_changes": {
+    "schema": "public",
+    "name": "audit_invoice_changes",
+    "table": null,
+    "sql": "CREATE TRIGGER audit_invoice_changes AFTER INSERT OR DELETE OR UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION log_invoice_changes()"
   },
-  {
-    "trigger": "public.update_letters_updated_at",
-    "table": "public.letters",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.invoices.update_invoices_updated_at": {
+    "schema": "public",
+    "name": "update_invoices_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_material_classes_updated_at",
-    "table": "public.material_classes",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.letters.update_letters_updated_at": {
+    "schema": "public",
+    "name": "update_letters_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_letters_updated_at BEFORE UPDATE ON public.letters FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_material_nomenclature_updated_at",
-    "table": "public.material_nomenclature",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.material_classes.trigger_calculate_material_class_level": {
+    "schema": "public",
+    "name": "trigger_calculate_material_class_level",
+    "table": null,
+    "sql": "CREATE TRIGGER trigger_calculate_material_class_level BEFORE INSERT OR UPDATE OF parent_id ON public.material_classes FOR EACH ROW EXECUTE FUNCTION calculate_material_class_level()"
   },
-  {
-    "trigger": "public.update_material_request_items_count_trigger",
-    "table": "public.material_request_items",
-    "timing": "AFTER",
-    "events": [
-      "INSERT",
-      "DELETE"
-    ],
-    "function": "public.update_material_request_items_count()",
-    "purpose": "Keeps material_requests.total_items in sync with child records."
+  "public.material_classes.update_material_classes_updated_at": {
+    "schema": "public",
+    "name": "update_material_classes_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_material_classes_updated_at BEFORE UPDATE ON public.material_classes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_material_requests_updated_at",
-    "table": "public.material_requests",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.material_nomenclature.update_material_nomenclature_updated_at": {
+    "schema": "public",
+    "name": "update_material_nomenclature_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_material_nomenclature_updated_at BEFORE UPDATE ON public.material_nomenclature FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_payment_approvals_updated_at",
-    "table": "public.payment_approvals",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.material_request_items.update_material_request_items_count_trigger": {
+    "schema": "public",
+    "name": "update_material_request_items_count_trigger",
+    "table": null,
+    "sql": "CREATE TRIGGER update_material_request_items_count_trigger AFTER INSERT OR DELETE ON public.material_request_items FOR EACH ROW EXECUTE FUNCTION update_material_request_items_count()"
   },
-  {
-    "trigger": "public.audit_payment_attachments",
-    "table": "public.payment_attachments",
-    "timing": "AFTER",
-    "events": [
-      "INSERT",
-      "DELETE"
-    ],
-    "function": "public.log_attachment_changes()",
-    "purpose": ""
+  "public.material_requests.update_material_requests_updated_at": {
+    "schema": "public",
+    "name": "update_material_requests_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_material_requests_updated_at BEFORE UPDATE ON public.material_requests FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_payment_statuses_updated_at",
-    "table": "public.payment_statuses",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.payment_approvals.update_payment_approvals_updated_at": {
+    "schema": "public",
+    "name": "update_payment_approvals_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_payment_approvals_updated_at BEFORE UPDATE ON public.payment_approvals FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_payment_types_updated_at",
-    "table": "public.payment_types",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.payment_attachments.audit_payment_attachments": {
+    "schema": "public",
+    "name": "audit_payment_attachments",
+    "table": null,
+    "sql": "CREATE TRIGGER audit_payment_attachments AFTER INSERT OR DELETE ON public.payment_attachments FOR EACH ROW EXECUTE FUNCTION log_attachment_changes()"
   },
-  {
-    "trigger": "public.audit_payment_changes",
-    "table": "public.payments",
-    "timing": "AFTER",
-    "events": [
-      "INSERT",
-      "DELETE",
-      "UPDATE"
-    ],
-    "function": "public.log_payment_changes()",
-    "purpose": ""
+  "public.payment_statuses.update_payment_statuses_updated_at": {
+    "schema": "public",
+    "name": "update_payment_statuses_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_payment_statuses_updated_at BEFORE UPDATE ON public.payment_statuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_payments_updated_at",
-    "table": "public.payments",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.payment_types.update_payment_types_updated_at": {
+    "schema": "public",
+    "name": "update_payment_types_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_payment_types_updated_at BEFORE UPDATE ON public.payment_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_positions_updated_at",
-    "table": "public.positions",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.payments.audit_payment_changes": {
+    "schema": "public",
+    "name": "audit_payment_changes",
+    "table": null,
+    "sql": "CREATE TRIGGER audit_payment_changes AFTER INSERT OR DELETE OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION log_payment_changes()"
   },
-  {
-    "trigger": "public.update_project_budgets_updated_at",
-    "table": "public.project_budgets",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.payments.update_payments_updated_at": {
+    "schema": "public",
+    "name": "update_payments_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_projects_updated_at",
-    "table": "public.projects",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.positions.update_positions_updated_at": {
+    "schema": "public",
+    "name": "update_positions_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_positions_updated_at BEFORE UPDATE ON public.positions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_roles_updated_at",
-    "table": "public.roles",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.project_alternative_names.trigger_project_alternative_names_updated_at": {
+    "schema": "public",
+    "name": "trigger_project_alternative_names_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER trigger_project_alternative_names_updated_at BEFORE UPDATE ON public.project_alternative_names FOR EACH ROW EXECUTE FUNCTION update_project_alternative_names_updated_at()"
   },
-  {
-    "trigger": "public.update_user_profiles_updated_at",
-    "table": "public.user_profiles",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.project_budgets.update_project_budgets_updated_at": {
+    "schema": "public",
+    "name": "update_project_budgets_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_project_budgets_updated_at BEFORE UPDATE ON public.project_budgets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
-  {
-    "trigger": "public.update_workflow_stages_updated_at",
-    "table": "public.workflow_stages",
-    "timing": "BEFORE",
-    "events": [
-      "UPDATE"
-    ],
-    "function": "public.update_updated_at_column()",
-    "purpose": "Keeps updated_at timestamps fresh on write-heavy tables."
+  "public.projects.update_projects_updated_at": {
+    "schema": "public",
+    "name": "update_projects_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.roles.update_roles_updated_at": {
+    "schema": "public",
+    "name": "update_roles_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_roles_updated_at BEFORE UPDATE ON public.roles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.user_profiles.update_user_profiles_updated_at": {
+    "schema": "public",
+    "name": "update_user_profiles_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON public.user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "public.workflow_stages.update_workflow_stages_updated_at": {
+    "schema": "public",
+    "name": "update_workflow_stages_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_workflow_stages_updated_at BEFORE UPDATE ON public.workflow_stages FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
+  },
+  "realtime.subscription.tr_check_filters": {
+    "schema": "realtime",
+    "name": "tr_check_filters",
+    "table": null,
+    "sql": "CREATE TRIGGER tr_check_filters BEFORE INSERT OR UPDATE ON realtime.subscription FOR EACH ROW EXECUTE FUNCTION realtime.subscription_check_filters()"
+  },
+  "storage.buckets.enforce_bucket_name_length_trigger": {
+    "schema": "storage",
+    "name": "enforce_bucket_name_length_trigger",
+    "table": null,
+    "sql": "CREATE TRIGGER enforce_bucket_name_length_trigger BEFORE INSERT OR UPDATE OF name ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_name_length()"
+  },
+  "storage.objects.objects_delete_delete_prefix": {
+    "schema": "storage",
+    "name": "objects_delete_delete_prefix",
+    "table": null,
+    "sql": "CREATE TRIGGER objects_delete_delete_prefix AFTER DELETE ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.delete_prefix_hierarchy_trigger()"
+  },
+  "storage.objects.objects_insert_create_prefix": {
+    "schema": "storage",
+    "name": "objects_insert_create_prefix",
+    "table": null,
+    "sql": "CREATE TRIGGER objects_insert_create_prefix BEFORE INSERT ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.objects_insert_prefix_trigger()"
+  },
+  "storage.objects.objects_update_create_prefix": {
+    "schema": "storage",
+    "name": "objects_update_create_prefix",
+    "table": null,
+    "sql": "CREATE TRIGGER objects_update_create_prefix BEFORE UPDATE ON storage.objects FOR EACH ROW WHEN (((new.name <> old.name) OR (new.bucket_id <> old.bucket_id))) EXECUTE FUNCTION storage.objects_update_prefix_trigger()"
+  },
+  "storage.objects.update_objects_updated_at": {
+    "schema": "storage",
+    "name": "update_objects_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER update_objects_updated_at BEFORE UPDATE ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.update_updated_at_column()"
+  },
+  "storage.prefixes.prefixes_create_hierarchy": {
+    "schema": "storage",
+    "name": "prefixes_create_hierarchy",
+    "table": null,
+    "sql": "CREATE TRIGGER prefixes_create_hierarchy BEFORE INSERT ON storage.prefixes FOR EACH ROW WHEN ((pg_trigger_depth() < 1)) EXECUTE FUNCTION storage.prefixes_insert_trigger()"
+  },
+  "storage.prefixes.prefixes_delete_hierarchy": {
+    "schema": "storage",
+    "name": "prefixes_delete_hierarchy",
+    "table": null,
+    "sql": "CREATE TRIGGER prefixes_delete_hierarchy AFTER DELETE ON storage.prefixes FOR EACH ROW EXECUTE FUNCTION storage.delete_prefix_hierarchy_trigger()"
   }
-]
+}

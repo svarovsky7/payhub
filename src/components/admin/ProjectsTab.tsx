@@ -1,25 +1,29 @@
 import { useState, useEffect } from 'react'
-import { Table, Space, Button, Modal, Form, Input, Switch, message, Popconfirm, Tag } from 'antd'
+import { Table, Space, Button, Modal, Form, Input, Switch, message, Popconfirm, Tag, Tooltip } from 'antd'
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  UploadOutlined,
+  DownloadOutlined,
   SearchOutlined,
   ClearOutlined
 } from '@ant-design/icons'
 import type { ColumnsType, FilterDropdownProps, FilterValue } from 'antd/es/table/interface'
 import { supabase, type Project } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { ImportProjectsModal } from './ImportProjectsModal'
+import { exportProjectsToExcel } from './ImportProjects/excelParser'
+
+interface ProjectWithNames extends Project {
+  project_alternative_names?: Array<{ id: number; alternative_name: string; sort_order: number }>
+}
 
 export const ProjectsTab = () => {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ProjectWithNames[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [editingProject, setEditingProject] = useState<Project | null>(null)
-  const [importModalVisible, setImportModalVisible] = useState(false)
+  const [editingProject, setEditingProject] = useState<ProjectWithNames | null>(null)
   const [filteredInfo, setFilteredInfo] = useState<Record<string, FilterValue | null>>({})
+  const [alternativeNames, setAlternativeNames] = useState<Array<{ id?: number; alternative_name: string }>>([])
   const [form] = Form.useForm()
   const { user } = useAuth()
 
@@ -32,7 +36,10 @@ export const ProjectsTab = () => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select(`
+          *,
+          project_alternative_names(id, alternative_name, sort_order)
+        `)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -48,33 +55,87 @@ export const ProjectsTab = () => {
 
   const handleCreate = () => {
     setEditingProject(null)
+    setAlternativeNames([])
     form.resetFields()
     form.setFieldsValue({ is_active: true })
     setIsModalVisible(true)
   }
 
-  const handleEdit = (record: Project) => {
+  const handleEdit = (record: ProjectWithNames) => {
     setEditingProject(record)
-    form.setFieldsValue(record)
+    const names = record.project_alternative_names?.map(n => ({
+      id: n.id,
+      alternative_name: n.alternative_name
+    })) || []
+    setAlternativeNames(names)
+    form.setFieldsValue({
+      ...record,
+      alternative_names: names
+    })
     setIsModalVisible(true)
   }
 
-  const handleSubmit = async (values: Partial<Project>) => {
+  const handleSubmit = async (values: any) => {
     try {
       if (editingProject) {
-        const { error } = await supabase
+        // Update project
+        const { error: updateError } = await supabase
           .from('projects')
-          .update(values)
+          .update({
+            code: values.code,
+            name: values.name,
+            description: values.description,
+            is_active: values.is_active
+          })
           .eq('id', editingProject.id)
 
-        if (error) throw error
+        if (updateError) throw updateError
+
+        // Delete old names and add new ones
+        if (editingProject.id) {
+          await supabase
+            .from('project_alternative_names')
+            .delete()
+            .eq('project_id', editingProject.id)
+
+          if (alternativeNames.length > 0) {
+            const { error: insertError } = await supabase
+              .from('project_alternative_names')
+              .insert(
+                alternativeNames.map((name, idx) => ({
+                  project_id: editingProject.id,
+                  alternative_name: name.alternative_name,
+                  sort_order: idx
+                }))
+              )
+            if (insertError) throw insertError
+          }
+        }
+
         message.success('Проект обновлен')
       } else {
-        const { error } = await supabase
+        // Create project
+        const { data: newProject, error: insertError } = await supabase
           .from('projects')
           .insert([{ ...values, created_by: user?.id }])
+          .select()
 
-        if (error) throw error
+        if (insertError) throw insertError
+
+        // Add alternative names
+        if (newProject && newProject[0] && alternativeNames.length > 0) {
+          const { error: namesError } = await supabase
+            .from('project_alternative_names')
+            .insert(
+              alternativeNames.map((name, idx) => ({
+                project_id: newProject[0].id,
+                alternative_name: name.alternative_name,
+                sort_order: idx
+              }))
+            )
+          if (namesError) throw namesError
+        }
+
         message.success('Проект создан')
       }
 
@@ -87,7 +148,6 @@ export const ProjectsTab = () => {
   }
 
   const handleDeleteWithPopconfirm = async (id: number) => {
-
     if (!id) {
       console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error: Project ID is undefined or null')
       message.error('Ошибка: ID проекта не определен')
@@ -95,18 +155,16 @@ export const ProjectsTab = () => {
     }
 
     try {
-      // Сначала проверим, есть ли связи с пользователями
+      // Удаляем все связи пользователей с этим проектом
       const { data: associations, error: checkError } = await supabase
         .from('user_projects')
         .select('*')
         .eq('project_id', id)
 
-
       if (checkError) {
         console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error checking associations:', checkError)
       }
 
-      // Удаляем все связи пользователей с этим проектом
       if (associations && associations.length > 0) {
         const { error: userProjectsError } = await supabase
           .from('user_projects')
@@ -114,20 +172,18 @@ export const ProjectsTab = () => {
           .eq('project_id', id)
           .select()
 
-
         if (userProjectsError) {
           console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error removing user associations:', userProjectsError)
           throw userProjectsError
         }
       }
 
-      // Теперь удаляем сам проект
+      // Теперь удаляем сам проект (альтернативные названия удалятся каскадом)
       const { data: deletedProject, error: projectError } = await supabase
         .from('projects')
         .delete()
         .eq('id', id)
         .select()
-
 
       if (projectError) {
         console.error('[ProjectsTab.handleDeleteWithPopconfirm] Error removing project:', projectError)
@@ -150,7 +206,7 @@ export const ProjectsTab = () => {
   // Modal.confirm не работает корректно с React 19, используем Popconfirm
 
   // Функция для создания поискового фильтра
-  const getColumnSearchProps = (dataIndex: keyof Project) => ({
+  const getColumnSearchProps = (dataIndex: keyof ProjectWithNames) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: FilterDropdownProps) => (
       <div style={{ padding: 8 }}>
         <Input
@@ -186,19 +242,19 @@ export const ProjectsTab = () => {
     filterIcon: (filtered: boolean) => (
       <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
     ),
-    onFilter: (value: boolean | React.Key, record: Project) => {
+    onFilter: (value: boolean | React.Key, record: ProjectWithNames) => {
       const fieldValue = record[dataIndex]
       if (fieldValue === null || fieldValue === undefined) return false
       return fieldValue.toString().toLowerCase().includes(value.toString().toLowerCase())
     },
   })
 
-  const columns: ColumnsType<Project> = [
+  const columns: ColumnsType<ProjectWithNames> = [
     {
       title: 'Код',
       dataIndex: 'code',
       key: 'code',
-      width: 120,
+      width: 80,
       sorter: (a, b) => {
         const codeA = a.code || ''
         const codeB = b.code || ''
@@ -210,9 +266,44 @@ export const ProjectsTab = () => {
       title: 'Название',
       dataIndex: 'name',
       key: 'name',
-      width: 250,
+      width: 200,
       sorter: (a, b) => a.name.localeCompare(b.name),
       ...getColumnSearchProps('name'),
+    },
+    {
+      title: 'Связанные названия',
+      dataIndex: 'project_alternative_names',
+      key: 'alternative_names',
+      width: 180,
+      render: (names: Array<{ alternative_name: string }> | undefined) => {
+        if (!names || names.length === 0) {
+          return <span style={{ color: '#999' }}>—</span>
+        }
+
+        const visibleTags = names.slice(0, 1)
+        const hiddenCount = names.length - visibleTags.length
+
+        const tooltipContent = (
+          <div>
+            {names.map((name, idx) => (
+              <div key={idx}>{name.alternative_name}</div>
+            ))}
+          </div>
+        )
+
+        return (
+          <Tooltip title={tooltipContent} placement="topLeft">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {visibleTags.map((name, idx) => (
+                <Tag key={idx}>{name.alternative_name}</Tag>
+              ))}
+              {hiddenCount > 0 && (
+                <Tag style={{ cursor: 'default' }}>+{hiddenCount}...</Tag>
+              )}
+            </div>
+          </Tooltip>
+        )
+      }
     },
     {
       title: 'Описание',
@@ -241,8 +332,7 @@ export const ProjectsTab = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 120,
-      fixed: 'right',
+      width: 80,
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -281,6 +371,10 @@ export const ProjectsTab = () => {
     message.info('Все фильтры сброшены')
   }
 
+  const handleExport = () => {
+    exportProjectsToExcel(projects)
+  }
+
   return (
     <>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
@@ -293,10 +387,10 @@ export const ProjectsTab = () => {
             Добавить проект
           </Button>
           <Button
-            icon={<UploadOutlined />}
-            onClick={() => setImportModalVisible(true)}
+            icon={<DownloadOutlined />}
+            onClick={handleExport}
           >
-            Импорт из Excel
+            Скачать в Excel
           </Button>
         </Space>
         {Object.keys(filteredInfo).length > 0 && (
@@ -314,17 +408,16 @@ export const ProjectsTab = () => {
         dataSource={projects}
         loading={loading}
         rowKey="id"
-        scroll={{ x: 1200 }}
         onChange={(_, filters) => {
           setFilteredInfo(filters)
         }}
         pagination={{
-          defaultPageSize: 10,
+          defaultPageSize: 100,
           showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
-          showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} проектов`,
-          showQuickJumper: true,
+          pageSizeOptions: ['50', '100', '200'],
+          showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} проектов`
         }}
+        tableLayout="auto"
       />
 
       <Modal
@@ -332,7 +425,7 @@ export const ProjectsTab = () => {
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
-        width={600}
+        width={700}
       >
         <Form
           form={form}
@@ -359,6 +452,40 @@ export const ProjectsTab = () => {
             <Input.TextArea rows={4} />
           </Form.Item>
 
+          <Form.Item label="Связанные названия">
+            <div style={{ border: '1px solid #d9d9d9', borderRadius: '2px', padding: '8px' }}>
+              {alternativeNames.map((name, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <Input
+                    placeholder="Введите альтернативное название"
+                    value={name.alternative_name}
+                    onChange={(e) => {
+                      const updated = [...alternativeNames]
+                      updated[idx].alternative_name = e.target.value
+                      setAlternativeNames(updated)
+                    }}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    danger
+                    onClick={() => {
+                      setAlternativeNames(alternativeNames.filter((_, i) => i !== idx))
+                    }}
+                  >
+                    Удалить
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="dashed"
+                block
+                onClick={() => setAlternativeNames([...alternativeNames, { alternative_name: '' }])}
+              >
+                + Добавить название
+              </Button>
+            </div>
+          </Form.Item>
+
           <Form.Item
             name="is_active"
             label="Активен"
@@ -379,15 +506,6 @@ export const ProjectsTab = () => {
           </Form.Item>
         </Form>
       </Modal>
-
-      <ImportProjectsModal
-        visible={importModalVisible}
-        onClose={() => setImportModalVisible(false)}
-        onSuccess={() => {
-          loadProjects()
-          setImportModalVisible(false)
-        }}
-      />
     </>
   )
 }

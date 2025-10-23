@@ -1,7 +1,8 @@
 import { useEffect, useCallback, useState } from 'react'
-import { Table, Button, Space, Switch } from 'antd'
+import { Table, Button, Space, Switch, Tabs } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ExpandableConfig } from 'antd/es/table/interface'
+import { useSearchParams } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/InvoicesPage.css'
@@ -16,16 +17,25 @@ import { InvoiceFormModal } from '../components/invoices/InvoiceFormModal'
 import { InvoiceViewModal } from '../components/invoices/InvoiceViewModal'
 import { QuickPaymentDrawer } from '../components/invoices/QuickPaymentDrawer'
 import { PaymentEditModal } from '../components/invoices/PaymentEditModal'
-import { ColumnSettings } from '../components/invoices/ColumnSettings'
+import { ColumnSettings } from '../components/common/ColumnSettings'
 import InvoiceHistoryModal from '../components/invoices/InvoiceHistoryModal'
 import type { Invoice } from '../lib/supabase'
 import '../styles/compact-table.css'
 
 export const InvoicesPage = () => {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showArchived, setShowArchived] = useState(false)
   const [historyModalVisible, setHistoryModalVisible] = useState(false)
   const [viewingHistoryInvoice, setViewingHistoryInvoice] = useState<Invoice | null>(null)
+  const [activeTab, setActiveTab] = useState(() => {
+    return (searchParams.get('tab') as 'active' | 'paid') || 'active'
+  })
+
+  // Sync activeTab to URL
+  useEffect(() => {
+    setSearchParams({ tab: activeTab })
+  }, [activeTab, setSearchParams])
 
   // Use invoice form hook
   const {
@@ -77,7 +87,8 @@ export const InvoicesPage = () => {
     handleDeleteInvoice,
     handleOpenCreateModal: originalHandleOpenCreateModal,
     handleOpenEditModal,
-    handleViewInvoice
+    handleViewInvoice,
+    handleSaveInvoiceAsDraft
   } = useInvoiceManagement(showArchived)
 
   // Wrap handleOpenCreateModal to ensure form reset and load references
@@ -217,6 +228,27 @@ export const InvoicesPage = () => {
     'invoices_column_settings'
   )
 
+  // Filter invoices based on payment status
+  const getFilteredInvoices = () => {
+    return invoices.filter(invoice => {
+      const totals = getTotals(invoice.id)
+      const totalAmount = (invoice.amount_with_vat || 0) + (invoice.delivery_cost || 0)
+      const isFullyPaid = totals.totalPaid >= totalAmount
+      const isNotFilled = invoice.invoice_status?.code === 'not_filled'
+
+      if (activeTab === 'active') {
+        // Include invoices that are not fully paid OR have 'not_filled' status
+        return !isFullyPaid || isNotFilled
+      } else if (activeTab === 'paid') {
+        // Only include invoices that are fully paid AND don't have 'not_filled' status
+        return isFullyPaid && !isNotFilled
+      }
+      return true
+    })
+  }
+
+  const filteredInvoices = getFilteredInvoices()
+
   // Expandable configuration
   const expandable: ExpandableConfig<Invoice> = {
     expandedRowRender: (record) => {
@@ -271,43 +303,99 @@ export const InvoicesPage = () => {
         </Space>
       </div>
 
-      <Table
-        columns={visibleColumns}
-        dataSource={invoices}
-        rowKey="id"
-        loading={loading}
-        expandable={expandable}
-        rowClassName={(record) => {
-          const classes = [];
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key as 'active' | 'paid')}
+        items={[
+          {
+            key: 'active',
+            label: 'Активные счета',
+            children: (
+              <Table
+                columns={visibleColumns}
+                dataSource={filteredInvoices}
+                rowKey="id"
+                loading={loading}
+                expandable={expandable}
+                rowClassName={(record) => {
+                  const classes = [];
 
-          // Подсветка архивных счетов
-          if (record.is_archived) {
-            classes.push('archived-invoice-row');
-          }
+                  // Подсветка архивных счетов
+                  if (record.is_archived) {
+                    classes.push('archived-invoice-row');
+                  }
 
-          // Подсветка устаревших счетов (более 30 дней)
-          if (record.relevance_date) {
-            const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
-            if (daysSinceRelevance > 30) {
-              classes.push('outdated-invoice-row');
-            }
-          }
+                  // Подсветка устаревших счетов (более 30 дней)
+                  if (record.relevance_date) {
+                    const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
+                    if (daysSinceRelevance > 30) {
+                      classes.push('outdated-invoice-row');
+                    }
+                  }
 
-          return classes.join(' ');
-        }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
-          pageSizeOptions: ['10', '20', '50', '100']
-        }}
-        onRow={() => ({
-          style: { cursor: 'pointer' }
-        })}
-        className="expandable-table-smooth compact-table"
-        tableLayout="auto"  // Изменено на auto (было fixed)
-        style={{ width: '100%' }}
-        scroll={{ x: 'max-content' }}
+                  return classes.join(' ');
+                }}
+                pagination={{
+                  defaultPageSize: 100,
+                  showSizeChanger: true,
+                  showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
+                  pageSizeOptions: ['50', '100', '200']
+                }}
+                onRow={() => ({
+                  style: { cursor: 'pointer' }
+                })}
+                className="expandable-table-smooth compact-table"
+                tableLayout="auto"
+                style={{ width: '100%' }}
+                scroll={{ x: 'max-content' }}
+              />
+            ),
+          },
+          {
+            key: 'paid',
+            label: 'Оплаченные счета',
+            children: (
+              <Table
+                columns={visibleColumns}
+                dataSource={filteredInvoices}
+                rowKey="id"
+                loading={loading}
+                expandable={expandable}
+                rowClassName={(record) => {
+                  const classes = [];
+
+                  // Подсветка архивных счетов
+                  if (record.is_archived) {
+                    classes.push('archived-invoice-row');
+                  }
+
+                  // Подсветка устаревших счетов (более 30 дней)
+                  if (record.relevance_date) {
+                    const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
+                    if (daysSinceRelevance > 30) {
+                      classes.push('outdated-invoice-row');
+                    }
+                  }
+
+                  return classes.join(' ');
+                }}
+                pagination={{
+                  defaultPageSize: 100,
+                  showSizeChanger: true,
+                  showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
+                  pageSizeOptions: ['50', '100', '200']
+                }}
+                onRow={() => ({
+                  style: { cursor: 'pointer' }
+                })}
+                className="expandable-table-smooth compact-table"
+                tableLayout="auto"
+                style={{ width: '100%' }}
+                scroll={{ x: 'max-content' }}
+              />
+            ),
+          },
+        ]}
       />
 
       {/* Invoice Form Modal */}
@@ -347,6 +435,7 @@ export const InvoicesPage = () => {
         contracts={contracts}
         onContractSelect={handleContractSelect}
         loadingReferences={loadingReferences}
+        onSaveAsDraft={handleSaveInvoiceAsDraft}
       />
 
       {/* Invoice View Modal */}
@@ -409,6 +498,21 @@ export const InvoicesPage = () => {
         }}
         invoice={viewingHistoryInvoice}
       />
+
+      {/* Legend */}
+      <div style={{ marginTop: 32, padding: 16, backgroundColor: '#fafafa', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+        <h3 style={{ marginTop: 0, marginBottom: 12 }}>Пояснения к подсветке счетов</h3>
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ width: 20, height: 20, backgroundColor: 'rgba(255, 77, 79, 0.15)', border: '2px solid rgba(255, 77, 79, 0.5)', borderRadius: 4 }} />
+            <span>Устаревший счет (более 30 дней)</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ width: 20, height: 20, backgroundColor: 'rgba(0, 0, 0, 0.08)', border: '2px solid rgba(140, 140, 140, 0.3)', borderRadius: 4 }} />
+            <span>Архивный счет</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

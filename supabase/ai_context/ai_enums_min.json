@@ -1,36 +1,41 @@
-[
-  {
-    "enum": "auth.aal_level",
+{
+  "auth.aal_level": {
+    "schema": "auth",
+    "name": "aal_level",
     "values": [
       "aal1",
       "aal2",
       "aal3"
     ]
   },
-  {
-    "enum": "auth.code_challenge_method",
+  "auth.code_challenge_method": {
+    "schema": "auth",
+    "name": "code_challenge_method",
     "values": [
       "s256",
       "plain"
     ]
   },
-  {
-    "enum": "auth.factor_status",
+  "auth.factor_status": {
+    "schema": "auth",
+    "name": "factor_status",
     "values": [
       "unverified",
       "verified"
     ]
   },
-  {
-    "enum": "auth.factor_type",
+  "auth.factor_type": {
+    "schema": "auth",
+    "name": "factor_type",
     "values": [
       "totp",
       "webauthn",
       "phone"
     ]
   },
-  {
-    "enum": "auth.one_time_token_type",
+  "auth.one_time_token_type": {
+    "schema": "auth",
+    "name": "one_time_token_type",
     "values": [
       "confirmation_token",
       "reauthentication_token",
@@ -40,16 +45,18 @@
       "phone_change_token"
     ]
   },
-  {
-    "enum": "net.request_status",
+  "net.request_status": {
+    "schema": "net",
+    "name": "request_status",
     "values": [
       "PENDING",
       "SUCCESS",
       "ERROR"
     ]
   },
-  {
-    "enum": "realtime.action",
+  "realtime.action": {
+    "schema": "realtime",
+    "name": "action",
     "values": [
       "INSERT",
       "UPDATE",
@@ -58,8 +65,9 @@
       "ERROR"
     ]
   },
-  {
-    "enum": "realtime.equality_op",
+  "realtime.equality_op": {
+    "schema": "realtime",
+    "name": "equality_op",
     "values": [
       "eq",
       "neq",
@@ -70,11 +78,12 @@
       "in"
     ]
   },
-  {
-    "enum": "storage.buckettype",
+  "storage.buckettype": {
+    "schema": "storage",
+    "name": "buckettype",
     "values": [
       "STANDARD",
       "ANALYTICS"
     ]
   }
-]
+}

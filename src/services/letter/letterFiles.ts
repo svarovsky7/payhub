@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { uploadAndLinkFile, deleteFile } from '../fileAttachmentService'
 
 /**
  * Process letter files (upload new, delete removed)
@@ -10,9 +11,6 @@ export async function processLetterFiles(
   fileDescriptions?: Record<string, string>
 ): Promise<void> {
   console.log('[letterFiles.processLetterFiles] Processing files for letter:', letterId)
-
-  // Import file attachment service
-  const { uploadAndLinkFile, deleteFile } = await import('../fileAttachmentService')
 
   // Get current attachments
   const { data: currentAttachments } = await supabase

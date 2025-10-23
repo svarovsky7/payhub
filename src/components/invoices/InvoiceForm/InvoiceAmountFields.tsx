@@ -1,5 +1,5 @@
-import React from 'react'
-import { Row, Col, Form, InputNumber, Typography, Divider } from 'antd'
+import React, { useCallback } from 'react'
+import { Row, Col, Form, InputNumber, Typography, Divider, Select } from 'antd'
 
 const { Text } = Typography
 
@@ -20,14 +20,47 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
 }) => {
   console.log('[InvoiceAmountFields] Props:', { vatRate, amountWithoutVat })
 
-  // Получаем сумму с НДС из формы
+  // Получаем значения из формы
   const amountWithVat = Form.useWatch('amount_with_vat', form) || 0
+  const deliveryCost = Form.useWatch('delivery_cost', form) || 0
 
   // Рассчитываем НДС
   const vatAmount = amountWithVat - amountWithoutVat
 
-  const deliveryCost = Form.useWatch('delivery_cost', form) || 0
-  const totalAmount = amountWithVat + deliveryCost
+  const handleAmountWithVatChange = useCallback((value: number | null) => {
+    if (value !== null) {
+      // Когда пользователь устанавливает Сумму с НДС
+      form.setFieldValue('delivery_cost', 0)
+      form.setFieldValue('total_with_vat', value)
+      onAmountChange(value)
+    }
+  }, [form, onAmountChange])
+
+  const handleDeliveryCostChange = useCallback((value: number | null) => {
+    if (value !== null) {
+      // Когда пользователь устанавливает Стоимость доставки
+      // Пересчитываем Общую сумму с НДС
+      const newTotal = amountWithVat + value
+      form.setFieldValue('total_with_vat', newTotal)
+    }
+  }, [form, amountWithVat])
+
+  const handleTotalWithVatChange = useCallback((value: number | null) => {
+    if (value !== null) {
+      // Когда пользователь устанавливает Общую сумму с НДС
+      if (deliveryCost > 0) {
+        // Если уже указана доставка, пересчитываем сумму с НДС
+        const newAmountWithVat = value - deliveryCost
+        form.setFieldValue('amount_with_vat', newAmountWithVat)
+        onAmountChange(newAmountWithVat)
+      } else {
+        // Если доставки нет, то общая = сумме с НДС
+        form.setFieldValue('amount_with_vat', value)
+        form.setFieldValue('delivery_cost', 0)
+        onAmountChange(value)
+      }
+    }
+  }, [form, onAmountChange, deliveryCost])
 
   return (
     <>
@@ -56,7 +89,7 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
                     return parsed as any
                   }}
                   addonAfter="₽"
-                  onChange={onAmountChange}
+                  onChange={handleAmountWithVatChange}
                 />
               </Form.Item>
             </Col>
@@ -66,17 +99,16 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
                 label="Ставка НДС (%)"
                 initialValue={20}
                 rules={[
-                  { required: true, message: 'Укажите ставку НДС' },
-                  { type: 'number', min: 0, max: 100, message: 'Ставка НДС должна быть от 0 до 100%' }
+                  { required: true, message: 'Укажите ставку НДС' }
                 ]}
               >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  max={100}
-                  precision={2}
-                  formatter={(value) => `${value}%`}
-                  parser={(value) => value?.replace('%', '') as any}
+                <Select
+                  options={[
+                    { label: '0%', value: 0 },
+                    { label: '10%', value: 10 },
+                    { label: '20%', value: 20 },
+                    { label: '22%', value: 22 }
+                  ]}
                   onChange={onVatRateChange}
                 />
               </Form.Item>
@@ -103,6 +135,7 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
                     return parsed as any
                   }}
                   addonAfter="₽"
+                  onChange={handleDeliveryCostChange}
                 />
               </Form.Item>
             </Col>
@@ -169,18 +202,34 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
                 Общая сумма с НДС:
               </Text>
               <div style={{ textAlign: 'right' }}>
-                <Text strong style={{
-                  fontSize: totalAmount > 999999999 ? '16px' : '18px',
-                  color: '#1890ff',
-                  whiteSpace: 'nowrap',
-                  display: 'block'
-                }}>
-                  {totalAmount.toLocaleString('ru-RU', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{' '}
-                  ₽
-                </Text>
+                <Form.Item
+                  name="total_with_vat"
+                  initialValue={0}
+                  style={{ margin: 0 }}
+                >
+                  <InputNumber
+                    min={0}
+                    precision={2}
+                    decimalSeparator=","
+                    formatter={(value) =>
+                      `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+                    }
+                    parser={(value) => {
+                      const parsed = value?.replace(/\s/g, '').replace(',', '.')
+                      return parsed as any
+                    }}
+                    addonAfter="₽"
+                    onChange={handleTotalWithVatChange}
+                    bordered={false}
+                    style={{
+                      width: '100%',
+                      textAlign: 'right',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: '#1890ff'
+                    }}
+                  />
+                </Form.Item>
               </div>
             </div>
           </div>

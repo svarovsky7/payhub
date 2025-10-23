@@ -720,6 +720,13 @@
     "comment": null,
     "sql": "CREATE OR REPLACE FUNCTION public.update_preliminary_delivery_dates()\n RETURNS TABLE(invoice_id uuid, old_date date, new_date date)\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  RETURN QUERY\n  UPDATE invoices i\n  SET preliminary_delivery_date = calculate_preliminary_delivery_date(\n    i.delivery_days,\n    i.delivery_days_type\n  )\n  WHERE\n    -- Only update invoices with delivery days specified\n    i.delivery_days IS NOT NULL\n    AND i.delivery_days > 0\n    -- Only update if not fully paid (status_id != 3)\n    -- Status IDs: 1=draft, 2=pending, 3=paid, 4=partial, 5=cancelled\n    AND i.status_id != 3\n    -- Only update if there are no paid payments\n    AND NOT EXISTS (\n      SELECT 1\n      FROM invoice_payments ip\n      JOIN payments p ON ip.payment_id = p.id\n      WHERE ip.invoice_id = i.id\n        AND p.status_id = 3  -- paid status\n    )\n  RETURNING\n    i.id,\n    i.preliminary_delivery_date AS old_date,\n    calculate_preliminary_delivery_date(i.delivery_days, i.delivery_days_type) AS new_date;\nEND;\n$function$\n"
   },
+  "public.update_project_alternative_names_updated_at()": {
+    "schema": "public",
+    "name": "update_project_alternative_names_updated_at",
+    "arguments": "",
+    "comment": null,
+    "sql": "CREATE OR REPLACE FUNCTION public.update_project_alternative_names_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  NEW.updated_at = now();\n  RETURN NEW;\nEND;\n$function$\n"
+  },
   "public.update_updated_at_column()": {
     "schema": "public",
     "name": "update_updated_at_column",

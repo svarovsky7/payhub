@@ -270,7 +270,7 @@ export const StagesEditor = ({
 
                   <Col span={8}>
                     <div style={{ marginBottom: '8px' }}>
-                      <Text strong style={{ fontSize: '14px', color: '#262626' }}>Статус после согласования</Text>
+                      <Text strong style={{ fontSize: '14px', color: '#262626' }}>Статус платежа после согласования</Text>
                     </div>
                     <Select
                       value={stage.payment_status_id || undefined}

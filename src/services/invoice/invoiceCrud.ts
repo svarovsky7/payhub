@@ -41,7 +41,7 @@ export const loadInvoices = async (userId: string, showArchived: boolean = false
         supplier:contractors!invoices_supplier_id_fkey (*),
         project:projects (*),
         invoice_type:invoice_types (*),
-        invoice_status:invoice_statuses (*)
+        invoice_status:invoice_statuses!invoices_status_id_fkey (*)
       `)
       .order('created_at', { ascending: false })
 
@@ -79,6 +79,18 @@ export const loadInvoices = async (userId: string, showArchived: boolean = false
     if (error) {
       console.error('[InvoiceOperations.loadInvoices] Error:', error)
       throw error
+    }
+
+    if (data && data.length > 0) {
+      console.log('[InvoiceOperations.loadInvoices] Loaded invoices with statuses:', 
+        data.slice(0, 5).map(inv => ({
+          id: inv.id,
+          invoice_number: inv.invoice_number,
+          status_id: inv.status_id,
+          invoice_status_code: (inv as any).invoice_status?.code,
+          invoice_status_name: (inv as any).invoice_status?.name
+        }))
+      )
     }
 
     return (data || []) as Invoice[]
@@ -121,7 +133,7 @@ export const createInvoice = async (
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
-    const { vat_rate: providedVatRate, payment_deadline_date, ...cleanData } = invoiceData
+    const { vat_rate: providedVatRate, payment_deadline_date, total_with_vat, ...cleanData } = invoiceData
 
     // Ensure VAT rate is valid - use the provided value from state
     const vatRateValue = providedVatRate !== undefined && providedVatRate !== null
@@ -130,14 +142,21 @@ export const createInvoice = async (
 
     const formattedData = {
       ...cleanData,
-      invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : null,
-      relevance_date: payment_deadline_date ? dayjs(payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
+      invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+      relevance_date: payment_deadline_date ? dayjs(payment_deadline_date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
       preliminary_delivery_date: invoiceData.preliminary_delivery_date ? dayjs(invoiceData.preliminary_delivery_date).format('YYYY-MM-DD') : null,
-      user_id: userId, // Используем user_id вместо created_by (согласно структуре таблицы)
-      status_id: 1, // draft (Черновик) по умолчанию
-      vat_rate: vatRateValue // Use the properly parsed VAT rate value
+      user_id: userId,
+      status_id: invoiceData.status_id || 1,
+      vat_rate: vatRateValue
     }
 
+    console.log('[InvoiceOperations.createInvoice] FormattedData before insert:', {
+      status_id: formattedData.status_id,
+      invoice_date: formattedData.invoice_date,
+      relevance_date: formattedData.relevance_date,
+      invoice_number: formattedData.invoice_number,
+      user_id: formattedData.user_id
+    })
 
     const { data, error } = await supabase
       .from('invoices')
@@ -150,6 +169,12 @@ export const createInvoice = async (
       throw error
     }
 
+    console.log('[InvoiceOperations.createInvoice] Invoice created successfully:', {
+      id: data.id,
+      status_id: data.status_id,
+      invoice_date: data.invoice_date,
+      relevance_date: data.relevance_date
+    })
 
     // Обрабатываем файлы, если они есть
     if (files && files.length > 0) {
@@ -190,7 +215,7 @@ export const updateInvoice = async (
 
   try {
     // Преобразуем даты в правильный формат и удаляем несуществующие поля
-    const { vat_rate: providedVatRate, payment_deadline_date, ...cleanData } = invoiceData
+    const { vat_rate: providedVatRate, payment_deadline_date, total_with_vat, ...cleanData } = invoiceData
 
     // Ensure VAT rate is valid - use the provided value from state
     const vatRateValue = providedVatRate !== undefined && providedVatRate !== null
@@ -199,10 +224,10 @@ export const updateInvoice = async (
 
     const formattedData = {
       ...cleanData,
-      invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : null,
-      relevance_date: payment_deadline_date ? dayjs(payment_deadline_date).format('YYYY-MM-DD') : null, // map payment_deadline_date to relevance_date
+      invoice_date: invoiceData.invoice_date ? dayjs(invoiceData.invoice_date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+      relevance_date: payment_deadline_date ? dayjs(payment_deadline_date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
       preliminary_delivery_date: invoiceData.preliminary_delivery_date ? dayjs(invoiceData.preliminary_delivery_date).format('YYYY-MM-DD') : null,
-      vat_rate: vatRateValue // Use the properly parsed VAT rate value
+      vat_rate: vatRateValue
     }
 
     const { data, error } = await supabase

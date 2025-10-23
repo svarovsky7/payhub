@@ -82,6 +82,13 @@ export const InvoiceBasicFields: React.FC<InvoiceBasicFieldsProps> = ({
               <Tag
                 color="blue"
                 style={{ cursor: 'pointer', padding: '4px 12px' }}
+                onClick={() => handleAddDays(3)}
+              >
+                +3 дня
+              </Tag>
+              <Tag
+                color="blue"
+                style={{ cursor: 'pointer', padding: '4px 12px' }}
                 onClick={() => handleAddDays(7)}
               >
                 +7 дней

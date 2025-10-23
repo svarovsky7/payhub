@@ -328,12 +328,11 @@ export const PaymentsExpanded = memo(({
   }
 
   // Calculate total (include delivery cost in invoice total)
-  // Only count payments with status "Оплачен" (3) or "В оплате" (5)
+  // Only count payments with status "Оплачен" (3)
   const PAID_STATUS_ID = 3  // Оплачен (paid)
-  const APPROVED_STATUS_ID = 5  // В оплате (approved)
 
   const totalPaid = payments.reduce((sum, payment) => {
-    if (payment.status_id === PAID_STATUS_ID || payment.status_id === APPROVED_STATUS_ID) {
+    if (payment.status_id === PAID_STATUS_ID) {
       return sum + (payment.amount || 0)
     }
     return sum

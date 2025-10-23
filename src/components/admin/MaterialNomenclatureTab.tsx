@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Table, Button, Modal, Form, Input, Switch, Space, message, Popconfirm, Select } from 'antd'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Table, Button, Modal, Form, Input, Switch, Space, message, Popconfirm, Select, type InputRef } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons'
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
-import type { FilterValue } from 'antd/es/table/interface'
+import type { ColumnsType, ColumnType, TablePaginationConfig } from 'antd/es/table'
+import type { FilterConfirmProps, FilterValue } from 'antd/es/table/interface'
 import { debounce } from 'lodash'
 import { useLocation } from 'react-router-dom'
 import {
@@ -20,6 +20,8 @@ import { loadMaterialClasses, loadSubclasses } from '../../services/materialClas
 import type { MaterialClass } from '../../services/materialClassOperations'
 import { ImportNomenclatureModal } from './ImportNomenclatureModal'
 
+type DataIndex = keyof MaterialNomenclature
+
 export default function MaterialNomenclatureTab() {
   const location = useLocation()
   const [nomenclatures, setNomenclatures] = useState<MaterialNomenclature[]>([])
@@ -34,13 +36,14 @@ export default function MaterialNomenclatureTab() {
   const [importModalVisible, setImportModalVisible] = useState(false)
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 50,
+    pageSize: 100,
     total: 0,
     showSizeChanger: true,
     showTotal: (total: number) => `Всего: ${total}`,
-    pageSizeOptions: ['30', '50', '100', '200']
+    pageSizeOptions: ['50', '100', '200']
   })
   const [form] = Form.useForm()
+  const searchInput = useRef<InputRef>(null)
 
   // Загрузка данных с пагинацией
   const loadData = useCallback(async (
@@ -211,6 +214,70 @@ export default function MaterialNomenclatureTab() {
     }
   }
 
+  const handleSearch = (
+    confirm: (param?: FilterConfirmProps) => void
+  ) => {
+    confirm()
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+  }
+
+  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<MaterialNomenclature> => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Поиск по ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(confirm)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(confirm)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Поиск
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Сброс
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            Закрыть
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
+        : false,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    }
+  })
+
   const handleModalCancel = () => {
     console.log('[MaterialNomenclatureTab.handleModalCancel] Closing modal')
     setModalVisible(false)
@@ -229,17 +296,17 @@ export default function MaterialNomenclatureTab() {
     setPagination(prev => ({
       ...prev,
       current: paginationConfig.current || 1,
-      pageSize: paginationConfig.pageSize || 50
+      pageSize: paginationConfig.pageSize || 100
     }))
     loadData(
       paginationConfig.current || 1,
-      paginationConfig.pageSize || 50,
+      paginationConfig.pageSize || 100,
       searchText,
       classFilter
     )
   }
 
-  const handleSearch = (value: string) => {
+  const handleSearchInput = (value: string) => {
     setSearchText(value)
     debouncedSearch(value)
   }
@@ -264,15 +331,19 @@ export default function MaterialNomenclatureTab() {
       title: 'Наименование',
       dataIndex: 'name',
       key: 'name',
-      sorter: false, // Отключаем сортировку на клиенте, сортировка на сервере
+      sorter: (a, b) => a.name.localeCompare(b.name),
       ellipsis: true,
+      ...getColumnSearchProps('name')
     },
     {
       title: 'Класс материалов',
       dataIndex: 'material_class_id',
       key: 'parent_class',
-      width: 'auto',
-      ellipsis: true,
+      sorter: (a, b) => {
+        const parentA = getParentClass(a.material_class_id ?? null)
+        const parentB = getParentClass(b.material_class_id ?? null)
+        return (parentA?.name || '').localeCompare(parentB?.name || '')
+      },
       render: (classId: number | null) => {
         const parentClass = getParentClass(classId)
         return parentClass ? parentClass.name : '-'
@@ -287,8 +358,13 @@ export default function MaterialNomenclatureTab() {
       title: 'Подкласс материалов',
       dataIndex: 'material_class_id',
       key: 'material_class_id',
-      width: 'auto',
-      ellipsis: true,
+      sorter: (a, b) => {
+        const classA = a.material_class_id ? materialClasses.find(c => c.id === a.material_class_id) : null
+        const classB = b.material_class_id ? materialClasses.find(c => c.id === b.material_class_id) : null
+        const nameA = classA && classA.parent_id ? classA.name : ''
+        const nameB = classB && classB.parent_id ? classB.name : ''
+        return nameA.localeCompare(nameB)
+      },
       render: (classId: number | null) => {
         if (!classId) return '-'
         const cls = materialClasses.find(c => c.id === classId)
@@ -304,14 +380,20 @@ export default function MaterialNomenclatureTab() {
       title: 'Ед. изм.',
       dataIndex: 'unit',
       key: 'unit',
-      width: 100,
+      sorter: (a, b) => a.unit.localeCompare(b.unit),
+      ...getColumnSearchProps('unit')
     },
     {
       title: 'Активен',
       dataIndex: 'is_active',
       key: 'is_active',
-      width: 100,
       align: 'center',
+      sorter: (a, b) => Number(a.is_active) - Number(b.is_active),
+      filters: [
+        { text: 'Да', value: true },
+        { text: 'Нет', value: false }
+      ],
+      onFilter: (value, record) => record.is_active === value,
       render: (active: boolean) => (
         <Switch checked={active} disabled />
       ),
@@ -366,7 +448,7 @@ export default function MaterialNomenclatureTab() {
           placeholder="Поиск..."
           prefix={<SearchOutlined />}
           value={searchText}
-          onChange={e => handleSearch(e.target.value)}
+          onChange={e => handleSearchInput(e.target.value)}
           style={{ width: 300 }}
           allowClear
         />
@@ -379,6 +461,7 @@ export default function MaterialNomenclatureTab() {
         loading={loading}
         pagination={pagination}
         onChange={handleTableChange}
+        tableLayout="auto"
       />
 
       <Modal

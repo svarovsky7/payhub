@@ -1,11 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Table, Space, Button, Modal, Form, Input, App } from 'antd'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Table, Space, Button, Modal, Form, Input, App, type InputRef } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+import type { ColumnsType, ColumnType } from 'antd/es/table'
 import { supabase, type Contractor } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { ImportContractorsModal } from './ImportContractorsModal'
 import type { FormValues } from '../../types/common'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
+
+type DataIndex = keyof Contractor
+
 
 export const ContractorsTab = () => {
   const { message: messageApi, modal } = App.useApp()
@@ -16,6 +20,7 @@ export const ContractorsTab = () => {
   const [importModalVisible, setImportModalVisible] = useState(false)
   const [form] = Form.useForm()
   const { user } = useAuth()
+  const searchInput = useRef<InputRef>(null)
 
   const loadContractors = useCallback(async () => {
     setLoading(true)
@@ -129,6 +134,70 @@ export const ContractorsTab = () => {
     })
   }
 
+  const handleSearch = (
+    confirm: (param?: FilterConfirmProps) => void
+  ) => {
+    confirm()
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+  }
+
+  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Contractor> => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Поиск по ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(confirm)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(confirm)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Поиск
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Сброс
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            Закрыть
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
+        : false,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    }
+  })
+
   const handlePrefixClick = (prefix: string) => {
     const currentName = (form.getFieldValue('name') as string | undefined) || ''
     // Удаляем существующий префикс и кавычки
@@ -152,55 +221,6 @@ export const ContractorsTab = () => {
     form.validateFields(['name'])
   }
 
-  // Функция для создания фильтра поиска
-  const getColumnSearchProps = (dataIndex: string) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: {
-      setSelectedKeys: (keys: React.Key[]) => void
-      selectedKeys: React.Key[]
-      confirm: () => void
-      clearFilters?: () => void
-    }) => (
-      <div style={{ padding: 8 }}>
-        <Input
-          placeholder={`Поиск ${dataIndex === 'name' ? 'по названию' : 'по ИНН'}`}
-          value={selectedKeys[0]}
-          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => confirm()}
-          style={{ marginBottom: 8, display: 'block' }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => confirm()}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Найти
-          </Button>
-          <Button
-            onClick={() => {
-              clearFilters?.()
-              confirm()
-            }}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Сброс
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered: boolean) => (
-      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
-    ),
-    onFilter: (value: boolean | React.Key, record: Contractor) =>
-      record[dataIndex as keyof Contractor]
-        ?.toString()
-        .toLowerCase()
-        .includes(String(value).toLowerCase()) ?? false
-  })
-
   const columns: ColumnsType<Contractor> = [
     {
       title: 'Название',
@@ -208,7 +228,6 @@ export const ContractorsTab = () => {
       key: 'name',
       sorter: (a, b) => a.name.localeCompare(b.name),
       ...getColumnSearchProps('name'),
-      width: '40%'
     },
     {
       title: 'ИНН',
@@ -216,7 +235,6 @@ export const ContractorsTab = () => {
       key: 'inn',
       sorter: (a, b) => (a.inn || '').localeCompare(b.inn || ''),
       ...getColumnSearchProps('inn'),
-      width: '25%'
     },
     {
       title: 'Дата создания',
@@ -224,12 +242,10 @@ export const ContractorsTab = () => {
       key: 'created_at',
       sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       render: (date) => new Date(date).toLocaleDateString('ru-RU'),
-      width: '20%'
     },
     {
       title: 'Действия',
       key: 'actions',
-      width: '15%',
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -274,13 +290,13 @@ export const ContractorsTab = () => {
         loading={loading}
         rowKey="id"
         pagination={{
-          defaultPageSize: 10,
+          defaultPageSize: 100,
           showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
+          pageSizeOptions: ['50', '100', '200'],
           showTotal: (total, range) => `${range[0]}-${range[1]} из ${total} контрагентов`,
-          showQuickJumper: true,
           position: ['bottomRight']
         }}
+        tableLayout="auto"
       />
 
       <Modal

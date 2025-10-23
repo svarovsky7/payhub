@@ -30,22 +30,29 @@ export const ApprovalRoutesTab = () => {
   const loadReferences = useCallback(async () => {
 
     try {
-      const [typesResponse, rolesResponse, paymentStatusesResponse] = await Promise.all([
-        supabase.from('invoice_types').select('*').order('name'),
-        supabase.from('roles').select('*').order('name'),
-        supabase.from('payment_statuses').select('*').order('sort_order')
+      setLoading(true)
+      const [
+        typesRes,
+        rolesRes,
+        paymentStatusesRes
+      ] = await Promise.all([
+        supabase.from('invoice_types').select('*'),
+        supabase.from('roles').select('*'),
+        supabase.from('payment_statuses').select('*')
       ])
 
-      if (typesResponse.error) throw typesResponse.error
-      if (rolesResponse.error) throw rolesResponse.error
-      if (paymentStatusesResponse.error) throw paymentStatusesResponse.error
+      if (typesRes.error) throw typesRes.error
+      if (rolesRes.error) throw rolesRes.error
+      if (paymentStatusesRes.error) throw paymentStatusesRes.error
 
-      setInvoiceTypes(typesResponse.data as InvoiceType[])
-      setRoles(rolesResponse.data as Role[])
-      setPaymentStatuses(paymentStatusesResponse.data || [])
+      setInvoiceTypes(typesRes.data)
+      setRoles(rolesRes.data)
+      setPaymentStatuses(paymentStatusesRes.data)
     } catch (error) {
       console.error('[ApprovalRoutesTab.loadReferences] Error:', error)
       message.error('Ошибка загрузки справочников')
+    } finally {
+      setLoading(false)
     }
   }, [])
 

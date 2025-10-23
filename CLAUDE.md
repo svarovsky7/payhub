@@ -147,6 +147,7 @@ Migrations stored in `supabase/migrations/`:
 - `3` = paid (Оплачен)
 - `4` = partial (Частично оплачен)
 - `5` = cancelled (Отменен)
+- `6` = not_filled (Не заполнен)
 
 **Payment Statuses** (use exact IDs):
 - `1` = created (Создан)

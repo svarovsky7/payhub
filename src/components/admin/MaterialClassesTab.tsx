@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { Table, Button, Modal, Form, Input, Switch, Space, Popconfirm, Select, Tooltip, Badge } from 'antd'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { Table, Button, Modal, Form, Input, Switch, Space, Popconfirm, Select, Tooltip, Badge, type InputRef } from 'antd'
 import {
   PlusOutlined,
   EditOutlined,
@@ -9,8 +9,7 @@ import {
   ExpandOutlined,
   CompressOutlined,
   FolderOpenOutlined,
-  MinusSquareOutlined,
-  PlusSquareOutlined
+  SearchOutlined
 } from '@ant-design/icons'
 import type { MaterialClass } from '../../services/materialClassOperations'
 import {
@@ -20,19 +19,24 @@ import {
   deleteMaterialClass,
   toggleMaterialClassActive
 } from '../../services/materialClassOperations'
+import type { ColumnType } from 'antd/es/table'
+import type { FilterConfirmProps } from 'antd/es/table/interface'
 
 // Extended interface for tree structure
 interface MaterialClassTreeNode extends MaterialClass {
   children?: MaterialClassTreeNode[]
 }
 
+type DataIndex = keyof MaterialClassTreeNode
+
 export const MaterialClassesTab = () => {
   const [materialClasses, setMaterialClasses] = useState<MaterialClass[]>([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [editingClass, setEditingClass] = useState<MaterialClass | null>(null)
-  const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([])
+  const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([])
   const [form] = Form.useForm()
+  const searchInput = useRef<InputRef>(null)
 
   // Load material classes
   const loadData = async () => {
@@ -91,6 +95,70 @@ export const MaterialClassesTab = () => {
 
     return rootNodes
   }, [materialClasses])
+
+  const handleSearch = (
+    confirm: (param?: FilterConfirmProps) => void
+  ) => {
+    confirm()
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+  }
+
+  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<MaterialClassTreeNode> => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Поиск по ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(confirm)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(confirm)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Поиск
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Сброс
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close()
+            }}
+          >
+            Закрыть
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
+        : false,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100)
+      }
+    }
+  })
 
   // Handle create/edit
   const handleSubmit = async (values: { name: string; parent_id?: number | null; is_active: boolean }) => {
@@ -160,47 +228,14 @@ export const MaterialClassesTab = () => {
     setModalVisible(true)
   }
 
-  // Handle expand/collapse for single row
-  const handleToggleExpand = (recordId: number) => {
-    if (expandedRowKeys.includes(recordId)) {
-      setExpandedRowKeys(expandedRowKeys.filter(key => key !== recordId))
-    } else {
-      setExpandedRowKeys([...expandedRowKeys, recordId])
-    }
-  }
-
   // Table columns
-  const columns = [
-    {
-      title: '',
-      key: 'expand',
-      width: 40,
-      render: (_: unknown, record: MaterialClassTreeNode) => {
-        const hasChildren = record.children && record.children.length > 0
-        const isExpanded = expandedRowKeys.includes(record.id)
-
-        if (!hasChildren) return null
-
-        return (
-          <Tooltip title={isExpanded ? 'Свернуть' : 'Развернуть'}>
-            <Button
-              type="text"
-              size="small"
-              icon={isExpanded ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
-              onClick={(e) => {
-                e.stopPropagation()
-                handleToggleExpand(record.id)
-              }}
-              style={{ padding: 0, width: 24, height: 24 }}
-            />
-          </Tooltip>
-        )
-      },
-    },
+  const columns: ColumnType<MaterialClassTreeNode>[] = [
     {
       title: 'Наименование',
       dataIndex: 'name',
       key: 'name',
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      ...getColumnSearchProps('name'),
       render: (name: string, record: MaterialClassTreeNode) => {
         const hasChildren = record.children && record.children.length > 0
         const isExpanded = expandedRowKeys.includes(record.id)
@@ -236,6 +271,7 @@ export const MaterialClassesTab = () => {
       dataIndex: 'is_active',
       key: 'is_active',
       width: 150,
+      sorter: (a, b) => Number(a.is_active) - Number(b.is_active),
       render: (is_active: boolean, record: MaterialClassTreeNode) => (
         <Switch
           checked={is_active}
@@ -357,13 +393,14 @@ export const MaterialClassesTab = () => {
         expandable={{
           expandedRowKeys,
           onExpandedRowsChange: (keys) => setExpandedRowKeys(keys as number[]),
-          defaultExpandAllRows: false,
-          childrenColumnName: 'children',
         }}
         pagination={{
+          defaultPageSize: 100,
           showSizeChanger: true,
+          pageSizeOptions: ['50', '100', '200'],
           showTotal: (total) => `Всего: ${total}`,
         }}
+        tableLayout="auto"
       />
 
       <Modal

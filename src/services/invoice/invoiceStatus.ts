@@ -104,6 +104,7 @@ export const recalculateAllInvoiceStatuses = async () => {
           )
         )
       `)
+      .not('status_id', 'in', '(5, 6)') // Исключаем "Отменен" (5) и "Не заполнен" (6)
 
     if (error) throw error
     if (!invoices) return { updated: 0, failed: 0 }

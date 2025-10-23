@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { message, App } from 'antd'
 import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus, UserProfile } from '../lib/supabase'
 import type { UploadFile } from 'antd/es/upload/interface'
@@ -30,6 +30,7 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
   // Invoice states
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(false)
+  const lastEnrichedEmployeesRef = useRef<string[]>([])
 
   // Modal states
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false)
@@ -74,6 +75,25 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
     }
   }, [user, showArchived])
 
+  // Enrich invoices with responsible_user data
+  useEffect(() => {
+    if (invoices.length > 0 && employees.length > 0) {
+      // Check if employees list actually changed
+      const employeeIds = employees.map(e => e.id)
+      const employeeIdsString = employeeIds.join(',')
+      const lastEnrichedString = lastEnrichedEmployeesRef.current.join(',')
+      
+      if (employeeIdsString !== lastEnrichedString) {
+        lastEnrichedEmployeesRef.current = employeeIds
+        const enrichedData = invoices.map(invoice => ({
+          ...invoice,
+          responsible_user: employees.find(emp => emp.id === invoice.responsible_id)
+        }))
+        setInvoices(enrichedData)
+      }
+    }
+  }, [employees, invoices])
+
   // Initialize data on mount
   useEffect(() => {
     if (user?.id) {
@@ -93,7 +113,7 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
     try {
       const invoiceData = {
         ...values,
-        invoice_date: values.invoice_date ? dayjs(values.invoice_date).format('YYYY-MM-DD') : null,
+        invoice_date: values.invoice_date ? dayjs(values.invoice_date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
         due_date: values.due_date ? dayjs(values.due_date).format('YYYY-MM-DD') : null,
         preliminary_delivery_date: values.preliminary_delivery_date
           ? dayjs(values.preliminary_delivery_date).format('YYYY-MM-DD')
@@ -102,7 +122,7 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
         vat_rate: values.vat_rate || 20,
         vat_amount: values.vat_amount || 0,
         amount_without_vat: values.amount_without_vat || 0,
-        relevance_date: dayjs().toISOString() // Автоматически устанавливаем дату актуальности при создании
+        relevance_date: dayjs().format('YYYY-MM-DD')
       }
 
       await createInvoice(invoiceData, files, user.id)
@@ -123,6 +143,52 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
       message.error(error.message || 'Ошибка создания счёта')
     }
   }, [user, invoiceStatuses, loadInvoiceData])
+
+  // Save invoice as draft (not_filled status)
+  const handleSaveInvoiceAsDraft = useCallback(async (
+    values: any,
+    files: UploadFile[] = []
+  ) => {
+    if (!user?.id) return
+
+    try {
+      const invoiceData = {
+        ...values,
+        invoice_date: values.invoice_date ? dayjs(values.invoice_date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+        due_date: values.due_date ? dayjs(values.due_date).format('YYYY-MM-DD') : null,
+        preliminary_delivery_date: values.preliminary_delivery_date
+          ? dayjs(values.preliminary_delivery_date).format('YYYY-MM-DD')
+          : null,
+        amount_with_vat: values.amount_with_vat || 0,
+        vat_rate: values.vat_rate || 20,
+        vat_amount: values.vat_amount || 0,
+        amount_without_vat: values.amount_without_vat || 0,
+        relevance_date: dayjs().format('YYYY-MM-DD'),
+        status_id: 6 // not_filled status
+      }
+
+      console.log('[useInvoiceManagement.handleSaveInvoiceAsDraft] Saving draft with data:', {
+        status_id: invoiceData.status_id,
+        invoice_number: invoiceData.invoice_number,
+        invoice_date: invoiceData.invoice_date,
+        relevance_date: invoiceData.relevance_date
+      })
+
+      await createInvoice(invoiceData, files, user.id)
+
+      console.log('[useInvoiceManagement.handleSaveInvoiceAsDraft] Draft saved successfully')
+      message.success('Счёт сохранён как черновик')
+
+      setEditingInvoice(null)
+      setInvoiceModalVisible(false)
+
+      await loadInvoiceData()
+
+    } catch (error: any) {
+      console.error('[useInvoiceManagement.handleSaveInvoiceAsDraft] Error:', error)
+      message.error(error.message || 'Ошибка сохранения черновика')
+    }
+  }, [user, loadInvoiceData])
 
   // Update invoice
   const handleUpdateInvoice = useCallback(async (
@@ -237,6 +303,7 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
     handleDeleteInvoice,
     handleOpenCreateModal,
     handleOpenEditModal,
-    handleViewInvoice
+    handleViewInvoice,
+    handleSaveInvoiceAsDraft
   }
 }
