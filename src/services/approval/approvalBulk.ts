@@ -7,10 +7,11 @@ export interface BulkApprovalResult {
   successful: number
   failed: number
   errors: Array<{ approvalId: string; paymentNumber: string; error: string }>
+  totalAmount?: number
 }
 
 /**
- * Approve multiple payments in bulk
+ * Approve multiple payments in bulk - processes in parallel
  */
 export const bulkApprovePayments = async (
   approvalIds: string[],
@@ -23,16 +24,18 @@ export const bulkApprovePayments = async (
     total: approvalIds.length,
     successful: 0,
     failed: 0,
-    errors: []
+    errors: [],
+    totalAmount: 0
   }
 
-  // Get payment numbers for error reporting
+  // Get payment numbers and amounts
   const { data: approvals } = await supabase
     .from('payment_approvals')
     .select(`
       id,
       payments!inner (
-        payment_number
+        payment_number,
+        amount
       )
     `)
     .in('id', approvalIds)
@@ -41,37 +44,39 @@ export const bulkApprovePayments = async (
     approvals?.map(a => [a.id, (a.payments as any)?.payment_number || 'Unknown']) || []
   )
 
-  // Process each approval
-  for (const approvalId of approvalIds) {
-    try {
-      const success = await approvePayment(approvalId, userId, comment)
-      if (success) {
-        result.successful++
-      } else {
-        result.failed++
-        result.errors.push({
-          approvalId,
-          paymentNumber: approvalMap.get(approvalId) || 'Unknown',
-          error: 'Ошибка согласования'
-        })
-      }
-    } catch (error) {
+  // Calculate total amount
+  if (approvals) {
+    result.totalAmount = approvals.reduce((sum, a) => {
+      return sum + ((a.payments as any)?.amount || 0)
+    }, 0)
+  }
+
+  // Process all approvals in parallel using Promise.allSettled
+  const approvalResults = await Promise.allSettled(
+    approvalIds.map(id => approvePayment(id, userId, comment, true))
+  )
+
+  // Count results
+  approvalResults.forEach((res, idx) => {
+    const approvalId = approvalIds[idx]
+    if (res.status === 'fulfilled' && res.value) {
+      result.successful++
+    } else {
       result.failed++
       result.errors.push({
         approvalId,
         paymentNumber: approvalMap.get(approvalId) || 'Unknown',
-        error: error instanceof Error ? error.message : 'Неизвестная ошибка'
+        error: res.status === 'rejected' ? String(res.reason) : 'Ошибка согласования'
       })
-      console.error('[bulkApprovePayments] Error approving:', approvalId, error)
     }
-  }
+  })
 
   console.log('[bulkApprovePayments] Completed:', result)
   return result
 }
 
 /**
- * Reject multiple payments in bulk
+ * Reject multiple payments in bulk - processes in parallel
  */
 export const bulkRejectPayments = async (
   approvalIds: string[],
@@ -98,16 +103,18 @@ export const bulkRejectPayments = async (
     total: approvalIds.length,
     successful: 0,
     failed: 0,
-    errors: []
+    errors: [],
+    totalAmount: 0
   }
 
-  // Get payment numbers for error reporting
+  // Get payment numbers and amounts
   const { data: approvals } = await supabase
     .from('payment_approvals')
     .select(`
       id,
       payments!inner (
-        payment_number
+        payment_number,
+        amount
       )
     `)
     .in('id', approvalIds)
@@ -116,30 +123,32 @@ export const bulkRejectPayments = async (
     approvals?.map(a => [a.id, (a.payments as any)?.payment_number || 'Unknown']) || []
   )
 
-  // Process each approval
-  for (const approvalId of approvalIds) {
-    try {
-      const success = await rejectPayment(approvalId, userId, comment)
-      if (success) {
-        result.successful++
-      } else {
-        result.failed++
-        result.errors.push({
-          approvalId,
-          paymentNumber: approvalMap.get(approvalId) || 'Unknown',
-          error: 'Ошибка отклонения'
-        })
-      }
-    } catch (error) {
+  // Calculate total amount
+  if (approvals) {
+    result.totalAmount = approvals.reduce((sum, a) => {
+      return sum + ((a.payments as any)?.amount || 0)
+    }, 0)
+  }
+
+  // Process all approvals in parallel using Promise.allSettled
+  const approvalResults = await Promise.allSettled(
+    approvalIds.map(id => rejectPayment(id, userId, comment, true))
+  )
+
+  // Count results
+  approvalResults.forEach((res, idx) => {
+    const approvalId = approvalIds[idx]
+    if (res.status === 'fulfilled' && res.value) {
+      result.successful++
+    } else {
       result.failed++
       result.errors.push({
         approvalId,
         paymentNumber: approvalMap.get(approvalId) || 'Unknown',
-        error: error instanceof Error ? error.message : 'Неизвестная ошибка'
+        error: res.status === 'rejected' ? String(res.reason) : 'Ошибка отклонения'
       })
-      console.error('[bulkRejectPayments] Error rejecting:', approvalId, error)
     }
-  }
+  })
 
   console.log('[bulkRejectPayments] Completed:', result)
   return result

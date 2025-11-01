@@ -41,7 +41,8 @@ export const loadInvoices = async (userId: string, showArchived: boolean = false
         supplier:contractors!invoices_supplier_id_fkey (*),
         project:projects (*),
         invoice_type:invoice_types (*),
-        invoice_status:invoice_statuses!invoices_status_id_fkey (*)
+        invoice_status:invoice_statuses!invoices_status_id_fkey (*),
+        responsible_user:user_profiles (*)
       `)
       .order('created_at', { ascending: false })
 
@@ -111,7 +112,8 @@ export const loadSingleInvoice = async (invoiceId: string) => {
         supplier:contractors!invoices_supplier_id_fkey (*),
         project:projects (*),
         invoice_type:invoice_types (*),
-        invoice_status:invoice_statuses (*)
+        invoice_status:invoice_statuses (*),
+        responsible_user:user_profiles (*)
       `)
       .eq('id', invoiceId)
       .single()

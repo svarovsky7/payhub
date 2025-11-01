@@ -312,6 +312,47 @@
     },
     "comment": "Contract status reference table"
   },
+  "public.contractor_alternative_names": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "contractor_id": {
+        "type": "integer",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "alternative_name": {
+        "type": "character varying",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "is_primary": {
+        "type": "boolean",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "sort_order": {
+        "type": "integer",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      }
+    },
+    "comment": null
+  },
   "public.contractors": {
     "schema": "public",
     "columns": {
@@ -342,6 +383,11 @@
       },
       "updated_at": {
         "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "primary_name_id": {
+        "type": "bigint",
         "nullable": true,
         "foreign_key": null
       }
@@ -802,6 +848,11 @@
         "type": "boolean",
         "nullable": false,
         "foreign_key": null
+      },
+      "recipient": {
+        "type": "text",
+        "nullable": true,
+        "foreign_key": null
       }
     },
     "comment": "Outbound invoices issued to contractors"
@@ -857,6 +908,37 @@
       }
     },
     "comment": "Связи между письмами (родительское письмо и его ответы/связанные письма)"
+  },
+  "public.letter_public_shares": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "letter_id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "token": {
+        "type": "character varying",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "foreign_key": null
+      }
+    },
+    "comment": null
   },
   "public.letter_statuses": {
     "schema": "public",
@@ -1404,6 +1486,21 @@
       "is_archived": {
         "type": "boolean",
         "nullable": false,
+        "foreign_key": null
+      },
+      "paid_date": {
+        "type": "date",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "accountant_notes": {
+        "type": "text",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "requires_payment_order": {
+        "type": "boolean",
+        "nullable": true,
         "foreign_key": null
       }
     },

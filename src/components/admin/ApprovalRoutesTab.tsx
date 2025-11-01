@@ -17,6 +17,7 @@ export const ApprovalRoutesTab = () => {
   const [invoiceTypes, setInvoiceTypes] = useState<InvoiceType[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [paymentStatuses, setPaymentStatuses] = useState<any[]>([])
+  const [invoiceStatuses, setInvoiceStatuses] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedRoute, setSelectedRoute] = useState<ApprovalRoute | null>(null)
   const [editingRoute, setEditingRoute] = useState<number | null>(null)
@@ -34,20 +35,24 @@ export const ApprovalRoutesTab = () => {
       const [
         typesRes,
         rolesRes,
-        paymentStatusesRes
+        paymentStatusesRes,
+        invoiceStatusesRes
       ] = await Promise.all([
         supabase.from('invoice_types').select('*'),
         supabase.from('roles').select('*'),
-        supabase.from('payment_statuses').select('*')
+        supabase.from('payment_statuses').select('*'),
+        supabase.from('invoice_statuses').select('*')
       ])
 
       if (typesRes.error) throw typesRes.error
       if (rolesRes.error) throw rolesRes.error
       if (paymentStatusesRes.error) throw paymentStatusesRes.error
+      if (invoiceStatusesRes.error) throw invoiceStatusesRes.error
 
       setInvoiceTypes(typesRes.data)
       setRoles(rolesRes.data)
       setPaymentStatuses(paymentStatusesRes.data)
+      setInvoiceStatuses(invoiceStatusesRes.data)
     } catch (error) {
       console.error('[ApprovalRoutesTab.loadReferences] Error:', error)
       message.error('Ошибка загрузки справочников')
@@ -72,9 +77,11 @@ export const ApprovalRoutesTab = () => {
             role_id,
             name,
             payment_status_id,
+            invoice_status_id,
             permissions,
             role:roles(id, code, name),
-            payment_status:payment_statuses(id, name)
+            payment_status:payment_statuses(id, name),
+            invoice_status:invoice_statuses(id, name)
           )
         `)
         .order('created_at', { ascending: false })
@@ -214,6 +221,7 @@ export const ApprovalRoutesTab = () => {
       role_id: 0,
       name: `Этап ${editingStages.length + 1}`,
       payment_status_id: undefined,
+      invoice_status_id: undefined,
       permissions: {
         can_edit_invoice: false,
         can_add_files: false,
@@ -276,6 +284,7 @@ export const ApprovalRoutesTab = () => {
           role_id: stage.role_id,
           name: stage.name,
           payment_status_id: stage.payment_status_id || null,
+          invoice_status_id: stage.invoice_status_id || null,
           permissions: stage.permissions || {},
           is_active: true
         }
@@ -383,6 +392,7 @@ export const ApprovalRoutesTab = () => {
             editingStages={editingStages}
             roles={roles}
             paymentStatuses={paymentStatuses}
+            invoiceStatuses={invoiceStatuses}
             savingStages={savingStages}
             onAddStage={handleAddStage}
             onRemoveStage={handleRemoveStage}

@@ -90,6 +90,23 @@ export const LettersPage = () => {
     return Array.from(responsibleSet).sort()
   }, [letters, users])
 
+  // Get unique creators
+  const creators = useMemo(() => {
+    const creatorSet = new Set<string>()
+    const collectCreators = (lettersList: Letter[]) => {
+      lettersList.forEach(letter => {
+        if (letter.creator?.full_name) {
+          creatorSet.add(letter.creator.full_name)
+        }
+        if (letter.children) {
+          collectCreators(letter.children)
+        }
+      })
+    }
+    collectCreators(letters)
+    return Array.from(creatorSet).sort()
+  }, [letters])
+
   // Filter letters
   const filteredLetters = useMemo(() => {
     const filterLetter = (letter: Letter): boolean => {
@@ -110,6 +127,14 @@ export const LettersPage = () => {
         const matchesUser = responsibleUserName === filterValues.responsible
         const matchesPerson = responsiblePersonName === filterValues.responsible
         if (!matchesUser && !matchesPerson) {
+          return false
+        }
+      }
+
+      // Filter by creator
+      if (filterValues.creator) {
+        const letterCreator = letter.creator?.full_name
+        if (letterCreator !== filterValues.creator) {
           return false
         }
       }
@@ -184,12 +209,10 @@ export const LettersPage = () => {
   }
 
   const handleResetFilters = () => {
-    console.log('[LettersPage.handleResetFilters] Resetting filters')
     setFilterValues({})
   }
 
   const handleStatusChange = async (letterId: string, newStatusId: number) => {
-    console.log('[LettersPage.handleStatusChange] Changing status:', { letterId, newStatusId })
     try {
       await handleUpdateLetter(letterId, { status_id: newStatusId }, [], [])
     } catch (error) {
@@ -219,9 +242,12 @@ export const LettersPage = () => {
   // Handle form submit
   const handleFormSubmit = async (values: any, files: File[], originalFiles: string[], fileDescriptions: Record<string, string>, existingFileDescriptions: Record<string, string>) => {
     if (editingLetter) {
+      // For editing, values is formData
       await handleUpdateLetter(editingLetter.id, values, files, originalFiles, fileDescriptions, existingFileDescriptions)
     } else {
-      await handleCreateLetter(values, files, fileDescriptions)
+      // For creating, values contains { formData, publicShareToken }
+      const { formData, publicShareToken } = values
+      await handleCreateLetter(formData, files, fileDescriptions, publicShareToken)
     }
   }
 
@@ -257,6 +283,7 @@ export const LettersPage = () => {
           projects={projects}
           letterStatuses={letterStatuses}
           responsiblePersons={responsiblePersons}
+          creators={creators}
           onFilter={handleFilter}
           onReset={handleResetFilters}
         />

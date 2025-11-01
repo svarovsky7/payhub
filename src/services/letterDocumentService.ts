@@ -5,28 +5,76 @@ import { supabase } from '../lib/supabase'
 import type { Letter } from '../lib/supabase'
 
 /**
- * Generate URL for letter view page
+ * Generate URL for letter view page using public share token
  */
-const generateLetterViewUrl = (letterId: string): string => {
-  const baseUrl = window.location.origin
-  return `${baseUrl}/letters?view=${letterId}`
+const generateLetterViewUrl = async (letterId: string, publicToken?: string): Promise<string> => {
+  try {
+    // If token is provided (for new letters), use it directly
+    if (publicToken) {
+      const baseUrl = window.location.origin
+      return `${baseUrl}/letter-share/${publicToken}`
+    }
+
+    // Check if letter exists in database
+    const { data: letterExists } = await supabase
+      .from('letters')
+      .select('id')
+      .eq('id', letterId)
+      .single()
+
+    if (!letterExists) {
+      // Letter not yet saved - return simple URL (will be handled after save)
+      const baseUrl = window.location.origin
+      return `${baseUrl}/letter-share/new?id=${letterId}`
+    }
+
+    // Check if public share already exists
+    const { data: existingShare } = await supabase
+      .from('letter_public_shares')
+      .select('token')
+      .eq('letter_id', letterId)
+      .single()
+
+    let token: string
+    if (existingShare?.token) {
+      token = existingShare.token
+    } else {
+      // Generate new token
+      token = crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+      
+      const { error } = await supabase
+        .from('letter_public_shares')
+        .insert({
+          letter_id: letterId,
+          token,
+          created_at: new Date().toISOString()
+        })
+
+      if (error) throw error
+    }
+
+    const baseUrl = window.location.origin
+    return `${baseUrl}/letter-share/${token}`
+  } catch (error) {
+    console.error('[letterDocumentService.generateLetterViewUrl] Error:', error)
+    // Fallback to simple URL if error
+    const baseUrl = window.location.origin
+    return `${baseUrl}/letter-share/new?id=${letterId}`
+  }
 }
 
 /**
  * Generate QR code as base64 data URL
  */
-const generateQRCode = async (letterId: string): Promise<string> => {
+const generateQRCode = async (letterId: string, publicToken?: string): Promise<string> => {
   try {
     console.log('[letterDocumentService.generateQRCode] Generating QR code for letter:', letterId)
 
-    // Create QR data with only URL (without identifier text)
-    const url = generateLetterViewUrl(letterId)
-
-    // Use only URL in QR code
-    const qrData = url
+    // Create QR data with URL
+    const url = await generateLetterViewUrl(letterId, publicToken)
 
     // Generate QR code as data URL
-    const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
+    const qrCodeDataUrl = await QRCode.toDataURL(url, {
       errorCorrectionLevel: 'H',
       type: 'image/png',
       width: 300,
@@ -55,7 +103,7 @@ const dataUrlToArrayBuffer = (dataUrl: string): ArrayBuffer => {
 }
 
 /**
- * Add QR code image to DOCX template in the upper right corner
+ * Add QR code image to DOCX template in the top right corner
  * This function modifies the document.xml to add an image
  */
 const addQRCodeToDocument = async (
@@ -89,75 +137,66 @@ const addQRCodeToDocument = async (
 
     // Count existing relationships to get new ID
     const relationshipMatches = relsXml.match(/<Relationship /g)
-    const newRelId = `rId${(relationshipMatches?.length || 0) + 1}`
+    const newImageRelId = `rId${(relationshipMatches?.length || 0) + 1}`
 
     // Add image relationship
-    const imageRel = `<Relationship Id="${newRelId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${imageName}"/>`
+    const imageRel = `<Relationship Id="${newImageRelId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${imageName}"/>`
     const updatedRelsXml = relsXml.replace('</Relationships>', `${imageRel}</Relationships>`)
     zip.file('word/_rels/document.xml.rels', updatedRelsXml)
 
-    // Add QR code image at the beginning of document (without text identifier)
-    // Size: 3cm x 3cm (approximately 1134000 EMUs x 1134000 EMUs, 1 cm ≈ 360000 EMUs)
-    const qrCodeXml = `
-      <w:tbl>
-        <w:tblPr>
-          <w:tblW w:w="0" w:type="auto"/>
-          <w:jc w:val="right"/>
-        </w:tblPr>
-        <w:tr>
-          <w:tc>
-            <w:tcPr>
-              <w:tcW w:w="1700" w:type="dxa"/>
-            </w:tcPr>
-            <w:p>
-              <w:pPr>
-                <w:jc w:val="right"/>
-                <w:spacing w:after="0" w:before="0"/>
-              </w:pPr>
-              <w:r>
-                <w:drawing>
-                  <wp:inline distT="0" distB="0" distL="0" distR="0">
-                    <wp:extent cx="1134000" cy="1134000"/>
-                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
-                    <wp:docPr id="1" name="QR Code"/>
-                    <wp:cNvGraphicFramePr>
-                      <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
-                    </wp:cNvGraphicFramePr>
-                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-                      <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                        <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                          <pic:nvPicPr>
-                            <pic:cNvPr id="0" name="QR Code"/>
-                            <pic:cNvPicPr/>
-                          </pic:nvPicPr>
-                          <pic:blipFill>
-                            <a:blip r:embed="${newRelId}"/>
-                            <a:stretch>
-                              <a:fillRect/>
-                            </a:stretch>
-                          </pic:blipFill>
-                          <pic:spPr>
-                            <a:xfrm>
-                              <a:off x="0" y="0"/>
-                              <a:ext cx="1134000" cy="1134000"/>
-                            </a:xfrm>
-                            <a:prstGeom prst="rect">
-                              <a:avLst/>
-                            </a:prstGeom>
-                          </pic:spPr>
-                        </pic:pic>
-                      </a:graphicData>
-                    </a:graphic>
-                  </wp:inline>
-                </w:drawing>
-              </w:r>
-            </w:p>
-          </w:tc>
-        </w:tr>
-      </w:tbl>
-    `
+    // Create QR code paragraph with right alignment and small size
+    const qrCodeXml = `<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <w:pPr>
+    <w:jc w:val="right"/>
+    <w:spacing w:after="0" w:before="0" w:line="0"/>
+    <w:ind w:right="180000" w:left="0"/>
+  </w:pPr>
+  <w:r>
+    <w:drawing>
+      <wp:anchor distT="0" distB="0" distL="0" distR="180000" simplePos="0" relativeHeight="251658240" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1">
+        <wp:simplePos x="0" y="0"/>
+        <wp:positionH relativeFrom="column">
+          <wp:align>right</wp:align>
+        </wp:positionH>
+        <wp:positionV relativeFrom="page">
+          <wp:posOffset>180000</wp:posOffset>
+        </wp:positionV>
+        <wp:extent cx="609600" cy="609600"/>
+        <wp:effectExtent l="0" t="0" r="0" b="0"/>
+        <wp:wrapNone/>
+        <wp:docPr id="1" name="QR Code"/>
+        <wp:cNvGraphicFramePr/>
+        <a:graphic>
+          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+            <pic:pic>
+              <pic:nvPicPr>
+                <pic:cNvPr id="0" name="QR Code"/>
+                <pic:cNvPicPr/>
+              </pic:nvPicPr>
+              <pic:blipFill>
+                <a:blip r:embed="${newImageRelId}"/>
+                <a:stretch>
+                  <a:fillRect/>
+                </a:stretch>
+              </pic:blipFill>
+              <pic:spPr>
+                <a:xfrm>
+                  <a:off x="0" y="0"/>
+                  <a:ext cx="609600" cy="609600"/>
+                </a:xfrm>
+                <a:prstGeom prst="rect">
+                  <a:avLst/>
+                </a:prstGeom>
+              </pic:spPr>
+            </pic:pic>
+          </a:graphicData>
+        </a:graphic>
+      </wp:anchor>
+    </w:drawing>
+  </w:r>
+</w:p>`
 
-    // Insert QR code table after the opening body tag
+    // Insert QR code paragraph at the very beginning of body (after <w:body> tag)
     const updatedDocXml = docXml.replace(
       /<w:body>/,
       `<w:body>${qrCodeXml}`
@@ -176,8 +215,9 @@ const addQRCodeToDocument = async (
 /**
  * Generate a letter document with QR code
  * @param letterIdOrLetter - Letter ID string or Letter object
+ * @param publicToken - Optional public share token for new letters
  */
-export const generateLetterDocument = async (letterIdOrLetter: string | Letter): Promise<Blob> => {
+export const generateLetterDocument = async (letterIdOrLetter: string | Letter, publicToken?: string): Promise<Blob> => {
   try {
     console.log('[letterDocumentService.generateLetterDocument] Generating document for letter:', typeof letterIdOrLetter === 'string' ? letterIdOrLetter : letterIdOrLetter.id)
 
@@ -209,7 +249,7 @@ export const generateLetterDocument = async (letterIdOrLetter: string | Letter):
     const zip = new PizZip(templateArrayBuffer)
 
     // Generate QR code
-    const qrCodeDataUrl = await generateQRCode(letter.id)
+    const qrCodeDataUrl = await generateQRCode(letter.id, publicToken)
 
     // Add QR code to document
     const updatedZip = await addQRCodeToDocument(zip, qrCodeDataUrl, letter.id)
@@ -233,13 +273,15 @@ export const generateLetterDocument = async (letterIdOrLetter: string | Letter):
 
 /**
  * Download letter document with QR code
+ * @param letter - Letter object
+ * @param publicToken - Optional public share token for new letters
  */
-export const downloadLetterDocument = async (letter: Letter): Promise<void> => {
+export const downloadLetterDocument = async (letter: Letter, publicToken?: string): Promise<void> => {
   try {
     console.log('[letterDocumentService.downloadLetterDocument] Downloading document for letter:', letter.id)
 
-    // Generate document - pass the whole letter object
-    const blob = await generateLetterDocument(letter)
+    // Generate document - pass the whole letter object and token
+    const blob = await generateLetterDocument(letter, publicToken)
 
     // Create download link
     const url = window.URL.createObjectURL(blob)

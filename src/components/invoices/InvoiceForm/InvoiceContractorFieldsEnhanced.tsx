@@ -83,7 +83,7 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
   return (
     <>
       <Row gutter={16}>
-        <Col span={12}>
+        <Col span={8}>
           <Form.Item
             name="payer_id"
             label="Плательщик"
@@ -106,7 +106,7 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
             />
           </Form.Item>
         </Col>
-        <Col span={12}>
+        <Col span={8}>
           <Form.Item
             name="supplier_id"
             label="Поставщик"
@@ -129,13 +129,10 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
             />
           </Form.Item>
         </Col>
-      </Row>
-
-      <Row gutter={16}>
-        <Col span={12}>
+        <Col span={8}>
           <Form.Item
             name="responsible_id"
-            label="Ответственный менеджер снабжения"
+            label="Ответственный менеджер"
             rules={[{ required: true, message: 'Выберите менеджера снабжения' }]}
           >
             <Select
@@ -148,9 +145,6 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
               }))}
             />
           </Form.Item>
-        </Col>
-        <Col span={12}>
-          {/* Место для дополнительного поля если понадобится */}
         </Col>
       </Row>
     </>

@@ -13,6 +13,7 @@ export interface LetterFilterValues {
   project_id?: number
   status_id?: number
   responsible?: string
+  creator?: string
   dateRange?: [Dayjs, Dayjs]
   searchText?: string
 }
@@ -22,6 +23,7 @@ interface LetterFiltersProps {
   projects: Project[]
   letterStatuses: LetterStatus[]
   responsiblePersons: string[]
+  creators: string[]
   onFilter: (values: LetterFilterValues) => void
   onReset: () => void
 }
@@ -31,6 +33,7 @@ export const LetterFilters: React.FC<LetterFiltersProps> = ({
   projects,
   letterStatuses,
   responsiblePersons,
+  creators,
   onFilter,
   onReset
 }) => {
@@ -71,8 +74,8 @@ export const LetterFilters: React.FC<LetterFiltersProps> = ({
                 showSearch
                 optionFilterProp="children"
               >
-                {projects.map(project => (
-                  <Option key={project.id} value={project.id}>
+                {projects.map((project, idx) => (
+                  <Option key={`project-${idx}`} value={project.id}>
                     {project.name}
                   </Option>
                 ))}
@@ -105,9 +108,30 @@ export const LetterFilters: React.FC<LetterFiltersProps> = ({
                 showSearch
                 optionFilterProp="children"
               >
-                {responsiblePersons.map(person => (
-                  <Option key={person} value={person}>
+                {responsiblePersons.map((person, idx) => (
+                  <Option key={`responsible-${idx}`} value={person}>
                     {person}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item
+              label="Создатель"
+              name="creator"
+              style={{ marginBottom: 8 }}
+            >
+              <Select
+                placeholder="Выберите создателя"
+                allowClear
+                showSearch
+                optionFilterProp="children"
+              >
+                {creators.map((creator, idx) => (
+                  <Option key={`creator-${idx}`} value={creator}>
+                    {creator}
                   </Option>
                 ))}
               </Select>
@@ -126,8 +150,8 @@ export const LetterFilters: React.FC<LetterFiltersProps> = ({
                 showSearch
                 optionFilterProp="children"
               >
-                {letterStatuses.map(status => (
-                  <Option key={status.id} value={status.id}>
+                {letterStatuses.map((status, idx) => (
+                  <Option key={`status-${idx}`} value={status.id}>
                     {status.name}
                   </Option>
                 ))}
@@ -149,8 +173,8 @@ export const LetterFilters: React.FC<LetterFiltersProps> = ({
                 showSearch
                 optionFilterProp="children"
               >
-                {senders.map(sender => (
-                  <Option key={sender} value={sender}>
+                {senders.map((sender, idx) => (
+                  <Option key={`sender-${idx}`} value={sender}>
                     {sender}
                   </Option>
                 ))}

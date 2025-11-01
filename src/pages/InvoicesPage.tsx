@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState } from 'react'
 import { Table, Button, Space, Switch, Tabs } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, FileOutlined } from '@ant-design/icons'
 import type { ExpandableConfig } from 'antd/es/table/interface'
 import { useSearchParams } from 'react-router-dom'
 import dayjs from 'dayjs'
@@ -19,8 +19,35 @@ import { QuickPaymentDrawer } from '../components/invoices/QuickPaymentDrawer'
 import { PaymentEditModal } from '../components/invoices/PaymentEditModal'
 import { ColumnSettings } from '../components/common/ColumnSettings'
 import InvoiceHistoryModal from '../components/invoices/InvoiceHistoryModal'
+import { ImportInvoicesModal } from '../components/invoices/ImportInvoicesModal'
+import { BulkPaymentsModal } from '../components/invoices/BulkPaymentsModal'
 import type { Invoice } from '../lib/supabase'
 import '../styles/compact-table.css'
+
+type InvoiceTabKey = 'active' | 'pending' | 'in-payment' | 'paid' | 'cancelled';
+
+const TABS: Record<InvoiceTabKey, { label: string; statuses: string[] }> = {
+  active: {
+    label: 'Активные счета',
+    statuses: ['draft', 'not_filled', 'partial'],
+  },
+  pending: {
+    label: 'На согласовании',
+    statuses: ['pending'],
+  },
+  'in-payment': {
+    label: 'В оплате',
+    statuses: ['approved'],
+  },
+  paid: {
+    label: 'Оплаченные',
+    statuses: ['paid'],
+  },
+  cancelled: {
+    label: 'Аннулированные счета',
+    statuses: ['cancelled'],
+  },
+};
 
 export const InvoicesPage = () => {
   const { user } = useAuth()
@@ -28,8 +55,12 @@ export const InvoicesPage = () => {
   const [showArchived, setShowArchived] = useState(false)
   const [historyModalVisible, setHistoryModalVisible] = useState(false)
   const [viewingHistoryInvoice, setViewingHistoryInvoice] = useState<Invoice | null>(null)
-  const [activeTab, setActiveTab] = useState(() => {
-    return (searchParams.get('tab') as 'active' | 'paid') || 'active'
+  const [importModalVisible, setImportModalVisible] = useState(false)
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([])
+  const [bulkPaymentsModalVisible, setBulkPaymentsModalVisible] = useState(false)
+  const [activeTab, setActiveTab] = useState<InvoiceTabKey>(() => {
+    const tabFromUrl = searchParams.get('tab')
+    return (tabFromUrl && Object.keys(TABS).includes(tabFromUrl)) ? (tabFromUrl as InvoiceTabKey) : 'active'
   })
 
   // Sync activeTab to URL
@@ -137,7 +168,8 @@ export const InvoicesPage = () => {
     handleEditPayment,
     handleSavePayment,
     handleDeletePayment,
-    handleExpandRow
+    handleExpandRow,
+    handleBulkPaymentSubmit
   } = usePaymentManagement(invoices)
 
   // Load payment references and summaries when component mounts
@@ -230,20 +262,9 @@ export const InvoicesPage = () => {
 
   // Filter invoices based on payment status
   const getFilteredInvoices = () => {
+    const currentStatuses = TABS[activeTab].statuses;
     return invoices.filter(invoice => {
-      const totals = getTotals(invoice.id)
-      const totalAmount = (invoice.amount_with_vat || 0) + (invoice.delivery_cost || 0)
-      const isFullyPaid = totals.totalPaid >= totalAmount
-      const isNotFilled = invoice.invoice_status?.code === 'not_filled'
-
-      if (activeTab === 'active') {
-        // Include invoices that are not fully paid OR have 'not_filled' status
-        return !isFullyPaid || isNotFilled
-      } else if (activeTab === 'paid') {
-        // Only include invoices that are fully paid AND don't have 'not_filled' status
-        return isFullyPaid && !isNotFilled
-      }
-      return true
+      return invoice.invoice_status?.code && currentStatuses.includes(invoice.invoice_status.code)
     })
   }
 
@@ -282,6 +303,14 @@ export const InvoicesPage = () => {
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <h1 style={{ margin: 0 }}>Счета</h1>
         <Space>
+          {selectedInvoiceIds.length > 0 && (
+            <Button
+              type="dashed"
+              onClick={() => setBulkPaymentsModalVisible(true)}
+            >
+              Создать платежи ({selectedInvoiceIds.length})
+            </Button>
+          )}
           <Switch
             checked={showArchived}
             onChange={setShowArchived}
@@ -294,6 +323,12 @@ export const InvoicesPage = () => {
             defaultColumns={defaultConfig}
           />
           <Button
+            icon={<FileOutlined />}
+            onClick={() => setImportModalVisible(true)}
+          >
+            Импорт Excel
+          </Button>
+          <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleOpenCreateModal}
@@ -305,97 +340,56 @@ export const InvoicesPage = () => {
 
       <Tabs
         activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as 'active' | 'paid')}
-        items={[
-          {
-            key: 'active',
-            label: 'Активные счета',
-            children: (
-              <Table
-                columns={visibleColumns}
-                dataSource={filteredInvoices}
-                rowKey="id"
-                loading={loading}
-                expandable={expandable}
-                rowClassName={(record) => {
-                  const classes = [];
+        onChange={(key) => setActiveTab(key as InvoiceTabKey)}
+        items={Object.entries(TABS).map(([key, { label }]) => ({
+          key,
+          label,
+          children: (
+            <Table
+              columns={visibleColumns}
+              dataSource={filteredInvoices}
+              rowKey="id"
+              loading={loading}
+              expandable={expandable}
+              rowSelection={{
+                selectedRowKeys: selectedInvoiceIds,
+                onChange: (selectedKeys) => setSelectedInvoiceIds(selectedKeys as string[]),
+                checkStrictly: true,
+              }}
+              rowClassName={(record) => {
+                const classes = [];
 
-                  // Подсветка архивных счетов
-                  if (record.is_archived) {
-                    classes.push('archived-invoice-row');
+                // Подсветка архивных счетов
+                if (record.is_archived) {
+                  classes.push('archived-invoice-row');
+                }
+
+                // Подсветка устаревших счетов (более 30 дней)
+                if (record.relevance_date) {
+                  const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
+                  if (daysSinceRelevance > 30) {
+                    classes.push('outdated-invoice-row');
                   }
+                }
 
-                  // Подсветка устаревших счетов (более 30 дней)
-                  if (record.relevance_date) {
-                    const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
-                    if (daysSinceRelevance > 30) {
-                      classes.push('outdated-invoice-row');
-                    }
-                  }
-
-                  return classes.join(' ');
-                }}
-                pagination={{
-                  defaultPageSize: 100,
-                  showSizeChanger: true,
-                  showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
-                  pageSizeOptions: ['50', '100', '200']
-                }}
-                onRow={() => ({
-                  style: { cursor: 'pointer' }
-                })}
-                className="expandable-table-smooth compact-table"
-                tableLayout="auto"
-                style={{ width: '100%' }}
-                scroll={{ x: 'max-content' }}
-              />
-            ),
-          },
-          {
-            key: 'paid',
-            label: 'Оплаченные счета',
-            children: (
-              <Table
-                columns={visibleColumns}
-                dataSource={filteredInvoices}
-                rowKey="id"
-                loading={loading}
-                expandable={expandable}
-                rowClassName={(record) => {
-                  const classes = [];
-
-                  // Подсветка архивных счетов
-                  if (record.is_archived) {
-                    classes.push('archived-invoice-row');
-                  }
-
-                  // Подсветка устаревших счетов (более 30 дней)
-                  if (record.relevance_date) {
-                    const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
-                    if (daysSinceRelevance > 30) {
-                      classes.push('outdated-invoice-row');
-                    }
-                  }
-
-                  return classes.join(' ');
-                }}
-                pagination={{
-                  defaultPageSize: 100,
-                  showSizeChanger: true,
-                  showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
-                  pageSizeOptions: ['50', '100', '200']
-                }}
-                onRow={() => ({
-                  style: { cursor: 'pointer' }
-                })}
-                className="expandable-table-smooth compact-table"
-                tableLayout="auto"
-                style={{ width: '100%' }}
-                scroll={{ x: 'max-content' }}
-              />
-            ),
-          },
-        ]}
+                return classes.join(' ');
+              }}
+              pagination={{
+                defaultPageSize: 100,
+                showSizeChanger: true,
+                showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
+                pageSizeOptions: ['50', '100', '200']
+              }}
+              onRow={() => ({
+                style: { cursor: 'pointer' }
+              })}
+              className="expandable-table-smooth compact-table"
+              tableLayout="auto"
+              style={{ width: '100%' }}
+              scroll={{ x: 'max-content' }}
+            />
+          ),
+        }))}
       />
 
       {/* Invoice Form Modal */}
@@ -497,6 +491,26 @@ export const InvoicesPage = () => {
           setViewingHistoryInvoice(null)
         }}
         invoice={viewingHistoryInvoice}
+      />
+
+      {/* Import Invoices Modal */}
+      <ImportInvoicesModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onSuccess={() => loadInvoiceData()}
+      />
+
+      {/* Bulk Payments Modal */}
+      <BulkPaymentsModal
+        visible={bulkPaymentsModalVisible}
+        onClose={() => setBulkPaymentsModalVisible(false)}
+        invoices={filteredInvoices}
+        selectedInvoiceIds={selectedInvoiceIds}
+        paymentTypes={paymentTypes}
+        onSubmit={async (invoiceIds, values) => {
+          await handleBulkPaymentSubmit(invoiceIds, values)
+          setSelectedInvoiceIds([])
+        }}
       />
 
       {/* Legend */}

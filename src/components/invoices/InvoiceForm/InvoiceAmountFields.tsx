@@ -64,65 +64,145 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
 
   return (
     <>
-      <Row gutter={24}>
-        <Col span={16}>
-          <Row gutter={16}>
-            <Col span={12}>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item
+            name="amount_with_vat"
+            label="Сумма с НДС"
+            rules={[
+              { required: true, message: 'Укажите сумму' },
+              { type: 'number', min: 0, message: 'Сумма должна быть положительной' }
+            ]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              precision={2}
+              decimalSeparator=","
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+              }
+              parser={(value) => {
+                // Заменяем запятую на точку и убираем пробелы
+                const parsed = value?.replace(/\s/g, '').replace(',', '.')
+                return parsed as any
+              }}
+              addonAfter="₽"
+              onChange={handleAmountWithVatChange}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            name="vat_rate"
+            label="Ставка НДС (%)"
+            initialValue={20}
+            rules={[
+              { required: true, message: 'Укажите ставку НДС' }
+            ]}
+          >
+            <Select
+              options={[
+                { label: '0%', value: 0 },
+                { label: '10%', value: 10 },
+                { label: '20%', value: 20 },
+                { label: '22%', value: 22 }
+              ]}
+              onChange={onVatRateChange}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            name="delivery_cost"
+            label="Стоимость доставки"
+            initialValue={0}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              precision={2}
+              decimalSeparator=","
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+              }
+              parser={(value) => {
+                // Заменяем запятую на точку и убираем пробелы
+                const parsed = value?.replace(/\s/g, '').replace(',', '.')
+                return parsed as any
+              }}
+              addonAfter="₽"
+              onChange={handleDeliveryCostChange}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={24}>
+          <div style={{
+            background: '#f8f8f8',
+            padding: '12px',
+            borderRadius: '6px',
+            border: '1px solid #e8e8e8'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text type="secondary" style={{ fontSize: '12px' }}>Без НДС:</Text>
+                <Text strong style={{ fontSize: '13px' }}>
+                  {amountWithoutVat.toLocaleString('ru-RU', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{' '}
+                  ₽
+                </Text>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text type="secondary" style={{ fontSize: '12px' }}>НДС {vatRate}%:</Text>
+                <Text strong style={{ fontSize: '13px' }}>
+                  {vatAmount.toLocaleString('ru-RU', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{' '}
+                  ₽
+                </Text>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text type="secondary" style={{ fontSize: '12px' }}>С НДС:</Text>
+                <Text strong style={{ fontSize: '13px' }}>
+                  {amountWithVat.toLocaleString('ru-RU', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{' '}
+                  ₽
+                </Text>
+              </div>
+
+              {deliveryCost > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>Доставка:</Text>
+                  <Text strong style={{ fontSize: '13px' }}>
+                    {deliveryCost.toLocaleString('ru-RU', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{' '}
+                    ₽
+                  </Text>
+                </div>
+              )}
+            </div>
+
+            <Divider style={{ margin: '8px 0' }} />
+
+            <div style={{ textAlign: 'right' }}>
+              <Text strong style={{ fontSize: '12px' }}>Итого: </Text>
               <Form.Item
-                name="amount_with_vat"
-                label="Сумма с НДС"
-                rules={[
-                  { required: true, message: 'Укажите сумму' },
-                  { type: 'number', min: 0, message: 'Сумма должна быть положительной' }
-                ]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  precision={2}
-                  decimalSeparator=","
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-                  }
-                  parser={(value) => {
-                    // Заменяем запятую на точку и убираем пробелы
-                    const parsed = value?.replace(/\s/g, '').replace(',', '.')
-                    return parsed as any
-                  }}
-                  addonAfter="₽"
-                  onChange={handleAmountWithVatChange}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="vat_rate"
-                label="Ставка НДС (%)"
-                initialValue={20}
-                rules={[
-                  { required: true, message: 'Укажите ставку НДС' }
-                ]}
-              >
-                <Select
-                  options={[
-                    { label: '0%', value: 0 },
-                    { label: '10%', value: 10 },
-                    { label: '20%', value: 20 },
-                    { label: '22%', value: 22 }
-                  ]}
-                  onChange={onVatRateChange}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="delivery_cost"
-                label="Стоимость доставки"
+                name="total_with_vat"
                 initialValue={0}
+                style={{ margin: 0, display: 'inline-block', width: '120px', marginLeft: '8px' }}
               >
                 <InputNumber
-                  style={{ width: '100%' }}
                   min={0}
                   precision={2}
                   decimalSeparator=","
@@ -130,107 +210,21 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
                     `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
                   }
                   parser={(value) => {
-                    // Заменяем запятую на точку и убираем пробелы
                     const parsed = value?.replace(/\s/g, '').replace(',', '.')
                     return parsed as any
                   }}
                   addonAfter="₽"
-                  onChange={handleDeliveryCostChange}
+                  onChange={handleTotalWithVatChange}
+                  bordered={false}
+                  style={{
+                    width: '100%',
+                    textAlign: 'right',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    color: '#1890ff'
+                  }}
                 />
               </Form.Item>
-            </Col>
-          </Row>
-        </Col>
-
-        <Col span={8}>
-          <div style={{
-            background: '#f8f8f8',
-            padding: '12px',
-            borderRadius: '6px',
-            border: '1px solid #e8e8e8'
-          }}>
-            <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text type="secondary" style={{ fontSize: '13px' }}>Сумма без НДС:</Text>
-              <Text strong style={{ fontSize: '14px' }}>
-                {amountWithoutVat.toLocaleString('ru-RU', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{' '}
-                ₽
-              </Text>
-            </div>
-
-            <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text type="secondary" style={{ fontSize: '13px' }}>НДС {vatRate}%:</Text>
-              <Text strong style={{ fontSize: '14px' }}>
-                {vatAmount.toLocaleString('ru-RU', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{' '}
-                ₽
-              </Text>
-            </div>
-
-            <div style={{ marginBottom: deliveryCost > 0 ? '8px' : '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text type="secondary" style={{ fontSize: '13px' }}>Сумма с НДС:</Text>
-              <Text strong style={{ fontSize: '14px' }}>
-                {amountWithVat.toLocaleString('ru-RU', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{' '}
-                ₽
-              </Text>
-            </div>
-
-            {deliveryCost > 0 && (
-              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary" style={{ fontSize: '13px' }}>Доставка:</Text>
-                <Text strong style={{ fontSize: '14px' }}>
-                  {deliveryCost.toLocaleString('ru-RU', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{' '}
-                  ₽
-                </Text>
-              </div>
-            )}
-
-            <Divider style={{ margin: '8px 0' }} />
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <Text strong style={{ fontSize: '13px' }}>
-                Общая сумма с НДС:
-              </Text>
-              <div style={{ textAlign: 'right' }}>
-                <Form.Item
-                  name="total_with_vat"
-                  initialValue={0}
-                  style={{ margin: 0 }}
-                >
-                  <InputNumber
-                    min={0}
-                    precision={2}
-                    decimalSeparator=","
-                    formatter={(value) =>
-                      `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-                    }
-                    parser={(value) => {
-                      const parsed = value?.replace(/\s/g, '').replace(',', '.')
-                      return parsed as any
-                    }}
-                    addonAfter="₽"
-                    onChange={handleTotalWithVatChange}
-                    bordered={false}
-                    style={{
-                      width: '100%',
-                      textAlign: 'right',
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      color: '#1890ff'
-                    }}
-                  />
-                </Form.Item>
-              </div>
             </div>
           </div>
         </Col>

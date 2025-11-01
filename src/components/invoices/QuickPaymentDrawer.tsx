@@ -1,4 +1,4 @@
-import { Drawer, Form, Button, Space, InputNumber, DatePicker, Select, Input, Divider, Typography, Upload, Modal, Image, message } from 'antd'
+import { Drawer, Form, Button, Space, InputNumber, DatePicker, Select, Input, Divider, Typography, Upload, Modal, Image, message, Checkbox } from 'antd'
 import { useState, useEffect } from 'react'
 import { DollarOutlined, CheckOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
@@ -319,6 +319,10 @@ export const QuickPaymentDrawer: React.FC<QuickPaymentDrawerProps> = ({
             rows={2}
             placeholder="Краткое описание платежа"
           />
+        </Form.Item>
+
+        <Form.Item name="requires_payment_order" valuePropName="checked" initialValue={false}>
+          <Checkbox style={{ marginRight: 8 }}>Требуется платёжное поручение</Checkbox>
         </Form.Item>
 
         <Form.Item label="Прикрепить файлы">

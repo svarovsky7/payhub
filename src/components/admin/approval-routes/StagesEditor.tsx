@@ -32,6 +32,7 @@ interface StagesEditorProps {
   editingStages: WorkflowStage[]
   roles: Role[]
   paymentStatuses: any[]
+  invoiceStatuses: any[]
   savingStages: boolean
   onAddStage: () => void
   onRemoveStage: (index: number) => void
@@ -44,6 +45,7 @@ export const StagesEditor = ({
   editingStages,
   roles,
   paymentStatuses,
+  invoiceStatuses,
   savingStages,
   onAddStage,
   onRemoveStage,
@@ -286,6 +288,31 @@ export const StagesEditor = ({
                         </Select.Option>
                       ))}
                     </Select>
+                  </Col>
+
+                  <Col span={8}>
+                    <div style={{ marginBottom: '8px' }}>
+                      <Text strong style={{ fontSize: '14px', color: '#262626' }}>Статус счета после согласования</Text>
+                    </div>
+                    <Select
+                      value={stage.invoice_status_id || undefined}
+                      onChange={(value) => onStageChange(index, 'invoice_status_id', value)}
+                      placeholder={index === editingStages.length - 1 ? "Оплачен/Частично оплачен (опционально)" : "Статус счета (опционально)"}
+                      style={{ width: '100%' }}
+                      size="large"
+                      allowClear
+                    >
+                      {invoiceStatuses.map(status => (
+                        <Select.Option key={status.id} value={status.id}>
+                          {status.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                    {index === editingStages.length - 1 && (
+                      <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '6px' }}>
+                        При полной оплате - оплачен, при частичной - частично оплачен
+                      </Text>
+                    )}
                   </Col>
 
                   <Col span={24}>

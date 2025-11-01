@@ -10,7 +10,8 @@ import {
   updatePayment,
   deletePayment,
   processPaymentFiles,
-  getPaymentTotals
+  getPaymentTotals,
+  createBulkPayments
 } from '../services/paymentOperations'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -223,6 +224,39 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
     })
   }, [loadPayments])
 
+  // Handle bulk payment submit
+  const handleBulkPaymentSubmit = useCallback(async (
+    invoiceIds: string[],
+    values: any
+  ) => {
+    if (!user?.id) return
+
+    try {
+      const result = await createBulkPayments(
+        invoiceIds,
+        values,
+        user.id,
+        paymentStatuses,
+        invoices
+      )
+
+      if (result.successful > 0) {
+        message.success(`Платежи созданы для ${result.successful} счёт(ов)`)
+      }
+
+      if (result.failed > 0) {
+        message.warning(`Ошибка создания платежей для ${result.failed} счёт(ов)`)
+      }
+
+      // Reload all data
+      await loadSummaries(invoices.map(inv => inv.id))
+      setInvoicePayments(prev => ({ ...prev }))
+    } catch (error: any) {
+      console.error('[usePaymentManagement.handleBulkPaymentSubmit] Error:', error)
+      message.error(error.message || 'Ошибка создания платежей')
+    }
+  }, [user, paymentStatuses, invoices, loadSummaries])
+
   return {
     // States
     invoicePayments,
@@ -251,6 +285,7 @@ export const usePaymentManagement = (invoices: Invoice[]) => {
     handleEditPayment,
     handleSavePayment,
     handleDeletePayment,
-    handleExpandRow
+    handleExpandRow,
+    handleBulkPaymentSubmit
   }
 }

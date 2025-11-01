@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { message, App } from 'antd'
 import type { Invoice, Contractor, Project, InvoiceType, InvoiceStatus, UserProfile } from '../lib/supabase'
 import type { UploadFile } from 'antd/es/upload/interface'
@@ -30,7 +30,6 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
   // Invoice states
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(false)
-  const lastEnrichedEmployeesRef = useRef<string[]>([])
 
   // Modal states
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false)
@@ -76,6 +75,7 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
   }, [user, showArchived])
 
   // Enrich invoices with responsible_user data
+  /*
   useEffect(() => {
     if (invoices.length > 0 && employees.length > 0) {
       // Check if employees list actually changed
@@ -93,6 +93,7 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
       }
     }
   }, [employees, invoices])
+  */
 
   // Initialize data on mount
   useEffect(() => {

@@ -4133,6 +4133,150 @@
     ],
     "sql": "-- Contract status reference table\nCREATE TABLE IF NOT EXISTS public.contract_statuses (\n    id integer(32) NOT NULL DEFAULT nextval('contract_statuses_id_seq'::regclass),\n    code character varying(50) NOT NULL,\n    name character varying(255) NOT NULL,\n    color character varying(7),\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    sort_order integer(32) DEFAULT 100,\n    CONSTRAINT contract_statuses_code_key UNIQUE (code),\n    CONSTRAINT contract_statuses_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contract_statuses IS 'Contract status reference table';\nCOMMENT ON COLUMN public.contract_statuses.id IS 'Primary key';\nCOMMENT ON COLUMN public.contract_statuses.code IS 'Unique status code';\nCOMMENT ON COLUMN public.contract_statuses.name IS 'Status name';\nCOMMENT ON COLUMN public.contract_statuses.color IS 'Display color for UI';\nCOMMENT ON COLUMN public.contract_statuses.description IS 'Status description';\nCOMMENT ON COLUMN public.contract_statuses.created_at IS 'Timestamp when the status was created';\nCOMMENT ON COLUMN public.contract_statuses.updated_at IS 'Timestamp when the status was last updated';\nCOMMENT ON COLUMN public.contract_statuses.sort_order IS 'Sort order for display';"
   },
+  "public.contractor_alternative_names": {
+    "schema": "public",
+    "name": "contractor_alternative_names",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": "nextval('contractor_alternative_names_id_seq'::regclass)",
+        "comment": null
+      },
+      {
+        "name": "contractor_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "alternative_name",
+        "data_type": "character varying",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "is_primary",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "false",
+        "comment": null
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_33989_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_33989_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_33989_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_33989_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractor_alternative_names_contractor_id_alternative_name_key",
+        "type": "UNIQUE",
+        "column": "alternative_name",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractor_alternative_names_contractor_id_alternative_name_key",
+        "type": "UNIQUE",
+        "column": "contractor_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractor_alternative_names_contractor_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "contractor_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "contractor_alternative_names_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.contractor_alternative_names (\n    id bigint(64) NOT NULL DEFAULT nextval('contractor_alternative_names_id_seq'::regclass),\n    contractor_id integer(32) NOT NULL,\n    alternative_name character varying NOT NULL,\n    is_primary boolean NOT NULL DEFAULT false,\n    sort_order integer(32),\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractor_alternative_names_contractor_id_alternative_name_key UNIQUE (alternative_name),\n    CONSTRAINT contractor_alternative_names_contractor_id_alternative_name_key UNIQUE (contractor_id),\n    CONSTRAINT contractor_alternative_names_contractor_id_fkey FOREIGN KEY (contractor_id) REFERENCES None.None(None),\n    CONSTRAINT contractor_alternative_names_pkey PRIMARY KEY (id)\n);"
+  },
   "public.contractors": {
     "schema": "public",
     "name": "contractors",
@@ -4197,6 +4341,16 @@
         "is_nullable": "YES",
         "default": "now()",
         "comment": "Timestamp when the contractor was last updated"
+      },
+      {
+        "name": "primary_name_id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
       }
     ],
     "constraints": [
@@ -4247,9 +4401,17 @@
         "foreign_table_schema": null,
         "foreign_table": null,
         "foreign_column": null
+      },
+      {
+        "name": "contractors_primary_name_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "primary_name_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
       }
     ],
-    "sql": "-- Registry of contractors linked to invoices and projects\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    inn character varying(12) NOT NULL,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects';\nCOMMENT ON COLUMN public.contractors.id IS 'Primary key';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN)';\nCOMMENT ON COLUMN public.contractors.created_by IS 'User ID who created the contractor record';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor was created';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor was last updated';"
+    "sql": "-- Registry of contractors linked to invoices and projects\nCREATE TABLE IF NOT EXISTS public.contractors (\n    id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    inn character varying(12) NOT NULL,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    primary_name_id bigint(64),\n    CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT contractors_inn_key UNIQUE (inn),\n    CONSTRAINT contractors_pkey PRIMARY KEY (id),\n    CONSTRAINT contractors_primary_name_id_fkey FOREIGN KEY (primary_name_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects';\nCOMMENT ON COLUMN public.contractors.id IS 'Primary key';\nCOMMENT ON COLUMN public.contractors.name IS 'Official contractor name';\nCOMMENT ON COLUMN public.contractors.inn IS 'Russian tax identifier (INN)';\nCOMMENT ON COLUMN public.contractors.created_by IS 'User ID who created the contractor record';\nCOMMENT ON COLUMN public.contractors.created_at IS 'Timestamp when the contractor was created';\nCOMMENT ON COLUMN public.contractors.updated_at IS 'Timestamp when the contractor was last updated';"
   },
   "public.contracts": {
     "schema": "public",
@@ -5513,6 +5675,16 @@
         "is_nullable": "NO",
         "default": "false",
         "comment": "Whether the invoice is archived"
+      },
+      {
+        "name": "recipient",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Получатель счета"
       }
     ],
     "constraints": [
@@ -5661,7 +5833,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Outbound invoices issued to contractors\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date date NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    contract_id uuid,\n    responsible_id uuid,\n    is_archived boolean NOT NULL DEFAULT false,\n    CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued to contractors';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key (UUID)';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created the invoice';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human-readable invoice number';\nCOMMENT ON COLUMN public.invoices.description IS 'Invoice description';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Payment due date (deprecated)';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice was last updated';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Invoice issue date';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project this invoice belongs to';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Total amount including VAT';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate percentage';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT amount (calculated)';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Amount excluding VAT (calculated)';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Type of days: working or calendar';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Preliminary delivery date';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Invoice status';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Delivery cost';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Invoice relevance/validity date';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Material request this invoice is linked to';\nCOMMENT ON COLUMN public.invoices.contract_id IS 'Contract this invoice is linked to';\nCOMMENT ON COLUMN public.invoices.responsible_id IS 'Responsible procurement manager (user_profiles UUID)';\nCOMMENT ON COLUMN public.invoices.is_archived IS 'Whether the invoice is archived';"
+    "sql": "-- Outbound invoices issued to contractors\nCREATE TABLE IF NOT EXISTS public.invoices (\n    id uuid NOT NULL DEFAULT uuid_generate_v4(),\n    user_id uuid NOT NULL,\n    invoice_number text NOT NULL,\n    description text,\n    due_date date,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    invoice_date date NOT NULL DEFAULT CURRENT_DATE,\n    payer_id integer(32),\n    supplier_id integer(32),\n    project_id integer(32),\n    invoice_type_id integer(32),\n    amount_with_vat numeric(15,2),\n    vat_rate numeric(5,2) DEFAULT 20,\n    vat_amount numeric(15,2),\n    amount_without_vat numeric(15,2),\n    delivery_days integer(32),\n    delivery_days_type character varying(20) DEFAULT 'working'::character varying,\n    preliminary_delivery_date date,\n    status_id integer(32) NOT NULL,\n    delivery_cost numeric(12,2) DEFAULT 0,\n    relevance_date date NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    material_request_id uuid,\n    contract_id uuid,\n    responsible_id uuid,\n    is_archived boolean NOT NULL DEFAULT false,\n    recipient text,\n    CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_material_request_id_fkey FOREIGN KEY (material_request_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_payer_id_fkey FOREIGN KEY (payer_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_pkey PRIMARY KEY (id),\n    CONSTRAINT invoices_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES None.None(None),\n    CONSTRAINT invoices_user_id_fkey FOREIGN KEY (user_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.invoices IS 'Outbound invoices issued to contractors';\nCOMMENT ON COLUMN public.invoices.id IS 'Primary key (UUID)';\nCOMMENT ON COLUMN public.invoices.user_id IS 'Supabase auth user who created the invoice';\nCOMMENT ON COLUMN public.invoices.invoice_number IS 'Human-readable invoice number';\nCOMMENT ON COLUMN public.invoices.description IS 'Invoice description';\nCOMMENT ON COLUMN public.invoices.due_date IS 'Payment due date (deprecated)';\nCOMMENT ON COLUMN public.invoices.created_at IS 'Timestamp when the invoice was created';\nCOMMENT ON COLUMN public.invoices.updated_at IS 'Timestamp when the invoice was last updated';\nCOMMENT ON COLUMN public.invoices.invoice_date IS 'Invoice issue date';\nCOMMENT ON COLUMN public.invoices.payer_id IS 'Contractor acting as payer';\nCOMMENT ON COLUMN public.invoices.supplier_id IS 'Contractor acting as supplier';\nCOMMENT ON COLUMN public.invoices.project_id IS 'Project this invoice belongs to';\nCOMMENT ON COLUMN public.invoices.invoice_type_id IS 'Invoice type';\nCOMMENT ON COLUMN public.invoices.amount_with_vat IS 'Total amount including VAT';\nCOMMENT ON COLUMN public.invoices.vat_rate IS 'VAT rate percentage';\nCOMMENT ON COLUMN public.invoices.vat_amount IS 'VAT amount (calculated)';\nCOMMENT ON COLUMN public.invoices.amount_without_vat IS 'Amount excluding VAT (calculated)';\nCOMMENT ON COLUMN public.invoices.delivery_days IS 'Number of days for delivery';\nCOMMENT ON COLUMN public.invoices.delivery_days_type IS 'Type of days: working or calendar';\nCOMMENT ON COLUMN public.invoices.preliminary_delivery_date IS 'Preliminary delivery date';\nCOMMENT ON COLUMN public.invoices.status_id IS 'Invoice status';\nCOMMENT ON COLUMN public.invoices.delivery_cost IS 'Delivery cost';\nCOMMENT ON COLUMN public.invoices.relevance_date IS 'Invoice relevance/validity date';\nCOMMENT ON COLUMN public.invoices.material_request_id IS 'Material request this invoice is linked to';\nCOMMENT ON COLUMN public.invoices.contract_id IS 'Contract this invoice is linked to';\nCOMMENT ON COLUMN public.invoices.responsible_id IS 'Responsible procurement manager (user_profiles UUID)';\nCOMMENT ON COLUMN public.invoices.is_archived IS 'Whether the invoice is archived';\nCOMMENT ON COLUMN public.invoices.recipient IS 'Получатель счета';"
   },
   "public.letter_attachments": {
     "schema": "public",
@@ -5898,6 +6070,130 @@
       }
     ],
     "sql": "-- Связи между письмами (родительское письмо и его ответы/связанные письма)\nCREATE TABLE IF NOT EXISTS public.letter_links (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    parent_id uuid NOT NULL,\n    child_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT letter_links_child_id_fkey FOREIGN KEY (child_id) REFERENCES None.None(None),\n    CONSTRAINT letter_links_parent_id_child_id_key UNIQUE (child_id),\n    CONSTRAINT letter_links_parent_id_child_id_key UNIQUE (parent_id),\n    CONSTRAINT letter_links_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES None.None(None),\n    CONSTRAINT letter_links_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.letter_links IS 'Связи между письмами (родительское письмо и его ответы/связанные письма)';"
+  },
+  "public.letter_public_shares": {
+    "schema": "public",
+    "name": "letter_public_shares",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "letter_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "token",
+        "data_type": "character varying",
+        "max_length": 16,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "timezone('utc'::text, now())",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "timezone('utc'::text, now())",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_34450_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_34450_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_34450_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_34450_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_34450_5_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_public_shares_letter_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "letter_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_public_shares_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "letter_public_shares_token_key",
+        "type": "UNIQUE",
+        "column": "token",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.letter_public_shares (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    letter_id uuid NOT NULL,\n    token character varying(16) NOT NULL,\n    created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),\n    updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),\n    CONSTRAINT letter_public_shares_letter_id_fkey FOREIGN KEY (letter_id) REFERENCES None.None(None),\n    CONSTRAINT letter_public_shares_pkey PRIMARY KEY (id),\n    CONSTRAINT letter_public_shares_token_key UNIQUE (token)\n);"
   },
   "public.letter_statuses": {
     "schema": "public",
@@ -7541,6 +7837,36 @@
         "is_nullable": "NO",
         "default": "false",
         "comment": "Whether the payment is archived"
+      },
+      {
+        "name": "paid_date",
+        "data_type": "date",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Actual payment date when accountant completed the payment"
+      },
+      {
+        "name": "accountant_notes",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": "Notes added by accountant at payment completion"
+      },
+      {
+        "name": "requires_payment_order",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": "Whether payment order document is required for this payment"
       }
     ],
     "constraints": [
@@ -7649,7 +7975,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Payment records for invoices\nCREATE TABLE IF NOT EXISTS public.payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),\n    payment_date date NOT NULL DEFAULT CURRENT_DATE,\n    amount numeric(15,2) NOT NULL,\n    description text,\n    payment_type_id integer(32),\n    status_id integer(32) DEFAULT 1,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    is_archived boolean NOT NULL DEFAULT false,\n    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),\n    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),\n    CONSTRAINT payments_pkey PRIMARY KEY (id),\n    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payments IS 'Payment records for invoices';\nCOMMENT ON COLUMN public.payments.id IS 'Primary key (UUID)';\nCOMMENT ON COLUMN public.payments.invoice_id IS 'Primary invoice this payment is for';\nCOMMENT ON COLUMN public.payments.payment_number IS 'Sequential payment number';\nCOMMENT ON COLUMN public.payments.payment_date IS 'Payment date';\nCOMMENT ON COLUMN public.payments.amount IS 'Total payment amount';\nCOMMENT ON COLUMN public.payments.description IS 'Payment description or notes';\nCOMMENT ON COLUMN public.payments.payment_type_id IS 'Payment type';\nCOMMENT ON COLUMN public.payments.status_id IS 'Payment status';\nCOMMENT ON COLUMN public.payments.created_by IS 'User ID who created the payment';\nCOMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment was created';\nCOMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment was last updated';\nCOMMENT ON COLUMN public.payments.is_archived IS 'Whether the payment is archived';"
+    "sql": "-- Payment records for invoices\nCREATE TABLE IF NOT EXISTS public.payments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    invoice_id uuid NOT NULL,\n    payment_number integer(32) NOT NULL DEFAULT nextval('payment_number_seq'::regclass),\n    payment_date date NOT NULL DEFAULT CURRENT_DATE,\n    amount numeric(15,2) NOT NULL,\n    description text,\n    payment_type_id integer(32),\n    status_id integer(32) DEFAULT 1,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    is_archived boolean NOT NULL DEFAULT false,\n    paid_date date,\n    accountant_notes text,\n    requires_payment_order boolean DEFAULT false,\n    CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),\n    CONSTRAINT payments_payment_number_key UNIQUE (payment_number),\n    CONSTRAINT payments_payment_type_id_fkey FOREIGN KEY (payment_type_id) REFERENCES None.None(None),\n    CONSTRAINT payments_pkey PRIMARY KEY (id),\n    CONSTRAINT payments_status_id_fkey FOREIGN KEY (status_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.payments IS 'Payment records for invoices';\nCOMMENT ON COLUMN public.payments.id IS 'Primary key (UUID)';\nCOMMENT ON COLUMN public.payments.invoice_id IS 'Primary invoice this payment is for';\nCOMMENT ON COLUMN public.payments.payment_number IS 'Sequential payment number';\nCOMMENT ON COLUMN public.payments.payment_date IS 'Payment date';\nCOMMENT ON COLUMN public.payments.amount IS 'Total payment amount';\nCOMMENT ON COLUMN public.payments.description IS 'Payment description or notes';\nCOMMENT ON COLUMN public.payments.payment_type_id IS 'Payment type';\nCOMMENT ON COLUMN public.payments.status_id IS 'Payment status';\nCOMMENT ON COLUMN public.payments.created_by IS 'User ID who created the payment';\nCOMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment was created';\nCOMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment was last updated';\nCOMMENT ON COLUMN public.payments.is_archived IS 'Whether the payment is archived';\nCOMMENT ON COLUMN public.payments.paid_date IS 'Actual payment date when accountant completed the payment';\nCOMMENT ON COLUMN public.payments.accountant_notes IS 'Notes added by accountant at payment completion';\nCOMMENT ON COLUMN public.payments.requires_payment_order IS 'Whether payment order document is required for this payment';"
   },
   "public.positions": {
     "schema": "public",

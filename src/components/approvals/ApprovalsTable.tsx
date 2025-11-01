@@ -28,6 +28,8 @@ interface ApprovalsTableProps {
   onViewMaterialRequest: (approval: PaymentApproval) => void
   onViewAllFiles: (approval: PaymentApproval) => void
   getCurrentStagePermissions: (approval: PaymentApproval) => any
+  userRole?: number | null
+  onPaymentCompletion?: (approval: PaymentApproval) => void
 }
 
 export const ApprovalsTable = ({
@@ -43,7 +45,9 @@ export const ApprovalsTable = ({
   onEditAmount,
   onViewMaterialRequest,
   onViewAllFiles,
-  getCurrentStagePermissions
+  getCurrentStagePermissions,
+  userRole,
+  onPaymentCompletion
 }: ApprovalsTableProps) => {
   console.log('[ApprovalsTable] Approvals data:', approvals)
   if (approvals.length > 0) {
@@ -199,27 +203,42 @@ export const ApprovalsTable = ({
       width: 250,
       render: (_, record) => {
         const permissions = getCurrentStagePermissions(record)
+        const isAccountant = userRole === 3
 
         return (
           <Space size={4}>
-            <Tooltip title="Согласовать">
-              <Button
-                type="primary"
-                size="small"
-                icon={<CheckOutlined />}
-                onClick={() => onApprove(record)}
-                style={{ padding: '0 6px' }}
-              />
-            </Tooltip>
-            <Tooltip title="Отклонить">
-              <Button
-                size="small"
-                danger
-                icon={<CloseOutlined />}
-                onClick={() => onReject(record)}
-                style={{ padding: '0 6px' }}
-              />
-            </Tooltip>
+            {isAccountant ? (
+              <Tooltip title="Отметить как оплачено">
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<CheckOutlined />}
+                  onClick={() => onPaymentCompletion?.(record)}
+                  style={{ padding: '0 6px', background: '#52c41a' }}
+                />
+              </Tooltip>
+            ) : (
+              <>
+                <Tooltip title="Согласовать">
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<CheckOutlined />}
+                    onClick={() => onApprove(record)}
+                    style={{ padding: '0 6px' }}
+                  />
+                </Tooltip>
+                <Tooltip title="Отклонить">
+                  <Button
+                    size="small"
+                    danger
+                    icon={<CloseOutlined />}
+                    onClick={() => onReject(record)}
+                    style={{ padding: '0 6px' }}
+                  />
+                </Tooltip>
+              </>
+            )}
             {permissions.can_edit_invoice && (
               <Tooltip title="Редактировать счёт">
                 <Button

@@ -6,7 +6,7 @@
 }
 
 html {
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
 }
 
@@ -23,6 +23,7 @@ body {
 #root {
   min-height: 100vh;
   overflow-x: hidden;
+  max-width: 100%;
 }
 
 code {
@@ -66,4 +67,25 @@ code {
     word-wrap: break-word !important;
     padding: 8px 12px !important;
     line-height: 1.4 !important;
+}
+
+/* Fix button shifting on click - lock all styles for text buttons */
+button[type="text"] {
+  border: 0 !important;
+  padding: 0 !important;
+  outline: none !important;
+}
+
+button[type="text"]:active,
+button[type="text"]:focus {
+  border: 0 !important;
+  padding: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+button[type="text"]::-moz-focus-inner {
+  border: 0 !important;
+  padding: 0 !important;
 }

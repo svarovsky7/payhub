@@ -1,6 +1,6 @@
 import { Modal, Form, Button, Space, Tooltip, message } from 'antd'
 import { DownloadOutlined } from '@ant-design/icons'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Letter, LetterStatus, Project, UserProfile, Contractor } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { generateRegNumber } from '../../services/letterOperations'
@@ -43,6 +43,8 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
   const [downloadingDocument, setDownloadingDocument] = useState(false)
   const [, setFormChanged] = useState(0)
   const [addContractorModalVisible, setAddContractorModalVisible] = useState(false)
+  const [qrLink, setQrLink] = useState<string | null>(null)
+  const [publicShareToken, setPublicShareToken] = useState<string | null>(null)
 
   // Use custom hooks for form data management
   const {
@@ -73,6 +75,50 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
     userId: user?.id,
     users
   })
+
+  // Load or generate public share token when modal opens
+  useEffect(() => {
+    if (visible) {
+      if (editingLetter?.id) {
+        // For existing letter - load token from DB
+        loadQRLink(editingLetter.id)
+      } else {
+        // For new letter - generate token locally
+        generateNewPublicShareToken()
+      }
+    } else {
+      setQrLink(null)
+      setPublicShareToken(null)
+    }
+  }, [visible, editingLetter])
+
+  const generateNewPublicShareToken = () => {
+    const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+    setPublicShareToken(token)
+    const baseUrl = window.location.origin
+    setQrLink(`${baseUrl}/letter-share/${token}`)
+  }
+
+  const loadQRLink = async (letterId: string) => {
+    try {
+      // Just load the existing token from DB
+      const { supabase } = await import('../../lib/supabase')
+      const { data } = await supabase
+        .from('letter_public_shares')
+        .select('token')
+        .eq('letter_id', letterId)
+        .single()
+
+      if (data?.token) {
+        const baseUrl = window.location.origin
+        const link = `${baseUrl}/letter-share/${data.token}`
+        setQrLink(link)
+        setPublicShareToken(data.token)
+      }
+    } catch (error) {
+      console.error('[LetterFormModal.loadQRLink] Error:', error)
+    }
+  }
 
   // Use popular contractors hook
   const { topSenders, topRecipients } = usePopularContractors(
@@ -177,7 +223,12 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
         }
       })
 
-      await onSubmit(formData, newFiles, originalFiles, fileDescriptionsByName, existingFileDescriptions)
+      // Pass public share token separately via context, don't add to formData
+      const contextData = {
+        formData,
+        publicShareToken: !editingLetter ? publicShareToken : undefined
+      }
+      await onSubmit(contextData, newFiles, originalFiles, fileDescriptionsByName, existingFileDescriptions)
 
       form.resetFields()
       setFileList([])
@@ -197,6 +248,18 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
     setFileDescriptions({})
     setExistingFileDescriptions({})
     onCancel()
+  }
+
+  const handleContractorCreated = async (newContractor: Contractor) => {
+    console.log('[LetterFormModal.handleContractorCreated] New contractor:', newContractor)
+    await loadContractors()
+    setRecipientType('contractor')
+    form.setFieldsValue({
+      recipient_type: 'contractor',
+      recipient_contractor_id: newContractor.id,
+      recipient: null
+    })
+    setAddContractorModalVisible(false)
   }
 
   const canDownloadDocument = (): boolean => {
@@ -255,7 +318,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
-        await downloadLetterDocument(tempLetter)
+        await downloadLetterDocument(tempLetter, publicShareToken || undefined)
       }
       message.success('Документ успешно сгенерирован и загружен')
     } catch (error: unknown) {
@@ -272,18 +335,6 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
     } finally {
       setDownloadingDocument(false)
     }
-  }
-
-  const handleContractorCreated = async (newContractor: Contractor) => {
-    console.log('[LetterFormModal.handleContractorCreated] New contractor:', newContractor)
-    await loadContractors()
-    setRecipientType('contractor')
-    form.setFieldsValue({
-      recipient_type: 'contractor',
-      recipient_contractor_id: newContractor.id,
-      recipient: null
-    })
-    setAddContractorModalVisible(false)
   }
 
   const showDownloadButton = direction === 'outgoing'
@@ -313,6 +364,17 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
                 Скачать DOCX
               </Button>
             </Tooltip>
+          )}
+          {qrLink && (
+            <Button
+              type="link"
+              onClick={() => {
+                navigator.clipboard.writeText(qrLink)
+                message.success('Ссылка скопирована')
+              }}
+            >
+              Копировать ссылку
+            </Button>
           )}
         </Space>
       }
@@ -361,6 +423,9 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
           letterStatuses={letterStatuses}
           users={users}
           direction={direction}
+          selectedProjectId={selectedProjectId}
+          letters={letters}
+          form={form}
         />
 
         <Form.Item label="Файлы">

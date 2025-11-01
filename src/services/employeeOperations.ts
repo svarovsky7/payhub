@@ -334,3 +334,143 @@ export const toggleEmployeeStatus = async (id: number, is_active: boolean) => {
     throw error
   }
 }
+
+// Contractors CRUD
+export const loadContractorsWithNames = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('contractors')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    // Загружаем альтернативные названия отдельно с батчингом
+    if (data && data.length > 0) {
+      const contractorIds = data.map(c => c.id)
+      const batchSize = 100
+      const namesMap = new Map<number, any[]>()
+
+      // Загружаем названия батчами по 100
+      for (let i = 0; i < contractorIds.length; i += batchSize) {
+        const batch = contractorIds.slice(i, i + batchSize)
+        const { data: names, error: namesError } = await supabase
+          .from('contractor_alternative_names')
+          .select('*')
+          .in('contractor_id', batch)
+
+        if (!namesError && names) {
+          names.forEach(name => {
+            if (!namesMap.has(name.contractor_id)) {
+              namesMap.set(name.contractor_id, [])
+            }
+            namesMap.get(name.contractor_id)!.push(name)
+          })
+        }
+      }
+
+      // Добавляем названия в контрагентов
+      data.forEach(contractor => {
+        contractor.alternative_names = namesMap.get(contractor.id) || []
+      })
+    }
+
+    return data || []
+  } catch (error) {
+    console.error('[EmployeeOperations.loadContractorsWithNames] Error:', error)
+    return []
+  }
+}
+
+export const addContractorAlternativeName = async (
+  contractorId: number,
+  alternativeName: string,
+  isPrimary = false
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('contractor_alternative_names')
+      .insert({
+        contractor_id: contractorId,
+        alternative_name: alternativeName,
+        is_primary: isPrimary,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    message.success('Альтернативное название добавлено')
+    return data
+  } catch (error) {
+    console.error('[EmployeeOperations.addContractorAlternativeName] Error:', error)
+    message.error('Ошибка добавления названия')
+    throw error
+  }
+}
+
+export const updateContractorAlternativeName = async (
+  nameId: number,
+  alternativeName: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('contractor_alternative_names')
+      .update({ alternative_name: alternativeName })
+      .eq('id', nameId)
+      .select()
+      .single()
+
+    if (error) throw error
+    message.success('Название обновлено')
+    return data
+  } catch (error) {
+    console.error('[EmployeeOperations.updateContractorAlternativeName] Error:', error)
+    message.error('Ошибка обновления названия')
+    throw error
+  }
+}
+
+export const deleteContractorAlternativeName = async (nameId: number) => {
+  try {
+    const { error } = await supabase
+      .from('contractor_alternative_names')
+      .delete()
+      .eq('id', nameId)
+
+    if (error) throw error
+    message.success('Название удалено')
+  } catch (error) {
+    console.error('[EmployeeOperations.deleteContractorAlternativeName] Error:', error)
+    message.error('Ошибка удаления названия')
+    throw error
+  }
+}
+
+export const setPrimaryContractorName = async (
+  contractorId: number,
+  nameId: number
+) => {
+  try {
+    // First, unset all primary names for this contractor
+    await supabase
+      .from('contractor_alternative_names')
+      .update({ is_primary: false })
+      .eq('contractor_id', contractorId)
+
+    // Then set the new primary name
+    const { data, error } = await supabase
+      .from('contractor_alternative_names')
+      .update({ is_primary: true })
+      .eq('id', nameId)
+      .select()
+      .single()
+
+    if (error) throw error
+    message.success('Основное название установлено')
+    return data
+  } catch (error) {
+    console.error('[EmployeeOperations.setPrimaryContractorName] Error:', error)
+    message.error('Ошибка установки основного названия')
+    throw error
+  }
+}

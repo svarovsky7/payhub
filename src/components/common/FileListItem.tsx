@@ -119,6 +119,12 @@ export const ExistingFileListItem: React.FC<ExistingFileListItemProps> = ({
   onDescriptionChange
 }) => {
 
+  const handleQuickSelect = (text: string) => {
+    if (onDescriptionChange) {
+      onDescriptionChange(file.id, text)
+    }
+  }
+
   return (
     <List.Item
       actions={[
@@ -159,7 +165,7 @@ export const ExistingFileListItem: React.FC<ExistingFileListItemProps> = ({
         )
       ].filter(Boolean)}
     >
-      <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', width: '100%', alignItems: 'flex-start', gap: '12px' }}>
         <span style={{ fontSize: 18 }}>{getFileIcon(file.original_name)}</span>
         <div style={{ flex: 1 }}>
           <div>{file.original_name}</div>
@@ -168,18 +174,32 @@ export const ExistingFileListItem: React.FC<ExistingFileListItemProps> = ({
             {dayjs(file.created_at).format('DD.MM.YYYY HH:mm')}
           </Text>
         </div>
-        <Input
-          size="small"
-          placeholder="Описание файла"
-          style={{ width: 300, textAlign: 'right' }}
-          value={file.description || ''}
-          onChange={(e) => {
-            if (onDescriptionChange) {
-              onDescriptionChange(file.id, e.target.value)
-            }
-          }}
-          disabled={disabled}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+          <Input
+            size="small"
+            placeholder="Описание файла"
+            style={{ width: 300 }}
+            value={file.description || ''}
+            onChange={(e) => {
+              if (onDescriptionChange) {
+                onDescriptionChange(file.id, e.target.value)
+              }
+            }}
+            disabled={disabled}
+          />
+          <Space size="small">
+            {QUICK_DESCRIPTIONS.map((text) => (
+              <Tag
+                key={text}
+                color={QUICK_DESCRIPTION_COLORS[text]}
+                onClick={() => handleQuickSelect(text)}
+                style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1 }}
+              >
+                {text}
+              </Tag>
+            ))}
+          </Space>
+        </div>
       </div>
     </List.Item>
   )

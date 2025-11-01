@@ -2,10 +2,10 @@ import React, { useState } from 'react'
 import { Modal, Button, Upload, message, Alert, Space } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import { supabase } from '../../lib/supabase'
-import { parseCSVContent, type ParsedContractor } from './ImportContractorsUtils'
+import { parseXLSXContent, type ParsedContractor } from './ImportContractorsUtils'
 import { ImportContractorsPreview } from './ImportContractorsPreview'
 import { ImportContractorsResult, type ImportResult } from './ImportContractorsResult'
-import { isErrorWithCode } from '../../types/common'
+import { addContractorAlternativeName } from '../../services/employeeOperations'
 
 interface ImportContractorsModalProps {
   visible: boolean
@@ -22,6 +22,43 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
   const [importing, setImporting] = useState(false)
   const [importResults, setImportResults] = useState<ImportResult[]>([])
   const [step, setStep] = useState<'upload' | 'preview' | 'result'>('upload')
+
+  // Проверка существующих ИНН в БД (батчинг по 100)
+  const checkExistingINNs = async (contractors: ParsedContractor[]): Promise<ParsedContractor[]> => {
+    const validContractors = contractors.filter(c => c.valid)
+    if (validContractors.length === 0) return contractors
+
+    try {
+      const inns = validContractors.map(c => c.inn)
+      const existingInns = new Set<string>()
+      const batchSize = 100
+
+      // Проверяем ИНН батчами по 100
+      for (let i = 0; i < inns.length; i += batchSize) {
+        const batch = inns.slice(i, i + batchSize)
+        const { data: existing, error } = await supabase
+          .from('contractors')
+          .select('inn')
+          .in('inn', batch)
+
+        if (error) {
+          console.error('[ImportContractorsModal.checkExistingINNs] Batch error:', error)
+          continue
+        }
+
+        existing?.forEach(e => existingInns.add(e.inn))
+      }
+
+      // Теперь не отмечаем как невалидные, просто сохраняем информацию
+      return contractors.map(c => ({
+        ...c,
+        exists: c.valid && existingInns.has(c.inn)
+      })) as any
+    } catch (error) {
+      console.error('[ImportContractorsModal.checkExistingINNs] Error:', error)
+      return contractors
+    }
+  }
 
   // Обработка загруженного файла
   const handleFileUpload = (file: any) => {
@@ -74,31 +111,37 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
 
       const reader = new FileReader()
 
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           console.log('[ImportContractorsModal.handleFileUpload] FileReader.onload triggered')
-          const content = e.target?.result as string
-          console.log('[ImportContractorsModal.handleFileUpload] Content length:', content?.length)
-          console.log('[ImportContractorsModal.handleFileUpload] First 200 chars:', content?.substring(0, 200))
+          const arrayBuffer = e.target?.result as ArrayBuffer
+          console.log('[ImportContractorsModal.handleFileUpload] ArrayBuffer length:', arrayBuffer?.byteLength)
 
           // Убираем индикатор загрузки
           hideLoading()
 
-          if (!content || content.length === 0) {
+          if (!arrayBuffer || arrayBuffer.byteLength === 0) {
             console.error('[ImportContractorsModal.handleFileUpload] File content is empty!')
             message.error('Файл пустой или не удалось прочитать содержимое')
             return
           }
 
           try {
-            const contractors = parseCSVContent(content)
-            setParsedData(contractors)
+            const contractors = parseXLSXContent(arrayBuffer)
+            
+            // Проверяем существующие ИНН
+            const contractorsWithCheck = await checkExistingINNs(contractors)
+            
+            setParsedData(contractorsWithCheck)
             setStep('preview')
 
-            if (contractors.filter(c => c.valid).length === 0) {
-              message.error('Нет корректных данных для импорта')
+            const validCount = contractorsWithCheck.filter(c => c.valid).length
+            const duplicateCount = contractorsWithCheck.filter(c => !c.valid && c.error?.includes('уже существует')).length
+
+            if (validCount === 0) {
+              message.error('Нет новых данных для импорта')
             } else {
-              message.success(`Распознано ${contractors.filter(c => c.valid).length} корректных записей`)
+              message.success(`Распознано ${validCount} новых записей${duplicateCount > 0 ? ` (${duplicateCount} дубликатов)` : ''}`)
             }
           } catch (error) {
             console.error('[ImportContractorsModal.handleFileUpload] Parse error:', error)
@@ -123,9 +166,9 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
         message.warning('Чтение файла было прервано')
       }
 
-      // Читаем файл
-      console.log('[ImportContractorsModal.handleFileUpload] Starting FileReader.readAsText')
-      reader.readAsText(fileToRead, 'utf-8')
+      // Читаем файл как ArrayBuffer для XLSX
+      console.log('[ImportContractorsModal.handleFileUpload] Starting FileReader.readAsArrayBuffer')
+      reader.readAsArrayBuffer(fileToRead)
 
     } catch (error) {
       console.error('[ImportContractorsModal.handleFileUpload] Caught error:', error)
@@ -146,54 +189,149 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
     }
 
     setImporting(true)
-    const results: ImportResult[] = []
 
     try {
-      for (const contractor of validContractors) {
+      const results: ImportResult[] = []
+      
+      // Группируем по ИНН
+      const innGroups = new Map<string, ParsedContractor[]>()
+      validContractors.forEach(c => {
+        if (!innGroups.has(c.inn)) {
+          innGroups.set(c.inn, [])
+        }
+        innGroups.get(c.inn)!.push(c)
+      })
+
+      console.log(`[ImportContractorsModal] Grouped into ${innGroups.size} unique INNs`)
+
+      // Импортируем по ИНН (группы)
+      for (const [inn, names] of innGroups) {
         try {
-          // Проверяем существование
+          // Используем первое название как основное для контрагента
+          const primaryName = names[0]
+          
+          // Проверяем существует ли уже
           const { data: existing } = await supabase
             .from('contractors')
             .select('id')
-            .eq('inn', contractor.inn)
+            .eq('inn', inn)
             .single()
 
+          let contractorId: number
+          
           if (existing) {
+            // Контрагент уже существует, добавляем все названия как альтернативные
+            contractorId = existing.id
+            console.log(`[ImportContractorsModal] Contractor with INN ${inn} already exists, adding alternative names`)
+            
+            // Добавляем все названия (включая первое)
+            for (const name of names) {
+              try {
+                // Получаем уже существующие названия для этого контрагента
+                const { data: existingNames } = await supabase
+                  .from('contractor_alternative_names')
+                  .select('alternative_name')
+                  .eq('contractor_id', contractorId)
+
+                const existingNamesList = existingNames?.map(n => n.alternative_name) || []
+
+                // Проверяем, есть ли уже такое название
+                if (!existingNamesList.includes(name.name)) {
+                  await addContractorAlternativeName(contractorId, name.name, false)
+                  results.push({
+                    line: name.line,
+                    name: name.name,
+                    inn: name.inn,
+                    status: 'success',
+                    message: 'Добавлено как альтернативное название'
+                  })
+                } else {
+                  results.push({
+                    line: name.line,
+                    name: name.name,
+                    inn: name.inn,
+                    status: 'skip',
+                    message: 'Это название уже существует'
+                  })
+                }
+              } catch (err: unknown) {
+                const error = err as any
+                console.error(`[ImportContractorsModal] Error adding alternative name:`, error)
+                results.push({
+                  line: name.line,
+                  name: name.name,
+                  inn: name.inn,
+                  status: 'error',
+                  message: 'Ошибка добавления названия'
+                })
+              }
+            }
+          } else {
+            // Создаем новый контрагент
+            const { data: newContractor, error } = await supabase
+              .from('contractors')
+              .insert({ name: primaryName.name, inn: inn })
+              .select()
+              .single()
+
+            if (error) throw error
+            
+            contractorId = newContractor.id
+
+            // Добавляем первое название как основное в альтернативные
+            await addContractorAlternativeName(contractorId, primaryName.name, true)
+
+            results.push({
+              line: primaryName.line,
+              name: primaryName.name,
+              inn: primaryName.inn,
+              status: 'success',
+              message: 'Успешно импортирован'
+            })
+
+            // Добавляем остальные названия как неосновные
+            for (let i = 1; i < names.length; i++) {
+              try {
+                await addContractorAlternativeName(contractorId, names[i].name, false)
+                results.push({
+                  line: names[i].line,
+                  name: names[i].name,
+                  inn: names[i].inn,
+                  status: 'success',
+                  message: 'Добавлено как альтернативное название'
+                })
+              } catch (err: unknown) {
+                const error = err as any
+                if (error?.code === '23505') {
+                  results.push({
+                    line: names[i].line,
+                    name: names[i].name,
+                    inn: names[i].inn,
+                    status: 'skip',
+                    message: 'Это название уже существует'
+                  })
+                } else {
+                  results.push({
+                    line: names[i].line,
+                    name: names[i].name,
+                    inn: names[i].inn,
+                    status: 'error',
+                    message: 'Ошибка добавления названия'
+                  })
+                }
+              }
+            }
+          }
+        } catch (err: unknown) {
+          const error = err as any
+          names.forEach(contractor => {
             results.push({
               line: contractor.line,
               name: contractor.name,
               inn: contractor.inn,
-              status: 'skip',
-              message: 'Контрагент с таким ИНН уже существует'
+              status: 'error',
+              message: error?.message || 'Неизвестная ошибка'
             })
-            continue
-          }
-
-          // Создаем нового контрагента
-          const { error } = await supabase
-            .from('contractors')
-            .insert({
-              name: contractor.name,
-              inn: contractor.inn
-            })
-
-          if (error) throw error
-
-          results.push({
-            line: contractor.line,
-            name: contractor.name,
-            inn: contractor.inn,
-            status: 'success',
-            message: 'Успешно импортирован'
-          })
-
-        } catch (error: unknown) {
-          results.push({
-            line: contractor.line,
-            name: contractor.name,
-            inn: contractor.inn,
-            status: 'error',
-            message: isErrorWithCode(error) && error.message ? error.message : 'Неизвестная ошибка'
           })
         }
       }
@@ -203,7 +341,6 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
 
       const successCount = results.filter(r => r.status === 'success').length
       const skipCount = results.filter(r => r.status === 'skip').length
-      const errorCount = results.filter(r => r.status === 'error').length
 
       if (successCount > 0) {
         message.success(`Успешно импортировано: ${successCount}`)
@@ -211,16 +348,12 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
       }
 
       if (skipCount > 0) {
-        message.info(`Пропущено (уже существуют): ${skipCount}`)
-      }
-
-      if (errorCount > 0) {
-        message.error(`Ошибок: ${errorCount}`)
+        message.info(`Пропущено: ${skipCount}`)
       }
 
     } catch (error) {
       console.error('Import error:', error)
-      message.error('Ошибка при импорте данных')
+      message.error('Ошибка при импорте данных: ' + (error as Error).message)
     } finally {
       setImporting(false)
     }
@@ -241,7 +374,7 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
 
   return (
     <Modal
-      title="Импорт контрагентов из CSV"
+      title="Импорт контрагентов из XLSX"
       open={visible}
       onCancel={handleClose}
       width={900}
@@ -279,12 +412,17 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
       {step === 'upload' && (
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Alert
-            message="Формат CSV файла"
+            message="Формат XLSX файла"
             description={
               <div>
-                <p>Файл должен быть в формате CSV с разделителем точка с запятой (;)</p>
-                <p>Первая строка - заголовки: <code>Контрагент;ИНН Контрагента</code></p>
+                <p>Файл должен быть в формате XLSX</p>
+                <p>Первая строка - заголовки: <code>Контрагент, ИНН</code></p>
                 <p>Последующие строки - данные контрагентов</p>
+                <p>Колонка 1: Наименование контрагента</p>
+                <p>Колонка 2: ИНН (10 или 12 цифр)</p>
+                <p style={{ marginTop: 8, fontStyle: 'italic', color: '#666' }}>
+                  <strong>Поддержка альтернативных названий:</strong> К одному ИНН может быть несколько строк с разными названиями. Первое название станет основным для контрагента, остальные - альтернативными.
+                </p>
               </div>
             }
             type="info"
@@ -295,9 +433,9 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
           <div style={{ marginBottom: 16, textAlign: 'center' }}>
             <input
               type="file"
-              accept=".csv"
+              accept=".xlsx,.xls"
               style={{ display: 'none' }}
-              id="csv-upload-input"
+              id="xlsx-upload-input"
               onChange={(e) => {
                 console.log('[ImportContractorsModal] Native input onChange')
                 const file = e.target.files?.[0]
@@ -310,7 +448,7 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
             <Button
               onClick={() => {
                 console.log('[ImportContractorsModal] Triggering native file input')
-                document.getElementById('csv-upload-input')?.click()
+                document.getElementById('xlsx-upload-input')?.click()
               }}
             >
               Альтернативная загрузка (для отладки)
@@ -318,7 +456,7 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
           </div>
 
           <Upload.Dragger
-            accept=".csv"
+            accept=".xlsx,.xls"
             beforeUpload={handleFileUpload}
             maxCount={1}
             showUploadList={false}
@@ -336,10 +474,10 @@ export const ImportContractorsModal: React.FC<ImportContractorsModalProps> = ({
               <UploadOutlined style={{ fontSize: 48, color: '#1890ff' }} />
             </p>
             <p className="ant-upload-text">
-              Нажмите или перетащите CSV файл для загрузки
+              Нажмите или перетащите XLSX файл для загрузки
             </p>
             <p className="ant-upload-hint">
-              Поддерживается только CSV формат с разделителем ";"
+              Поддерживается формат XLSX с данными: Контрагент, ИНН
             </p>
           </Upload.Dragger>
         </Space>

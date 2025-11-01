@@ -1,20 +1,25 @@
 import { Progress, Tooltip } from 'antd'
-import { formatAmount, formatAmountInMillions } from '../../utils/invoiceHelpers'
+import { formatAmount } from '../../utils/invoiceHelpers'
 
 interface PaymentStatusIndicatorProps {
   totalAmount: number
   totalPaid: number
   paymentCount: number
+  invoiceStatusCode?: number | string
 }
 
 export const PaymentStatusIndicator: React.FC<PaymentStatusIndicatorProps> = ({
   totalAmount,
   totalPaid,
-  paymentCount
+  paymentCount,
+  invoiceStatusCode
 }) => {
   const invoiceAmount = totalAmount || 0
   const remainingAmount = invoiceAmount - totalPaid
-  const progressPercent = invoiceAmount > 0 ? Math.min((totalPaid / invoiceAmount) * 100, 100) : 0
+  // Only show progress if status is paid (3) or partial (4)
+  const shouldShowProgress = invoiceStatusCode === 3 || invoiceStatusCode === 4
+  const displayPaid = shouldShowProgress ? totalPaid : 0
+  const progressPercent = invoiceAmount > 0 ? Math.min((displayPaid / invoiceAmount) * 100, 100) : 0
   const isFullyPaid = remainingAmount <= 0
   const isOverpaid = remainingAmount < 0
   const isPartiallyPaid = totalPaid > 0 && remainingAmount > 0

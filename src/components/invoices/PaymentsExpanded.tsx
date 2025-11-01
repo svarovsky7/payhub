@@ -217,15 +217,19 @@ export const PaymentsExpanded = memo(({
           }
         }
 
+        const tooltipTitle = approvalStatus?.current_role_name
+          ? `На согласовании (${approvalStatus.current_role_name})`
+          : 'На согласовании'
+
         return (
           <Space size="small">
             <Tag color={tagColor} style={{ margin: 0 }}>
               {statusName}
             </Tag>
             {approvalStatus?.isInApproval && (
-              <Tooltip title="На согласовании">
+              <Tooltip title={tooltipTitle}>
                 <Tag icon={<ClockCircleOutlined />} color="processing" style={{ margin: 0 }}>
-                  Этап {approvalStatus.current_stage_index + 1}
+                  Этап {approvalStatus.current_stage_index + 1} {approvalStatus.current_role_name && `(${approvalStatus.current_role_name})`}
                 </Tag>
               </Tooltip>
             )}
@@ -257,24 +261,24 @@ export const PaymentsExpanded = memo(({
 
         return (
           <Space size="small">
-            {canSendToApproval && (
-              <Tooltip title={record.status_id === 4 ? "Повторно отправить на согласование" : "Отправить на согласование"}>
-                <Button
-                  type="text"
-                  icon={<SendOutlined />}
-                  onClick={() => handleSendToApproval(record)}
-                  size="small"
-                  loading={loadingApproval === record.id}
-                  style={{ color: record.status_id === 4 ? '#fa8c16' : '#1890ff' }}
-                />
-              </Tooltip>
-            )}
+            <Tooltip title={record.status_id === 4 ? "Повторно отправить на согласование" : "Отправить на согласование"}>
+              <Button
+                type="text"
+                icon={<SendOutlined />}
+                onClick={() => handleSendToApproval(record)}
+                size="small"
+                loading={loadingApproval === record.id}
+                style={{ color: record.status_id === 4 ? '#fa8c16' : '#1890ff', width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                disabled={!canSendToApproval}
+              />
+            </Tooltip>
             <Tooltip title="История согласования">
               <Button
                 type="text"
                 icon={<HistoryOutlined />}
                 onClick={() => handleHistoryClick(record)}
                 size="small"
+                style={{ width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
               />
             </Tooltip>
             <Button
@@ -283,6 +287,7 @@ export const PaymentsExpanded = memo(({
               onClick={() => onEditPayment(record)}
               size="small"
               disabled={approvalStatus?.isInApproval}
+              style={{ width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
             />
             <Button
               type="text"
@@ -291,6 +296,7 @@ export const PaymentsExpanded = memo(({
               size="small"
               danger
               disabled={approvalStatus?.isInApproval}
+              style={{ width: 32, height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
             />
           </Space>
         )

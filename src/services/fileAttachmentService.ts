@@ -383,3 +383,36 @@ export const updateFileDescriptionsBatch = async (
   }
 }
 
+/**
+ * Получает файлы для сущности
+ */
+export const getAttachments = async (
+  entityType: EntityType,
+  entityId: string
+): Promise<{ data: ExistingFile[] | null; error?: Error }> => {
+  try {
+    const data = await loadEntityFiles(entityType, entityId)
+    return { data }
+  } catch (error) {
+    console.error('[fileAttachmentService.getAttachments] Error:', error)
+    return { data: null, error: error instanceof Error ? error : new Error(String(error)) }
+  }
+}
+
+/**
+ * Скачивает файл по пути
+ */
+export const downloadFile = async (storagePath: string): Promise<Blob> => {
+  try {
+    const { data, error } = await supabase.storage
+      .from('attachments')
+      .download(storagePath)
+
+    if (error) throw error
+    return data
+  } catch (error) {
+    console.error('[fileAttachmentService.downloadFile] Error:', error)
+    throw error
+  }
+}
+

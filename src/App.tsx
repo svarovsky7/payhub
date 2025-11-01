@@ -10,6 +10,8 @@ import { ContractsPage } from './pages/ContractsPage'
 import { MaterialRequestsPage } from './pages/MaterialRequestsPage'
 import { ProjectBudgetsPage } from './pages/ProjectBudgetsPage'
 import { LettersPage } from './pages/LettersPage'
+import { LetterStatsPage } from './pages/LetterStatsPage'
+import LetterSharePage from './pages/LetterSharePage'
 import { MainLayout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import 'antd/dist/reset.css'
@@ -23,6 +25,7 @@ function App() {
           <AuthProvider>
             <Routes>
             <Route path="/login" element={<AuthPage />} />
+            <Route path="/letter-share/:token" element={<LetterSharePage />} />
             <Route
               path="/invoices"
               element={
@@ -89,6 +92,16 @@ function App() {
                 <ProtectedRoute requiredPath="/letters">
                   <MainLayout>
                     <LettersPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/letter-stats"
+              element={
+                <ProtectedRoute requiredPath="/letters">
+                  <MainLayout>
+                    <LetterStatsPage />
                   </MainLayout>
                 </ProtectedRoute>
               }

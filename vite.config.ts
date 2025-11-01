@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    chunkSizeWarningLimit: 1500, // Увеличиваем лимит для больших vendor библиотек
+    chunkSizeWarningLimit: 1800, // Увеличиваем лимит для больших vendor библиотек
     rollupOptions: {
       output: {
         manualChunks: {

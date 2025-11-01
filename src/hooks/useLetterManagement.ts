@@ -162,7 +162,7 @@ export const useLetterManagement = () => {
   }, [user?.id])
 
   // Create letter
-  const handleCreateLetter = useCallback(async (letterData: Partial<Letter>, files?: File[], fileDescriptions?: Record<string, string>) => {
+  const handleCreateLetter = useCallback(async (letterData: Partial<Letter>, files?: File[], fileDescriptions?: Record<string, string>, publicShareToken?: string) => {
     console.log('[useLetterManagement.handleCreateLetter] Data:', letterData)
 
     try {
@@ -171,7 +171,7 @@ export const useLetterManagement = () => {
       message.success('Письмо создано')
 
       // Create in background and add to list when complete
-      const newLetter = await createLetter(letterData, files, fileDescriptions)
+      const newLetter = await createLetter(letterData, files, fileDescriptions, publicShareToken)
 
       // Add new letter to the list
       setLetters(prev => [newLetter, ...prev])

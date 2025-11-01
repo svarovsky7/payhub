@@ -219,7 +219,10 @@ export const loadApprovalHistory = async (paymentId: string) => {
     const formattedData = (data || []).map(approval => {
       const steps = approval.approval_steps?.map((step: any) => ({
         ...step,
-        stage: step.workflow_stages,
+        stage: {
+          ...step.workflow_stages,
+          role: step.workflow_stages?.roles
+        },
         actor: step.acted_by
       })) || []
 
@@ -253,7 +256,20 @@ export const checkPaymentApprovalStatus = async (paymentId: string) => {
   try {
     const { data, error } = await supabase
       .from('payment_approvals')
-      .select('*')
+      .select(`
+        *,
+        approval_routes!inner (
+          workflow_stages (
+            order_index,
+            role_id,
+            roles (
+              id,
+              code,
+              name
+            )
+          )
+        )
+      `)
       .eq('payment_id', paymentId)
       .eq('status_id', 2) // 2 = pending (На согласовании)
       .maybeSingle()
@@ -265,13 +281,22 @@ export const checkPaymentApprovalStatus = async (paymentId: string) => {
 
     console.log('[checkPaymentApprovalStatus] Result:', data)
 
+    let currentRoleName = ''
+    if (data?.approval_routes?.workflow_stages) {
+      const currentStage = (data.approval_routes.workflow_stages as Array<{ order_index: number, roles?: { name: string } }>).find(
+        s => s.order_index === data.current_stage_index
+      )
+      currentRoleName = currentStage?.roles?.name || ''
+    }
+
     return {
       isInApproval: !!data,
       approvalId: data?.id,
-      current_stage_index: data?.current_stage_index || 0
+      current_stage_index: data?.current_stage_index || 0,
+      current_role_name: currentRoleName
     }
   } catch (error) {
     console.error('[ApprovalOperations.checkPaymentApprovalStatus] Full error:', error)
-    return { isInApproval: false, approvalId: null, current_stage_index: 0 }
+    return { isInApproval: false, approvalId: null, current_stage_index: 0, current_role_name: '' }
   }
 }

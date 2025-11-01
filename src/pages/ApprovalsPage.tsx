@@ -16,6 +16,7 @@ import { ApprovalHistoryModal } from '../components/approvals/ApprovalHistoryMod
 import { EditInvoiceModal } from '../components/approvals/EditInvoiceModal'
 import { EditAmountModal } from '../components/approvals/EditAmountModal'
 import { AddFilesModal } from '../components/approvals/AddFilesModal'
+import { PaymentCompletionModal } from '../components/approvals/PaymentCompletionModal'
 import { PaymentsSummaryCard } from '../components/approvals/PaymentsSummaryCard'
 import { ViewMaterialRequestModal } from '../components/approvals/ViewMaterialRequestModal'
 import { ViewAllFilesModal } from '../components/approvals/ViewAllFilesModal'
@@ -23,6 +24,8 @@ import ChangeHistoryDrawer from '../components/approvals/ChangeHistoryDrawer'
 import { getCurrentStagePermissions, calculateVatAmounts } from '../utils/approvalCalculations'
 import '../styles/compact-table.css'
 import '../styles/approvals-page.css'
+import { Progress } from 'antd'
+import type { PaymentApproval } from '../services/approvalOperations'
 
 
 export const ApprovalsPage = () => {
@@ -45,7 +48,15 @@ export const ApprovalsPage = () => {
   })
 
   // View mode state
-  const [groupedView, setGroupedView] = useState(true)
+  const [groupedView, setGroupedViewState] = useState(() => {
+    const saved = localStorage.getItem('approvals_view_mode')
+    return saved ? JSON.parse(saved) : true
+  })
+
+  const setGroupedView = (value: boolean) => {
+    setGroupedViewState(value)
+    localStorage.setItem('approvals_view_mode', JSON.stringify(value))
+  }
 
   // Material request modal state
   const [materialRequestModalVisible, setMaterialRequestModalVisible] = useState(false)
@@ -53,11 +64,15 @@ export const ApprovalsPage = () => {
 
   // Change history drawer state
   const [changeHistoryDrawerVisible, setChangeHistoryDrawerVisible] = useState(false)
-  const [selectedApprovalForHistory, setSelectedApprovalForHistory] = useState<any>(null)
+  const [selectedApprovalForHistory, setSelectedApprovalForHistory] = useState<PaymentApproval | null>(null)
 
   // View all files modal state
   const [viewFilesModalVisible, setViewFilesModalVisible] = useState(false)
-  const [selectedApprovalForFiles, setSelectedApprovalForFiles] = useState<any>(null)
+  const [selectedApprovalForFiles, setSelectedApprovalForFiles] = useState<PaymentApproval | null>(null)
+
+  // Payment completion modal state (for accountant)
+  const [paymentCompletionModalVisible, setPaymentCompletionModalVisible] = useState(false)
+  const [selectedApprovalForCompletion, setSelectedApprovalForCompletion] = useState<PaymentApproval | null>(null)
 
   // Use custom hooks for modular functionality
   const approvalActions = useApprovalActions({
@@ -81,7 +96,7 @@ export const ApprovalsPage = () => {
   console.log('[ApprovalsPage] Budget visibility:', { canShowBudgets, approvalsCount: pendingApprovals.length })
 
   // Handle material request view
-  const handleViewMaterialRequest = (approval: any) => {
+  const handleViewMaterialRequest = (approval: PaymentApproval) => {
     console.log('[ApprovalsPage] View material request:', approval)
     const materialRequestId = approval.payment?.invoice?.material_request_id
     if (materialRequestId) {
@@ -91,17 +106,31 @@ export const ApprovalsPage = () => {
   }
 
   // Handle change history view
-  const handleViewChangeHistory = (approval: any) => {
+  const handleViewChangeHistory = (approval: PaymentApproval) => {
     console.log('[ApprovalsPage] View change history:', approval)
     setSelectedApprovalForHistory(approval)
     setChangeHistoryDrawerVisible(true)
   }
 
   // Handle view all files
-  const handleViewAllFiles = (approval: any) => {
+  const handleViewAllFiles = (approval: PaymentApproval) => {
     console.log('[ApprovalsPage] View all files:', approval)
     setSelectedApprovalForFiles(approval)
     setViewFilesModalVisible(true)
+  }
+
+  // Handle payment completion (for accountant)
+  const handlePaymentCompletion = (approval: PaymentApproval) => {
+    console.log('[ApprovalsPage] Complete payment:', approval)
+    setSelectedApprovalForCompletion(approval)
+    setPaymentCompletionModalVisible(true)
+  }
+
+  // Handle payment completion submit
+  const handlePaymentCompletionSubmit = async () => {
+    if (selectedApprovalForCompletion?.id) {
+      await handleApprove(selectedApprovalForCompletion.id)
+    }
   }
 
   if (!userRole) {
@@ -195,6 +224,17 @@ export const ApprovalsPage = () => {
                 processing={bulkActions.bulkProcessing}
               />
 
+              {bulkActions.bulkProcessing && (
+                <div style={{ marginBottom: 16 }}>
+                  <Progress
+                    percent={bulkActions.bulkProgress}
+                    status="active"
+                    strokeColor="#1890ff"
+                    showInfo={false}
+                  />
+                </div>
+              )}
+
               {groupedView ? (
                 <GroupedApprovals
                   approvals={pendingApprovals}
@@ -210,6 +250,8 @@ export const ApprovalsPage = () => {
                   onViewAllFiles={handleViewAllFiles}
                   getCurrentStagePermissions={getCurrentStagePermissions}
                   projectBudgets={canShowBudgets ? projectBudgets : []}
+                  userRole={userRole}
+                  onPaymentCompletion={handlePaymentCompletion}
                 />
               ) : (
                 <ApprovalsTable
@@ -226,6 +268,8 @@ export const ApprovalsPage = () => {
                   onViewMaterialRequest={handleViewMaterialRequest}
                   onViewAllFiles={handleViewAllFiles}
                   getCurrentStagePermissions={getCurrentStagePermissions}
+                  userRole={userRole}
+                  onPaymentCompletion={handlePaymentCompletion}
                 />
               )}
             </>
@@ -340,6 +384,16 @@ export const ApprovalsPage = () => {
           setSelectedApprovalForFiles(null)
         }}
         approval={selectedApprovalForFiles}
+      />
+
+      <PaymentCompletionModal
+        visible={paymentCompletionModalVisible}
+        onClose={() => {
+          setPaymentCompletionModalVisible(false)
+          setSelectedApprovalForCompletion(null)
+        }}
+        selectedApproval={selectedApprovalForCompletion}
+        onComplete={handlePaymentCompletionSubmit}
       />
     </div>
   )

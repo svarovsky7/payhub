@@ -8,6 +8,7 @@ export interface WorkflowStage {
   role_id: number
   name?: string
   payment_status_id?: number | null
+  invoice_status_id?: number | null
   permissions?: Record<string, boolean> | null
   is_active?: boolean
   created_at: string
@@ -94,6 +95,7 @@ export interface WorkflowStageFormData {
   name?: string
   payment_status_id?: number | null
   permissions?: Record<string, boolean>
+  invoice_status_id?: number | null
 }
 
 // API response types

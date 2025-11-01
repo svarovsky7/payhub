@@ -127,14 +127,21 @@ export const startApprovalProcess = async (
 
     if (paymentError) throw paymentError
 
-    // После обновления статуса платежа пересчитываем статус счета
+    // Получаем invoice_id для обновления статуса счета
     const { data: paymentData } = await supabase
       .from('payments')
       .select('invoice_id')
       .eq('id', paymentId)
       .single()
 
+    // Явно устанавливаем статус счета "На согласовании" (ID 2)
     if (paymentData?.invoice_id) {
+      await supabase
+        .from('invoices')
+        .update({ status_id: 2 }) // pending (На согласовании)
+        .eq('id', paymentData.invoice_id)
+      
+      // Дополнительно вызываем пересчет, чтобы учесть другие платежи, если они есть
       await recalculateInvoiceStatus(paymentData.invoice_id)
     }
 

@@ -21,8 +21,10 @@ export interface WorkflowStage {
   role_id: number
   name: string
   payment_status_id?: number
+  invoice_status_id?: number | null
   role?: Role
   payment_status?: any
+  invoice_status?: any
   permissions?: StagePermissions
 }
 

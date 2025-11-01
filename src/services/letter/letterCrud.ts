@@ -10,7 +10,8 @@ import { updateFileDescriptionsBatch } from '../fileAttachmentService'
 export async function createLetter(
   letterData: Partial<Letter>,
   files?: File[],
-  fileDescriptions?: Record<string, string>
+  fileDescriptions?: Record<string, string>,
+  publicShareToken?: string
 ): Promise<Letter> {
   console.log('[letterCrud.createLetter] Creating letter:', letterData)
 
@@ -31,6 +32,23 @@ export async function createLetter(
   if (error) {
     console.error('[letterCrud.createLetter] Error:', error)
     throw error
+  }
+
+  // Save public share token if provided
+  if (publicShareToken && data) {
+    const token = publicShareToken
+    const { error: shareError } = await supabase
+      .from('letter_public_shares')
+      .insert({
+        letter_id: data.id,
+        token,
+        created_at: new Date().toISOString()
+      })
+
+    if (shareError) {
+      console.error('[letterCrud.createLetter] Error saving share token:', shareError)
+      // Don't throw - letter was created successfully, just log the error
+    }
   }
 
   // Upload files if provided

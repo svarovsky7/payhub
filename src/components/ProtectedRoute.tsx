@@ -28,7 +28,7 @@ export function ProtectedRoute({ children, requiredPath }: ProtectedRouteProps) 
           height: '100vh',
         }}
       >
-        <Spin size="large" tip="Загрузка..." />
+        <Spin size="large" />
       </div>
     )
   }

@@ -5,6 +5,8 @@ export interface ColumnConfig {
   key: string
   title: string
   visible: boolean
+  width?: number
+  defaultVisible?: boolean
 }
 
 export const useColumnSettings = <T extends Record<string, any>>(
@@ -16,7 +18,9 @@ export const useColumnSettings = <T extends Record<string, any>>(
       allColumns.map((col) => ({
         key: col.key as string,
         title: col.title as string,
-        visible: true,
+        visible: (col as any).defaultVisible ?? true,
+        width: col.width as number | undefined,
+        defaultVisible: (col as any).defaultVisible
       })),
     [allColumns]
   )
@@ -38,7 +42,14 @@ export const useColumnSettings = <T extends Record<string, any>>(
       }
 
       // Фильтруем только те колонки, которые есть в defaultConfig
-      return parsed.filter((col) => allKeys.includes(col.key))
+      // И заполняем width из defaultConfig если его нет в сохранённых данных
+      const filtered = parsed.filter((col) => allKeys.includes(col.key))
+      const defaultMap = new Map(defaultConfig.map((c) => [c.key, c]))
+      
+      return filtered.map((col) => ({
+        ...col,
+        width: col.width || defaultMap.get(col.key)?.width
+      }))
     } catch (error) {
       console.error('[useColumnSettings] Error loading settings:', error)
       return defaultConfig
@@ -64,7 +75,11 @@ export const useColumnSettings = <T extends Record<string, any>>(
     for (const config of columnConfig) {
       const column = allColumns.find((col) => col.key === config.key)
       if (column && config.visible) {
-        orderedColumns.push(column)
+        const updatedColumn = { ...column }
+        if (config.width) {
+          updatedColumn.width = config.width
+        }
+        orderedColumns.push(updatedColumn)
       }
     }
 

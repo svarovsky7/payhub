@@ -78,7 +78,7 @@ export const getLetterTableColumns = ({
       sorter: (a, b) => (a.reg_number || '').localeCompare(b.reg_number || ''),
       render: (text: string) => (
         <Tooltip title={text || '—'}>
-          {truncateText(text, 12)}
+          {text || '—'}
         </Tooltip>
       )
     },
@@ -205,6 +205,26 @@ export const getLetterTableColumns = ({
         return responsibleName ? (
           <Tooltip placement="topLeft" title={responsibleName}>
             {truncateText(responsibleName, 20)}
+          </Tooltip>
+        ) : '—'
+      }
+    },
+    {
+      title: 'Создатель',
+      dataIndex: ['creator', 'full_name'],
+      key: 'creator',
+      width: 120,
+      sorter: (a, b) => (a.creator?.full_name || '').localeCompare(b.creator?.full_name || ''),
+      filters: users.map(u => ({ text: u.full_name, value: u.full_name })),
+      onFilter: (value, record) => record.creator?.full_name === value,
+      ellipsis: {
+        showTitle: false
+      },
+      render: (_: any, record: Letter) => {
+        const creatorName = record.creator?.full_name
+        return creatorName ? (
+          <Tooltip placement="topLeft" title={creatorName}>
+            {truncateText(creatorName, 20)}
           </Tooltip>
         ) : '—'
       }

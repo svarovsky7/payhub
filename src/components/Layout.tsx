@@ -11,6 +11,7 @@ import {
   FormOutlined,
   DollarOutlined,
   MailOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -70,7 +71,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }
         } else {
           // No role selected, allow all pages
-          setAllowedPages(['/invoices', '/material-requests', '/contracts', '/letters', '/approvals', '/project-budgets', '/admin'])
+          setAllowedPages(['/invoices', '/material-requests', '/contracts', '/letters', '/letter-stats', '/approvals', '/project-budgets', '/admin'])
         }
 
       } catch (error) {
@@ -117,7 +118,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }
       } else {
         // No role selected, allow all pages
-        setAllowedPages(['/invoices', '/material-requests', '/contracts', '/letters', '/approvals', '/project-budgets', '/admin'])
+        setAllowedPages(['/invoices', '/material-requests', '/contracts', '/letters', '/letter-stats', '/approvals', '/project-budgets', '/admin'])
       }
 
       message.success('Роль изменена')
@@ -182,6 +183,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       key: '/letters',
       icon: <MailOutlined />,
       label: 'Письма',
+    },
+    {
+      key: '/letter-stats',
+      icon: <BarChartOutlined />,
+      label: 'Статистика писем',
     },
     {
       key: '/approvals',

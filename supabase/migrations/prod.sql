@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-10-23T07:55:48.386944
+-- Generated: 2025-11-01T07:02:39.855767
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -556,6 +556,20 @@ COMMENT ON COLUMN public.contract_statuses.created_at IS 'Timestamp when the sta
 COMMENT ON COLUMN public.contract_statuses.updated_at IS 'Timestamp when the status was last updated';
 COMMENT ON COLUMN public.contract_statuses.sort_order IS 'Sort order for display';
 
+CREATE TABLE IF NOT EXISTS public.contractor_alternative_names (
+    id bigint(64) NOT NULL DEFAULT nextval('contractor_alternative_names_id_seq'::regclass),
+    contractor_id integer(32) NOT NULL,
+    alternative_name character varying NOT NULL,
+    is_primary boolean NOT NULL DEFAULT false,
+    sort_order integer(32),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT contractor_alternative_names_contractor_id_alternative_name_key UNIQUE (alternative_name),
+    CONSTRAINT contractor_alternative_names_contractor_id_alternative_name_key UNIQUE (contractor_id),
+    CONSTRAINT contractor_alternative_names_contractor_id_fkey FOREIGN KEY (contractor_id) REFERENCES None.None(None),
+    CONSTRAINT contractor_alternative_names_pkey PRIMARY KEY (id)
+);
+
 -- Registry of contractors linked to invoices and projects
 CREATE TABLE IF NOT EXISTS public.contractors (
     id integer(32) NOT NULL DEFAULT nextval('contractors_id_seq'::regclass),
@@ -564,9 +578,11 @@ CREATE TABLE IF NOT EXISTS public.contractors (
     created_by uuid,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
+    primary_name_id bigint(64),
     CONSTRAINT contractors_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT contractors_inn_key UNIQUE (inn),
-    CONSTRAINT contractors_pkey PRIMARY KEY (id)
+    CONSTRAINT contractors_pkey PRIMARY KEY (id),
+    CONSTRAINT contractors_primary_name_id_fkey FOREIGN KEY (primary_name_id) REFERENCES None.None(None)
 );
 
 COMMENT ON TABLE public.contractors IS 'Registry of contractors linked to invoices and projects';
@@ -781,6 +797,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     contract_id uuid,
     responsible_id uuid,
     is_archived boolean NOT NULL DEFAULT false,
+    recipient text,
     CONSTRAINT fk_invoices_responsible FOREIGN KEY (responsible_id) REFERENCES None.None(None),
     CONSTRAINT invoices_contract_id_fkey FOREIGN KEY (contract_id) REFERENCES None.None(None),
     CONSTRAINT invoices_invoice_type_id_fkey FOREIGN KEY (invoice_type_id) REFERENCES None.None(None),
@@ -820,6 +837,7 @@ COMMENT ON COLUMN public.invoices.material_request_id IS 'Material request this 
 COMMENT ON COLUMN public.invoices.contract_id IS 'Contract this invoice is linked to';
 COMMENT ON COLUMN public.invoices.responsible_id IS 'Responsible procurement manager (user_profiles UUID)';
 COMMENT ON COLUMN public.invoices.is_archived IS 'Whether the invoice is archived';
+COMMENT ON COLUMN public.invoices.recipient IS 'Получатель счета';
 
 -- Связь писем с прикрепленными файлами
 CREATE TABLE IF NOT EXISTS public.letter_attachments (
@@ -850,6 +868,17 @@ CREATE TABLE IF NOT EXISTS public.letter_links (
 );
 
 COMMENT ON TABLE public.letter_links IS 'Связи между письмами (родительское письмо и его ответы/связанные письма)';
+
+CREATE TABLE IF NOT EXISTS public.letter_public_shares (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    letter_id uuid NOT NULL,
+    token character varying(16) NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT letter_public_shares_letter_id_fkey FOREIGN KEY (letter_id) REFERENCES None.None(None),
+    CONSTRAINT letter_public_shares_pkey PRIMARY KEY (id),
+    CONSTRAINT letter_public_shares_token_key UNIQUE (token)
+);
 
 -- Статусы писем (новое, на рассмотрении, исполнено, архив и т.д.)
 CREATE TABLE IF NOT EXISTS public.letter_statuses (
@@ -1120,6 +1149,9 @@ CREATE TABLE IF NOT EXISTS public.payments (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     is_archived boolean NOT NULL DEFAULT false,
+    paid_date date,
+    accountant_notes text,
+    requires_payment_order boolean DEFAULT false,
     CONSTRAINT payments_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
     CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES None.None(None),
     CONSTRAINT payments_payment_number_key UNIQUE (payment_number),
@@ -1141,6 +1173,9 @@ COMMENT ON COLUMN public.payments.created_by IS 'User ID who created the payment
 COMMENT ON COLUMN public.payments.created_at IS 'Timestamp when the payment was created';
 COMMENT ON COLUMN public.payments.updated_at IS 'Timestamp when the payment was last updated';
 COMMENT ON COLUMN public.payments.is_archived IS 'Whether the payment is archived';
+COMMENT ON COLUMN public.payments.paid_date IS 'Actual payment date when accountant completed the payment';
+COMMENT ON COLUMN public.payments.accountant_notes IS 'Notes added by accountant at payment completion';
+COMMENT ON COLUMN public.payments.requires_payment_order IS 'Whether payment order document is required for this payment';
 
 -- Employee positions/job titles
 CREATE TABLE IF NOT EXISTS public.positions (
@@ -5215,6 +5250,15 @@ CREATE INDEX idx_contract_statuses_code ON public.contract_statuses USING btree 
 CREATE INDEX idx_contract_statuses_sort_order ON public.contract_statuses USING btree (sort_order)
 ;
 
+CREATE UNIQUE INDEX contractor_alternative_names_contractor_id_alternative_name_key ON public.contractor_alternative_names USING btree (contractor_id, alternative_name)
+;
+
+CREATE INDEX idx_contractor_alternative_names_contractor_id ON public.contractor_alternative_names USING btree (contractor_id)
+;
+
+CREATE INDEX idx_contractor_alternative_names_is_primary ON public.contractor_alternative_names USING btree (contractor_id, is_primary)
+;
+
 CREATE UNIQUE INDEX contractors_inn_key ON public.contractors USING btree (inn)
 ;
 
@@ -5345,6 +5389,15 @@ CREATE INDEX idx_letter_links_parent_id ON public.letter_links USING btree (pare
 ;
 
 CREATE UNIQUE INDEX letter_links_parent_id_child_id_key ON public.letter_links USING btree (parent_id, child_id)
+;
+
+CREATE INDEX idx_letter_public_shares_letter_id ON public.letter_public_shares USING btree (letter_id)
+;
+
+CREATE INDEX idx_letter_public_shares_token ON public.letter_public_shares USING btree (token)
+;
+
+CREATE UNIQUE INDEX letter_public_shares_token_key ON public.letter_public_shares USING btree (token)
 ;
 
 CREATE UNIQUE INDEX letter_statuses_code_key ON public.letter_statuses USING btree (code)

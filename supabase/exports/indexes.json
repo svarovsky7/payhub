@@ -543,6 +543,30 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_contract_statuses_sort_order ON public.contract_statuses USING btree (sort_order)"
   },
+  "public.contractor_alternative_names.contractor_alternative_names_contractor_id_alternative_name_key": {
+    "schema": "public",
+    "name": "contractor_alternative_names_contractor_id_alternative_name_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX contractor_alternative_names_contractor_id_alternative_name_key ON public.contractor_alternative_names USING btree (contractor_id, alternative_name)"
+  },
+  "public.contractor_alternative_names.idx_contractor_alternative_names_contractor_id": {
+    "schema": "public",
+    "name": "idx_contractor_alternative_names_contractor_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contractor_alternative_names_contractor_id ON public.contractor_alternative_names USING btree (contractor_id)"
+  },
+  "public.contractor_alternative_names.idx_contractor_alternative_names_is_primary": {
+    "schema": "public",
+    "name": "idx_contractor_alternative_names_is_primary",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_contractor_alternative_names_is_primary ON public.contractor_alternative_names USING btree (contractor_id, is_primary)"
+  },
   "public.contractors.contractors_inn_key": {
     "schema": "public",
     "name": "contractors_inn_key",
@@ -894,6 +918,30 @@
     "is_unique": false,
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX letter_links_parent_id_child_id_key ON public.letter_links USING btree (parent_id, child_id)"
+  },
+  "public.letter_public_shares.idx_letter_public_shares_letter_id": {
+    "schema": "public",
+    "name": "idx_letter_public_shares_letter_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letter_public_shares_letter_id ON public.letter_public_shares USING btree (letter_id)"
+  },
+  "public.letter_public_shares.idx_letter_public_shares_token": {
+    "schema": "public",
+    "name": "idx_letter_public_shares_token",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_letter_public_shares_token ON public.letter_public_shares USING btree (token)"
+  },
+  "public.letter_public_shares.letter_public_shares_token_key": {
+    "schema": "public",
+    "name": "letter_public_shares_token_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX letter_public_shares_token_key ON public.letter_public_shares USING btree (token)"
   },
   "public.letter_statuses.letter_statuses_code_key": {
     "schema": "public",

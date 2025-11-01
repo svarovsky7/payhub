@@ -60,6 +60,16 @@ export type Contractor = {
   updated_at: string
 }
 
+export type ContractorAlternativeName = {
+  id: number
+  contractor_id: number
+  alternative_name: string
+  is_primary: boolean
+  sort_order?: number
+  created_at: string
+  updated_at: string
+}
+
 export type InvoiceType = {
   id: number
   code: string
@@ -106,6 +116,7 @@ export type Invoice = {
   contract_id?: string // новое поле для связи с договором
   material_request_id?: string // новое поле для связи с заявкой на материалы
   responsible_id?: string // UUID ответственного менеджера (ссылка на user_profiles)
+  recipient?: string // Получатель счета
   is_archived?: boolean // поле для архивирования счетов
   created_at: string
   updated_at: string
@@ -327,5 +338,15 @@ export type LetterLink = {
   // Relations
   parent_letter?: Letter
   child_letter?: Letter
+}
+
+export type LetterPublicShare = {
+  id: string
+  letter_id: string
+  token: string
+  created_at: string
+  updated_at: string
+  // Relations
+  letters?: Letter
 }
 

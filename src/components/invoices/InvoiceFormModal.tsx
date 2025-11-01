@@ -148,6 +148,14 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
     setFileDescriptions(prev => ({ ...prev, [uid]: description }))
   }
 
+  const handleExistingFileDescriptionChange = (fileId: string, description: string) => {
+    setExistingFiles(prev =>
+      prev.map(file =>
+        file.id === fileId ? { ...file, description } : file
+      )
+    )
+  }
+
   const handleExistingFilesChange = async () => {
     // Reload existing files after changes
     if (editingInvoice?.id) {
@@ -273,7 +281,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
       }
       open={isVisible}
       onCancel={onClose}
-      width={1100}
+      width={1300}
       footer={null}
       destroyOnHidden
       maskClosable={false}
@@ -391,6 +399,7 @@ export const InvoiceFormModal: React.FC<InvoiceFormModalProps> = ({
             onExistingFilesChange={handleExistingFilesChange}
             fileDescriptions={fileDescriptions}
             onFileDescriptionChange={handleFileDescriptionChange}
+            onExistingFileDescriptionChange={handleExistingFileDescriptionChange}
             multiple={true}
             maxSize={50}
             disabled={submitting}

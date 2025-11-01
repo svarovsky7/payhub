@@ -34,44 +34,53 @@ export const loadPaymentReferences = async () => {
 export const loadPaymentSummaries = async (invoiceIds: string[]) => {
 
   try {
-    const { data: payments, error } = await supabase
-      .from('invoice_payments')
-      .select(`
-        invoice_id,
-        allocated_amount,
-        payments!inner (
-          id,
-          payment_number,
-          payment_date,
-          amount,
-          payment_type_id,
-          status_id,
-          description,
-          payment_types:payment_type_id (id, name),
-          payment_statuses:status_id (id, name, color)
-        )
-      `)
-      .in('invoice_id', invoiceIds)
+    // Split into chunks to avoid URL length limits
+    const CHUNK_SIZE = 50
+    const chunks = []
+    for (let i = 0; i < invoiceIds.length; i += CHUNK_SIZE) {
+      chunks.push(invoiceIds.slice(i, i + CHUNK_SIZE))
+    }
 
-    if (error) throw error
-
-    // Group payments by invoice_id
     const paymentsByInvoice: Record<string, Payment[]> = {}
 
-    if (payments) {
-      payments.forEach((item: any) => {
-        if (!paymentsByInvoice[item.invoice_id]) {
-          paymentsByInvoice[item.invoice_id] = []
-        }
-        if (item.payments) {
-          paymentsByInvoice[item.invoice_id].push({
-            ...item.payments,
-            allocated_amount: item.allocated_amount,
-            payment_type: item.payments?.payment_types,
-            payment_status: item.payments?.payment_statuses
-          })
-        }
-      })
+    // Process each chunk
+    for (const chunk of chunks) {
+      const { data: payments, error } = await supabase
+        .from('invoice_payments')
+        .select(`
+          invoice_id,
+          allocated_amount,
+          payments!inner (
+            id,
+            payment_number,
+            payment_date,
+            amount,
+            payment_type_id,
+            status_id,
+            description,
+            payment_types:payment_type_id (id, name),
+            payment_statuses:status_id (id, name, color)
+          )
+        `)
+        .in('invoice_id', chunk)
+
+      if (error) throw error
+
+      if (payments) {
+        payments.forEach((item: any) => {
+          if (!paymentsByInvoice[item.invoice_id]) {
+            paymentsByInvoice[item.invoice_id] = []
+          }
+          if (item.payments) {
+            paymentsByInvoice[item.invoice_id].push({
+              ...item.payments,
+              allocated_amount: item.allocated_amount,
+              payment_type: item.payments?.payment_types,
+              payment_status: item.payments?.payment_statuses
+            })
+          }
+        })
+      }
     }
 
     return paymentsByInvoice
@@ -156,7 +165,8 @@ export const createPayment = async (
     status_id: defaultStatus.id,
     description: values.description || '',
     invoice_id: invoiceId,
-    created_by: userId
+    created_by: userId,
+    requires_payment_order: values.requires_payment_order || false
   }
 
   console.log('[PaymentOperations.createPayment] Payment data:', paymentData)
@@ -522,4 +532,82 @@ export const getPaymentTotals = (invoiceId: string, invoicePayments: Record<stri
   }
 
   return result
+}
+
+export const createBulkPayments = async (
+  invoiceIds: string[],
+  values: any,
+  userId: string,
+  paymentStatuses: PaymentStatus[],
+  invoices: any[]
+) => {
+  const defaultStatus = paymentStatuses.find(s => s.id === 1)
+
+  if (!defaultStatus) {
+    message.error('Не найден статус платежа по умолчанию')
+    throw new Error('Default payment status not found')
+  }
+
+  const results = {
+    successful: 0,
+    failed: 0,
+    failedInvoices: [] as string[]
+  }
+
+  const paymentAmounts = values.paymentAmounts || {}
+
+  for (const invoiceId of invoiceIds) {
+    try {
+      const invoice = invoices.find(inv => inv.id === invoiceId)
+      if (!invoice) {
+        results.failed++
+        results.failedInvoices.push(invoiceId)
+        continue
+      }
+
+      // Use individual amount from paymentAmounts, or default to invoice total
+      const amount = paymentAmounts[invoiceId] !== undefined 
+        ? paymentAmounts[invoiceId]
+        : (invoice.amount_with_vat || 0) + (invoice.delivery_cost || 0)
+
+      const paymentData = {
+        payment_date: values.payment_date ? values.payment_date.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+        amount: amount || 0,
+        payment_type_id: values.payment_type_id,
+        status_id: defaultStatus.id,
+        description: values.description || '',
+        invoice_id: invoiceId,
+        created_by: userId
+      }
+
+      const { data: payment, error: paymentError } = await supabase
+        .from('payments')
+        .insert([paymentData])
+        .select()
+        .single()
+
+      if (paymentError) throw paymentError
+
+      const { error: linkError } = await supabase
+        .from('invoice_payments')
+        .insert([{
+          invoice_id: invoiceId,
+          payment_id: payment.id,
+          allocated_amount: amount || 0
+        }])
+
+      if (linkError) throw linkError
+
+      // Пересчитываем статус счёта
+      await recalculateInvoiceStatus(invoiceId)
+
+      results.successful++
+    } catch (error) {
+      console.error(`[PaymentOperations.createBulkPayments] Error for invoice ${invoiceId}:`, error)
+      results.failed++
+      results.failedInvoices.push(invoiceId)
+    }
+  }
+
+  return results
 }

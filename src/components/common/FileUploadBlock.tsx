@@ -248,6 +248,23 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
     }
   }
 
+  // Обновление описания существующего файла
+  const handleExistingFileDescriptionUpdate = (fileId: string, description: string) => {
+    // Обновляем локально для мгновенного отображения
+    const existingFilesArray = Array.isArray(existingFiles) ? existingFiles : []
+    const index = existingFilesArray.findIndex(f => f.id === fileId)
+    if (index !== -1) {
+      const updatedFiles = [...existingFilesArray]
+      updatedFiles[index] = { ...updatedFiles[index], description }
+      // Вызываем callback если он есть
+      if (onExistingFileDescriptionChange) {
+        onExistingFileDescriptionChange(fileId, description)
+      }
+    } else if (onExistingFileDescriptionChange) {
+      onExistingFileDescriptionChange(fileId, description)
+    }
+  }
+
 
   return (
     <div className="file-upload-block">
@@ -308,7 +325,7 @@ export const FileUploadBlock: React.FC<FileUploadBlockProps> = ({
                 onPreview={handlePreviewFile}
                 onDownload={handleDownloadFile}
                 onDelete={handleDeleteExistingFile}
-                onDescriptionChange={onExistingFileDescriptionChange}
+                onDescriptionChange={handleExistingFileDescriptionUpdate}
               />
             )}
           />

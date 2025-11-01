@@ -129,6 +129,18 @@ export const getInvoiceTableColumns = ({
       value: name,
     }))
 
+  const paymentCountFilters = Array.from(
+    new Set(
+      invoices
+        .map((invoice) => getPaymentTotals(invoice.id).paymentCount)
+    )
+  )
+    .sort((a, b) => a - b)
+    .map((count) => ({
+      text: String(count),
+      value: count,
+    }))
+
   return [
     {
       title: 'Номер',
@@ -202,6 +214,22 @@ export const getInvoiceTableColumns = ({
       filters: supplierFilters,
       filterSearch: true,
       onFilter: (value, record) => record.supplier?.id === Number(value),
+    },
+    {
+      title: 'Получатель',
+      dataIndex: 'recipient',
+      key: 'recipient',
+      width: 140,
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (text: string) => (
+        <div title={text} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {text || '-'}
+        </div>
+      ),
+      sorter: (a, b) => (a.recipient || '').localeCompare(b.recipient || '', 'ru'),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: 'Проект',
@@ -315,6 +343,24 @@ export const getInvoiceTableColumns = ({
       render: (_, record) => getStatusTag(record),
     },
     {
+      title: 'Платежи',
+      key: 'payments_count',
+      width: 80,
+      align: 'center',
+      render: (_, record) => {
+        const totals = getPaymentTotals(record.id)
+        return totals.paymentCount
+      },
+      sorter: (a, b) => {
+        const countA = getPaymentTotals(a.id).paymentCount
+        const countB = getPaymentTotals(b.id).paymentCount
+        return countA - countB
+      },
+      sortDirections: ['ascend', 'descend'],
+      filters: paymentCountFilters,
+      onFilter: (value, record) => getPaymentTotals(record.id).paymentCount === Number(value),
+    },
+    {
       title: 'Оплата',
       key: 'payment_status',
       render: (_, record) => {
@@ -326,6 +372,7 @@ export const getInvoiceTableColumns = ({
             totalAmount={totalAmountWithDelivery}
             totalPaid={totals.totalPaid}
             paymentCount={totals.paymentCount}
+            invoiceStatusCode={record.invoice_status?.code || record.status}
           />
         )
       },

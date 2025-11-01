@@ -34,6 +34,8 @@ interface GroupedApprovalsProps {
   onViewAllFiles: (approval: PaymentApproval) => void
   getCurrentStagePermissions: (approval: PaymentApproval) => any
   projectBudgets?: ProjectBudgetWithProject[]
+  userRole?: number | null
+  onPaymentCompletion?: (approval: PaymentApproval) => void
 }
 
 interface ProjectGroup {
@@ -57,7 +59,9 @@ export const GroupedApprovals = ({
   onViewMaterialRequest,
   onViewAllFiles,
   getCurrentStagePermissions,
-  projectBudgets = []
+  projectBudgets = [],
+  userRole,
+  onPaymentCompletion
 }: GroupedApprovalsProps) => {
   const [activeKeys, setActiveKeys] = useState<string[]>([])
 
@@ -259,24 +263,39 @@ export const GroupedApprovals = ({
                           </div>
                           <div className="approval-actions">
                             <Space size={4}>
-                              <Tooltip title="Согласовать">
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  icon={<CheckOutlined />}
-                                  onClick={() => onApprove(approval)}
-                                  className="action-btn action-btn-approve"
-                                />
-                              </Tooltip>
-                              <Tooltip title="Отклонить">
-                                <Button
-                                  size="small"
-                                  danger
-                                  icon={<CloseOutlined />}
-                                  onClick={() => onReject(approval)}
-                                  className="action-btn action-btn-reject"
-                                />
-                              </Tooltip>
+                              {userRole === 3 ? (
+                                <Tooltip title="Отметить как оплачено">
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={<CheckOutlined />}
+                                    onClick={() => onPaymentCompletion?.(approval)}
+                                    className="action-btn action-btn-approve"
+                                    style={{ background: '#52c41a' }}
+                                  />
+                                </Tooltip>
+                              ) : (
+                                <>
+                                  <Tooltip title="Согласовать">
+                                    <Button
+                                      type="primary"
+                                      size="small"
+                                      icon={<CheckOutlined />}
+                                      onClick={() => onApprove(approval)}
+                                      className="action-btn action-btn-approve"
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Отклонить">
+                                    <Button
+                                      size="small"
+                                      danger
+                                      icon={<CloseOutlined />}
+                                      onClick={() => onReject(approval)}
+                                      className="action-btn action-btn-reject"
+                                    />
+                                  </Tooltip>
+                                </>
+                              )}
                               {permissions.can_edit_invoice && (
                                 <Tooltip title="Редактировать счёт">
                                   <Button

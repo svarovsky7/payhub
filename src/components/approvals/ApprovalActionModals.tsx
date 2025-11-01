@@ -20,7 +20,7 @@ interface ApprovalActionModalsProps {
   selectedApproval: PaymentApproval | null
   comment: string
   setComment: (comment: string) => void
-  processing: boolean
+  processing?: boolean
   onCancel: () => void
 }
 

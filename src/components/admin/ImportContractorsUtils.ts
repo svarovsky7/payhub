@@ -1,3 +1,5 @@
+import * as XLSX from 'xlsx'
+
 // Функция для обработки ИНН в научной нотации
 const processINN = (innValue: string): string => {
   console.log('[ImportContractorsUtils.processINN] Input:', innValue)
@@ -115,4 +117,84 @@ export const parseCSVContent = (content: string): ParsedContractor[] => {
   })
 
   return contractors
+}
+
+// Парсинг XLSX контента с поддержкой альтернативных названий
+export const parseXLSXContent = (arrayBuffer: ArrayBuffer): ParsedContractor[] => {
+  console.log('[ImportContractorsUtils.parseXLSXContent] Starting parse')
+  
+  try {
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+    
+    if (!worksheet) {
+      throw new Error('Не удалось найти данные в файле')
+    }
+    
+    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+    
+    console.log('[ImportContractorsUtils.parseXLSXContent] Parsed data:', data)
+    
+    if (data.length < 2) {
+      throw new Error('Файл не содержит данных')
+    }
+    
+    const contractors: ParsedContractor[] = []
+    const innGroups = new Map<string, ParsedContractor[]>()
+    
+    // Пропускаем первую строку (заголовки)
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i]
+      
+      if (!row || row.length < 2) {
+        console.log(`[ImportContractorsUtils.parseXLSXContent] Row ${i + 1} is empty or insufficient`)
+        continue
+      }
+      
+      const name = cleanCompanyName(String(row[0] || ''))
+      const originalInn = String(row[1] || '')
+      const inn = processINN(originalInn)
+      
+      // Валидация ИНН
+      let error = null
+      if (!name || !name.trim()) {
+        error = 'Название контрагента не заполнено'
+      } else if (!inn || (inn.length !== 10 && inn.length !== 12)) {
+        error = `Некорректный ИНН (должен быть 10 или 12 цифр, получено: ${inn ? inn.length : 0})`
+      }
+      
+      const contractor: ParsedContractor = {
+        key: i,
+        line: i + 1,
+        name: name,
+        inn: inn,
+        originalInn: originalInn,
+        error: error,
+        valid: !error
+      }
+      
+      contractors.push(contractor)
+      
+      // Группируем по ИНН (только валидные)
+      if (!error) {
+        if (innGroups.has(inn)) {
+          innGroups.get(inn)!.push(contractor)
+        } else {
+          innGroups.set(inn, [contractor])
+        }
+      }
+    }
+    
+    console.log('[ImportContractorsUtils.parseXLSXContent] Parsed contractors:', {
+      total: contractors.length,
+      valid: contractors.filter(c => c.valid).length,
+      invalid: contractors.filter(c => !c.valid).length,
+      groups: innGroups.size
+    })
+    
+    return contractors
+  } catch (error) {
+    console.error('[ImportContractorsUtils.parseXLSXContent] Error:', error)
+    throw error
+  }
 }

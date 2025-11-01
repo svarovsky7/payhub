@@ -25,7 +25,7 @@ export const InvoiceBasicFields: React.FC<InvoiceBasicFieldsProps> = ({
   return (
     <>
       <Row gutter={16}>
-        <Col span={12}>
+        <Col span={8}>
           <Form.Item
             name="invoice_number"
             label="Номер счёта"
@@ -33,7 +33,7 @@ export const InvoiceBasicFields: React.FC<InvoiceBasicFieldsProps> = ({
             <Input placeholder="б/н (если номер отсутствует)" autoComplete="off" />
           </Form.Item>
         </Col>
-        <Col span={12}>
+        <Col span={8}>
           <Form.Item
             name="invoice_date"
             label="Дата счёта"
@@ -46,10 +46,7 @@ export const InvoiceBasicFields: React.FC<InvoiceBasicFieldsProps> = ({
             />
           </Form.Item>
         </Col>
-      </Row>
-
-      <Row gutter={16}>
-        <Col span={12}>
+        <Col span={8}>
           <Form.Item
             name="invoice_type_id"
             label="Тип счёта"
@@ -66,7 +63,18 @@ export const InvoiceBasicFields: React.FC<InvoiceBasicFieldsProps> = ({
             />
           </Form.Item>
         </Col>
-        <Col span={12}>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item
+            name="recipient"
+            label="Получатель"
+          >
+            <Input placeholder="ФИО или название организации" autoComplete="off" />
+          </Form.Item>
+        </Col>
+        <Col span={16}>
           <Form.Item
             name="payment_deadline_date"
             label="Конечная дата актуальности счёта"
@@ -102,6 +110,20 @@ export const InvoiceBasicFields: React.FC<InvoiceBasicFieldsProps> = ({
               </Tag>
             </Space>
           </div>
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={24}>
+          <Form.Item
+            name="description"
+            label="Описание"
+          >
+            <Input.TextArea
+              placeholder="Описание счета"
+              rows={2}
+            />
+          </Form.Item>
         </Col>
       </Row>
     </>

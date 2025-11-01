@@ -45,11 +45,24 @@ export const useBulkApprovalActions = ({ userId, loadPendingApprovals }: UseBulk
     setBulkProgress(0)
 
     try {
+      const totalCount = selectedIds.length
+      const progressInterval = 100 / totalCount
+
+      // Simulate progress updates while processing
+      const progressTimer = setInterval(() => {
+        setBulkProgress(prev => Math.min(prev + progressInterval / 2, 95))
+      }, 250)
+
       const result = await bulkApprovePayments(selectedIds, userId, comment)
+      clearInterval(progressTimer)
+      setBulkProgress(100)
+
       console.log('[useBulkApprovalActions.handleBulkApprove] Result:', result)
 
       if (result.successful > 0) {
-        message.success(`Успешно согласовано: ${result.successful} из ${result.total}`)
+        const amount = result.totalAmount || 0
+        const formattedAmount = (amount / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+        message.success(`Согласовано ${result.successful} платеж(ей) на сумму ${formattedAmount}₽`)
       }
 
       if (result.failed > 0) {
@@ -86,13 +99,26 @@ export const useBulkApprovalActions = ({ userId, loadPendingApprovals }: UseBulk
     setBulkResult(null)
 
     try {
+      const totalCount = selectedIds.length
+      const progressInterval = 100 / totalCount
+
+      // Simulate progress updates while processing
+      const progressTimer = setInterval(() => {
+        setBulkProgress(prev => Math.min(prev + progressInterval / 2, 95))
+      }, 250)
+
       const result = await bulkRejectPayments(selectedIds, userId, bulkComment)
+      clearInterval(progressTimer)
+      setBulkProgress(100)
+
       console.log('[useBulkApprovalActions.submitBulkReject] Result:', result)
 
       setBulkResult(result)
 
       if (result.successful > 0) {
-        message.success(`Успешно отклонено: ${result.successful} из ${result.total}`)
+        const amount = result.totalAmount || 0
+        const formattedAmount = (amount / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+        message.success(`Отклонено ${result.successful} платеж(ей) на сумму ${formattedAmount}₽`)
       }
 
       if (result.failed > 0) {

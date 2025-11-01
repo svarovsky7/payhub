@@ -10,7 +10,8 @@ const INVOICE_STATUSES = {
   PENDING: 2,    // pending (На согласовании)
   PAID: 3,       // paid (Оплачен)
   PARTIAL: 4,    // partial (Частично оплачен)
-  CANCELLED: 5   // cancelled (Отменен)
+  CANCELLED: 5,  // cancelled (Отменен)
+  APPROVED: 7    // approved (В оплате) - НОВЫЙ СТАТУС
 }
 
 // ID статусов платежей
@@ -53,33 +54,57 @@ export function calculateInvoiceStatus(
     return INVOICE_STATUSES.CANCELLED
   }
 
-  // Считаем сумму оплаченных платежей
+  // Считаем сумму оплаченных и утвержденных к оплате платежей
   const paidSum = payments
-    .filter(p => p.status_id === PAYMENT_STATUSES.PAID)
+    .filter(p =>
+      p.status_id === PAYMENT_STATUSES.PAID ||
+      p.status_id === PAYMENT_STATUSES.APPROVED
+    )
     .reduce((sum, p) => sum + p.amount, 0)
 
-  // Проверяем наличие платежей на согласовании или утверждённых
-  const hasPendingOrApproved = payments.some(
-    p => p.status_id === PAYMENT_STATUSES.PENDING ||
-         p.status_id === PAYMENT_STATUSES.APPROVED
+  // Проверяем наличие платежей на согласовании
+  const hasPending = payments.some(
+    p => p.status_id === PAYMENT_STATUSES.PENDING
   )
 
-  // 1. Полностью оплачен
-  if (Math.abs(paidSum - invoiceAmount) <= EPS || paidSum > invoiceAmount + EPS) {
-    return INVOICE_STATUSES.PAID
+  // НОВОЕ ПРАВИЛО: Проверяем наличие платежей, утвержденных к оплате
+  const hasApproved = payments.some(
+    p => p.status_id === PAYMENT_STATUSES.APPROVED
+  )
+
+  // 1. Полностью оплачен (только по статусу PAID)
+  const fullyPaidSum = payments
+    .filter(p => p.status_id === PAYMENT_STATUSES.PAID)
+    .reduce((sum, p) => sum + p.amount, 0);
+
+  if (invoiceAmount > 0 && (Math.abs(fullyPaidSum - invoiceAmount) <= EPS || fullyPaidSum > invoiceAmount + EPS)) {
+    // Убедимся, что нет активных процессов, прежде чем закрывать счет
+    if (!hasPending && !hasApproved) {
+      return INVOICE_STATUSES.PAID
+    }
   }
 
-  // 2. Частично оплачен
-  if (paidSum > EPS && paidSum < invoiceAmount - EPS) {
-    return INVOICE_STATUSES.PARTIAL
+  // 2. В ОПЛАТЕ (приоритет над частичной оплатой)
+  if (hasApproved) {
+    return INVOICE_STATUSES.APPROVED
   }
 
   // 3. На согласовании
-  if (hasPendingOrApproved) {
+  if (hasPending) {
     return INVOICE_STATUSES.PENDING
   }
 
-  // 4. Черновик (по умолчанию)
+  // 4. Частично оплачен (только если нет активных согласований)
+  if (fullyPaidSum > EPS) {
+    return INVOICE_STATUSES.PARTIAL
+  }
+  
+  // Правило для сохранения статуса "На согласовании"
+  if (currentStatusId === INVOICE_STATUSES.PENDING && paidSum <= EPS && !hasApproved) {
+    return INVOICE_STATUSES.PENDING
+  }
+
+  // 5. Черновик (по умолчанию)
   return INVOICE_STATUSES.DRAFT
 }
 

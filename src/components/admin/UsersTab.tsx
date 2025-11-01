@@ -308,12 +308,18 @@ export const UsersTab = () => {
   const getProjectNames = (projectIds?: number[]) => {
     if (!projectIds || projectIds.length === 0) return '-'
 
-    return projectIds
-      .map(id => {
-        const project = projects.find(p => p.id === id)
-        return project ? <Tag key={id}>{project.name}</Tag> : null
-      })
-      .filter(Boolean)
+    const displayedProjects = projectIds.slice(0, 2)
+    const remaining = projectIds.length - displayedProjects.length
+
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+        {displayedProjects.map(id => {
+          const project = projects.find(p => p.id === id)
+          return project ? <Tag key={id}>{project.name}</Tag> : null
+        })}
+        {remaining > 0 && <span>+{remaining}</span>}
+      </div>
+    )
   }
 
   const columns: ColumnsType<UserWithProjects> = [
@@ -351,7 +357,8 @@ export const UsersTab = () => {
       key: 'projects',
       filters: projects.map(p => ({ text: p.name, value: p.id })),
       onFilter: (value, record) => record.projects?.includes(value as number) ?? false,
-      render: (projectIds) => getProjectNames(projectIds)
+      render: (projectIds) => getProjectNames(projectIds),
+      width: 300
     },
     {
       title: 'Дата регистрации',
@@ -459,6 +466,16 @@ export const UsersTab = () => {
               }))}
             />
           </Form.Item>
+
+          <div style={{ marginBottom: 16 }}>
+            <Button 
+              onClick={() => {
+                form.setFieldValue('projectIds', projects.map(p => p.id))
+              }}
+            >
+              Выбрать все проекты
+            </Button>
+          </div>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>

@@ -1,23 +1,31 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Table, Space, Button, Modal, Form, Input, App, type InputRef } from 'antd'
+import { Table, Space, Button, Modal, Form, Input, App, type InputRef, Divider, Radio, List } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType, ColumnType } from 'antd/es/table'
 import { supabase, type Contractor } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { ImportContractorsModal } from './ImportContractorsModal'
+import {
+  loadContractorsWithNames,
+  addContractorAlternativeName,
+  deleteContractorAlternativeName,
+  setPrimaryContractorName,
+} from '../../services/employeeOperations'
 import type { FormValues } from '../../types/common'
 import type { FilterConfirmProps } from 'antd/es/table/interface'
 
 type DataIndex = keyof Contractor
 
-
 export const ContractorsTab = () => {
   const { message: messageApi, modal } = App.useApp()
-  const [contractors, setContractors] = useState<Contractor[]>([])
+  const [contractors, setContractors] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [editingContractor, setEditingContractor] = useState<Contractor | null>(null)
+  const [editingContractor, setEditingContractor] = useState<any | null>(null)
   const [importModalVisible, setImportModalVisible] = useState(false)
+  const [namesModalVisible, setNamesModalVisible] = useState(false)
+  const [selectedContractor, setSelectedContractor] = useState<any | null>(null)
+  const [newNameInput, setNewNameInput] = useState('')
   const [form] = Form.useForm()
   const { user } = useAuth()
   const searchInput = useRef<InputRef>(null)
@@ -25,14 +33,8 @@ export const ContractorsTab = () => {
   const loadContractors = useCallback(async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('contractors')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      setContractors(data || [])
+      const data = await loadContractorsWithNames()
+      setContractors(data)
     } catch (error) {
       console.error('[ContractorsTab.loadContractors] Error:', error)
       messageApi.error('Ошибка загрузки контрагентов')
@@ -51,7 +53,7 @@ export const ContractorsTab = () => {
     setIsModalVisible(true)
   }
 
-  const handleEdit = (record: Contractor) => {
+  const handleEdit = (record: any) => {
     setEditingContractor(record)
     form.setFieldsValue(record)
     setIsModalVisible(true)
@@ -59,7 +61,6 @@ export const ContractorsTab = () => {
 
   const handleSubmit = async (values: FormValues) => {
     try {
-      // Проверяем, существует ли контрагент с таким ИНН
       if (values.inn) {
         const { data: existingContractors, error: checkError } = await supabase
           .from('contractors')
@@ -67,12 +68,9 @@ export const ContractorsTab = () => {
           .eq('inn', values.inn)
           .neq('id', editingContractor?.id || 0)
 
-
         if (!checkError && existingContractors && existingContractors.length > 0) {
           const existingContractor = existingContractors[0]
           messageApi.error(`Контрагент с ИНН ${values.inn} уже существует: ${existingContractor.name}`, 5)
-
-          // Также показываем ошибку под полем ИНН
           form.setFields([
             {
               name: 'inn',
@@ -92,11 +90,19 @@ export const ContractorsTab = () => {
         if (error) throw error
         messageApi.success('Контрагент обновлен')
       } else {
-        const { error } = await supabase
+        const { data: newContractor, error } = await supabase
           .from('contractors')
           .insert([{ ...values, created_by: user?.id }])
+          .select()
+          .single()
 
         if (error) throw error
+
+        // Add main name as alternative name
+        if (newContractor && values.name) {
+          await addContractorAlternativeName(newContractor.id, String(values.name), true)
+        }
+
         messageApi.success('Контрагент создан')
       }
 
@@ -132,6 +138,60 @@ export const ContractorsTab = () => {
         }
       }
     })
+  }
+
+  const handleManageNames = (record: any) => {
+    setSelectedContractor(record)
+    setNamesModalVisible(true)
+  }
+
+  const handleAddName = async () => {
+    if (!newNameInput.trim() || !selectedContractor) return
+
+    try {
+      await addContractorAlternativeName(selectedContractor.id, newNameInput, false)
+      setNewNameInput('')
+      loadContractors()
+      const updated = await loadContractorsWithNames()
+      const refreshed = updated.find(c => c.id === selectedContractor.id)
+      setSelectedContractor(refreshed)
+    } catch (error) {
+      console.error('Error adding name:', error)
+    }
+  }
+
+  const handleDeleteName = async (nameId: number) => {
+    try {
+      await deleteContractorAlternativeName(nameId)
+      loadContractors()
+      const updated = await loadContractorsWithNames()
+      const refreshed = updated.find(c => c.id === selectedContractor.id)
+      setSelectedContractor(refreshed)
+    } catch (error) {
+      console.error('Error deleting name:', error)
+    }
+  }
+
+  const handleSetPrimary = async (nameId: number) => {
+    if (!selectedContractor) return
+
+    try {
+      await setPrimaryContractorName(selectedContractor.id, nameId)
+      loadContractors()
+      const updated = await loadContractorsWithNames()
+      const refreshed = updated.find(c => c.id === selectedContractor.id)
+      setSelectedContractor(refreshed)
+    } catch (error) {
+      console.error('Error setting primary:', error)
+    }
+  }
+
+  const getPrimaryName = (contractor: any) => {
+    if (!contractor.alternative_names || contractor.alternative_names.length === 0) {
+      return contractor.name
+    }
+    const primary = contractor.alternative_names.find((n: any) => n.is_primary)
+    return primary ? primary.alternative_name : contractor.name
   }
 
   const handleSearch = (
@@ -200,7 +260,6 @@ export const ContractorsTab = () => {
 
   const handlePrefixClick = (prefix: string) => {
     const currentName = (form.getFieldValue('name') as string | undefined) || ''
-    // Удаляем существующий префикс и кавычки
     const withoutExistingPrefix = currentName
       .replace(/^(ООО|ИП|АО)\s+/i, '')
       .replace(/[«»"]/g, '')
@@ -208,25 +267,22 @@ export const ContractorsTab = () => {
 
     let nextValue: string
     if (prefix === 'ООО' || prefix === 'АО') {
-      // Для ООО и АО добавляем кавычки-ёлочки
       nextValue = withoutExistingPrefix ? `${prefix} «${withoutExistingPrefix}»` : prefix
     } else {
-      // Для ИП не добавляем кавычки
       nextValue = withoutExistingPrefix ? `${prefix} ${withoutExistingPrefix}` : prefix
     }
 
     form.setFieldsValue({ name: nextValue })
-
-    // Триггерим обновление значения формы для валидации
     form.validateFields(['name'])
   }
 
-  const columns: ColumnsType<Contractor> = [
+  const columns: ColumnsType<any> = [
     {
-      title: 'Название',
+      title: 'Основное название',
       dataIndex: 'name',
       key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      render: (_, record) => getPrimaryName(record),
+      sorter: (a, b) => getPrimaryName(a).localeCompare(getPrimaryName(b)),
       ...getColumnSearchProps('name'),
     },
     {
@@ -235,6 +291,74 @@ export const ContractorsTab = () => {
       key: 'inn',
       sorter: (a, b) => (a.inn || '').localeCompare(b.inn || ''),
       ...getColumnSearchProps('inn'),
+    },
+    {
+      title: 'Альтернативные названия',
+      dataIndex: 'alternative_names',
+      key: 'alternative_names',
+      render: (names: any[]) => {
+        if (!names || names.length <= 1) return '—'
+        return `${names.length - 1} ещё`
+      },
+      sorter: (a: any, b: any) => {
+        const aCount = (a.alternative_names?.length || 0) - 1
+        const bCount = (b.alternative_names?.length || 0) - 1
+        return aCount - bCount
+      },
+      onFilter: (value: any, record: any) => {
+        if (!record.alternative_names) return false
+        const searchValue = (value as string).toLowerCase()
+        return record.alternative_names.some((name: any) =>
+          name.alternative_name.toLowerCase().includes(searchValue)
+        )
+      },
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            ref={searchInput}
+            placeholder="Поиск по названиям"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => handleSearch(confirm)}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => handleSearch(confirm)}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Поиск
+            </Button>
+            <Button
+              onClick={() => clearFilters && handleReset(clearFilters)}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Сброс
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                close()
+              }}
+            >
+              Закрыть
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+      ),
+      onFilterDropdownOpenChange: (visible) => {
+        if (visible) {
+          setTimeout(() => searchInput.current?.select(), 100)
+        }
+      }
     },
     {
       title: 'Дата создания',
@@ -248,6 +372,12 @@ export const ContractorsTab = () => {
       key: 'actions',
       render: (_, record) => (
         <Space size="small">
+          <Button
+            size="small"
+            onClick={() => handleManageNames(record)}
+          >
+            Названия
+          </Button>
           <Button
             icon={<EditOutlined />}
             size="small"
@@ -279,7 +409,7 @@ export const ContractorsTab = () => {
             icon={<UploadOutlined />}
             onClick={() => setImportModalVisible(true)}
           >
-            Импорт из CSV
+            Импорт из XLSX
           </Button>
         </Space>
       </div>
@@ -339,7 +469,6 @@ export const ContractorsTab = () => {
             </div>
           </Form.Item>
 
-
           <Form.Item
             name="inn"
             label="ИНН"
@@ -353,7 +482,6 @@ export const ContractorsTab = () => {
               placeholder="10 или 12 цифр"
               maxLength={12}
               onChange={() => {
-                // Очищаем ошибку при изменении значения
                 form.setFields([
                   {
                     name: 'inn',
@@ -375,6 +503,68 @@ export const ContractorsTab = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={`Названия для ${selectedContractor?.name}`}
+        open={namesModalVisible}
+        onCancel={() => setNamesModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        {selectedContractor && (
+          <div>
+            <div style={{ marginBottom: 16 }}>
+              <Space.Compact style={{ width: '100%' }}>
+                <Input
+                  placeholder="Введите новое название"
+                  value={newNameInput}
+                  onChange={(e) => setNewNameInput(e.target.value)}
+                  onPressEnter={handleAddName}
+                />
+                <Button type="primary" onClick={handleAddName}>
+                  Добавить
+                </Button>
+              </Space.Compact>
+            </div>
+
+            <Divider />
+
+            {selectedContractor.alternative_names && selectedContractor.alternative_names.length > 0 ? (
+              <List
+                dataSource={selectedContractor.alternative_names}
+                renderItem={(item: any) => (
+                  <List.Item
+                    actions={[
+                      <Radio
+                        checked={item.is_primary}
+                        onChange={() => handleSetPrimary(item.id)}
+                      >
+                        Основное
+                      </Radio>,
+                      <Button
+                        type="link"
+                        danger
+                        size="small"
+                        onClick={() => handleDeleteName(item.id)}
+                      >
+                        Удалить
+                      </Button>
+                    ]}
+                  >
+                    <div>
+                      <div style={{ fontWeight: item.is_primary ? 'bold' : 'normal' }}>
+                        {item.alternative_name}
+                      </div>
+                    </div>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <p>Нет альтернативных названий</p>
+            )}
+          </div>
+        )}
       </Modal>
 
       <ImportContractorsModal

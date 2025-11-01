@@ -92,7 +92,8 @@ export const useInvoiceEditing = ({ loadPendingApprovals }: UseInvoiceEditingPro
         delivery_days: invoice.delivery_days,
         delivery_days_type: invoice.delivery_days_type || 'working',
         preliminary_delivery_date: invoice.preliminary_delivery_date ? dayjs(invoice.preliminary_delivery_date) : null,
-        description: invoice.description
+        description: invoice.description,
+        recipient: invoice.recipient
       })
     }
 
@@ -144,7 +145,8 @@ export const useInvoiceEditing = ({ loadPendingApprovals }: UseInvoiceEditingPro
         delivery_days: values.delivery_days,
         delivery_days_type: values.delivery_days_type,
         preliminary_delivery_date: values.preliminary_delivery_date ? values.preliminary_delivery_date.format('YYYY-MM-DD') : null,
-        description: values.description
+        description: values.description,
+        recipient: values.recipient
       }
 
       const { error } = await supabase
