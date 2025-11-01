@@ -1311,6 +1311,22 @@
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX project_budgets_project_id_key ON public.project_budgets USING btree (project_id)"
   },
+  "public.project_templates.idx_project_templates_project_id": {
+    "schema": "public",
+    "name": "idx_project_templates_project_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_project_templates_project_id ON public.project_templates USING btree (project_id)"
+  },
+  "public.project_templates.project_templates_project_id_key": {
+    "schema": "public",
+    "name": "project_templates_project_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX project_templates_project_id_key ON public.project_templates USING btree (project_id)"
+  },
   "public.projects.idx_projects_code": {
     "schema": "public",
     "name": "idx_projects_code",

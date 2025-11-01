@@ -40,13 +40,6 @@ export const ApprovalsPage = () => {
     getApprovalHistory
   } = useApprovalManagement()
 
-  console.log('[ApprovalsPage] State:', {
-    userRole,
-    pendingApprovalsCount: pendingApprovals.length,
-    loadingApprovals,
-    pendingApprovals
-  })
-
   // View mode state
   const [groupedView, setGroupedViewState] = useState(() => {
     const saved = localStorage.getItem('approvals_view_mode')
@@ -93,11 +86,8 @@ export const ApprovalsPage = () => {
 
   const { projectBudgets, budgetStats, canShowBudgets } = useBudgetStats(pendingApprovals)
 
-  console.log('[ApprovalsPage] Budget visibility:', { canShowBudgets, approvalsCount: pendingApprovals.length })
-
   // Handle material request view
   const handleViewMaterialRequest = (approval: PaymentApproval) => {
-    console.log('[ApprovalsPage] View material request:', approval)
     const materialRequestId = approval.payment?.invoice?.material_request_id
     if (materialRequestId) {
       setSelectedMaterialRequestId(materialRequestId)
@@ -107,21 +97,18 @@ export const ApprovalsPage = () => {
 
   // Handle change history view
   const handleViewChangeHistory = (approval: PaymentApproval) => {
-    console.log('[ApprovalsPage] View change history:', approval)
     setSelectedApprovalForHistory(approval)
     setChangeHistoryDrawerVisible(true)
   }
 
   // Handle view all files
   const handleViewAllFiles = (approval: PaymentApproval) => {
-    console.log('[ApprovalsPage] View all files:', approval)
     setSelectedApprovalForFiles(approval)
     setViewFilesModalVisible(true)
   }
 
   // Handle payment completion (for accountant)
   const handlePaymentCompletion = (approval: PaymentApproval) => {
-    console.log('[ApprovalsPage] Complete payment:', approval)
     setSelectedApprovalForCompletion(approval)
     setPaymentCompletionModalVisible(true)
   }

@@ -179,6 +179,12 @@
     "table": null,
     "sql": "CREATE TRIGGER update_project_budgets_updated_at BEFORE UPDATE ON public.project_budgets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()"
   },
+  "public.project_templates.trigger_project_templates_updated_at": {
+    "schema": "public",
+    "name": "trigger_project_templates_updated_at",
+    "table": null,
+    "sql": "CREATE TRIGGER trigger_project_templates_updated_at BEFORE UPDATE ON public.project_templates FOR EACH ROW EXECUTE FUNCTION update_project_templates_updated_at()"
+  },
   "public.projects.update_projects_updated_at": {
     "schema": "public",
     "name": "update_projects_updated_at",

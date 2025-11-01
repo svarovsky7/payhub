@@ -380,6 +380,8 @@ export const getInvoiceTableColumns = ({
     {
       title: 'Действия',
       key: 'actions',
+      fixed: 'right',
+      width: 120,
       render: (_, record) => {
         const paymentTotals = getPaymentTotals(record.id)
         return (

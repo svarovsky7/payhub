@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Modal, Upload, Button, Steps, Table, Tag, Space, Spin, message, Select } from 'antd'
-import { UploadOutlined, EyeOutlined, InboxOutlined } from '@ant-design/icons'
+import { UploadOutlined, InboxOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadChangeParam } from 'antd/es/upload/interface'
 import {
   parseInvoiceExcelFile,
@@ -9,6 +9,13 @@ import {
   type ImportedInvoice
 } from '../../services/invoice/invoiceImportService'
 import { useAuth } from '../../contexts/AuthContext'
+import {
+  uploadAndAttachFile,
+  getOrCreateContract,
+  createInvoiceRecord,
+  linkContractToInvoice,
+  createPaymentForInvoice
+} from '../../services/invoice/invoiceImportOperations'
 import { supabase } from '../../lib/supabase'
 
 interface ImportInvoicesModalProps {
@@ -17,44 +24,18 @@ interface ImportInvoicesModalProps {
   onSuccess: () => void
 }
 
-interface InvoiceFileMapping {
-  [invoiceIndex: number]: string[] // файлы, привязанные к счету
-}
-
-// Получить payment_type_id для bank_transfer
-const getBankTransferPaymentTypeId = async (): Promise<number | undefined> => {
-  try {
-    const { data, error } = await supabase
-      .from('payment_types')
-      .select('id')
-      .eq('code', 'bank_transfer')
-      .single()
-
-    if (error) {
-      console.error('[getBankTransferPaymentTypeId] Error:', error)
-      return undefined
-    }
-
-    return data?.id
-  } catch (error) {
-    console.error('[getBankTransferPaymentTypeId] Exception:', error)
-    return undefined
-  }
-}
-
 export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
   visible,
   onClose,
   onSuccess
 }) => {
   const { user } = useAuth()
-  const [step, setStep] = useState(0) // 0: загрузка файлов, 1: импорт Excel, 2: подбор файлов
+  const [step, setStep] = useState(0)
   const [uploadedFiles, setUploadedFiles] = useState<UploadFile[]>([])
   const [invoices, setInvoices] = useState<ImportedInvoice[]>([])
   const [importing, setImporting] = useState(false)
   const [fileList, setFileList] = useState<UploadFile[]>([])
-  const [previewFile, setPreviewFile] = useState<{ url: string; name: string } | null>(null)
-  const [invoiceFileMapping, setInvoiceFileMapping] = useState<InvoiceFileMapping>({})
+  const [invoiceFileMapping, setInvoiceFileMapping] = useState<Record<number, string[]>>({})
 
   const handleUploadFilesChange = (info: any) => {
     const filesWithPreview = info.fileList.map((file: UploadFile) => {
@@ -76,7 +57,6 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
     setUploadedFiles(filesWithPreview)
     setFileList(filesWithPreview)
     
-    // Handle file upload if file is done
     if (info.file) {
       const file = info.file.originFileObj || info.file
       if (file && info.file.status === 'done') {
@@ -94,19 +74,16 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
 
       setInvoices(enriched)
       
-      // Автоматическое сопоставление файлов
-      const autoMapping: InvoiceFileMapping = {}
+      const autoMapping: Record<number, string[]> = {}
       enriched.forEach((invoice, index) => {
         const linkedFiles: string[] = []
         if (invoice.fileLinks && invoice.fileLinks.length > 0) {
           invoice.fileLinks.forEach(fileLink => {
-            // Извлекаем базовое имя файла из пути
             const cleanedLink = fileLink
               .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\uFEFF]/g, '')
               .trim()
             const baseName = cleanedLink.split(/[/\\]/).pop() || ''
             
-            // Ищем загруженный файл с таким же именем
             const uploadedFile = uploadedFiles.find(f => f.name === baseName)
             if (uploadedFile) {
               linkedFiles.push(baseName)
@@ -144,58 +121,11 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
     setImporting(true)
     let successCount = 0
     try {
-      const uploadAndAttachFile = async (blob: Blob, fileName: string, invoiceId: string) => {
-        const timestamp = Date.now()
-        const cleanFileName = fileName
-          .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\uFEFF]/g, '')
-          .replace(/[^a-zA-Z0-9.\-_а-яА-Я]/g, '_')
-          .replace(/_{2,}/g, '_')
-        const path = `invoices/${invoiceId}/${timestamp}_${cleanFileName}`
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('attachments')
-          .upload(path, blob, {
-            contentType: blob.type || 'application/octet-stream',
-            upsert: false
-          })
-
-        if (uploadError) {
-          console.error('Error uploading file:', uploadError)
-          return
-        }
-
-        if (uploadData?.path) {
-          const { data: attachData, error: attachError } = await supabase
-            .from('attachments')
-            .insert({
-              original_name: fileName,
-              storage_path: uploadData.path,
-              size_bytes: blob.size,
-              mime_type: blob.type || 'application/octet-stream',
-              created_by: user.id
-            })
-            .select('id')
-            .single()
-
-          if (attachError) {
-            console.error('Error creating attachment record:', attachError)
-            return
-          }
-
-          if (attachData?.id) {
-            await supabase.from('invoice_attachments').insert({
-              invoice_id: invoiceId,
-              attachment_id: attachData.id
-            })
-          }
-        }
-      }
-
       for (let idx = 0; idx < invoices.length; idx++) {
         const invoice = invoices[idx]
         if (invoice.errors.length > 0) continue
 
-        // Проверить, существует ли такой счет уже в БД
+        // Проверить существование
         try {
           const { data: existingInvoice } = await supabase
             .from('invoices')
@@ -204,161 +134,27 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
             .eq('project_id', invoice.projectId)
             .single()
 
-          if (existingInvoice?.id) {
-            console.log('[handleImport] Invoice already exists:', invoice.invoiceNumber)
-            continue
-          }
+          if (existingInvoice?.id) continue
         } catch (error) {
-          // Счет не существует, продолжаем
-          console.log('[handleImport] Invoice check completed (not found or error)')
+          // Not found or error - continue
         }
 
-        // Создать договор если нужно
-        const contractId = await (async () => {
-          try {
-            if (invoice.contractId) {
-              return invoice.contractId
-            }
-
-            const { data: existing } = await supabase
-              .from('contracts')
-              .select('id')
-              .eq('contract_number', invoice.contractNumber)
-              .eq('contract_date', invoice.contractDate)
-              .eq('project_id', invoice.projectId)
-              .single()
-
-            if (existing?.id) {
-              return existing.id
-            }
-
-            if (!invoice.projectId) {
-              return undefined
-            }
-
-            const { data: created, error } = await supabase
-              .from('contracts')
-              .insert({
-                contract_number: invoice.contractNumber,
-                contract_date: invoice.contractDate,
-                supplier_id: invoice.supplierId,
-                payer_id: invoice.payerId,
-                project_id: invoice.projectId,
-                vat_rate: 20,
-                status_id: 2,
-                created_by: user.id
-              })
-              .select('id')
-              .single()
-
-            if (error) {
-              console.error('Error creating contract:', error)
-              throw error
-            }
-
-            if (created?.id && invoice.projectId) {
-              await supabase
-                .from('contract_projects')
-                .insert({
-                  contract_id: created.id,
-                  project_id: invoice.projectId
-                })
-            }
-
-            return created?.id
-          } catch (error) {
-            console.error('Error managing contract:', error)
-            return undefined
-          }
-        })()
+        // Создать договор
+        const contractId = await getOrCreateContract(invoice, invoice.projectId, user.id)
 
         // Создать счет
-        const { data: invoiceData, error: invoiceError } = await supabase
-          .from('invoices')
-          .insert({
-            user_id: user.id,
-            invoice_number: invoice.invoiceNumber,
-            amount_with_vat: invoice.invoiceAmount,
-            description: [
-              invoice.orderDescription ? `Заказ: ${invoice.orderDescription}` : '',
-              invoice.materialRequest ? `Заявка: ${invoice.materialRequest}` : '',
-              invoice.materialDescription ? `Материал: ${invoice.materialDescription}` : '',
-              invoice.recipientMol ? `МОЛ: ${invoice.recipientMol}` : ''
-            ]
-              .filter(Boolean)
-              .join('\n'),
-            recipient: invoice.recipientMol,
-            invoice_type_id: invoice.invoiceTypeId || undefined,
-            vat_amount: (invoice.invoiceAmount / 1.2 * 0.2),
-            payer_id: invoice.payerId,
-            supplier_id: invoice.supplierId,
-            project_id: invoice.projectId,
-            delivery_days: invoice.deliveryDays || 0,
-            delivery_days_type: 'calendar',
-            contract_id: contractId,
-            status_id: 1,
-            relevance_date: new Date().toISOString().split('T')[0]
-          })
-          .select('id')
-          .single()
+        const invoiceId = await createInvoiceRecord(invoice, contractId, user.id)
+        if (!invoiceId) continue
 
-        if (invoiceError || !invoiceData?.id) {
-          console.error('Error creating invoice:', invoiceError)
-          continue
+        // Связать договор и счет
+        if (contractId) {
+          await linkContractToInvoice(contractId, invoiceId)
         }
 
-        // Создать связь между договором и счетом
-        if (contractId && invoiceData.id) {
-          try {
-            await supabase.from('contract_invoices').insert({
-              contract_id: contractId,
-              invoice_id: invoiceData.id
-            })
-          } catch (error) {
-            console.error('[handleImport] Error linking contract to invoice:', error)
-          }
-        }
+        // Создать платеж
+        await createPaymentForInvoice(invoice, invoiceId, user.id)
 
-        // Создать платеж если сумма > 0
-        if (invoice.paymentAmount > 0) {
-          try {
-            const paymentTypeId = await getBankTransferPaymentTypeId()
-            const { data: payment, error: paymentError } = await supabase
-              .from('payments')
-              .insert({
-                invoice_id: invoiceData.id,
-                payment_number: 1,
-                payment_date: new Date().toISOString().split('T')[0],
-                amount: invoice.paymentAmount,
-                status_id: 1,
-                payment_type_id: paymentTypeId || undefined, // Используем найденный ID
-                created_by: user.id
-              })
-              .select('id')
-              .single()
-
-            if (paymentError) {
-              console.error('[handleImport] Error creating payment:', paymentError)
-            } else if (payment?.id) {
-              // Создать связь в invoice_payments
-              const { error: linkError } = await supabase
-                .from('invoice_payments')
-                .insert({
-                  invoice_id: invoiceData.id,
-                  payment_id: payment.id,
-                  allocated_amount: invoice.paymentAmount
-                })
-
-              if (linkError) {
-                console.error('[handleImport] Error linking payment:', linkError)
-              }
-            }
-          } catch (error) {
-            console.error('[handleImport] Exception creating payment:', error)
-          }
-        }
-
-        // Загрузить выбранные файлы
+        // Загрузить файлы
         const selectedFileNames = invoiceFileMapping[idx] || []
         for (const fileName of selectedFileNames) {
           try {
@@ -367,7 +163,8 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
               await uploadAndAttachFile(
                 fileToUpload.originFileObj,
                 fileName,
-                invoiceData.id
+                invoiceId,
+                user.id
               )
             }
           } catch (error) {
@@ -398,7 +195,6 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
     setFileList([])
     setInvoices([])
     setUploadedFiles([])
-    setPreviewFile(null)
     setInvoiceFileMapping({})
     onClose()
   }
@@ -544,8 +340,7 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
             beforeUpload={() => false}
             listType="picture"
             showUploadList={{
-              showPreviewIcon: true,
-              previewIcon: <EyeOutlined />
+              showPreviewIcon: true
             }}
           >
             <Button icon={<UploadOutlined />}>
@@ -593,32 +388,6 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
           </div>
         </Spin>
       )}
-
-      <Modal
-        open={!!previewFile}
-        title={previewFile?.name}
-        footer={null}
-        onCancel={() => setPreviewFile(null)}
-        width="90%"
-        style={{ top: 20 }}
-        styles={{ body: { textAlign: 'center', maxHeight: '85vh', overflow: 'auto' } }}
-      >
-        {previewFile && (
-          previewFile.url.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i) ? (
-            <img
-              alt={previewFile.name}
-              style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-              src={previewFile.url}
-            />
-          ) : (
-            <iframe
-              title={previewFile.name}
-              src={previewFile.url}
-              style={{ width: '100%', height: '80vh', border: 'none' }}
-            />
-          )
-        )}
-      </Modal>
     </Modal>
   )
 }

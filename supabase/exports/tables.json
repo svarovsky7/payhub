@@ -8315,6 +8315,114 @@
     ],
     "sql": "-- Project budgets and financial allocations\nCREATE TABLE IF NOT EXISTS public.project_budgets (\n    id integer(32) NOT NULL DEFAULT nextval('project_budgets_id_seq'::regclass),\n    project_id integer(32) NOT NULL,\n    allocated_amount numeric(15,2) NOT NULL DEFAULT 0,\n    description text,\n    created_by uuid,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT project_budgets_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT project_budgets_pkey PRIMARY KEY (id),\n    CONSTRAINT project_budgets_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.project_budgets IS 'Project budgets and financial allocations';\nCOMMENT ON COLUMN public.project_budgets.id IS 'Primary key';\nCOMMENT ON COLUMN public.project_budgets.project_id IS 'Project ID';\nCOMMENT ON COLUMN public.project_budgets.allocated_amount IS 'Total allocated budget amount';\nCOMMENT ON COLUMN public.project_budgets.description IS 'Budget description or notes';\nCOMMENT ON COLUMN public.project_budgets.created_by IS 'User ID who created the budget record';\nCOMMENT ON COLUMN public.project_budgets.created_at IS 'Timestamp when the budget was created';\nCOMMENT ON COLUMN public.project_budgets.updated_at IS 'Timestamp when the budget was last updated';"
   },
+  "public.project_templates": {
+    "schema": "public",
+    "name": "project_templates",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "bigint",
+        "max_length": null,
+        "numeric_precision": 64,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "project_id",
+        "data_type": "integer",
+        "max_length": null,
+        "numeric_precision": 32,
+        "numeric_scale": 0,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "template_path",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_34593_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_34593_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_34593_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_templates_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_templates_project_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "project_templates_project_id_key",
+        "type": "UNIQUE",
+        "column": "project_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.project_templates (\n    id bigint(64) NOT NULL,\n    project_id integer(32) NOT NULL,\n    template_path character varying(255) NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT project_templates_pkey PRIMARY KEY (id),\n    CONSTRAINT project_templates_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),\n    CONSTRAINT project_templates_project_id_key UNIQUE (project_id)\n);"
+  },
   "public.projects": {
     "schema": "public",
     "name": "projects",

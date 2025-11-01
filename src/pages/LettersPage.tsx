@@ -204,7 +204,6 @@ export const LettersPage = () => {
   }, [letters, filterValues])
 
   const handleFilter = (values: LetterFilterValues) => {
-    console.log('[LettersPage.handleFilter] Applying filters:', values)
     setFilterValues(values)
   }
 

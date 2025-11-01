@@ -147,3 +147,207 @@ export const downloadLetterTemplateBlob = async (): Promise<Blob> => {
     throw error
   }
 }
+
+/**
+ * Upload template for a specific project
+ */
+export const uploadProjectTemplate = async (projectId: number, file: File): Promise<void> => {
+  try {
+    console.log('[templateService.uploadProjectTemplate] Uploading template for project:', projectId)
+
+    if (!file.name.endsWith('.docx')) {
+      throw new Error('Файл должен быть в формате DOCX')
+    }
+
+    const MAX_SIZE = 10 * 1024 * 1024
+    if (file.size > MAX_SIZE) {
+      throw new Error('Размер файла не должен превышать 10 МБ')
+    }
+
+    const templatePath = `templates/project_${projectId}.docx`
+
+    const { error: uploadError } = await supabase.storage
+      .from(TEMPLATE_BUCKET)
+      .upload(templatePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      })
+
+    if (uploadError) throw uploadError
+
+    // Save mapping in database
+    const { error: dbError } = await supabase
+      .from('project_templates')
+      .upsert({
+        project_id: projectId,
+        template_path: templatePath
+      }, { onConflict: 'project_id' })
+
+    if (dbError) throw dbError
+
+    console.log('[templateService.uploadProjectTemplate] Template uploaded successfully')
+    message.success('Шаблон для проекта загружен')
+  } catch (error: unknown) {
+    console.error('[templateService.uploadProjectTemplate] Error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Ошибка загрузки шаблона'
+    message.error(errorMessage)
+    throw error
+  }
+}
+
+/**
+ * Get all project templates
+ */
+export const getAllProjectTemplates = async (): Promise<Record<number, { exists: boolean; url?: string }>> => {
+  try {
+    console.log('[templateService.getAllProjectTemplates] Getting all project templates')
+
+    const { data, error } = await supabase
+      .from('project_templates')
+      .select('project_id, template_path')
+
+    if (error) {
+      throw error
+    }
+
+    if (!data) {
+      return {}
+    }
+
+    const templates: Record<number, { exists: boolean; url?: string }> = {}
+    for (const template of data) {
+      const { data: urlData } = supabase.storage
+        .from(TEMPLATE_BUCKET)
+        .getPublicUrl(template.template_path)
+      
+      templates[template.project_id] = {
+        exists: true,
+        url: urlData.publicUrl
+      }
+    }
+    
+    return templates
+    
+  } catch (error) {
+    console.error('[templateService.getAllProjectTemplates] Error:', error)
+    return {}
+  }
+}
+
+/**
+ * Get template for a specific project
+ */
+export const getProjectTemplate = async (projectId: number): Promise<{ exists: boolean; url?: string }> => {
+  try {
+    console.log('[templateService.getProjectTemplate] Getting template for project:', projectId)
+
+    const { data, error } = await supabase
+      .from('project_templates')
+      .select('template_path')
+      .eq('project_id', projectId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      throw error
+    }
+
+    if (!data) {
+      console.log('[templateService.getProjectTemplate] Template not found for project')
+      return { exists: false }
+    }
+
+    const { data: urlData } = supabase.storage
+      .from(TEMPLATE_BUCKET)
+      .getPublicUrl(data.template_path)
+
+    return {
+      exists: true,
+      url: urlData.publicUrl
+    }
+  } catch (error) {
+    console.error('[templateService.getProjectTemplate] Error:', error)
+    return { exists: false }
+  }
+}
+
+/**
+ * Download template for a specific project
+ */
+export const downloadProjectTemplateBlob = async (projectId: number): Promise<Blob> => {
+  try {
+    console.log('[templateService.downloadProjectTemplateBlob] Downloading template for project:', projectId)
+
+    const { data: templateData, error: queryError } = await supabase
+      .from('project_templates')
+      .select('template_path')
+      .eq('project_id', projectId)
+      .single()
+
+    if (queryError) {
+      if (queryError.code === 'PGRST116') {
+        throw new Error('Шаблон для проекта не найден')
+      }
+      throw queryError
+    }
+
+    if (!templateData) {
+      throw new Error('Шаблон для проекта не найден')
+    }
+
+    const { data, error } = await supabase.storage
+      .from(TEMPLATE_BUCKET)
+      .download(templateData.template_path)
+
+    if (error) throw error
+
+    if (!data) {
+      throw new Error('Template file not found')
+    }
+
+    return data
+  } catch (error) {
+    console.error('[templateService.downloadProjectTemplateBlob] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Delete template for a specific project
+ */
+export const deleteProjectTemplate = async (projectId: number): Promise<void> => {
+  try {
+    console.log('[templateService.deleteProjectTemplate] Deleting template for project:', projectId)
+
+    const { data: templateData, error: queryError } = await supabase
+      .from('project_templates')
+      .select('template_path')
+      .eq('project_id', projectId)
+      .single()
+
+    if (queryError && queryError.code !== 'PGRST116') {
+      throw queryError
+    }
+
+    if (templateData) {
+      const { error: deleteError } = await supabase.storage
+        .from(TEMPLATE_BUCKET)
+        .remove([templateData.template_path])
+
+      if (deleteError) throw deleteError
+    }
+
+    const { error: dbError } = await supabase
+      .from('project_templates')
+      .delete()
+      .eq('project_id', projectId)
+
+    if (dbError) throw dbError
+
+    console.log('[templateService.deleteProjectTemplate] Template deleted successfully')
+    message.success('Шаблон для проекта удалён')
+  } catch (error) {
+    console.error('[templateService.deleteProjectTemplate] Error:', error)
+    message.error('Ошибка удаления шаблона')
+    throw error
+  }
+}

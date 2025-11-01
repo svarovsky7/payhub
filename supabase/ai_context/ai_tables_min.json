@@ -1614,6 +1614,37 @@
     },
     "comment": "Project budgets and financial allocations"
   },
+  "public.project_templates": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "bigint",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "project_id": {
+        "type": "integer",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "template_path": {
+        "type": "character varying",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      }
+    },
+    "comment": null
+  },
   "public.projects": {
     "schema": "public",
     "columns": {

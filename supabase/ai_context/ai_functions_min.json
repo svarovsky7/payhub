@@ -519,6 +519,11 @@
     "name": "update_project_alternative_names_updated_at",
     "description": null
   },
+  "public.update_project_templates_updated_at()": {
+    "schema": "public",
+    "name": "update_project_templates_updated_at",
+    "description": null
+  },
   "public.update_updated_at_column()": {
     "schema": "public",
     "name": "update_updated_at_column",

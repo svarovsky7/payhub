@@ -37,10 +37,6 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
   const [viewModalVisible, setViewModalVisible] = useState(false)
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null)
 
-  // Log editingInvoice changes
-  useEffect(() => {
-  }, [editingInvoice])
-
   // Load reference data
   const loadReferenceData = useCallback(async () => {
     const refs = await loadReferences()

@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-11-01T07:02:39.855767
+-- Generated: 2025-11-01T07:16:30.062037
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -1234,6 +1234,17 @@ COMMENT ON COLUMN public.project_budgets.description IS 'Budget description or n
 COMMENT ON COLUMN public.project_budgets.created_by IS 'User ID who created the budget record';
 COMMENT ON COLUMN public.project_budgets.created_at IS 'Timestamp when the budget was created';
 COMMENT ON COLUMN public.project_budgets.updated_at IS 'Timestamp when the budget was last updated';
+
+CREATE TABLE IF NOT EXISTS public.project_templates (
+    id bigint(64) NOT NULL,
+    project_id integer(32) NOT NULL,
+    template_path character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT project_templates_pkey PRIMARY KEY (id),
+    CONSTRAINT project_templates_project_id_fkey FOREIGN KEY (project_id) REFERENCES None.None(None),
+    CONSTRAINT project_templates_project_id_key UNIQUE (project_id)
+);
 
 -- Company projects
 CREATE TABLE IF NOT EXISTS public.projects (
@@ -3471,6 +3482,18 @@ $function$
 
 ;
 
+CREATE OR REPLACE FUNCTION public.update_project_templates_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$function$
+
+;
+
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -5006,6 +5029,9 @@ CREATE TRIGGER trigger_project_alternative_names_updated_at BEFORE UPDATE ON pub
 CREATE TRIGGER update_project_budgets_updated_at BEFORE UPDATE ON public.project_budgets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
+CREATE TRIGGER trigger_project_templates_updated_at BEFORE UPDATE ON public.project_templates FOR EACH ROW EXECUTE FUNCTION update_project_templates_updated_at()
+;
+
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 ;
 
@@ -5536,6 +5562,12 @@ CREATE INDEX idx_project_budgets_project_id ON public.project_budgets USING btre
 ;
 
 CREATE UNIQUE INDEX project_budgets_project_id_key ON public.project_budgets USING btree (project_id)
+;
+
+CREATE INDEX idx_project_templates_project_id ON public.project_templates USING btree (project_id)
+;
+
+CREATE UNIQUE INDEX project_templates_project_id_key ON public.project_templates USING btree (project_id)
 ;
 
 CREATE INDEX idx_projects_code ON public.projects USING btree (code)

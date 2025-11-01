@@ -325,7 +325,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
       console.error('[LetterFormModal.handleDownloadDocument] Error:', error)
       if (error instanceof Error) {
         if (error.message?.includes('Template file not found') || error.message?.includes('not found')) {
-          message.error('Шаблон документа не найден. Загрузите шаблон в разделе Администрирование → Шаблоны документов')
+          message.error('Шаблон документа не найден. Загрузите шаблон для проекта или глобальный шаблон в разделе Администрирование → Шаблоны документов')
         } else {
           message.error('Ошибка генерации документа: ' + error.message)
         }

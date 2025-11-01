@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react'
-import { Card, Button, Upload, Space, Typography, Alert, Spin, Popconfirm, Tag } from 'antd'
-import { UploadOutlined, DeleteOutlined, DownloadOutlined, FileWordOutlined } from '@ant-design/icons'
+import { Card, Button, Upload, Space, Typography, Alert, Spin, Popconfirm, Tag, Table, Modal } from 'antd'
+import { UploadOutlined, DeleteOutlined, DownloadOutlined, FileWordOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadFile } from 'antd'
 import {
   getLetterTemplate,
   uploadLetterTemplate,
-  deleteLetterTemplate
+  deleteLetterTemplate,
+  uploadProjectTemplate,
+  getProjectTemplate,
+  deleteProjectTemplate,
+  getAllProjectTemplates
 } from '../../services/templateService'
+import { supabase } from '../../lib/supabase'
+import type { Project } from '../../lib/supabase'
 
 const { Title, Text } = Typography
 
@@ -15,9 +21,18 @@ export const TemplatesTab = () => {
   const [templateInfo, setTemplateInfo] = useState<{ exists: boolean; url?: string; lastModified?: string }>({ exists: false })
   const [uploading, setUploading] = useState(false)
   const [fileList, setFileList] = useState<UploadFile[]>([])
+  
+  // Project templates
+  const [projects, setProjects] = useState<Project[]>([])
+  const [projectTemplates, setProjectTemplates] = useState<Record<number, { exists: boolean; url?: string }>>({})
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+  const [projectFileList, setProjectFileList] = useState<UploadFile[]>([])
+  const [projectUploading, setProjectUploading] = useState(false)
+  const [loadingProjects, setLoadingProjects] = useState(false)
 
   useEffect(() => {
     loadTemplateInfo()
+    loadProjects()
   }, [])
 
   const loadTemplateInfo = async () => {
@@ -33,6 +48,34 @@ export const TemplatesTab = () => {
     }
   }
 
+  const loadProjects = async () => {
+    setLoadingProjects(true)
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+
+      if (error) throw error
+      setProjects(data || [])
+      
+      const allTemplates = await getAllProjectTemplates()
+      
+      const templatesWithStatus = (data || []).reduce((acc, project) => {
+        acc[project.id] = allTemplates[project.id] || { exists: false }
+        return acc
+      }, {} as Record<number, { exists: boolean; url?: string }>)
+      
+      setProjectTemplates(templatesWithStatus)
+
+    } catch (error) {
+      console.error('[TemplatesTab.loadProjects] Error:', error)
+    } finally {
+      setLoadingProjects(false)
+    }
+  }
+
   const handleUpload = async (file: File) => {
     console.log('[TemplatesTab.handleUpload] Uploading file:', file.name)
     setUploading(true)
@@ -45,7 +88,7 @@ export const TemplatesTab = () => {
     } finally {
       setUploading(false)
     }
-    return false // Prevent default upload
+    return false
   }
 
   const handleDelete = async () => {
@@ -67,6 +110,101 @@ export const TemplatesTab = () => {
     }
   }
 
+  const handleProjectTemplateUpload = async (file: File) => {
+    if (!selectedProjectId) {
+      return false
+    }
+    console.log('[TemplatesTab.handleProjectTemplateUpload] Uploading for project:', selectedProjectId)
+    setProjectUploading(true)
+    try {
+      await uploadProjectTemplate(selectedProjectId, file)
+      await loadProjects()
+      setProjectFileList([])
+      setSelectedProjectId(null)
+    } catch (error) {
+      console.error('[TemplatesTab.handleProjectTemplateUpload] Error:', error)
+    } finally {
+      setProjectUploading(false)
+    }
+    return false
+  }
+
+  const handleProjectTemplateDelete = async (projectId: number) => {
+    console.log('[TemplatesTab.handleProjectTemplateDelete] Deleting template for project:', projectId)
+    try {
+      await deleteProjectTemplate(projectId)
+      await loadProjects()
+    } catch (error) {
+      console.error('[TemplatesTab.handleProjectTemplateDelete] Error:', error)
+    }
+  }
+
+  const handleProjectTemplateDownload = (url?: string) => {
+    if (url) {
+      window.open(url, '_blank')
+    }
+  }
+
+  const projectColumns = [
+    {
+      title: 'Проект',
+      dataIndex: 'name',
+      key: 'name'
+    },
+    {
+      title: 'Шаблон',
+      key: 'template',
+      render: (_: any, record: Project) => {
+        const template = projectTemplates[record.id]
+        return template?.exists ? (
+          <Tag color="green">Загружен</Tag>
+        ) : (
+          <Tag>Не загружен</Tag>
+        )
+      }
+    },
+    {
+      title: 'Действия',
+      key: 'actions',
+      render: (_: any, record: Project) => {
+        const template = projectTemplates[record.id]
+        return (
+          <Space size="small">
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => setSelectedProjectId(record.id)}
+            >
+              {template?.exists ? 'Обновить' : 'Загрузить'}
+            </Button>
+            {template?.exists && (
+              <>
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={() => handleProjectTemplateDownload(template.url)}
+                >
+                  Скачать
+                </Button>
+                <Popconfirm
+                  title="Удалить шаблон?"
+                  description="Вы уверены, что хотите удалить шаблон для этого проекта?"
+                  onConfirm={() => handleProjectTemplateDelete(record.id)}
+                  okText="Да"
+                  cancelText="Отмена"
+                >
+                  <Button danger size="small" icon={<DeleteOutlined />}>
+                    Удалить
+                  </Button>
+                </Popconfirm>
+              </>
+            )}
+          </Space>
+        )
+      }
+    }
+  ]
+
   return (
     <div>
       <Title level={3}>Шаблоны документов</Title>
@@ -74,8 +212,9 @@ export const TemplatesTab = () => {
         Управление шаблонами документов для генерации писем с QR-кодами
       </Text>
 
+      {/* Global template */}
       <Card
-        title="Шаблон письма (DOCX)"
+        title="Шаблон письма (DOCX) - Глобальный"
         style={{ marginTop: 24 }}
         extra={
           templateInfo.exists && (
@@ -135,20 +274,6 @@ export const TemplatesTab = () => {
                   showIcon
                 />
 
-                <Alert
-                  message="Инструкция по использованию"
-                  description={
-                    <div>
-                      <p>В верхнем правом углу шаблона будет автоматически размещён QR-код с уникальной ссылкой на просмотр письма.</p>
-                      <p>Каждый QR-код содержит идентификатор формата <Tag>СУ-10-[ID письма]</Tag></p>
-                      <p>При сканировании QR-кода авторизованный пользователь будет перенаправлен на страницу просмотра соответствующего письма.</p>
-                    </div>
-                  }
-                  type="info"
-                  showIcon
-                  style={{ marginTop: 16 }}
-                />
-
                 <div style={{ marginTop: 16 }}>
                   <Text strong>Обновить шаблон:</Text>
                   <div style={{ marginTop: 8 }}>
@@ -175,22 +300,6 @@ export const TemplatesTab = () => {
                   showIcon
                 />
 
-                <Alert
-                  message="Требования к шаблону"
-                  description={
-                    <ul style={{ marginBottom: 0 }}>
-                      <li>Формат файла: DOCX</li>
-                      <li>Максимальный размер: 10 МБ</li>
-                      <li>QR-код будет размещён в верхнем правом углу документа</li>
-                      <li>Размер QR-кода: 3x3 см</li>
-                      <li>Файл будет сохранён в <code>attachments/templates/letter_template.docx</code></li>
-                    </ul>
-                  }
-                  type="info"
-                  showIcon
-                  style={{ marginTop: 16 }}
-                />
-
                 <div style={{ marginTop: 24 }}>
                   <Upload
                     fileList={fileList}
@@ -210,30 +319,40 @@ export const TemplatesTab = () => {
         )}
       </Card>
 
+      {/* Project templates */}
       <Card
-        title="Создание шаблона"
+        title="Шаблоны по проектам"
         style={{ marginTop: 24 }}
       >
-        <Alert
-          message="Как создать шаблон"
-          description={
-            <div>
-              <p><strong>Шаг 1:</strong> Создайте документ Word (DOCX) с нужным форматированием и содержанием</p>
-              <p><strong>Шаг 2:</strong> Оставьте пространство в верхнем правом углу документа (примерно 4x4 см) для QR-кода</p>
-              <p><strong>Шаг 3:</strong> Загрузите файл через кнопку "Загрузить шаблон DOCX" выше</p>
-              <p><strong>Шаг 4:</strong> После загрузки шаблон будет доступен для генерации документов писем</p>
-              <p style={{ marginTop: 16, marginBottom: 0 }}>
-                <Text type="secondary">
-                  <strong>Примечание:</strong> При генерации документа система автоматически добавит QR-код с идентификатором письма.
-                  Формат QR-кода: <Tag>СУ-10-[ID]</Tag> где ID - уникальный идентификатор письма.
-                </Text>
-              </p>
-            </div>
-          }
-          type="info"
-          showIcon
+        <Table
+          columns={projectColumns}
+          dataSource={projects}
+          rowKey="id"
+          loading={loadingProjects}
+          pagination={false}
+          size="small"
         />
       </Card>
+
+      {/* Upload modal for project template */}
+      <Modal
+        title={`Загрузить шаблон для проекта`}
+        open={selectedProjectId !== null}
+        onCancel={() => setSelectedProjectId(null)}
+        footer={null}
+      >
+        <Upload
+          fileList={projectFileList}
+          beforeUpload={handleProjectTemplateUpload}
+          onChange={({ fileList }) => setProjectFileList(fileList)}
+          accept=".docx"
+          maxCount={1}
+        >
+          <Button type="primary" icon={<UploadOutlined />} loading={projectUploading} size="large">
+            Выбрать файл DOCX
+          </Button>
+        </Upload>
+      </Modal>
     </div>
   )
 }

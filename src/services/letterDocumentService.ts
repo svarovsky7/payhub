@@ -1,6 +1,6 @@
 import QRCode from 'qrcode'
 import PizZip from 'pizzip'
-import { downloadLetterTemplateBlob } from './templateService'
+import { downloadLetterTemplateBlob, downloadProjectTemplateBlob } from './templateService'
 import { supabase } from '../lib/supabase'
 import type { Letter } from '../lib/supabase'
 
@@ -213,6 +213,25 @@ const addQRCodeToDocument = async (
 }
 
 /**
+ * Download template with fallback: project-specific or global
+ */
+const downloadTemplateBlob = async (projectId?: number): Promise<Blob> => {
+  if (projectId) {
+    try {
+      console.log('[letterDocumentService.downloadTemplateBlob] Trying to download project template for project:', projectId)
+      const blob = await downloadProjectTemplateBlob(projectId)
+      console.log('[letterDocumentService.downloadTemplateBlob] Project template downloaded')
+      return blob
+    } catch (error) {
+      console.log('[letterDocumentService.downloadTemplateBlob] Project template not found, falling back to global template')
+    }
+  }
+
+  console.log('[letterDocumentService.downloadTemplateBlob] Downloading global template')
+  return await downloadLetterTemplateBlob()
+}
+
+/**
  * Generate a letter document with QR code
  * @param letterIdOrLetter - Letter ID string or Letter object
  * @param publicToken - Optional public share token for new letters
@@ -241,8 +260,8 @@ export const generateLetterDocument = async (letterIdOrLetter: string | Letter, 
       letter = letterIdOrLetter
     }
 
-    // Download template
-    const templateBlob = await downloadLetterTemplateBlob()
+    // Download template (project-specific or global)
+    const templateBlob = await downloadTemplateBlob(letter.project_id)
     const templateArrayBuffer = await templateBlob.arrayBuffer()
 
     // Load template into PizZip

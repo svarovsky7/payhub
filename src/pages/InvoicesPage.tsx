@@ -345,50 +345,52 @@ export const InvoicesPage = () => {
           key,
           label,
           children: (
-            <Table
-              columns={visibleColumns}
-              dataSource={filteredInvoices}
-              rowKey="id"
-              loading={loading}
-              expandable={expandable}
-              rowSelection={{
-                selectedRowKeys: selectedInvoiceIds,
-                onChange: (selectedKeys) => setSelectedInvoiceIds(selectedKeys as string[]),
-                checkStrictly: true,
-              }}
-              rowClassName={(record) => {
-                const classes = [];
+            <div className="table-scroll-container">
+              <Table
+                columns={visibleColumns}
+                dataSource={filteredInvoices}
+                rowKey="id"
+                loading={loading}
+                expandable={expandable}
+                rowSelection={{
+                  selectedRowKeys: selectedInvoiceIds,
+                  onChange: (selectedKeys) => setSelectedInvoiceIds(selectedKeys as string[]),
+                  checkStrictly: true,
+                }}
+                rowClassName={(record) => {
+                  const classes = [];
 
-                // Подсветка архивных счетов
-                if (record.is_archived) {
-                  classes.push('archived-invoice-row');
-                }
-
-                // Подсветка устаревших счетов (более 30 дней)
-                if (record.relevance_date) {
-                  const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
-                  if (daysSinceRelevance > 30) {
-                    classes.push('outdated-invoice-row');
+                  // Подсветка архивных счетов
+                  if (record.is_archived) {
+                    classes.push('archived-invoice-row');
                   }
-                }
 
-                return classes.join(' ');
-              }}
-              pagination={{
-                defaultPageSize: 100,
-                showSizeChanger: true,
-                showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
-                pageSizeOptions: ['50', '100', '200']
-              }}
-              onRow={() => ({
-                style: { cursor: 'pointer' }
-              })}
-              className="expandable-table-smooth compact-table"
-              tableLayout="auto"
-              style={{ width: '100%' }}
-              scroll={{ x: 'max-content' }}
-            />
-          ),
+                  // Подсветка устаревших счетов (более 30 дней)
+                  if (record.relevance_date) {
+                    const daysSinceRelevance = dayjs().diff(dayjs(record.relevance_date), 'day')
+                    if (daysSinceRelevance > 30) {
+                      classes.push('outdated-invoice-row');
+                    }
+                  }
+
+                  return classes.join(' ');
+                }}
+                pagination={{
+                  defaultPageSize: 100,
+                  showSizeChanger: true,
+                  showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
+                  pageSizeOptions: ['50', '100', '200']
+                }}
+                onRow={() => ({
+                  style: { cursor: 'pointer' }
+                })}
+                className="expandable-table-smooth compact-table"
+                tableLayout="auto"
+                style={{ width: '100%' }}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
+          )
         }))}
       />
 

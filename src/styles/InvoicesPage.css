@@ -1,3 +1,11 @@
+/* Контейнер с горизонтальной полосой прокрутки */
+.table-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Автоматическое распределение ширины таблицы */
 .expandable-table-smooth {
   width: 100% !important;
@@ -11,7 +19,7 @@
 .expandable-table-smooth .ant-table-body,
 .expandable-table-smooth .ant-table,
 .expandable-table-smooth .ant-table-wrapper {
-    overflow-x: hidden !important;   /* не даём появляться горизонтальной полосе */
+    overflow-x: visible !important;   /* Разрешаем горизонтальную прокрутку */
 }
 
 .expandable-table-smooth table {
