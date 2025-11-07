@@ -57,7 +57,7 @@ export const processPaymentFiles = async (paymentId: string, files: FileWithDesc
       const fileName = `${timestamp}_${originalName}`
       const storagePath = `payments/${paymentId}/${fileName}`
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('attachments')
         .upload(storagePath, fileToUpload, {
           cacheControl: '3600',

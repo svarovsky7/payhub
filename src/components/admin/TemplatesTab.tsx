@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Card, Button, Upload, Space, Typography, Alert, Spin, Popconfirm, Tag, Table, Modal } from 'antd'
-import { UploadOutlined, DeleteOutlined, DownloadOutlined, FileWordOutlined, PlusOutlined } from '@ant-design/icons'
+import { UploadOutlined, DeleteOutlined, DownloadOutlined, FileWordOutlined } from '@ant-design/icons'
 import type { UploadFile } from 'antd'
 import {
   getLetterTemplate,
   uploadLetterTemplate,
   deleteLetterTemplate,
   uploadProjectTemplate,
-  getProjectTemplate,
   deleteProjectTemplate,
   getAllProjectTemplates
 } from '../../services/templateService'

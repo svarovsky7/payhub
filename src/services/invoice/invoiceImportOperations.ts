@@ -1,10 +1,5 @@
 import { supabase } from '../../lib/supabase'
 import type { ImportedInvoice } from './invoiceImportService'
-import { message } from 'antd'
-
-interface InvoiceFileMapping {
-  [invoiceIndex: number]: string[]
-}
 
 // Получить payment_type_id для bank_transfer
 export const getBankTransferPaymentTypeId = async (): Promise<number | undefined> => {

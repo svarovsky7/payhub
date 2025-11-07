@@ -2,6 +2,7 @@ import { Modal, Form, Button, Space, Tooltip, message } from 'antd'
 import { DownloadOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import type { Letter, LetterStatus, Project, UserProfile, Contractor } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { generateRegNumber } from '../../services/letterOperations'
 import { FileUploadBlock } from '../common/FileUploadBlock'
@@ -102,7 +103,6 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
   const loadQRLink = async (letterId: string) => {
     try {
       // Just load the existing token from DB
-      const { supabase } = await import('../../lib/supabase')
       const { data } = await supabase
         .from('letter_public_shares')
         .select('token')

@@ -261,7 +261,7 @@ export const generateLetterDocument = async (letterIdOrLetter: string | Letter, 
     }
 
     // Download template (project-specific or global)
-    const templateBlob = await downloadTemplateBlob(letter.project_id)
+    const templateBlob = await downloadTemplateBlob(letter.project_id ?? undefined)
     const templateArrayBuffer = await templateBlob.arrayBuffer()
 
     // Load template into PizZip

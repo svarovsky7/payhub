@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-11-01T07:16:30.062037
+-- Generated: 2025-11-07T06:59:44.685177
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -1303,6 +1303,7 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     role_id integer(32),
+    is_disabled boolean DEFAULT false,
     CONSTRAINT user_profiles_email_key UNIQUE (email),
     CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),
     CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
@@ -1316,6 +1317,7 @@ COMMENT ON COLUMN public.user_profiles.full_name IS 'User full name';
 COMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was created';
 COMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp when the profile was last updated';
 COMMENT ON COLUMN public.user_profiles.role_id IS 'User role ID for approval workflow';
+COMMENT ON COLUMN public.user_profiles.is_disabled IS 'Whether the user is blocked from accessing the system';
 
 -- Junction table linking users with projects they have access to
 CREATE TABLE IF NOT EXISTS public.user_projects (

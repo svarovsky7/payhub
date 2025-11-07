@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const loadUserProfile = async (userId: string) => {
+  const loadUserProfile = useCallback(async (userId: string) => {
     console.log('[AuthContext.loadUserProfile] Loading profile for:', userId)
     try {
       const { data: profile, error: profileError } = await supabase
@@ -70,6 +70,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle()
 
       if (profileError) throw profileError
+
+      // Check if user is disabled
+      if (profile?.is_disabled) {
+        console.log('[AuthContext.loadUserProfile] User is disabled, signing out')
+        await supabase.auth.signOut()
+        message.error('Ваш доступ к системе заблокирован')
+        setUserProfile(null)
+        setUserRole(null)
+        setLoading(false)
+        return
+      }
 
       console.log('[AuthContext.loadUserProfile] Profile loaded:', profile?.email)
       setUserProfile(profile)
@@ -98,7 +109,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Listen for changes to current user's profile (e.g., is_disabled)
+  useEffect(() => {
+    if (!user?.id) return
+
+    const channel = supabase
+      .channel('user_profile_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('[AuthContext] Profile changed:', payload)
+          const newProfile = payload.new as UserProfile
+          
+          if (newProfile.is_disabled) {
+            console.log('[AuthContext] User disabled, signing out')
+            message.error('Ваш доступ к системе заблокирован')
+            supabase.auth.signOut()
+          } else {
+            // Reload profile to get latest data
+            loadUserProfile(user.id)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, loadUserProfile])
 
   const signIn = async (email: string, password: string) => {
     console.log('[AuthContext.signIn] Signing in:', email)
@@ -109,6 +155,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
 
       if (error) throw error
+
+      // Check if user is disabled
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('is_disabled')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profile?.is_disabled) {
+        await supabase.auth.signOut()
+        throw new Error('Ваш доступ к системе заблокирован')
+      }
 
       console.log('[AuthContext.signIn] Success:', data.user?.email)
       message.success('Вход выполнен успешно')

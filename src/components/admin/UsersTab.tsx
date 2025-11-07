@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { FormValues } from '../../types/common'
-import { Table, Space, Button, Modal, Form, Input, Select, message, Tag, type InputRef } from 'antd'
+import { Table, Space, Button, Modal, Form, Input, Select, message, Tag, Switch, type InputRef } from 'antd'
 import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType, ColumnType } from 'antd/es/table'
 import { supabase, type UserProfile, type Project } from '../../lib/supabase'
@@ -175,6 +175,23 @@ export const UsersTab = () => {
     } catch (error) {
       console.error('[UsersTab.handleSubmit] Error:', error)
       message.error('Ошибка обновления пользователя')
+    }
+  }
+
+  const handleToggleAccess = async (id: string, isDisabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ is_disabled: isDisabled })
+        .eq('id', id)
+
+      if (error) throw error
+
+      message.success(isDisabled ? 'Доступ заблокирован' : 'Доступ разрешен')
+      loadUsers()
+    } catch (error) {
+      console.error('[UsersTab.handleToggleAccess] Error:', error)
+      message.error('Ошибка изменения доступа')
     }
   }
 
@@ -366,6 +383,24 @@ export const UsersTab = () => {
       key: 'created_at',
       sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       render: (date) => new Date(date).toLocaleDateString('ru-RU')
+    },
+    {
+      title: 'Доступ',
+      dataIndex: 'is_disabled',
+      key: 'is_disabled',
+      render: (is_disabled, record) => (
+        <Switch
+          checked={!is_disabled}
+          onChange={(checked) => handleToggleAccess(record.id, !checked)}
+          checkedChildren="Разрешен"
+          unCheckedChildren="Заблокирован"
+        />
+      ),
+      filters: [
+        { text: 'Активные', value: false },
+        { text: 'Заблокированные', value: true }
+      ],
+      onFilter: (value, record) => (record.is_disabled || false) === value
     },
     {
       title: 'Действия',

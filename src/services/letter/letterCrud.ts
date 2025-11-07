@@ -15,7 +15,7 @@ export async function createLetter(
 ): Promise<Letter> {
   console.log('[letterCrud.createLetter] Creating letter:', letterData)
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('letters')
     .insert(letterData)
     .select(`
@@ -25,7 +25,8 @@ export async function createLetter(
       responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
       creator:user_profiles!letters_created_by_fkey(id, full_name, email),
       sender_contractor:contractors!fk_letters_sender_contractor(id, name),
-      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
+      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name),
+      letter_attachments(count)
     `)
     .single()
 
@@ -54,6 +55,26 @@ export async function createLetter(
   // Upload files if provided
   if (files && files.length > 0 && data) {
     await processLetterFiles(data.id, files, [], fileDescriptions)
+    
+    // Reload letter data to get updated attachment count
+    const { data: updatedData, error: reloadError } = await supabase
+      .from('letters')
+      .select(`
+        *,
+        project:projects(id, name, code),
+        status:letter_statuses(id, name, code, color),
+        responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
+        creator:user_profiles!letters_created_by_fkey(id, full_name, email),
+        sender_contractor:contractors!fk_letters_sender_contractor(id, name),
+        recipient_contractor:contractors!fk_letters_recipient_contractor(id, name),
+        letter_attachments(count)
+      `)
+      .eq('id', data.id)
+      .single()
+    
+    if (!reloadError && updatedData) {
+      data = updatedData
+    }
   }
 
   // Log creation
@@ -91,7 +112,7 @@ export async function updateLetter(
     .eq('id', letterId)
     .single()
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('letters')
     .update(letterData)
     .eq('id', letterId)
@@ -102,7 +123,8 @@ export async function updateLetter(
       responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
       creator:user_profiles!letters_created_by_fkey(id, full_name, email),
       sender_contractor:contractors!fk_letters_sender_contractor(id, name),
-      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name)
+      recipient_contractor:contractors!fk_letters_recipient_contractor(id, name),
+      letter_attachments(count)
     `)
     .single()
 
@@ -114,6 +136,26 @@ export async function updateLetter(
   // Handle file operations
   if (files || originalFiles) {
     await processLetterFiles(letterId, files || [], originalFiles || [], fileDescriptions)
+    
+    // Reload letter data to get updated attachment count
+    const { data: updatedData, error: reloadError } = await supabase
+      .from('letters')
+      .select(`
+        *,
+        project:projects(id, name, code),
+        status:letter_statuses(id, name, code, color),
+        responsible_user:user_profiles!letters_responsible_user_id_fkey(id, full_name, email),
+        creator:user_profiles!letters_created_by_fkey(id, full_name, email),
+        sender_contractor:contractors!fk_letters_sender_contractor(id, name),
+        recipient_contractor:contractors!fk_letters_recipient_contractor(id, name),
+        letter_attachments(count)
+      `)
+      .eq('id', letterId)
+      .single()
+    
+    if (!reloadError && updatedData) {
+      data = updatedData
+    }
   }
 
   // Update existing file descriptions

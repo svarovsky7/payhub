@@ -1807,6 +1807,11 @@
         "type": "integer",
         "nullable": true,
         "foreign_key": null
+      },
+      "is_disabled": {
+        "type": "boolean",
+        "nullable": true,
+        "foreign_key": null
       }
     },
     "indexes": [],

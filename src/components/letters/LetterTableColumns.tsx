@@ -1,6 +1,6 @@
 import { Tag, Space, Button, Popconfirm, Tooltip, Dropdown } from 'antd'
 import type { MenuProps } from 'antd'
-import { EditOutlined, DeleteOutlined, EyeOutlined, PlusCircleOutlined, CloseCircleOutlined, DownOutlined } from '@ant-design/icons'
+import { DeleteOutlined, EyeOutlined, PlusCircleOutlined, CloseCircleOutlined, DownOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import type { Letter, LetterStatus, Project, UserProfile } from '../../lib/supabase'
@@ -10,7 +10,6 @@ interface GetLetterTableColumnsProps {
   projects: Project[]
   users: UserProfile[]
   handleViewLetter: (letter: Letter) => void
-  handleEditLetter: (letter: Letter) => void
   handleDeleteLetter: (letterId: string) => void
   handleLinkLetter: (letter: Letter) => void
   handleUnlinkLetter: (parentId: string, childId: string) => void
@@ -30,7 +29,6 @@ export const getLetterTableColumns = ({
   projects,
   users,
   handleViewLetter,
-  handleEditLetter,
   handleDeleteLetter,
   handleLinkLetter,
   handleUnlinkLetter,
@@ -373,13 +371,6 @@ export const getLetterTableColumns = ({
               type="text"
               icon={<EyeOutlined />}
               onClick={() => handleViewLetter(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Редактировать">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEditLetter(record)}
             />
           </Tooltip>
           <Popconfirm

@@ -62,7 +62,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         )
       }
       onCancel={onClose}
-      width={type === 'pdf' ? 1000 : 800}
+      width={type === 'pdf' ? 1400 : 1200}
       style={{ top: 20 }}
       styles={{
         body: type === 'pdf' ? {

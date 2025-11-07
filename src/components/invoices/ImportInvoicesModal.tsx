@@ -140,7 +140,7 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
         }
 
         // Создать договор
-        const contractId = await getOrCreateContract(invoice, invoice.projectId, user.id)
+        const contractId = await getOrCreateContract(invoice, String(invoice.projectId), user.id)
 
         // Создать счет
         const invoiceId = await createInvoiceRecord(invoice, contractId, user.id)

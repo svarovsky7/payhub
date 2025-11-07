@@ -1,5 +1,5 @@
 import { Table, Button, Space } from 'antd'
-import { PlusOutlined, FilterOutlined } from '@ant-design/icons'
+import { PlusOutlined, FilterOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
@@ -12,6 +12,7 @@ import { LinkLetterModal } from '../components/letters/LinkLetterModal'
 import { LetterFilters, type LetterFilterValues } from '../components/letters/LetterFilters'
 import { ColumnSettings } from '../components/common/ColumnSettings'
 import type { Letter } from '../lib/supabase'
+import { exportLettersToExcel } from '../utils/letterExcelExport'
 
 dayjs.extend(isBetween)
 
@@ -35,7 +36,6 @@ export const LettersPage = () => {
     linkingLetter,
     setLinkingLetter,
     handleOpenCreateModal,
-    handleOpenEditModal,
     handleViewLetter,
     handleCreateLetter,
     handleUpdateLetter,
@@ -225,7 +225,6 @@ export const LettersPage = () => {
     projects,
     users,
     handleViewLetter,
-    handleEditLetter: handleOpenEditModal,
     handleDeleteLetter,
     handleLinkLetter: handleOpenLinkModal,
     handleUnlinkLetter: handleUnlinkLetters,
@@ -260,6 +259,12 @@ export const LettersPage = () => {
             onClick={() => setFiltersVisible(!filtersVisible)}
           >
             Фильтры
+          </Button>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() => exportLettersToExcel(filteredLetters)}
+          >
+            Скачать в Excel
           </Button>
           <ColumnSettings
             columns={columnConfig}

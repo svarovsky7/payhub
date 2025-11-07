@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import { Modal, Descriptions, Tag, Typography, List, Button, Row, Col, Divider } from 'antd'
-import { DownloadOutlined, FileOutlined, HistoryOutlined } from '@ant-design/icons'
+import { DownloadOutlined, HistoryOutlined, EyeOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Letter } from '../../lib/supabase'
 import { supabase } from '../../lib/supabase'
 import { useAuditLog } from '../../hooks/useAuditLog'
 import AuditLogTimeline from '../common/AuditLogTimeline'
+import { FilePreviewModal, getFileIcon } from '../common/FilePreviewModal'
 
 const { Title } = Typography
 
@@ -21,6 +23,7 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
 }) => {
   // Load audit log for the letter
   const { auditLog, loading: auditLoading } = useAuditLog('letter', letter?.id)
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: 'image' | 'pdf' | 'other' } | null>(null)
 
   if (!letter) return null
 
@@ -44,6 +47,44 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
     } catch (error) {
       console.error('[LetterViewModal.handleDownloadFile] Error:', error)
     }
+  }
+
+  const handlePreviewFile = async (storagePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('attachments')
+        .download(storagePath)
+
+      if (error) throw error
+
+      const url = window.URL.createObjectURL(data)
+      const ext = fileName.split('.').pop()?.toLowerCase()
+      
+      let type: 'image' | 'pdf' | 'other' = 'other'
+      if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '')) {
+        type = 'image'
+      } else if (ext === 'pdf') {
+        type = 'pdf'
+      }
+
+      setPreviewFile({ url, name: fileName, type })
+    } catch (error) {
+      console.error('[LetterViewModal.handlePreviewFile] Error:', error)
+    }
+  }
+
+  const getSenderDisplay = () => {
+    if (letter.sender_type === 'contractor' && letter.sender_contractor) {
+      return letter.sender_contractor.name
+    }
+    return letter.sender || '—'
+  }
+
+  const getRecipientDisplay = () => {
+    if (letter.recipient_type === 'contractor' && letter.recipient_contractor) {
+      return letter.recipient_contractor.name
+    }
+    return letter.recipient || '—'
   }
 
   return (
@@ -109,11 +150,11 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
         </Descriptions.Item>
 
         <Descriptions.Item label="Отправитель">
-          {letter.sender || '—'}
+          {getSenderDisplay()}
         </Descriptions.Item>
 
         <Descriptions.Item label="Получатель">
-          {letter.recipient || '—'}
+          {getRecipientDisplay()}
         </Descriptions.Item>
 
         <Descriptions.Item label="Проект" span={2}>
@@ -158,6 +199,17 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
                     <List.Item
                       actions={[
                         <Button
+                          key="preview"
+                          type="link"
+                          icon={<EyeOutlined />}
+                          onClick={() => handlePreviewFile(
+                            item.attachments.storage_path,
+                            item.attachments.original_name
+                          )}
+                        >
+                          Просмотр
+                        </Button>,
+                        <Button
                           key="download"
                           type="link"
                           icon={<DownloadOutlined />}
@@ -171,7 +223,7 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
                       ]}
                     >
                       <List.Item.Meta
-                        avatar={<FileOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                        avatar={getFileIcon(item.attachments.original_name)}
                         title={item.attachments.original_name}
                         description={descriptionText}
                       />
@@ -201,6 +253,21 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
           </div>
         </Col>
       </Row>
+
+      {previewFile && (
+        <FilePreviewModal
+          open={!!previewFile}
+          title={previewFile.name}
+          url={previewFile.url}
+          type={previewFile.type}
+          onClose={() => {
+            if (previewFile.url) {
+              window.URL.revokeObjectURL(previewFile.url)
+            }
+            setPreviewFile(null)
+          }}
+        />
+      )}
     </Modal>
   )
 }

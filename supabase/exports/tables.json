@@ -8747,6 +8747,16 @@
         "is_nullable": "YES",
         "default": null,
         "comment": "User role ID for approval workflow"
+      },
+      {
+        "name": "is_disabled",
+        "data_type": "boolean",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "false",
+        "comment": "Whether the user is blocked from accessing the system"
       }
     ],
     "constraints": [
@@ -8807,7 +8817,7 @@
         "foreign_column": null
       }
     ],
-    "sql": "-- Extended user profiles linked to Supabase auth users\nCREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    role_id integer(32),\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id),\n    CONSTRAINT user_profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.user_profiles IS 'Extended user profiles linked to Supabase auth users';\nCOMMENT ON COLUMN public.user_profiles.id IS 'Primary key (matches auth.users.id)';\nCOMMENT ON COLUMN public.user_profiles.email IS 'User email address';\nCOMMENT ON COLUMN public.user_profiles.full_name IS 'User full name';\nCOMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was created';\nCOMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp when the profile was last updated';\nCOMMENT ON COLUMN public.user_profiles.role_id IS 'User role ID for approval workflow';"
+    "sql": "-- Extended user profiles linked to Supabase auth users\nCREATE TABLE IF NOT EXISTS public.user_profiles (\n    id uuid NOT NULL,\n    email text NOT NULL,\n    full_name text NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    role_id integer(32),\n    is_disabled boolean DEFAULT false,\n    CONSTRAINT user_profiles_email_key UNIQUE (email),\n    CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES None.None(None),\n    CONSTRAINT user_profiles_pkey PRIMARY KEY (id),\n    CONSTRAINT user_profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.user_profiles IS 'Extended user profiles linked to Supabase auth users';\nCOMMENT ON COLUMN public.user_profiles.id IS 'Primary key (matches auth.users.id)';\nCOMMENT ON COLUMN public.user_profiles.email IS 'User email address';\nCOMMENT ON COLUMN public.user_profiles.full_name IS 'User full name';\nCOMMENT ON COLUMN public.user_profiles.created_at IS 'Timestamp when the profile was created';\nCOMMENT ON COLUMN public.user_profiles.updated_at IS 'Timestamp when the profile was last updated';\nCOMMENT ON COLUMN public.user_profiles.role_id IS 'User role ID for approval workflow';\nCOMMENT ON COLUMN public.user_profiles.is_disabled IS 'Whether the user is blocked from accessing the system';"
   },
   "public.user_projects": {
     "schema": "public",

@@ -6,7 +6,6 @@ import dayjs from 'dayjs'
 import { parseAmount } from '../utils/invoiceHelpers'
 import { recalculateInvoiceStatus } from './invoiceOperations'
 import { processPaymentFiles } from './payment/paymentFiles'
-import { createBulkPayments, getPaymentTotals } from './payment/paymentBulk'
 
 export { processPaymentFiles } from './payment/paymentFiles'
 export { createBulkPayments, getPaymentTotals } from './payment/paymentBulk'
