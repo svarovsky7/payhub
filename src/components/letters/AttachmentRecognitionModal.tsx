@@ -1,12 +1,11 @@
 ﻿import { Modal, Button, Space, Spin, message, List, Row, Col } from 'antd'
-import { ScanOutlined, ReloadOutlined, SaveOutlined, FileImageOutlined, EditOutlined } from '@ant-design/icons'
+import { ScanOutlined, ReloadOutlined, SaveOutlined, EditOutlined } from '@ant-design/icons'
 import { useState, useEffect, useRef } from 'react'
 import { getLetterAttachments } from '../../services/letter/letterFiles'
 import { supabase } from '../../lib/supabase'
 import { getRecognitionStatuses, getRecognizedMarkdown, getRecognizedAttachmentId } from '../../services/attachmentRecognitionService'
 import { startRecognitionTask, subscribeToTasks, getTaskByAttachmentId, getTaskProgress, getTasks } from '../../services/recognitionTaskService'
 import { createAuditLogEntry } from '../../services/auditLogService'
-import { convertPdfToJpg, uploadConvertedImages } from '../../services/pdfConversionService'
 import type { Letter } from '../../lib/supabase'
 import { AttachmentCard } from './AttachmentCard'
 import { AttachmentPreview } from './AttachmentPreview'
@@ -56,7 +55,6 @@ export const AttachmentRecognitionModal = ({
   const [editMode, setEditMode] = useState(false)
   const [currentMarkdown, setCurrentMarkdown] = useState('')
   const [originalMarkdown, setOriginalMarkdown] = useState('')
-  const [converting, setConverting] = useState(false)
   const [cropModalVisible, setCropModalVisible] = useState(false)
   const prevTaskRef = useRef<string | null>(null)
   const prevLetterTasksRef = useRef<Set<string>>(new Set())
@@ -415,65 +413,6 @@ export const AttachmentRecognitionModal = ({
     }
   }
 
-  const handleConvertToJpg = async () => {
-    if (!selectedAttachment || !selectedAttachment.url || !letter) {
-      message.warning('Выберите PDF файл для конвертации')
-      return
-    }
-
-    if (!isPdf(selectedAttachment.mime_type)) {
-      message.warning('Конвертация доступна только для PDF файлов')
-      return
-    }
-
-    setConverting(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Пользователь не авторизован')
-
-      message.info('Конвертация PDF в JPG...')
-      
-      const jpgFiles = await convertPdfToJpg(selectedAttachment.url)
-      
-      if (jpgFiles.length === 0) {
-        throw new Error('Не удалось получить изображения')
-      }
-
-      await uploadConvertedImages(
-        jpgFiles,
-        letter.id,
-        selectedAttachment.original_name,
-        supabase,
-        user.id
-      )
-
-      await createAuditLogEntry(
-        'letter',
-        letter.id,
-        'file_add',
-        user.id,
-        {
-          fieldName: 'converted_images',
-          newValue: `${jpgFiles.length} изображений`,
-          metadata: {
-            original_file: selectedAttachment.original_name,
-            images_count: jpgFiles.length,
-            description: `Конвертировано из "${selectedAttachment.original_name}"`
-          }
-        }
-      )
-
-      message.success(`Конвертация завершена. Добавлено ${jpgFiles.length} изображений`)
-      await loadAttachments()
-      onSuccess?.()
-    } catch (error: any) {
-      message.error(error.message || 'Ошибка конвертации в JPG')
-      console.error('[AttachmentRecognitionModal] Convert error:', error)
-    } finally {
-      setConverting(false)
-    }
-  }
-
   const handleCropSuccess = async (croppedPdfPath: string) => {
     setCropModalVisible(false)
     message.success('Обрезанный документ сохранен')
@@ -579,15 +518,6 @@ export const AttachmentRecognitionModal = ({
           >
             {selectedAttachment ? 'К списку вложений' : 'Закрыть'}
           </Button>
-          {selectedAttachment && previewMode && isPdf(selectedAttachment.mime_type) && (
-            <Button
-              icon={<FileImageOutlined />}
-              onClick={handleConvertToJpg}
-              loading={converting}
-            >
-              Конвертировать в JPG
-            </Button>
-          )}
           {selectedAttachment && previewMode && (
             <>
               {isPdf(selectedAttachment.mime_type) && (
