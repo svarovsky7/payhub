@@ -1,12 +1,18 @@
-﻿import { Modal, Button, Space, Spin, message, List, Image, Card, Tooltip, Row, Col, InputNumber, Checkbox, Progress } from 'antd'
-import { FileOutlined, ScanOutlined, CheckCircleOutlined, LoadingOutlined, ReloadOutlined, SaveOutlined } from '@ant-design/icons'
+﻿import { Modal, Button, Space, Spin, message, List, Row, Col } from 'antd'
+import { ScanOutlined, ReloadOutlined, SaveOutlined, FileImageOutlined } from '@ant-design/icons'
 import { useState, useEffect, useRef } from 'react'
 import { getLetterAttachments } from '../../services/letter/letterFiles'
 import { supabase } from '../../lib/supabase'
 import { getRecognitionStatuses, getRecognizedMarkdown, getRecognizedAttachmentId } from '../../services/attachmentRecognitionService'
 import { startRecognitionTask, subscribeToTasks, getTaskByAttachmentId, getTaskProgress, getTasks } from '../../services/recognitionTaskService'
 import { createAuditLogEntry } from '../../services/auditLogService'
+import { convertPdfToJpg, uploadConvertedImages } from '../../services/pdfConversionService'
 import type { Letter } from '../../lib/supabase'
+import { AttachmentCard } from './AttachmentCard'
+import { AttachmentPreview } from './AttachmentPreview'
+import { RecognitionSettings } from './RecognitionSettings'
+import { MarkdownEditor } from './MarkdownEditor'
+import { truncateText } from '../../utils/textUtils'
 
 interface AttachmentRecognitionModalProps {
   visible: boolean
@@ -31,11 +37,7 @@ interface PageRange {
   end: number
 }
 
-const truncateText = (text: string, maxLength: number = 25) => {
-  if (!text) return '—'
-  if (text.length <= maxLength) return text
-  return `${text.substring(0, maxLength)}...`
-}
+const isPdf = (mimeType: string) => mimeType === 'application/pdf'
 
 export const AttachmentRecognitionModal = ({
   visible,
@@ -53,6 +55,7 @@ export const AttachmentRecognitionModal = ({
   const [editMode, setEditMode] = useState(false)
   const [currentMarkdown, setCurrentMarkdown] = useState('')
   const [originalMarkdown, setOriginalMarkdown] = useState('')
+  const [converting, setConverting] = useState(false)
   const prevTaskRef = useRef<string | null>(null)
   const prevLetterTasksRef = useRef<Set<string>>(new Set())
 
@@ -409,9 +412,65 @@ export const AttachmentRecognitionModal = ({
     }
   }
 
+  const handleConvertToJpg = async () => {
+    if (!selectedAttachment || !selectedAttachment.url || !letter) {
+      message.warning('Выберите PDF файл для конвертации')
+      return
+    }
 
-  const isImage = (mimeType: string) => mimeType.startsWith('image/')
-  const isPdf = (mimeType: string) => mimeType === 'application/pdf'
+    if (!isPdf(selectedAttachment.mime_type)) {
+      message.warning('Конвертация доступна только для PDF файлов')
+      return
+    }
+
+    setConverting(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Пользователь не авторизован')
+
+      message.info('Конвертация PDF в JPG...')
+      
+      const jpgFiles = await convertPdfToJpg(selectedAttachment.url)
+      
+      if (jpgFiles.length === 0) {
+        throw new Error('Не удалось получить изображения')
+      }
+
+      await uploadConvertedImages(
+        jpgFiles,
+        letter.id,
+        selectedAttachment.original_name,
+        supabase,
+        user.id
+      )
+
+      await createAuditLogEntry(
+        'letter',
+        letter.id,
+        'file_add',
+        user.id,
+        {
+          fieldName: 'converted_images',
+          newValue: `${jpgFiles.length} изображений`,
+          metadata: {
+            original_file: selectedAttachment.original_name,
+            images_count: jpgFiles.length,
+            description: `Конвертировано из "${selectedAttachment.original_name}"`
+          }
+        }
+      )
+
+      message.success(`Конвертация завершена. Добавлено ${jpgFiles.length} изображений`)
+      await loadAttachments()
+      onSuccess?.()
+    } catch (error: any) {
+      message.error(error.message || 'Ошибка конвертации в JPG')
+      console.error('[AttachmentRecognitionModal] Convert error:', error)
+    } finally {
+      setConverting(false)
+    }
+  }
+
 
   const renderAttachmentList = () => (
     <div>
@@ -421,61 +480,16 @@ export const AttachmentRecognitionModal = ({
         dataSource={attachments.filter(att => !att.mime_type.includes('markdown'))}
         renderItem={(att) => (
           <List.Item>
-            <Card
-              hoverable
-              onClick={() => !att.recognizing && handleSelectAttachment(att)}
-              style={{ 
-                cursor: att.recognizing ? 'not-allowed' : 'pointer',
-                border: att.recognized ? '2px solid #52c41a' : att.recognizing ? '2px solid #1890ff' : undefined,
-                background: att.recognized ? '#f6ffed' : att.recognizing ? '#e6f7ff' : undefined,
-                opacity: att.recognizing ? 0.8 : 1
-              }}
-              cover={
-                isImage(att.mime_type) && att.url ? (
-                  <div style={{ height: 150, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}>
-                    <Image src={att.url} preview={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                  </div>
-                ) : isPdf(att.mime_type) && att.url ? (
-                  <div style={{ height: 150, overflow: 'hidden', position: 'relative', background: '#fff' }}>
-                    <iframe 
-                      src={`${att.url}#page=1&view=FitH`}
-                      style={{ 
-                        width: '100%', 
-                        height: '300px',
-                        border: 'none',
-                        pointerEvents: 'none',
-                        transform: 'scale(0.5)',
-                        transformOrigin: '0 0'
-                      }}
-                      title={`Preview ${att.original_name}`}
-                    />
-                  </div>
-                ) : (
-                  <div style={{ height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}>
-                    <FileOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
-                  </div>
-                )
-              }
-            >
-              <Card.Meta
-                title={
-                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                    <Space>
-                      <Tooltip title={att.original_name}>{truncateText(att.original_name, 12)}</Tooltip>
-                      {att.recognized && (
-                        <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 16 }} />
-                      )}
-                      {att.recognizing && (
-                        <LoadingOutlined style={{ color: '#1890ff', fontSize: 16 }} />
-                      )}
-                    </Space>
-                    {att.recognizing && (
-                      <Progress percent={att.progress || 0} size="small" status="active" showInfo={false} />
-                    )}
-                  </Space>
-                }
-              />
-            </Card>
+            <AttachmentCard
+              id={att.id}
+              originalName={att.original_name}
+              mimeType={att.mime_type}
+              url={att.url}
+              recognized={att.recognized}
+              recognizing={att.recognizing}
+              progress={att.progress}
+              onClick={() => handleSelectAttachment(att)}
+            />
           </List.Item>
         )}
       />
@@ -486,41 +500,14 @@ export const AttachmentRecognitionModal = ({
     <Row gutter={24}>
       <Col span={12}>
         <h4>Предпросмотр исходного файла:</h4>
-        <div style={{ maxHeight: '60vh', overflow: 'auto', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff' }}>
-          {selectedAttachment?.url && isImage(selectedAttachment.mime_type) ? (
-            <Image src={selectedAttachment.url} style={{ width: '100%' }} />
-          ) : selectedAttachment?.url && isPdf(selectedAttachment.mime_type) ? (
-            <iframe 
-              src={selectedAttachment.url} 
-              style={{ width: '100%', height: '60vh', border: 'none' }}
-              title="PDF Preview"
-            />
-          ) : (
-            <div style={{ padding: '24px', textAlign: 'center' }}>
-              <Button href={selectedAttachment?.url} target="_blank" type="link">
-                Открыть оригинал
-              </Button>
-            </div>
-          )}
-        </div>
+        <AttachmentPreview 
+          url={selectedAttachment?.url}
+          mimeType={selectedAttachment?.mime_type || ''}
+        />
       </Col>
       <Col span={12}>
         <h4>Распознанный текст (Markdown):</h4>
-        <textarea
-          value={currentMarkdown}
-          onChange={(e) => setCurrentMarkdown(e.target.value)}
-          placeholder="Результат распознавания появится здесь..."
-          style={{
-            width: '100%',
-            height: '60vh',
-            fontFamily: 'monospace',
-            fontSize: '13px',
-            padding: '12px',
-            border: '1px solid #d9d9d9',
-            borderRadius: '4px',
-            resize: 'none'
-          }}
-        />
+        <MarkdownEditor value={currentMarkdown} onChange={setCurrentMarkdown} />
       </Col>
     </Row>
   )
@@ -529,66 +516,19 @@ export const AttachmentRecognitionModal = ({
     <Row gutter={24}>
       <Col span={12}>
         <h4>Предпросмотр файла:</h4>
-        <div style={{ maxHeight: '60vh', overflow: 'auto', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff' }}>
-          {selectedAttachment?.url && isImage(selectedAttachment.mime_type) ? (
-            <Image src={selectedAttachment.url} style={{ width: '100%' }} />
-          ) : selectedAttachment?.url && isPdf(selectedAttachment.mime_type) ? (
-            <iframe 
-              src={selectedAttachment.url} 
-              style={{ width: '100%', height: '60vh', border: 'none' }}
-              title="PDF Preview"
-            />
-          ) : (
-            <div style={{ padding: '48px', textAlign: 'center' }}>
-              <FileOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
-              <p>Предпросмотр недоступен для этого типа файла</p>
-              <Button href={selectedAttachment?.url} target="_blank" type="link">
-                Открыть в новой вкладке
-              </Button>
-            </div>
-          )}
-        </div>
+        <AttachmentPreview 
+          url={selectedAttachment?.url}
+          mimeType={selectedAttachment?.mime_type || ''}
+        />
       </Col>
       <Col span={12}>
         <h4>Настройки распознавания:</h4>
-        <div style={{ padding: '16px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fafafa' }}>
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <div>
-              <Checkbox 
-                checked={allPages} 
-                onChange={(e) => setAllPages(e.target.checked)}
-              >
-                Распознать все страницы
-              </Checkbox>
-            </div>
-            {!allPages && (
-              <div>
-                <div style={{ marginBottom: 8 }}>Укажите диапазон страниц:</div>
-                <Space>
-                  <span>От</span>
-                  <InputNumber 
-                    min={1} 
-                    value={pageRange.start}
-                    onChange={(val) => setPageRange({ ...pageRange, start: val || 1 })}
-                    style={{ width: 80 }}
-                  />
-                  <span>До</span>
-                  <InputNumber 
-                    min={pageRange.start} 
-                    value={pageRange.end}
-                    onChange={(val) => setPageRange({ ...pageRange, end: val || pageRange.start })}
-                    style={{ width: 80 }}
-                  />
-                </Space>
-              </div>
-            )}
-            <div style={{ marginTop: 24, padding: 16, background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 4 }}>
-              <p style={{ margin: 0, fontSize: 13, color: '#096dd9' }}>
-                <strong>Информация:</strong> После нажатия кнопки "Распознать" содержимое файла будет преобразовано в текстовый формат Markdown. Вы сможете отредактировать результат перед сохранением.
-              </p>
-            </div>
-          </Space>
-        </div>
+        <RecognitionSettings
+          allPages={allPages}
+          pageRange={pageRange}
+          onAllPagesChange={setAllPages}
+          onPageRangeChange={setPageRange}
+        />
       </Col>
     </Row>
   )
@@ -630,6 +570,15 @@ export const AttachmentRecognitionModal = ({
           >
             {selectedAttachment ? 'К списку вложений' : 'Закрыть'}
           </Button>
+          {selectedAttachment && previewMode && isPdf(selectedAttachment.mime_type) && (
+            <Button
+              icon={<FileImageOutlined />}
+              onClick={handleConvertToJpg}
+              loading={converting}
+            >
+              Конвертировать в JPG
+            </Button>
+          )}
           {selectedAttachment && previewMode && (
             <Button
               type="primary"

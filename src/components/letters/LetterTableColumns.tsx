@@ -5,6 +5,7 @@ import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import type { Letter, LetterStatus, Project, UserProfile } from '../../lib/supabase'
 import type { RecognitionTask } from '../../services/recognitionTaskService'
+import { truncateText } from '../../utils/textUtils'
 
 interface GetLetterTableColumnsProps {
   letterStatuses: LetterStatus[]
@@ -19,14 +20,6 @@ interface GetLetterTableColumnsProps {
   handleRecognizeAttachments?: (letter: Letter) => void
   currentUserId: string | null
   recognitionTasks?: RecognitionTask[]
-}
-
-const truncateText = (text: string, maxLength: number = 25) => {
-  if (!text) return '—'
-  if (text.length > maxLength) {
-    return text.substring(0, maxLength) + '...'
-  }
-  return text
 }
 
 export const getLetterTableColumns = ({
