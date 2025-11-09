@@ -10,6 +10,8 @@ const PDF_CONVERSION_API = 'https://pdf.fvds.ru'
  * - dpi: качество (по умолчанию 200)
  * - jpeg_quality: качество JPEG (по умолчанию 85)
  * - separate_archives: раздельные архивы (по умолчанию false)
+ * - mode: color | grayscale | binary (по умолчанию color)
+ * - threshold: порог для binary режима 0..255 (по умолчанию 180)
  * 
  * Возвращает ZIP архив с JPG изображениями
  */
@@ -26,6 +28,8 @@ export async function convertPdfToJpg(pdfUrl: string): Promise<File[]> {
     formData.append('files', blob, 'document.pdf')
     formData.append('dpi', '200')
     formData.append('jpeg_quality', '85')
+    formData.append('mode', 'binary')
+    formData.append('threshold', '180')
 
     // Отправляем на сервер конвертации
     const conversionResponse = await fetch(`${PDF_CONVERSION_API}/convert`, {
