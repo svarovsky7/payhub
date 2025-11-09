@@ -1,5 +1,5 @@
 ﻿import { Modal, Button, Space, Spin, message, List, Row, Col } from 'antd'
-import { ScanOutlined, ReloadOutlined, SaveOutlined, FileImageOutlined } from '@ant-design/icons'
+import { ScanOutlined, ReloadOutlined, SaveOutlined, FileImageOutlined, EditOutlined } from '@ant-design/icons'
 import { useState, useEffect, useRef } from 'react'
 import { getLetterAttachments } from '../../services/letter/letterFiles'
 import { supabase } from '../../lib/supabase'
@@ -12,6 +12,7 @@ import { AttachmentCard } from './AttachmentCard'
 import { AttachmentPreview } from './AttachmentPreview'
 import { RecognitionSettings } from './RecognitionSettings'
 import { MarkdownEditor } from './MarkdownEditor'
+import { PdfCropModal } from './PdfCropModal'
 import { truncateText } from '../../utils/textUtils'
 
 interface AttachmentRecognitionModalProps {
@@ -56,6 +57,7 @@ export const AttachmentRecognitionModal = ({
   const [currentMarkdown, setCurrentMarkdown] = useState('')
   const [originalMarkdown, setOriginalMarkdown] = useState('')
   const [converting, setConverting] = useState(false)
+  const [cropModalVisible, setCropModalVisible] = useState(false)
   const prevTaskRef = useRef<string | null>(null)
   const prevLetterTasksRef = useRef<Set<string>>(new Set())
 
@@ -71,6 +73,7 @@ export const AttachmentRecognitionModal = ({
       setOriginalMarkdown('')
       setPageRange({ start: 1, end: 1 })
       setAllPages(true)
+      setCropModalVisible(false)
       prevTaskRef.current = null
       prevLetterTasksRef.current = new Set()
     }
@@ -471,6 +474,12 @@ export const AttachmentRecognitionModal = ({
     }
   }
 
+  const handleCropSuccess = async (croppedPdfPath: string) => {
+    setCropModalVisible(false)
+    message.success('Обрезанный документ сохранен')
+    await loadAttachments()
+    onSuccess?.()
+  }
 
   const renderAttachmentList = () => (
     <div>
@@ -580,14 +589,24 @@ export const AttachmentRecognitionModal = ({
             </Button>
           )}
           {selectedAttachment && previewMode && (
-            <Button
-              type="primary"
-              icon={<ScanOutlined />}
-              onClick={() => handleMarkup()}
-              loading={processing}
-            >
-              Распознать
-            </Button>
+            <>
+              {isPdf(selectedAttachment.mime_type) && (
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={() => setCropModalVisible(true)}
+                >
+                  Разметить вручную
+                </Button>
+              )}
+              <Button
+                type="primary"
+                icon={<ScanOutlined />}
+                onClick={() => handleMarkup()}
+                loading={processing}
+              >
+                Распознать
+              </Button>
+            </>
           )}
           {selectedAttachment && editMode && (
             <>
@@ -615,6 +634,17 @@ export const AttachmentRecognitionModal = ({
       <Spin spinning={loading || processing} tip={processing ? 'Запуск распознавания...' : 'Загрузка...'}>
         {!selectedAttachment ? renderAttachmentList() : (editMode ? renderEditor() : renderPreview())}
       </Spin>
+
+      {selectedAttachment && cropModalVisible && letter && (
+        <PdfCropModal
+          visible={cropModalVisible}
+          onCancel={() => setCropModalVisible(false)}
+          onSuccess={handleCropSuccess}
+          attachmentUrl={selectedAttachment.url || ''}
+          fileName={selectedAttachment.original_name}
+          letterId={letter.id}
+        />
+      )}
     </Modal>
   )
 }
