@@ -18,6 +18,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     headers: {
       'X-Client-Info': 'payhub-app'
     }
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 1
+    }
   }
 })
 
@@ -25,6 +30,7 @@ export type UserProfile = {
   id: string
   email: string
   full_name: string
+  role_id?: number | null
   created_at: string
   updated_at: string
   is_disabled?: boolean

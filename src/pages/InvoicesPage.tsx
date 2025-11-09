@@ -4,7 +4,6 @@ import { PlusOutlined, FileOutlined } from '@ant-design/icons'
 import type { ExpandableConfig } from 'antd/es/table/interface'
 import { useSearchParams } from 'react-router-dom'
 import dayjs from 'dayjs'
-import { useAuth } from '../contexts/AuthContext'
 import '../styles/InvoicesPage.css'
 import { useInvoiceManagement } from '../hooks/useInvoiceManagement'
 import { usePaymentManagement } from '../hooks/usePaymentManagement'
@@ -50,7 +49,6 @@ const TABS: Record<InvoiceTabKey, { label: string; statuses: string[] }> = {
 };
 
 export const InvoicesPage = () => {
-  const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const [showArchived, setShowArchived] = useState(false)
   const [historyModalVisible, setHistoryModalVisible] = useState(false)
@@ -174,10 +172,8 @@ export const InvoicesPage = () => {
 
   // Load payment references and summaries when component mounts
   useEffect(() => {
-    if (user?.id) {
-      loadPaymentReferences()
-    }
-  }, [user, loadPaymentReferences])
+    loadPaymentReferences()
+  }, [])
 
   // Load payment summaries when invoices change
   useEffect(() => {

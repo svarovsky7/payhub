@@ -1,8 +1,8 @@
 {
-  "generated_at": "2025-11-07T04:01:49.793Z",
+  "generated_at": "2025-11-09T10:18:28.918Z",
   "source_hashes": {
-    "tables.json": "0cfcd29a5c40d9a39a4d505f03e9e81f0a62a422bcb6061e463163d896c8ede0",
-    "indexes.json": "daed15f801b350bbacb0d50efda0e5f0e6c240a1292ae72c6228636498024777",
+    "tables.json": "fbde5bf1640d6a033120c0eb9530e2f0e77903d54b66dc18b35a3b9992016a84",
+    "indexes.json": "aa32ef26c59aa972d3d3e2524acae2261bc6439f2b84c6b09d29105c905f8e3a",
     "triggers.json": "2194c71a939f901c511e470acd1636d6596491f49fcfdd9867ad231a0a9b5833",
     "functions.json": "bad4d34a4c739ae1ca1f4bcfe544604f708644724877e0c54535f548774a24c9",
     "enums.json": "b279269c34c179cd6f5d88d3653730ad5d8731c76d3fb835f115072d297c9f4f"

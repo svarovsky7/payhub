@@ -3363,6 +3363,130 @@
     ],
     "sql": "-- Audit log of actions performed during payment approval process\nCREATE TABLE IF NOT EXISTS public.approval_steps (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    payment_approval_id uuid NOT NULL,\n    stage_id integer(32) NOT NULL,\n    action text NOT NULL,\n    acted_by uuid,\n    acted_at timestamp with time zone,\n    comment text,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT approval_steps_acted_by_fkey FOREIGN KEY (acted_by) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_fkey FOREIGN KEY (payment_approval_id) REFERENCES None.None(None),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (payment_approval_id),\n    CONSTRAINT approval_steps_payment_approval_id_stage_id_key UNIQUE (stage_id),\n    CONSTRAINT approval_steps_pkey PRIMARY KEY (id),\n    CONSTRAINT approval_steps_stage_id_fkey FOREIGN KEY (stage_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.approval_steps IS 'Audit log of actions performed during payment approval process';\nCOMMENT ON COLUMN public.approval_steps.id IS 'Primary key';\nCOMMENT ON COLUMN public.approval_steps.payment_approval_id IS 'Payment approval ID this step belongs to';\nCOMMENT ON COLUMN public.approval_steps.stage_id IS 'Workflow stage ID';\nCOMMENT ON COLUMN public.approval_steps.action IS 'Action taken: approved, rejected, or returned';\nCOMMENT ON COLUMN public.approval_steps.acted_by IS 'User ID who performed the approval action';\nCOMMENT ON COLUMN public.approval_steps.acted_at IS 'Timestamp when the action was performed';\nCOMMENT ON COLUMN public.approval_steps.comment IS 'Optional comment explaining the decision';\nCOMMENT ON COLUMN public.approval_steps.created_at IS 'Timestamp when the record was created';"
   },
+  "public.attachment_recognitions": {
+    "schema": "public",
+    "name": "attachment_recognitions",
+    "comment": "Связь между исходными файлами и их распознанными версиями (markdown)",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "original_attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "ID исходного файла"
+      },
+      {
+        "name": "recognized_attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": "ID распознанного файла (markdown)"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_35032_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_35032_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_35032_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "attachment_recognitions_created_by_fkey",
+        "type": "FOREIGN KEY",
+        "column": "created_by",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "attachment_recognitions_original_attachment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "original_attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "attachment_recognitions_original_attachment_id_key",
+        "type": "UNIQUE",
+        "column": "original_attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "attachment_recognitions_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "attachment_recognitions_recognized_attachment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "recognized_attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Связь между исходными файлами и их распознанными версиями (markdown)\nCREATE TABLE IF NOT EXISTS public.attachment_recognitions (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    original_attachment_id uuid NOT NULL,\n    recognized_attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    created_by uuid,\n    CONSTRAINT attachment_recognitions_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),\n    CONSTRAINT attachment_recognitions_original_attachment_id_fkey FOREIGN KEY (original_attachment_id) REFERENCES None.None(None),\n    CONSTRAINT attachment_recognitions_original_attachment_id_key UNIQUE (original_attachment_id),\n    CONSTRAINT attachment_recognitions_pkey PRIMARY KEY (id),\n    CONSTRAINT attachment_recognitions_recognized_attachment_id_fkey FOREIGN KEY (recognized_attachment_id) REFERENCES None.None(None)\n);\n\nCOMMENT ON TABLE public.attachment_recognitions IS 'Связь между исходными файлами и их распознанными версиями (markdown)';\nCOMMENT ON COLUMN public.attachment_recognitions.original_attachment_id IS 'ID исходного файла';\nCOMMENT ON COLUMN public.attachment_recognitions.recognized_attachment_id IS 'ID распознанного файла (markdown)';"
+  },
   "public.attachments": {
     "schema": "public",
     "name": "attachments",

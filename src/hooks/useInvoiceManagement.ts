@@ -68,7 +68,7 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
     } finally {
       setLoading(false)
     }
-  }, [user, showArchived])
+  }, [showArchived])
 
   // Enrich invoices with responsible_user data
   /*
@@ -93,11 +93,9 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
 
   // Initialize data on mount
   useEffect(() => {
-    if (user?.id) {
-      loadReferenceData()
-      loadInvoiceData()
-    }
-  }, [user, loadReferenceData, loadInvoiceData])
+    loadReferenceData()
+    loadInvoiceData()
+  }, [])
 
   // Create invoice
   const handleCreateInvoice = useCallback(async (

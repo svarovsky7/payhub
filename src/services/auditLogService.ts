@@ -73,6 +73,8 @@ export async function createAuditLogEntry(
     metadata: options?.metadata,
   };
 
+  console.log('[auditLogService.createAuditLogEntry] Entry to insert:', entry);
+
   const { data, error } = await supabase
     .from('audit_log')
     .insert([entry])
@@ -84,6 +86,10 @@ export async function createAuditLogEntry(
     throw error;
   }
 
-  console.log('[auditLogService.createAuditLogEntry] Created entry:', data.id);
+  console.log('[auditLogService.createAuditLogEntry] Created entry:', {
+    id: data.id,
+    action: data.action,
+    metadata: data.metadata
+  });
   return data;
 }

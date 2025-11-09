@@ -64,14 +64,12 @@ export function useMaterialRequestManagement() {
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   // Initial load
   useEffect(() => {
-    if (user?.id) {
-      loadData()
-    }
-  }, [user?.id, loadData])
+    loadData()
+  }, [])
 
   // Create material request
   const handleCreateRequest = useCallback(async (input: CreateMaterialRequestInput) => {

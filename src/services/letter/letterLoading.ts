@@ -33,7 +33,16 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
       creator:user_profiles!letters_created_by_fkey(id, full_name, email),
       sender_contractor:contractors!fk_letters_sender_contractor(id, name),
       recipient_contractor:contractors!fk_letters_recipient_contractor(id, name),
-      letter_attachments(count)
+      attachments:letter_attachments(
+        id,
+        attachment:attachments(
+          id,
+          original_name,
+          storage_path,
+          size_bytes,
+          mime_type
+        )
+      )
     `)
 
   // If userId is provided, check role and filter by user projects if necessary

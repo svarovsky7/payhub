@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase'
 import { uploadAndLinkFile, deleteFile } from '../fileAttachmentService'
+import { createAuditLogEntry } from '../auditLogService'
 
 /**
  * Process letter files (upload new, delete removed)
@@ -23,15 +24,6 @@ export async function processLetterFiles(
   const originalFileNames = originalFiles || []
   const filesToDelete = currentFileNames.filter((name: string) => !originalFileNames.includes(name))
 
-  // Delete removed files
-  for (const fileName of filesToDelete) {
-    const attachment = currentAttachments?.find(a => (a as any).attachments?.original_name === fileName)
-    if (attachment && (attachment as any).attachments) {
-      await deleteFile((attachment as any).attachments.id, (attachment as any).attachments.storage_path)
-    }
-  }
-
-  // Upload new files
   // Get current user from session
   const { data: { session } } = await supabase.auth.getSession()
   const userId = session?.user?.id
@@ -39,6 +31,21 @@ export async function processLetterFiles(
   if (!userId) {
     throw new Error('User not authenticated')
   }
+
+  // Delete removed files
+  for (const fileName of filesToDelete) {
+    const attachment = currentAttachments?.find(a => (a as any).attachments?.original_name === fileName)
+    if (attachment && (attachment as any).attachments) {
+      await deleteFile((attachment as any).attachments.id, (attachment as any).attachments.storage_path)
+      
+      // Log file deletion
+      await createAuditLogEntry('letter', letterId, 'file_delete', userId, {
+        metadata: { file_name: fileName }
+      })
+    }
+  }
+
+  // Upload new files
 
   for (const file of newFiles) {
     const description = fileDescriptions?.[file.name] || undefined
@@ -49,7 +56,55 @@ export async function processLetterFiles(
       description,
       userId
     })
+    
+    // Log file addition
+    await createAuditLogEntry('letter', letterId, 'file_add', userId, {
+      metadata: { 
+        file_name: file.name,
+        file_size: file.size,
+        description: description
+      }
+    })
   }
+}
+
+/**
+ * Delete letter attachment with recognition records
+ */
+export async function deleteLetterAttachment(
+  attachmentId: string,
+  storagePath: string,
+  letterId: string
+): Promise<void> {
+  console.log('[letterFiles.deleteLetterAttachment] Deleting attachment:', attachmentId)
+
+  // Get current user
+  const { data: { session } } = await supabase.auth.getSession()
+  const userId = session?.user?.id
+
+  if (!userId) {
+    throw new Error('User not authenticated')
+  }
+
+  // Delete recognition records first
+  const { error: recognitionError } = await supabase
+    .from('attachment_recognitions')
+    .delete()
+    .eq('attachment_id', attachmentId)
+
+  if (recognitionError) {
+    console.error('[letterFiles.deleteLetterAttachment] Recognition delete error:', recognitionError)
+  }
+
+  // Delete file (cascades letter_attachments)
+  await deleteFile(attachmentId, storagePath)
+
+  // Log deletion
+  await createAuditLogEntry('letter', letterId, 'file_delete', userId, {
+    metadata: { attachment_id: attachmentId }
+  })
+
+  console.log('[letterFiles.deleteLetterAttachment] Attachment deleted successfully')
 }
 
 /**

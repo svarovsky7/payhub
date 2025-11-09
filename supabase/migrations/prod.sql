@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-11-07T06:59:44.685177
+-- Generated: 2025-11-09T13:19:01.755098
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -426,6 +426,24 @@ COMMENT ON COLUMN public.approval_steps.acted_by IS 'User ID who performed the a
 COMMENT ON COLUMN public.approval_steps.acted_at IS 'Timestamp when the action was performed';
 COMMENT ON COLUMN public.approval_steps.comment IS 'Optional comment explaining the decision';
 COMMENT ON COLUMN public.approval_steps.created_at IS 'Timestamp when the record was created';
+
+-- Связь между исходными файлами и их распознанными версиями (markdown)
+CREATE TABLE IF NOT EXISTS public.attachment_recognitions (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    original_attachment_id uuid NOT NULL,
+    recognized_attachment_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    created_by uuid,
+    CONSTRAINT attachment_recognitions_created_by_fkey FOREIGN KEY (created_by) REFERENCES None.None(None),
+    CONSTRAINT attachment_recognitions_original_attachment_id_fkey FOREIGN KEY (original_attachment_id) REFERENCES None.None(None),
+    CONSTRAINT attachment_recognitions_original_attachment_id_key UNIQUE (original_attachment_id),
+    CONSTRAINT attachment_recognitions_pkey PRIMARY KEY (id),
+    CONSTRAINT attachment_recognitions_recognized_attachment_id_fkey FOREIGN KEY (recognized_attachment_id) REFERENCES None.None(None)
+);
+
+COMMENT ON TABLE public.attachment_recognitions IS 'Связь между исходными файлами и их распознанными версиями (markdown)';
+COMMENT ON COLUMN public.attachment_recognitions.original_attachment_id IS 'ID исходного файла';
+COMMENT ON COLUMN public.attachment_recognitions.recognized_attachment_id IS 'ID распознанного файла (markdown)';
 
 -- Metadata for files uploaded to Supabase Storage
 CREATE TABLE IF NOT EXISTS public.attachments (
@@ -5231,6 +5249,15 @@ CREATE INDEX idx_approval_steps_acted_by ON public.approval_steps USING btree (a
 ;
 
 CREATE INDEX idx_approval_steps_approval ON public.approval_steps USING btree (payment_approval_id)
+;
+
+CREATE UNIQUE INDEX attachment_recognitions_original_attachment_id_key ON public.attachment_recognitions USING btree (original_attachment_id)
+;
+
+CREATE INDEX idx_attachment_recognitions_original ON public.attachment_recognitions USING btree (original_attachment_id)
+;
+
+CREATE INDEX idx_attachment_recognitions_recognized ON public.attachment_recognitions USING btree (recognized_attachment_id)
 ;
 
 CREATE INDEX idx_attachments_created_by ON public.attachments USING btree (created_by)

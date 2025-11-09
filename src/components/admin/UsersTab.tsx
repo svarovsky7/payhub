@@ -315,9 +315,11 @@ export const UsersTab = () => {
       record[dataIndex]
         ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
         : false,
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100)
+    filterDropdownProps: {
+      onOpenChange: (visible) => {
+        if (visible) {
+          setTimeout(() => searchInput.current?.select(), 100)
+        }
       }
     }
   })

@@ -25,8 +25,9 @@ interface FilePreviewModalProps {
   open: boolean
   title: string
   url: string
-  type: 'image' | 'pdf' | 'other'
+  type: 'image' | 'pdf' | 'markdown' | 'other'
   onClose: () => void
+  content?: string
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -34,7 +35,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   title,
   url,
   type,
-  onClose
+  onClose,
+  content
 }) => {
   const handleDownload = () => {
     const link = document.createElement('a')
@@ -104,6 +106,29 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               Если PDF не отображается, используйте кнопку "Скачать PDF"
             </Text>
           </div>
+        </div>
+      ) : type === 'markdown' ? (
+        <div style={{ 
+          padding: '24px', 
+          background: '#fafafa', 
+          borderRadius: '4px',
+          maxHeight: '70vh',
+          overflowY: 'auto'
+        }}>
+          <pre style={{ 
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            fontFamily: 'monospace',
+            fontSize: '13px',
+            lineHeight: '1.6',
+            margin: 0,
+            background: '#fff',
+            padding: '16px',
+            borderRadius: '4px',
+            border: '1px solid #e0e0e0'
+          }}>
+            {content || 'Содержимое файла недоступно'}
+          </pre>
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '40px' }}>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Timeline, Spin, Empty, Tag, Typography, Tooltip } from 'antd';
 import {
   FileAddOutlined,
@@ -19,6 +20,7 @@ import type {
   StatusChangeMetadata,
   ApprovalActionMetadata,
 } from '../../types/audit';
+import { supabase } from '../../lib/supabase';
 
 dayjs.extend(relativeTime);
 dayjs.locale('ru');
@@ -57,7 +59,7 @@ const fieldNameMap: Record<string, string> = {
   amount: 'Сумма',
   payment_type_id: 'Тип платежа',
   allocated_amount: 'Распределенная сумма',
-  // Поля для писем
+  // Поля письма
   number: 'Номер письма',
   reg_number: 'Регистрационный номер',
   letter_date: 'Дата письма',
@@ -68,9 +70,13 @@ const fieldNameMap: Record<string, string> = {
   sender: 'Отправитель',
   recipient: 'Получатель',
   direction: 'Направление',
-  delivery_method: 'Способ доставки',
+  delivery_method: 'Способ доставки/отправки',
   responsible_user_id: 'Ответственный пользователь',
-  responsible_person_name: 'Ответственное лицо',
+  responsible_person_name: 'Ответственный',
+  sender_type: 'Тип отправителя',
+  sender_contractor_id: 'Контрагент-отправитель',
+  recipient_type: 'Тип получателя',
+  recipient_contractor_id: 'Контрагент-получатель',
 };
 
 // Маппинг действий на русский и цвета
@@ -149,6 +155,16 @@ function formatFieldValue(
     return value === 'working' ? 'Рабочие дни' : 'Календарные дни';
   }
 
+  // Форматирование направления письма
+  if (fieldName === 'direction') {
+    return value === 'incoming' ? 'Входящее' : value === 'outgoing' ? 'Исходящее' : value;
+  }
+
+  // Форматирование типа отправителя/получателя
+  if (fieldName === 'sender_type' || fieldName === 'recipient_type') {
+    return value === 'contractor' ? 'Контрагент' : value === 'individual' ? 'Физ. лицо' : value;
+  }
+
   // Форматирование денежных сумм
   if (fieldName && MONEY_FIELDS.includes(fieldName)) {
     const numValue = parseFloat(value);
@@ -174,8 +190,8 @@ function formatFieldValue(
   return value;
 }
 
-function renderActionDetails(entry: AuditLogView): React.ReactNode {
-  const { action, field_name, old_value, new_value, metadata } = entry;
+function renderActionDetails(entry: AuditLogView, letterStatuses: Record<number, string>): React.ReactNode {
+  const { action, field_name, old_value, new_value, metadata, entity_type } = entry;
 
   switch (action) {
     case 'create':
@@ -205,6 +221,59 @@ function renderActionDetails(entry: AuditLogView): React.ReactNode {
       return null;
 
     case 'update':
+      // Специальная обработка для status_id - показываем как смену статуса
+      if (field_name === 'status_id') {
+        const statusMeta = metadata as StatusChangeMetadata | undefined;
+        let oldStatusName = statusMeta?.old_status_name || old_value;
+        let newStatusName = statusMeta?.new_status_name || new_value;
+        
+        console.log('[AuditLogTimeline.renderActionDetails] Update status_id:', {
+          entity_type,
+          old_value,
+          new_value,
+          statusMeta,
+          letterStatuses,
+          letterStatusesKeys: Object.keys(letterStatuses)
+        });
+        
+        // For letter statuses, try to get name from letterStatuses map
+        if (entity_type === 'letter' && !statusMeta?.old_status_name) {
+          const oldId = old_value ? parseInt(old_value) : null;
+          const newId = new_value ? parseInt(new_value) : null;
+          
+          console.log('[AuditLogTimeline.renderActionDetails] Parsing letter status IDs (update):', {
+            oldId,
+            newId,
+            oldIdInMap: oldId ? letterStatuses[oldId] : undefined,
+            newIdInMap: newId ? letterStatuses[newId] : undefined
+          });
+          
+          if (oldId && letterStatuses[oldId]) {
+            oldStatusName = letterStatuses[oldId];
+          }
+          if (newId && letterStatuses[newId]) {
+            newStatusName = letterStatuses[newId];
+          }
+        }
+        
+        console.log('[AuditLogTimeline.renderActionDetails] Final status names (update):', {
+          oldStatusName,
+          newStatusName
+        });
+        
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Tag color="default" style={{ margin: 0, fontSize: 11 }}>
+              {oldStatusName}
+            </Tag>
+            <Text style={{ fontSize: 12 }}>→</Text>
+            <Tag color="success" style={{ margin: 0, fontSize: 11 }}>
+              {newStatusName}
+            </Tag>
+          </div>
+        );
+      }
+      
       // Специальная обработка для полей с метаданными (для отображения имен вместо ID)
       const metaData = metadata as any;
       let oldDisplay = old_value;
@@ -235,6 +304,12 @@ function renderActionDetails(entry: AuditLogView): React.ReactNode {
         const newType = metaData.new_delivery_days_type === 'working' ? 'раб.' : 'кал.';
         oldDisplay = old_value ? `${old_value} ${oldType} дн.` : '—';
         newDisplay = new_value ? `${new_value} ${newType} дн.` : '—';
+      } else if (field_name === 'sender_contractor_id' && metaData) {
+        oldDisplay = metaData.old_sender_name || old_value;
+        newDisplay = metaData.new_sender_name || new_value;
+      } else if (field_name === 'recipient_contractor_id' && metaData) {
+        oldDisplay = metaData.old_recipient_name || old_value;
+        newDisplay = metaData.new_recipient_name || new_value;
       } else {
         oldDisplay = formatFieldValue(old_value, field_name);
         newDisplay = formatFieldValue(new_value, field_name);
@@ -253,28 +328,85 @@ function renderActionDetails(entry: AuditLogView): React.ReactNode {
 
     case 'status_change':
       const statusMeta = metadata as StatusChangeMetadata | undefined;
+      let oldStatusName = statusMeta?.old_status_name || old_value;
+      let newStatusName = statusMeta?.new_status_name || new_value;
+      
+      console.log('[AuditLogTimeline.renderActionDetails] Status change:', {
+        entity_type,
+        old_value,
+        new_value,
+        statusMeta,
+        letterStatuses,
+        letterStatusesKeys: Object.keys(letterStatuses)
+      });
+      
+      // For letter statuses, try to get name from letterStatuses map
+      if (entity_type === 'letter' && !statusMeta?.old_status_name) {
+        const oldId = old_value ? parseInt(old_value) : null;
+        const newId = new_value ? parseInt(new_value) : null;
+        
+        console.log('[AuditLogTimeline.renderActionDetails] Parsing letter status IDs:', {
+          oldId,
+          newId,
+          oldIdInMap: oldId ? letterStatuses[oldId] : undefined,
+          newIdInMap: newId ? letterStatuses[newId] : undefined
+        });
+        
+        if (oldId && letterStatuses[oldId]) {
+          oldStatusName = letterStatuses[oldId];
+        }
+        if (newId && letterStatuses[newId]) {
+          newStatusName = letterStatuses[newId];
+        }
+      }
+      
+      console.log('[AuditLogTimeline.renderActionDetails] Final status names:', {
+        oldStatusName,
+        newStatusName
+      });
+      
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <Tag color="default" style={{ margin: 0, fontSize: 11 }}>
-            {statusMeta?.old_status_name || old_value}
+            {oldStatusName}
           </Tag>
           <Text style={{ fontSize: 12 }}>→</Text>
           <Tag color="success" style={{ margin: 0, fontSize: 11 }}>
-            {statusMeta?.new_status_name || new_value}
+            {newStatusName}
           </Tag>
         </div>
       );
 
     case 'file_add':
-    case 'file_delete':
-      const fileMeta = metadata as FileAuditMetadata | undefined;
-      const fileName = fileMeta?.file_name || 'Файл';
-      const fileSize = fileMeta?.file_size
-        ? ` (${(fileMeta.file_size / 1024 / 1024).toFixed(2)} МБ)`
+      const addFileMeta = metadata as FileAuditMetadata | undefined;
+      const addFileName = addFileMeta?.file_name || 'Файл';
+      const addFileSize = addFileMeta?.file_size
+        ? ` (${(addFileMeta.file_size / 1024).toFixed(1)} KB)`
         : '';
 
       return (
-        <Text style={{ fontSize: 12 }}>{fileName}{fileSize}</Text>
+        <div>
+          <Text strong style={{ fontSize: 12 }}>
+            {addFileName}{addFileSize}
+          </Text>
+          {addFileMeta?.description && (
+            <div>
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {addFileMeta.description}
+              </Text>
+            </div>
+          )}
+        </div>
+      );
+
+    case 'file_delete':
+      const delFileMeta = metadata as FileAuditMetadata | undefined;
+      const delFileName = delFileMeta?.file_name || 'Файл';
+
+      return (
+        <Text type="secondary" style={{ fontSize: 12 }} delete>
+          {delFileName}
+        </Text>
       );
 
     case 'approval_action':
@@ -327,6 +459,44 @@ export default function AuditLogTimeline({
   auditLog,
   loading = false,
 }: AuditLogTimelineProps) {
+  const [letterStatuses, setLetterStatuses] = useState<Record<number, string>>({});
+  const [statusesLoaded, setStatusesLoaded] = useState(false);
+
+  // Load letter statuses if we have letter-related audit entries
+  useEffect(() => {
+    console.log('[AuditLogTimeline.useEffect] Checking for letter entries:', {
+      auditLogCount: auditLog.length,
+      statusesLoaded,
+      sample: auditLog[0]
+    });
+    
+    const hasLetterEntries = auditLog.some(entry => entry.entity_type === 'letter');
+    console.log('[AuditLogTimeline.useEffect] Has letter entries:', hasLetterEntries);
+    
+    if (hasLetterEntries && !statusesLoaded) {
+      console.log('[AuditLogTimeline.useEffect] Loading letter statuses...');
+      supabase
+        .from('letter_statuses')
+        .select('id, name')
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('[AuditLogTimeline.useEffect] Error loading statuses:', error);
+          }
+          if (data) {
+            const statusMap = Object.fromEntries(
+              data.map(status => [status.id, status.name])
+            );
+            console.log('[AuditLogTimeline.useEffect] Letter statuses loaded:', {
+              count: data.length,
+              statusMap
+            });
+            setLetterStatuses(statusMap);
+          }
+          setStatusesLoaded(true);
+        });
+    }
+  }, [auditLog, statusesLoaded]);
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '20px' }}>
@@ -344,8 +514,34 @@ export default function AuditLogTimeline({
     );
   }
 
+  // Wait for letter statuses to load if we have letter entries
+  const hasLetterEntries = auditLog.some(entry => entry.entity_type === 'letter');
+  if (hasLetterEntries && !statusesLoaded) {
+    console.log('[AuditLogTimeline] Waiting for letter statuses to load...');
+    return (
+      <div style={{ textAlign: 'center', padding: '20px' }}>
+        <Spin tip="Загрузка статусов..." />
+      </div>
+    );
+  }
+
+  console.log('[AuditLogTimeline] Rendering timeline with:', {
+    auditLogCount: auditLog.length,
+    letterStatusesCount: Object.keys(letterStatuses).length,
+    letterStatuses
+  });
+
   const timelineItems = auditLog.map((entry) => {
     const config = actionConfig[entry.action];
+
+    console.log('[AuditLogTimeline] Processing entry:', {
+      action: entry.action,
+      entity_type: entry.entity_type,
+      field_name: entry.field_name,
+      old_value: entry.old_value,
+      new_value: entry.new_value,
+      metadata: entry.metadata
+    });
 
     return {
       key: entry.id,
@@ -368,7 +564,7 @@ export default function AuditLogTimeline({
           </div>
 
           <div style={{ fontSize: 13 }}>
-            {renderActionDetails(entry)}
+            {renderActionDetails(entry, letterStatuses)}
           </div>
         </div>
       ),

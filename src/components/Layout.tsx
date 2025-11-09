@@ -1,4 +1,4 @@
-import { Layout, Menu, Button, Avatar, Dropdown, Select, message } from 'antd'
+import { Layout, Menu, Button, Avatar, Dropdown } from 'antd'
 import {
   FileTextOutlined,
   UserOutlined,
@@ -7,7 +7,6 @@ import {
   MenuUnfoldOutlined,
   ControlOutlined,
   AuditOutlined,
-  SafetyOutlined,
   FormOutlined,
   DollarOutlined,
   MailOutlined,
@@ -24,21 +23,12 @@ interface MainLayoutProps {
   children: React.ReactNode
 }
 
-interface Role {
-  id: number
-  code: string
-  name: string
-  allowed_pages?: string[] | null // JSON field for storing allowed pages array
-}
-
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false)
-  const [roles, setRoles] = useState<Role[]>([])
-  const [changingRole, setChangingRole] = useState(false)
   const [allowedPages, setAllowedPages] = useState<string[]>([])
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, userProfile, signOut, currentRoleId, updateCurrentRole } = useAuth()
+  const { user, userProfile, signOut, currentRoleId } = useAuth()
 
   const userDisplayName = userProfile?.full_name || user?.email || 'Пользователь'
 
@@ -55,7 +45,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           .order('name')
 
         if (rolesError) throw rolesError
-        setRoles(rolesData || [])
 
         // Load current user's role with allowed pages
         if (currentRoleId) {
@@ -80,61 +69,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
 
     loadRoles()
-  }, [user, currentRoleId])
-
-  // Handle role change
-  const handleRoleChange = async (roleId: number | null) => {
-    if (!user?.id) return
-
-    setChangingRole(true)
-
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ role_id: roleId })
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      updateCurrentRole(roleId)
-
-      // Update current role and allowed pages
-      if (roleId) {
-        const role = roles.find(r => r.id === roleId)
-        if (role) {
-          const pages = role.allowed_pages
-            ? (typeof role.allowed_pages === 'string'
-                ? JSON.parse(role.allowed_pages)
-                : role.allowed_pages)
-            : []
-          setAllowedPages(pages)
-
-          // Check if current page is still allowed
-          if (pages.length > 0 && !pages.includes(location.pathname)) {
-            // Redirect to first allowed page
-            navigate(pages[0])
-            message.warning('У вас нет доступа к этой странице с выбранной ролью')
-          }
-        }
-      } else {
-        // No role selected, allow all pages
-        setAllowedPages(['/invoices', '/material-requests', '/contracts', '/letters', '/letter-stats', '/approvals', '/project-budgets', '/admin'])
-      }
-
-      message.success('Роль изменена')
-
-      // Reload page if on approvals page to refresh the list
-      if (location.pathname === '/approvals') {
-        window.location.reload()
-      }
-    } catch (error: unknown) {
-      console.error('[Layout.handleRoleChange] Error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Ошибка изменения роли'
-      message.error(errorMessage)
-    } finally {
-      setChangingRole(false)
-    }
-  }
+  }, [currentRoleId])
 
   const handleLogout = async () => {
     try {
@@ -142,6 +77,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       navigate('/login')
     } catch (error) {
       console.error('[MainLayout.handleLogout] Logout error:', error)
+    }
+  }
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    if (key === 'profile') {
+      navigate('/profile')
+    } else if (key === 'logout') {
+      handleLogout()
     }
   }
 
@@ -158,7 +101,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: 'Выйти',
-      onClick: handleLogout,
     },
   ]
 
@@ -274,24 +216,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Quick role switcher */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <SafetyOutlined style={{ color: '#1890ff' }} />
-              <Select
-                value={currentRoleId || undefined}
-                onChange={handleRoleChange}
-                loading={changingRole}
-                style={{ width: 200 }}
-                placeholder="Выберите роль"
-                allowClear
-                options={roles.map(role => ({
-                  value: role.id,
-                  label: role.name
-                }))}
-              />
-            </div>
-
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Dropdown menu={{ items: userMenuItems, onClick: handleMenuClick }} placement="bottomRight">
               <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Avatar icon={<UserOutlined />} />
                 <span>{userDisplayName}</span>

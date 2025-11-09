@@ -83,6 +83,38 @@
     "indexes": [],
     "comment": "Audit log of actions performed during payment approval process"
   },
+  "public.attachment_recognitions": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "original_attachment_id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "recognized_attachment_id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "created_by": {
+        "type": "uuid",
+        "nullable": true,
+        "foreign_key": null
+      }
+    },
+    "indexes": [],
+    "comment": "Связь между исходными файлами и их распознанными версиями (markdown)"
+  },
   "public.attachments": {
     "schema": "public",
     "columns": {

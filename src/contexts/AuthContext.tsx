@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -25,43 +25,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<Role | null>(null)
   const [currentRoleId, setCurrentRoleId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const loadedUserIdRef = useRef<string | null>(null)
 
-  console.log('[AuthContext] Initializing...')
+  console.log('[AuthContext] Render', { 
+    user: user?.email || 'none', 
+    loading,
+    hasProfile: !!userProfile,
+    hasRole: !!userRole,
+    loadedUserId: loadedUserIdRef.current
+  })
 
-  useEffect(() => {
-    console.log('[AuthContext.useEffect] Checking session...')
+  const loadUserProfile = useCallback(async (userId: string, skipIfLoaded: boolean = false) => {
+    // Skip if already loaded (to prevent duplicate loads on SIGNED_IN events)
+    if (skipIfLoaded && loadedUserIdRef.current === userId) {
+      console.log('[AuthContext.loadUserProfile] Profile already loaded, skipping', { userId })
+      return
+    }
 
-    // Check active sessions
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AuthContext.useEffect] Session:', session?.user?.email || 'none')
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        loadUserProfile(session.user.id)
-      } else {
-        setLoading(false)
-      }
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('[AuthContext.onAuthStateChange] Event:', _event, 'User:', session?.user?.email || 'none')
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        loadUserProfile(session.user.id)
-      } else {
-        setUserProfile(null)
-        setUserRole(null)
-        setLoading(false)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const loadUserProfile = useCallback(async (userId: string) => {
     console.log('[AuthContext.loadUserProfile] Loading profile for:', userId)
+    setLoading(true)
     try {
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
@@ -85,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[AuthContext.loadUserProfile] Profile loaded:', profile?.email)
       setUserProfile(profile)
       setCurrentRoleId(profile?.role_id || null)
+      loadedUserIdRef.current = userId
 
       // Load user role if available
       if (profile?.role_id) {
@@ -111,9 +94,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Listen for changes to current user's profile (e.g., is_disabled)
+  useEffect(() => {
+    console.log('[AuthContext.useEffect] Checking session...')
+
+    // Check active sessions
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AuthContext.useEffect] Session:', session?.user?.email || 'none')
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        loadUserProfile(session.user.id)
+      } else {
+        setLoading(false)
+      }
+    })
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('[AuthContext.onAuthStateChange] Event:', _event, 'User:', session?.user?.email || 'none')
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        // Skip reload on SIGNED_IN events if user is already loaded
+        const skipReload = _event === 'SIGNED_IN'
+        loadUserProfile(session.user.id, skipReload)
+      } else {
+        setUserProfile(null)
+        setUserRole(null)
+        setLoading(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Disabled realtime subscription - server not available
+  // Profile changes will be detected on next page load
+  /*
   useEffect(() => {
     if (!user?.id) return
+
+    let mounted = true
 
     const channel = supabase
       .channel('user_profile_changes')
@@ -126,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           filter: `id=eq.${user.id}`,
         },
         (payload) => {
+          if (!mounted) return
           console.log('[AuthContext] Profile changed:', payload)
           const newProfile = payload.new as UserProfile
           
@@ -134,17 +156,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             message.error('Ваш доступ к системе заблокирован')
             supabase.auth.signOut()
           } else {
-            // Reload profile to get latest data
             loadUserProfile(user.id)
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('[AuthContext] Realtime unavailable - continuing')
+        }
+      })
 
     return () => {
-      supabase.removeChannel(channel)
+      mounted = false
+      supabase.removeChannel(channel).catch(() => {})
     }
   }, [user?.id, loadUserProfile])
+  */
 
   const signIn = async (email: string, password: string) => {
     console.log('[AuthContext.signIn] Signing in:', email)
@@ -195,6 +222,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('[AuthContext.signUp] Auth user created:', authData.user.id)
 
+      // Sign out immediately to prevent auto-login
+      await supabase.auth.signOut()
+
       // Create or update user profile with default clerk role (id=9)
       const { error: profileError } = await supabase
         .from('user_profiles')
@@ -203,6 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email,
           full_name: fullName,
           role_id: 9, // Default clerk role
+          is_disabled: true, // Block access by default
         }, {
           onConflict: 'id'
         })
@@ -212,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[AuthContext.signUp] Profile created/updated with clerk role')
 
       // Link user to projects
-      if (projectIds.length > 0) {
+      if (projectIds.length > 0 && authData.user) {
         const userProjectsData = projectIds.map(projectId => ({
           user_id: authData.user!.id,
           project_id: projectId,
@@ -227,10 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('[AuthContext.signUp] Projects linked:', projectIds.length)
       }
 
-      // Reload user profile to get the assigned role
-      await loadUserProfile(authData.user.id)
-
-      message.success('Регистрация успешна! Добро пожаловать!')
+      message.success('Регистрация успешна! Ожидайте активации доступа администратором.')
     } catch (error: unknown) {
       console.error('[AuthContext.signUp] Error:', error)
 

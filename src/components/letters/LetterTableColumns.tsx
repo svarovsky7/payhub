@@ -1,19 +1,24 @@
-import { Tag, Space, Button, Popconfirm, Tooltip, Dropdown } from 'antd'
+import { Tag, Space, Button, Popconfirm, Tooltip, Dropdown, Badge } from 'antd'
 import type { MenuProps } from 'antd'
-import { DeleteOutlined, EyeOutlined, PlusCircleOutlined, CloseCircleOutlined, DownOutlined } from '@ant-design/icons'
+import { DeleteOutlined, EyeOutlined, PlusCircleOutlined, CloseCircleOutlined, DownOutlined, EditOutlined, ScanOutlined, LoadingOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import type { Letter, LetterStatus, Project, UserProfile } from '../../lib/supabase'
+import type { RecognitionTask } from '../../services/recognitionTaskService'
 
 interface GetLetterTableColumnsProps {
   letterStatuses: LetterStatus[]
   projects: Project[]
   users: UserProfile[]
   handleViewLetter: (letter: Letter) => void
+  handleEditLetter: (letter: Letter) => void
   handleDeleteLetter: (letterId: string) => void
   handleLinkLetter: (letter: Letter) => void
   handleUnlinkLetter: (parentId: string, childId: string) => void
   handleStatusChange: (letterId: string, newStatusId: number) => void
+  handleRecognizeAttachments?: (letter: Letter) => void
+  currentUserId: string | null
+  recognitionTasks?: RecognitionTask[]
 }
 
 const truncateText = (text: string, maxLength: number = 25) => {
@@ -29,10 +34,14 @@ export const getLetterTableColumns = ({
   projects,
   users,
   handleViewLetter,
+  handleEditLetter,
   handleDeleteLetter,
   handleLinkLetter,
   handleUnlinkLetter,
-  handleStatusChange
+  handleStatusChange,
+  handleRecognizeAttachments,
+  currentUserId,
+  recognitionTasks = []
 }: GetLetterTableColumnsProps): ColumnsType<Letter> => {
   return [
     {
@@ -283,20 +292,25 @@ export const getLetterTableColumns = ({
     },
     {
       title: 'Файлы',
-      dataIndex: 'letter_attachments',
+      dataIndex: 'attachments',
       key: 'attachments_count',
-      width: 60,
+      width: 70,
       align: 'center',
       sorter: (a, b) => {
-        const aCount = (a.letter_attachments?.length || 0) > 0 ? (a.letter_attachments?.[0]?.count || 0) : 0
-        const bCount = (b.letter_attachments?.length || 0) > 0 ? (b.letter_attachments?.[0]?.count || 0) : 0
-        return aCount - bCount
+        const aFiles = (a.attachments || []).filter(att => !att.attachment?.original_name?.toLowerCase().endsWith('.md')).length
+        const bFiles = (b.attachments || []).filter(att => !att.attachment?.original_name?.toLowerCase().endsWith('.md')).length
+        return aFiles - bFiles
       },
-      render: (_: any) => {
-        const count = (_?.length || 0) > 0 ? (_?.[0]?.count || 0) : 0
-        return count > 0 ? (
-          <Tag color="blue">{count}</Tag>
-        ) : '—'
+      render: (_: any, record: Letter) => {
+        const attachments = record.attachments || []
+        const regularFiles = attachments.filter(att => !att.attachment?.original_name?.toLowerCase().endsWith('.md')).length
+        const mdFiles = attachments.filter(att => att.attachment?.original_name?.toLowerCase().endsWith('.md')).length
+        
+        if (regularFiles === 0 && mdFiles === 0) return '—'
+        
+        return (
+          <Tag color="blue">{regularFiles}/{mdFiles}</Tag>
+        )
       }
     },
     {
@@ -342,7 +356,7 @@ export const getLetterTableColumns = ({
     {
       title: 'Действия',
       key: 'actions',
-      width: 150,
+      width: 180,
       fixed: 'right',
       render: (_: any, record: Letter) => (
         <Space size="small">
@@ -366,6 +380,40 @@ export const getLetterTableColumns = ({
               />
             </Tooltip>
           )}
+          {(() => {
+            const letterTasks = recognitionTasks.filter(t => t.letterId === record.id)
+            const hasActiveTasks = letterTasks.length > 0
+            const avgProgress = hasActiveTasks 
+              ? Math.floor(letterTasks.reduce((sum, t) => sum + t.progress, 0) / letterTasks.length)
+              : 0
+
+            if (hasActiveTasks) {
+              console.log(`[LetterTableColumns] Active tasks for letter ${record.number}:`, letterTasks)
+              return (
+                <Tooltip title={`Распознавание: ${avgProgress}% (${letterTasks.length} файл${letterTasks.length > 1 ? 'ов' : ''})`}>
+                  <Badge count={letterTasks.length} size="small" offset={[-5, 5]}>
+                    <Button
+                      type="text"
+                      icon={<LoadingOutlined spin />}
+                      onClick={() => handleRecognizeAttachments?.(record)}
+                      style={{ color: '#1890ff' }}
+                    />
+                  </Badge>
+                </Tooltip>
+              )
+            }
+
+            return (
+              <Tooltip title="Распознать вложения">
+                <Button
+                  type="text"
+                  icon={<ScanOutlined />}
+                  onClick={() => handleRecognizeAttachments?.(record)}
+                  style={{ color: '#1890ff' }}
+                />
+              </Tooltip>
+            )
+          })()}
           <Tooltip title="Просмотр">
             <Button
               type="text"
@@ -373,21 +421,32 @@ export const getLetterTableColumns = ({
               onClick={() => handleViewLetter(record)}
             />
           </Tooltip>
-          <Popconfirm
-            title="Удалить письмо?"
-            description="Это действие нельзя отменить"
-            onConfirm={() => handleDeleteLetter(record.id)}
-            okText="Да"
-            cancelText="Нет"
-          >
-            <Tooltip title="Удалить">
+          {record.created_by === currentUserId && (
+            <Tooltip title="Редактировать">
               <Button
                 type="text"
-                danger
-                icon={<DeleteOutlined />}
+                icon={<EditOutlined />}
+                onClick={() => handleEditLetter(record)}
               />
             </Tooltip>
-          </Popconfirm>
+          )}
+          {record.created_by === currentUserId && (
+            <Popconfirm
+              title="Удалить письмо?"
+              description="Это действие нельзя отменить"
+              onConfirm={() => handleDeleteLetter(record.id)}
+              okText="Да"
+              cancelText="Нет"
+            >
+              <Tooltip title="Удалить">
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </Space>
       )
     }

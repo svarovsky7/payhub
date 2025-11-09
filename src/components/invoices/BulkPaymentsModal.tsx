@@ -39,17 +39,19 @@ export const BulkPaymentsModal: React.FC<BulkPaymentsModalProps> = ({
       })
       setPaymentAmounts(amounts)
 
-      // Set defaults
-      const defaultValues: any = {
-        payment_date: dayjs(),
-      }
+      // Set defaults after next tick to ensure form is rendered
+      setTimeout(() => {
+        const defaultValues: any = {
+          payment_date: dayjs(),
+        }
 
-      if (paymentTypes.length > 0) {
-        const bankTransferType = paymentTypes.find(t => t.code === 'bank_transfer')
-        defaultValues.payment_type_id = bankTransferType?.id || paymentTypes[0].id
-      }
+        if (paymentTypes.length > 0) {
+          const bankTransferType = paymentTypes.find(t => t.code === 'bank_transfer')
+          defaultValues.payment_type_id = bankTransferType?.id || paymentTypes[0].id
+        }
 
-      form.setFieldsValue(defaultValues)
+        form.setFieldsValue(defaultValues)
+      }, 0)
     } else {
       form.resetFields()
       setPaymentAmounts({})

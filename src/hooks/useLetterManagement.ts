@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { message } from 'antd'
 import type { Letter, LetterStatus, Project, UserProfile } from '../lib/supabase'
 import { supabase } from '../lib/supabase'
@@ -14,6 +14,14 @@ import {
 } from '../services/letterOperations'
 import { useAuth } from '../contexts/AuthContext'
 import { createAuditLogEntry } from '../services/auditLogService'
+import {
+  getLetterCache,
+  setLetterCache,
+  addLetterToCache,
+  updateLetterInCache,
+  removeLetterFromCache,
+  clearLetterCache
+} from './useLetterCache'
 
 export const useLetterManagement = () => {
   const { user } = useAuth()
@@ -28,10 +36,42 @@ export const useLetterManagement = () => {
   const [viewingLetter, setViewingLetter] = useState<Letter | null>(null)
   const [linkModalVisible, setLinkModalVisible] = useState(false)
   const [linkingLetter, setLinkingLetter] = useState<Letter | null>(null)
+  const isLoadingRef = useRef(false)
+
+  console.log('[useLetterManagement] Hook initialized', { 
+    userId: user?.id, 
+    lettersCount: letters.length,
+    isLoading: isLoadingRef.current
+  })
 
   // Load initial data
-  const loadData = useCallback(async () => {
-    console.log('[useLetterManagement.loadData] Loading data')
+  const loadData = useCallback(async (forceReload = false) => {
+    console.log('[useLetterManagement.loadData] Called', { forceReload, isLoading: isLoadingRef.current })
+    
+    if (isLoadingRef.current) {
+      console.log('[useLetterManagement.loadData] Already loading, skipping')
+      return
+    }
+
+    // Check cache first
+    if (!forceReload) {
+      const cached = getLetterCache()
+      if (cached) {
+        console.log('[useLetterManagement.loadData] Using cached data')
+        setLetters(cached.letters)
+        setLetterStatuses(cached.letterStatuses)
+        setProjects(cached.projects)
+        setUsers(cached.users)
+        setLoading(false)
+        return
+      }
+    } else {
+      console.log('[useLetterManagement.loadData] 🔄 Force reload requested - clearing cache')
+      clearLetterCache()
+    }
+
+    console.log('[useLetterManagement.loadData] Starting fresh load from DB', { forceReload })
+    isLoadingRef.current = true
     setLoading(true)
 
     try {
@@ -103,17 +143,34 @@ export const useLetterManagement = () => {
       setLetterStatuses(statusesData)
       setProjects(filteredProjects)
       setUsers(usersData.data || [])
+
+      // Save to cache
+      setLetterCache({
+        letters: lettersData,
+        letterStatuses: statusesData,
+        projects: filteredProjects,
+        users: usersData.data || []
+      })
+
+      console.log('[useLetterManagement.loadData] Load completed', {
+        lettersCount: lettersData.length,
+        statusesCount: statusesData.length,
+        projectsCount: filteredProjects.length,
+        usersCount: usersData.data?.length || 0
+      })
     } catch (error) {
       console.error('[useLetterManagement.loadData] Error:', error)
       message.error('Ошибка загрузки данных')
     } finally {
       setLoading(false)
+      isLoadingRef.current = false
     }
-  }, [user?.id])
+  }, [])
 
   useEffect(() => {
+    console.log('[useLetterManagement.useEffect] Mounted')
     loadData()
-  }, [loadData])
+  }, [])
 
   // Open create modal
   const handleOpenCreateModal = useCallback(() => {
@@ -173,8 +230,9 @@ export const useLetterManagement = () => {
       // Create in background and add to list when complete
       const newLetter = await createLetter(letterData, files, fileDescriptions, publicShareToken)
 
-      // Add new letter to the list
+      // Add new letter to the list and cache
       setLetters(prev => [newLetter, ...prev])
+      addLetterToCache(newLetter)
     } catch (error) {
       console.error('[useLetterManagement.handleCreateLetter] Error:', error)
       message.error('Ошибка создания письма')
@@ -221,7 +279,11 @@ export const useLetterManagement = () => {
         })
       }
 
-      setLetters(updateLetterInTree(letters))
+      const updatedLetters = updateLetterInTree(letters)
+      setLetters(updatedLetters)
+      
+      // Update cache
+      updateLetterInCache(letterId, updatedLetter)
     } catch (error) {
       console.error('[useLetterManagement.handleUpdateLetter] Error:', error)
       // Rollback on error
@@ -254,8 +316,12 @@ export const useLetterManagement = () => {
           })
       }
 
-      setLetters(removeLetterFromTree(letters))
+      const updatedLetters = removeLetterFromTree(letters)
+      setLetters(updatedLetters)
       message.success('Письмо удалено')
+
+      // Update cache
+      removeLetterFromCache(letterId)
 
       // Delete in background
       await deleteLetter(letterId)

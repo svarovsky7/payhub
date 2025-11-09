@@ -172,7 +172,8 @@ export async function updateLetter(
     const fieldsToLog = [
       'number', 'reg_number', 'letter_date', 'reg_date', 'subject', 'content',
       'sender', 'recipient', 'direction', 'delivery_method', 'status_id',
-      'project_id', 'responsible_user_id', 'responsible_person_name'
+      'project_id', 'responsible_user_id', 'responsible_person_name',
+      'sender_type', 'sender_contractor_id', 'recipient_type', 'recipient_contractor_id'
     ] as const
 
     for (const field of fieldsToLog) {
@@ -181,11 +182,63 @@ export async function updateLetter(
 
       // Only log if field was actually changed
       if (newValue !== undefined && oldValue !== newValue) {
-        await createAuditLogEntry('letter', letterId, 'update', session.user.id, {
+        let metadata: any = {
           fieldName: field,
           oldValue: oldValue != null ? String(oldValue) : undefined,
           newValue: newValue != null ? String(newValue) : undefined
-        })
+        }
+
+        // For status_id, add status names to metadata
+        if (field === 'status_id') {
+          const [oldStatus, newStatus] = await Promise.all([
+            oldValue ? supabase.from('letter_statuses').select('name').eq('id', oldValue).single() : null,
+            newValue ? supabase.from('letter_statuses').select('name').eq('id', newValue).single() : null
+          ])
+          
+          await createAuditLogEntry('letter', letterId, 'status_change', session.user.id, {
+            fieldName: field,
+            oldValue: oldValue != null ? String(oldValue) : undefined,
+            newValue: newValue != null ? String(newValue) : undefined,
+            metadata: {
+              old_status_name: oldStatus?.data?.name || String(oldValue),
+              new_status_name: newStatus?.data?.name || String(newValue)
+            }
+          })
+        } 
+        // For contractor fields, add contractor names
+        else if (field === 'sender_contractor_id' || field === 'recipient_contractor_id') {
+          const [oldContractor, newContractor] = await Promise.all([
+            oldValue ? supabase.from('contractors').select('name').eq('id', oldValue).single() : null,
+            newValue ? supabase.from('contractors').select('name').eq('id', newValue).single() : null
+          ])
+          
+          const metaKey = field === 'sender_contractor_id' ? 'sender' : 'recipient';
+          await createAuditLogEntry('letter', letterId, 'update', session.user.id, {
+            ...metadata,
+            metadata: {
+              [`old_${metaKey}_name`]: oldContractor?.data?.name || String(oldValue),
+              [`new_${metaKey}_name`]: newContractor?.data?.name || String(newValue)
+            }
+          })
+        }
+        // For project_id, add project names
+        else if (field === 'project_id') {
+          const [oldProject, newProject] = await Promise.all([
+            oldValue ? supabase.from('projects').select('name').eq('id', oldValue).single() : null,
+            newValue ? supabase.from('projects').select('name').eq('id', newValue).single() : null
+          ])
+          
+          await createAuditLogEntry('letter', letterId, 'update', session.user.id, {
+            ...metadata,
+            metadata: {
+              old_project_name: oldProject?.data?.name || String(oldValue),
+              new_project_name: newProject?.data?.name || String(newValue)
+            }
+          })
+        }
+        else {
+          await createAuditLogEntry('letter', letterId, 'update', session.user.id, metadata)
+        }
       }
     }
   }
@@ -207,7 +260,35 @@ export async function deleteLetter(letterId: string): Promise<void> {
 
   if (attachments && attachments.length > 0) {
     for (const att of attachments) {
-      // Get file path
+      // Check for recognized files linked to this attachment
+      const { data: recognitions } = await supabase
+        .from('attachment_recognitions')
+        .select('recognized_attachment_id')
+        .eq('original_attachment_id', att.attachment_id)
+
+      // Delete recognized files first
+      if (recognitions && recognitions.length > 0) {
+        for (const rec of recognitions) {
+          const { data: recFileData } = await supabase
+            .from('attachments')
+            .select('storage_path')
+            .eq('id', rec.recognized_attachment_id)
+            .single()
+
+          if (recFileData) {
+            await supabase.storage
+              .from('attachments')
+              .remove([recFileData.storage_path])
+          }
+
+          await supabase
+            .from('attachments')
+            .delete()
+            .eq('id', rec.recognized_attachment_id)
+        }
+      }
+
+      // Get original file path
       const { data: fileData } = await supabase
         .from('attachments')
         .select('storage_path')
@@ -221,7 +302,7 @@ export async function deleteLetter(letterId: string): Promise<void> {
           .remove([fileData.storage_path])
       }
 
-      // Delete attachment record
+      // Delete attachment record (CASCADE will delete recognition links)
       await supabase
         .from('attachments')
         .delete()

@@ -18,6 +18,9 @@ interface ContractsTableProps {
   onExpandedRowsChange: (keys: string[]) => void
   onDataChange?: () => void
   columns?: ColumnsType<Contract> // Optional: if provided, use these columns instead of generating them
+  currentPage?: number
+  pageSize?: number
+  onPageChange?: (page: number, pageSize: number) => void
 }
 
 export const ContractsTable: React.FC<ContractsTableProps> = ({
@@ -29,8 +32,19 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
   expandedRowKeys,
   onExpandedRowsChange,
   onDataChange,
-  columns: providedColumns
+  columns: providedColumns,
+  currentPage = 1,
+  pageSize = 100,
+  onPageChange
 }) => {
+  console.log('[ContractsTable] Render:', { 
+    contractsCount: contracts.length, 
+    loading, 
+    expandedRowKeys,
+    hasProvidedColumns: !!providedColumns,
+    currentPage,
+    pageSize
+  })
   // Генерируем уникальные значения для фильтров
   const payerFilters = useMemo(() => {
     const uniquePayers = Array.from(
@@ -282,9 +296,15 @@ export const ContractsTable: React.FC<ContractsTableProps> = ({
         rowExpandable: (record) => ((record.contract_invoices as any[] | undefined)?.length || 0) > 0
       }}
       pagination={{
-        pageSize: 10,
+        current: currentPage,
+        pageSize: pageSize,
+        pageSizeOptions: ['50', '100', '200'],
         showSizeChanger: true,
-        showTotal: (total) => `Всего: ${total}`
+        showTotal: (total) => `Всего: ${total}`,
+        onChange: (page, size) => {
+          console.log('[ContractsTable.pagination.onChange]', { page, size })
+          onPageChange?.(page, size)
+        }
       }}
     />
   )

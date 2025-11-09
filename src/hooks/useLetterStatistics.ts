@@ -29,7 +29,14 @@ interface LetterRow {
   status?: { name: string; color: string } | null
 }
 
-export const useLetterStatistics = (selectedProjectName?: string) => {
+export interface LetterFilters {
+  selectedProjectName?: string
+  directionFilter?: string | null
+  searchQuery?: string
+  excludeOU_SU10?: boolean
+}
+
+export const useLetterStatistics = (filters?: LetterFilters) => {
   const [stats, setStats] = useState<LetterStats>({
     totalLetters: 0,
     lettersByDirection: [],
@@ -43,7 +50,9 @@ export const useLetterStatistics = (selectedProjectName?: string) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
     const loadStatistics = async () => {
+      console.log('[useLetterStatistics] Loading statistics with filters:', filters)
       try {
         // Fetch all letters with related data
         const { data: letters, error: lettersError } = await supabase
@@ -64,7 +73,32 @@ export const useLetterStatistics = (selectedProjectName?: string) => {
 
         if (lettersError) throw lettersError
 
-        const lettersList = (letters as unknown as LetterRow[]) || []
+        let lettersList = (letters as unknown as LetterRow[]) || []
+        
+        console.log('[useLetterStatistics] Letters fetched:', {
+          total: lettersList.length,
+          sample: lettersList.slice(0, 2)
+        })
+
+        // Применяем фильтры к сырым данным
+        if (filters?.selectedProjectName) {
+          lettersList = lettersList.filter(letter => {
+            if (filters.selectedProjectName === 'Без проекта') {
+              return !letter.project?.name
+            }
+            return letter.project?.name === filters.selectedProjectName
+          })
+        }
+
+        if (filters?.directionFilter) {
+          const direction = filters.directionFilter === 'Входящие' ? 'incoming' : 'outgoing'
+          lettersList = lettersList.filter(letter => letter.direction === direction)
+        }
+        
+        console.log('[useLetterStatistics] After direction filter:', {
+          length: lettersList.length,
+          filter: filters?.directionFilter
+        })
 
         // Get unique contractor IDs and user IDs from the fetched letters
         const contractorIds = new Set<number>()
@@ -103,6 +137,38 @@ export const useLetterStatistics = (selectedProjectName?: string) => {
               userMap.set(user.id, user.full_name || user.id)
             })
           }
+        }
+
+        // Применяем фильтрацию по поиску после загрузки данных контрагентов
+        if (filters?.searchQuery) {
+          const query = filters.searchQuery.toLowerCase()
+          lettersList = lettersList.filter(letter => {
+            const sender = letter.sender || 
+              (letter.sender_contractor_id && contractorMap.has(letter.sender_contractor_id) ? 
+                contractorMap.get(letter.sender_contractor_id)! : '')
+            const recipient = letter.recipient || 
+              (letter.recipient_contractor_id && contractorMap.has(letter.recipient_contractor_id) ? 
+                contractorMap.get(letter.recipient_contractor_id)! : '')
+            const responsible = letter.responsible_person_name || letter.responsible_user?.full_name || ''
+            
+            return sender.toLowerCase().includes(query) || 
+                   recipient.toLowerCase().includes(query) || 
+                   responsible.toLowerCase().includes(query)
+          })
+        }
+
+        // Применяем исключение ООО СУ-10
+        if (filters?.excludeOU_SU10) {
+          lettersList = lettersList.filter(letter => {
+            const sender = letter.sender || 
+              (letter.sender_contractor_id && contractorMap.has(letter.sender_contractor_id) ? 
+                contractorMap.get(letter.sender_contractor_id)! : '')
+            const recipient = letter.recipient || 
+              (letter.recipient_contractor_id && contractorMap.has(letter.recipient_contractor_id) ? 
+                contractorMap.get(letter.recipient_contractor_id)! : '')
+            
+            return sender !== 'ООО СУ-10' && recipient !== 'ООО СУ-10'
+          })
         }
 
         // Total letters
@@ -161,18 +227,9 @@ export const useLetterStatistics = (selectedProjectName?: string) => {
           .map(([name, count]) => ({ name, count }))
           .sort((a, b) => b.count - a.count)
 
-        // Top senders (filtered by project if selected)
-        const filteredLetters = selectedProjectName
-          ? lettersList.filter(letter => {
-              if (selectedProjectName === 'Без проекта') {
-                return !letter.project?.name
-              }
-              return letter.project?.name === selectedProjectName
-            })
-          : lettersList
-
+        // Top senders
         const senderMap = new Map<string, number>()
-        filteredLetters.forEach(letter => {
+        lettersList.forEach(letter => {
           const sender = letter.sender ||
                         (letter.sender_contractor_id && contractorMap.has(letter.sender_contractor_id) ?
                          contractorMap.get(letter.sender_contractor_id)! :
@@ -185,9 +242,9 @@ export const useLetterStatistics = (selectedProjectName?: string) => {
           .sort((a, b) => b.count - a.count)
           .slice(0, 10)
 
-        // Top recipients (filtered by project if selected)
+        // Top recipients
         const recipientMap = new Map<string, number>()
-        filteredLetters.forEach(letter => {
+        lettersList.forEach(letter => {
           const recipient = letter.recipient ||
                            (letter.recipient_contractor_id && contractorMap.has(letter.recipient_contractor_id) ?
                             contractorMap.get(letter.recipient_contractor_id)! :
@@ -240,7 +297,7 @@ export const useLetterStatistics = (selectedProjectName?: string) => {
           }))
           .sort((a, b) => b.total - a.total)
 
-        setStats({
+        const newStats = {
           totalLetters,
           lettersByDirection,
           lettersByProject,
@@ -249,16 +306,33 @@ export const useLetterStatistics = (selectedProjectName?: string) => {
           topRecipients,
           lettersByStatus,
           lettersByCreator,
+        }
+        
+        console.log('[useLetterStatistics] Stats computed:', {
+          totalLetters,
+          projectsCount: lettersByProject.length,
+          creatorsCount: lettersByCreator.length,
+          filters: filters
         })
+        
+        if (isMounted) {
+          setStats(newStats)
+        }
       } catch (error) {
         console.error('[useLetterStatistics] Error loading statistics:', error)
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     loadStatistics()
-  }, [selectedProjectName]) // Add selectedProjectName to dependencies
+    
+    return () => {
+      isMounted = false
+    }
+  }, [filters?.selectedProjectName, filters?.directionFilter, filters?.searchQuery, filters?.excludeOU_SU10])
 
   return { stats, loading }
 }

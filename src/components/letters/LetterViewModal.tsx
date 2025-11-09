@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { Modal, Descriptions, Tag, Typography, List, Button, Row, Col, Divider } from 'antd'
-import { DownloadOutlined, HistoryOutlined, EyeOutlined } from '@ant-design/icons'
+import { useState, useMemo, useEffect } from 'react'
+import { Modal, Descriptions, Tag, Typography, List, Button, Row, Col, Divider, Collapse, message, Popconfirm } from 'antd'
+import { DownloadOutlined, HistoryOutlined, EyeOutlined, FileTextOutlined, DeleteOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Letter } from '../../lib/supabase'
 import { supabase } from '../../lib/supabase'
 import { useAuditLog } from '../../hooks/useAuditLog'
 import AuditLogTimeline from '../common/AuditLogTimeline'
 import { FilePreviewModal, getFileIcon } from '../common/FilePreviewModal'
+import { deleteLetterAttachment } from '../../services/letter/letterFiles'
 
 const { Title } = Typography
 
@@ -14,16 +15,52 @@ interface LetterViewModalProps {
   visible: boolean
   onClose: () => void
   letter: Letter | null
+  onFileDeleted?: () => void
 }
 
 export const LetterViewModal: React.FC<LetterViewModalProps> = ({
   visible,
   onClose,
-  letter
+  letter,
+  onFileDeleted
 }) => {
   // Load audit log for the letter
-  const { auditLog, loading: auditLoading } = useAuditLog('letter', letter?.id)
-  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: 'image' | 'pdf' | 'other' } | null>(null)
+  const { auditLog, loading: auditLoading, refresh: refreshAuditLog } = useAuditLog('letter', letter?.id)
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: 'image' | 'pdf' | 'markdown' | 'other'; content?: string } | null>(null)
+  const [deletingFile, setDeletingFile] = useState<string | null>(null)
+
+  // Обновляем историю при изменении вложений письма
+  useEffect(() => {
+    if (visible && letter?.id) {
+      refreshAuditLog()
+    }
+  }, [letter?.attachments, visible])
+
+  // Group attachments: identify parent files and their recognized markdown children
+  const groupedAttachments = useMemo(() => {
+    if (!letter?.attachments) return []
+
+    const markdownFiles = letter.attachments.filter((item: any) => 
+      item.attachments.mime_type === 'text/markdown'
+    )
+    
+    const parentFiles = letter.attachments.filter((item: any) => 
+      item.attachments.mime_type !== 'text/markdown'
+    )
+
+    return parentFiles.map((parentItem: any) => {
+      const parentName = parentItem.attachments.original_name
+      const childrenMd = markdownFiles.filter((mdItem: any) => {
+        const mdDescription = mdItem.attachments.description || ''
+        return mdDescription.includes(parentName)
+      })
+
+      return {
+        parent: parentItem,
+        children: childrenMd
+      }
+    })
+  }, [letter?.attachments])
 
   if (!letter) return null
 
@@ -60,16 +97,39 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
       const url = window.URL.createObjectURL(data)
       const ext = fileName.split('.').pop()?.toLowerCase()
       
-      let type: 'image' | 'pdf' | 'other' = 'other'
+      let type: 'image' | 'pdf' | 'markdown' | 'other' = 'other'
+      let content: string | undefined
+      
       if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '')) {
         type = 'image'
       } else if (ext === 'pdf') {
         type = 'pdf'
+      } else if (ext === 'md' || ext === 'markdown') {
+        type = 'markdown'
+        content = await data.text()
       }
 
-      setPreviewFile({ url, name: fileName, type })
+      setPreviewFile({ url, name: fileName, type, content })
     } catch (error) {
       console.error('[LetterViewModal.handlePreviewFile] Error:', error)
+    }
+  }
+
+  const handleDeleteFile = async (attachmentId: string, storagePath: string, fileName: string) => {
+    if (!letter?.id) return
+    
+    try {
+      setDeletingFile(attachmentId)
+      await deleteLetterAttachment(attachmentId, storagePath, letter.id)
+      message.success(`Файл "${fileName}" удален`)
+      
+      // Обновить данные
+      onFileDeleted?.()
+    } catch (error) {
+      console.error('[LetterViewModal.handleDeleteFile] Error:', error)
+      message.error('Ошибка удаления файла')
+    } finally {
+      setDeletingFile(null)
     }
   }
 
@@ -183,50 +243,166 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
           </Descriptions>
 
           {/* Attachments */}
-          {letter.attachments && letter.attachments.length > 0 && (
+          {groupedAttachments.length > 0 && (
             <div style={{ marginTop: 24 }}>
               <Title level={5}>Прикрепленные файлы:</Title>
               <List
                 size="small"
                 bordered
-                dataSource={letter.attachments}
-                renderItem={(item: any) => {
+                dataSource={groupedAttachments}
+                renderItem={(group: any) => {
+                  const item = group.parent
+                  const hasRecognizedText = group.children.length > 0
                   const fileSize = `Размер: ${(item.attachments.size_bytes / 1024).toFixed(2)} КБ`
                   const description = item.attachments.description
                   const descriptionText = description ? `${fileSize} • ${description}` : fileSize
 
                   return (
                     <List.Item
-                      actions={[
-                        <Button
-                          key="preview"
-                          type="link"
-                          icon={<EyeOutlined />}
-                          onClick={() => handlePreviewFile(
-                            item.attachments.storage_path,
-                            item.attachments.original_name
-                          )}
-                        >
-                          Просмотр
-                        </Button>,
-                        <Button
-                          key="download"
-                          type="link"
-                          icon={<DownloadOutlined />}
-                          onClick={() => handleDownloadFile(
-                            item.attachments.storage_path,
-                            item.attachments.original_name
-                          )}
-                        >
-                          Скачать
-                        </Button>
-                      ]}
+                      style={{
+                        display: 'block',
+                        background: hasRecognizedText ? '#f6ffed' : undefined,
+                        borderLeft: hasRecognizedText ? '3px solid #52c41a' : undefined
+                      }}
                     >
-                      <List.Item.Meta
-                        avatar={getFileIcon(item.attachments.original_name)}
-                        title={item.attachments.original_name}
-                        description={descriptionText}
-                      />
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <List.Item.Meta
+                          avatar={getFileIcon(item.attachments.original_name)}
+                          title={item.attachments.original_name}
+                          description={descriptionText}
+                        />
+                        <div>
+                          <Button
+                            key="preview"
+                            type="link"
+                            icon={<EyeOutlined />}
+                            onClick={() => handlePreviewFile(
+                              item.attachments.storage_path,
+                              item.attachments.original_name
+                            )}
+                          >
+                            Просмотр
+                          </Button>
+                          <Button
+                            key="download"
+                            type="link"
+                            icon={<DownloadOutlined />}
+                            onClick={() => handleDownloadFile(
+                              item.attachments.storage_path,
+                              item.attachments.original_name
+                            )}
+                          >
+                            Скачать
+                          </Button>
+                          <Popconfirm
+                            title="Удалить файл?"
+                            description={`Вы уверены, что хотите удалить "${item.attachments.original_name}"?`}
+                            onConfirm={() => handleDeleteFile(
+                              item.attachments.id,
+                              item.attachments.storage_path,
+                              item.attachments.original_name
+                            )}
+                            okText="Да"
+                            cancelText="Нет"
+                          >
+                            <Button
+                              key="delete"
+                              type="link"
+                              danger
+                              icon={<DeleteOutlined />}
+                              loading={deletingFile === item.attachments.id}
+                            >
+                              Удалить
+                            </Button>
+                          </Popconfirm>
+                        </div>
+                      </div>
+                      
+                      {hasRecognizedText && (
+                        <Collapse
+                          ghost
+                          size="small"
+                          style={{ marginTop: 8 }}
+                          items={[
+                            {
+                              key: 'recognized',
+                              label: (
+                                <span style={{ fontSize: 12, color: '#52c41a' }}>
+                                  <FileTextOutlined /> Распознанный текст ({group.children.length})
+                                </span>
+                              ),
+                              children: (
+                                <List
+                                  size="small"
+                                  dataSource={group.children}
+                                  renderItem={(mdItem: any) => (
+                                    <List.Item
+                                      actions={[
+                                        <Button
+                                          key="preview-md"
+                                          type="link"
+                                          size="small"
+                                          icon={<EyeOutlined />}
+                                          onClick={() => handlePreviewFile(
+                                            mdItem.attachments.storage_path,
+                                            mdItem.attachments.original_name
+                                          )}
+                                        >
+                                          Просмотр
+                                        </Button>,
+                                        <Button
+                                          key="download-md"
+                                          type="link"
+                                          size="small"
+                                          icon={<DownloadOutlined />}
+                                          onClick={() => handleDownloadFile(
+                                            mdItem.attachments.storage_path,
+                                            mdItem.attachments.original_name
+                                          )}
+                                        >
+                                          Скачать
+                                        </Button>,
+                                        <Popconfirm
+                                          key="delete-md"
+                                          title="Удалить файл?"
+                                          description={`Вы уверены, что хотите удалить "${mdItem.attachments.original_name}"?`}
+                                          onConfirm={() => handleDeleteFile(
+                                            mdItem.attachments.id,
+                                            mdItem.attachments.storage_path,
+                                            mdItem.attachments.original_name
+                                          )}
+                                          okText="Да"
+                                          cancelText="Нет"
+                                        >
+                                          <Button
+                                            type="link"
+                                            size="small"
+                                            danger
+                                            icon={<DeleteOutlined />}
+                                            loading={deletingFile === mdItem.attachments.id}
+                                          >
+                                            Удалить
+                                          </Button>
+                                        </Popconfirm>
+                                      ]}
+                                    >
+                                      <List.Item.Meta
+                                        avatar={<FileTextOutlined style={{ fontSize: 20, color: '#52c41a' }} />}
+                                        title={<span style={{ fontSize: 13 }}>{mdItem.attachments.original_name}</span>}
+                                        description={
+                                          <span style={{ fontSize: 12 }}>
+                                            Размер: {(mdItem.attachments.size_bytes / 1024).toFixed(2)} КБ
+                                          </span>
+                                        }
+                                      />
+                                    </List.Item>
+                                  )}
+                                />
+                              )
+                            }
+                          ]}
+                        />
+                      )}
                     </List.Item>
                   )
                 }}
@@ -260,6 +436,7 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
           title={previewFile.name}
           url={previewFile.url}
           type={previewFile.type}
+          content={previewFile.content}
           onClose={() => {
             if (previewFile.url) {
               window.URL.revokeObjectURL(previewFile.url)

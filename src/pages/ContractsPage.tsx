@@ -29,25 +29,34 @@ export const ContractsPage = () => {
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null)
   const [editingContract, setEditingContract] = useState<Contract | null>(null)
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(100)
 
-  // Load data
-  useEffect(() => {
-    if (user?.id) {
-      loadData()
-    }
-  }, [user?.id])
+  console.log('[ContractsPage] Render:', { 
+    contractsCount: contracts.length, 
+    loading, 
+    expandedRowKeys,
+    userId: user?.id 
+  })
 
   const loadData = async () => {
     if (!user?.id) return
 
+    console.log('[ContractsPage.loadData] Starting...')
     setLoading(true)
     try {
       const contractsData = await loadContracts(user.id)
+      console.log('[ContractsPage.loadData] Loaded:', contractsData.length)
       setContracts(contractsData)
     } finally {
       setLoading(false)
     }
   }
+
+  // Load data
+  useEffect(() => {
+    loadData()
+  }, [])
 
   // Contract handlers
   const handleEdit = (contract: Contract) => {
@@ -122,9 +131,20 @@ export const ContractsPage = () => {
           onEdit={handleEdit}
           onAddInvoice={handleViewInvoices}
           expandedRowKeys={expandedRowKeys}
-          onExpandedRowsChange={setExpandedRowKeys}
+          onExpandedRowsChange={(keys) => {
+            console.log('[ContractsPage.onExpandedRowsChange]', keys)
+            setExpandedRowKeys(keys)
+          }}
           onDataChange={loadData}
           columns={visibleColumns}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={(page, size) => {
+            console.log('[ContractsPage.onPageChange]', { page, size })
+            setCurrentPage(page)
+            setPageSize(size)
+            setExpandedRowKeys([])
+          }}
         />
       </Card>
 

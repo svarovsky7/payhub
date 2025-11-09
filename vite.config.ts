@@ -5,14 +5,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    chunkSizeWarningLimit: 1800, // Увеличиваем лимит для больших vendor библиотек
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
         manualChunks: {
-          // Разделяем vendor библиотеки на отдельные чанки
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'antd-vendor': ['antd', '@ant-design/icons'],
           'supabase-vendor': ['@supabase/supabase-js'],
+          'xlsx-vendor': ['xlsx'],
         },
       },
     },

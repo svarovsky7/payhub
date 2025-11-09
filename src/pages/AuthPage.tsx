@@ -99,8 +99,8 @@ export function AuthPage() {
     setLoading(true)
     try {
       await signUp(values.email, values.password, values.fullName, values.projectIds || [])
-      // Don't reset form or switch tabs - user is now authenticated and will be redirected
-      // The useEffect will handle the redirect to the portal
+      registerForm.resetFields()
+      setActiveTab('login')
     } catch (error) {
       console.error('[AuthPage.handleRegister] Error:', error)
     } finally {

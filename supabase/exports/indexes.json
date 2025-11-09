@@ -423,6 +423,30 @@
     "is_primary": false,
     "sql": "CREATE INDEX idx_approval_steps_approval ON public.approval_steps USING btree (payment_approval_id)"
   },
+  "public.attachment_recognitions.attachment_recognitions_original_attachment_id_key": {
+    "schema": "public",
+    "name": "attachment_recognitions_original_attachment_id_key",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE UNIQUE INDEX attachment_recognitions_original_attachment_id_key ON public.attachment_recognitions USING btree (original_attachment_id)"
+  },
+  "public.attachment_recognitions.idx_attachment_recognitions_original": {
+    "schema": "public",
+    "name": "idx_attachment_recognitions_original",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_attachment_recognitions_original ON public.attachment_recognitions USING btree (original_attachment_id)"
+  },
+  "public.attachment_recognitions.idx_attachment_recognitions_recognized": {
+    "schema": "public",
+    "name": "idx_attachment_recognitions_recognized",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_attachment_recognitions_recognized ON public.attachment_recognitions USING btree (recognized_attachment_id)"
+  },
   "public.attachments.idx_attachments_created_by": {
     "schema": "public",
     "name": "idx_attachments_created_by",

@@ -1,6 +1,6 @@
 import { Table, Button, Space } from 'antd'
 import { PlusOutlined, FilterOutlined, DownloadOutlined } from '@ant-design/icons'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import dayjs from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
 import { useLetterManagement } from '../hooks/useLetterManagement'
@@ -9,14 +9,36 @@ import { getLetterTableColumns } from '../components/letters/LetterTableColumns'
 import { LetterFormModal } from '../components/letters/LetterFormModal'
 import { LetterViewModal } from '../components/letters/LetterViewModal'
 import { LinkLetterModal } from '../components/letters/LinkLetterModal'
+import { AttachmentRecognitionModal } from '../components/letters/AttachmentRecognitionModal'
 import { LetterFilters, type LetterFilterValues } from '../components/letters/LetterFilters'
 import { ColumnSettings } from '../components/common/ColumnSettings'
 import type { Letter } from '../lib/supabase'
 import { exportLettersToExcel } from '../utils/letterExcelExport'
+import { useAuth } from '../contexts/AuthContext'
+import { getTasks, subscribeToTasks, type RecognitionTask } from '../services/recognitionTaskService'
 
 dayjs.extend(isBetween)
 
 export const LettersPage = () => {
+  console.log('[LettersPage] Rendering')
+  
+  const { user } = useAuth()
+  const [recognitionTasks, setRecognitionTasks] = useState<RecognitionTask[]>([])
+
+  // Подписка на обновления задач распознавания
+  useEffect(() => {
+    const tasks = getTasks()
+    console.log('[LettersPage] Initial recognition tasks:', tasks)
+    setRecognitionTasks(tasks)
+    
+    const unsubscribe = subscribeToTasks(() => {
+      const updatedTasks = getTasks()
+      console.log('[LettersPage] Recognition tasks updated:', updatedTasks)
+      setRecognitionTasks(updatedTasks)
+    })
+    return unsubscribe
+  }, [])
+  
   const {
     letters,
     letterStatuses,
@@ -35,6 +57,7 @@ export const LettersPage = () => {
     setLinkModalVisible,
     linkingLetter,
     setLinkingLetter,
+    loadData,
     handleOpenCreateModal,
     handleViewLetter,
     handleCreateLetter,
@@ -45,8 +68,17 @@ export const LettersPage = () => {
     handleUnlinkLetters
   } = useLetterManagement()
 
+  console.log('[LettersPage] Hook data', { 
+    lettersCount: letters.length, 
+    loading,
+    hasStatuses: letterStatuses.length > 0,
+    hasProjects: projects.length > 0
+  })
+
   const [filterValues, setFilterValues] = useState<LetterFilterValues>({})
   const [filtersVisible, setFiltersVisible] = useState(false)
+  const [recognitionModalVisible, setRecognitionModalVisible] = useState(false)
+  const [recognizingLetter, setRecognizingLetter] = useState<Letter | null>(null)
 
   // Get unique senders for filter
   const senders = useMemo(() => {
@@ -213,10 +245,20 @@ export const LettersPage = () => {
 
   const handleStatusChange = async (letterId: string, newStatusId: number) => {
     try {
-      await handleUpdateLetter(letterId, { status_id: newStatusId }, [], [])
+      await handleUpdateLetter(letterId, { status_id: newStatusId })
     } catch (error) {
       console.error('[LettersPage.handleStatusChange] Error:', error)
     }
+  }
+
+  const handleEditLetter = (letter: Letter) => {
+    setEditingLetter(letter)
+    setLetterModalVisible(true)
+  }
+
+  const handleRecognizeAttachments = (letter: Letter) => {
+    setRecognizingLetter(letter)
+    setRecognitionModalVisible(true)
   }
 
   // Table columns
@@ -225,10 +267,14 @@ export const LettersPage = () => {
     projects,
     users,
     handleViewLetter,
+    handleEditLetter,
     handleDeleteLetter,
     handleLinkLetter: handleOpenLinkModal,
     handleUnlinkLetter: handleUnlinkLetters,
-    handleStatusChange
+    handleStatusChange,
+    handleRecognizeAttachments,
+    currentUserId: user?.id || null,
+    recognitionTasks
   })
 
   // Column settings
@@ -240,10 +286,9 @@ export const LettersPage = () => {
   // Handle form submit
   const handleFormSubmit = async (values: any, files: File[], originalFiles: string[], fileDescriptions: Record<string, string>, existingFileDescriptions: Record<string, string>) => {
     if (editingLetter) {
-      // For editing, values is formData
-      await handleUpdateLetter(editingLetter.id, values, files, originalFiles, fileDescriptions, existingFileDescriptions)
+      const { formData } = values
+      await handleUpdateLetter(editingLetter.id, formData, files, originalFiles, fileDescriptions, existingFileDescriptions)
     } else {
-      // For creating, values contains { formData, publicShareToken }
       const { formData, publicShareToken } = values
       await handleCreateLetter(formData, files, fileDescriptions, publicShareToken)
     }
@@ -335,6 +380,7 @@ export const LettersPage = () => {
           setViewingLetter(null)
         }}
         letter={viewingLetter}
+        onFileDeleted={loadData}
       />
 
       {/* Link Letter Modal */}
@@ -347,6 +393,20 @@ export const LettersPage = () => {
         onLink={handleLinkLetters}
         currentLetter={linkingLetter}
         availableLetters={letters}
+      />
+
+      {/* Attachment Recognition Modal */}
+      <AttachmentRecognitionModal
+        visible={recognitionModalVisible}
+        letter={recognizingLetter}
+        onCancel={() => {
+          setRecognitionModalVisible(false)
+          setRecognizingLetter(null)
+        }}
+        onSuccess={() => {
+          console.log('[LettersPage] 📢 Recognition completed! Calling loadData(true)...')
+          loadData(true)
+        }}
       />
     </div>
   )

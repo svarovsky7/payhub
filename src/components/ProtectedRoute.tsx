@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredPath }: ProtectedRouteProps) {
-  const { user, userRole, loading } = useAuth()
+  const { user, userProfile, userRole, loading } = useAuth()
 
   console.log('[ProtectedRoute] Checking access:', {
     user: user?.email,
@@ -37,6 +37,18 @@ export function ProtectedRoute({ children, requiredPath }: ProtectedRouteProps) 
   if (!user) {
     console.log('[ProtectedRoute] User not authenticated, redirecting to login')
     return <Navigate to="/login" replace />
+  }
+
+  // Redirect to login if user is disabled
+  if (userProfile?.is_disabled) {
+    console.log('[ProtectedRoute] User is disabled, redirecting to login')
+    return <Navigate to="/login" replace />
+  }
+
+  // Profile page is always accessible to all authenticated users
+  if (requiredPath === '/profile') {
+    console.log('[ProtectedRoute] Profile page - access granted')
+    return <>{children}</>
   }
 
   // Check page access if user has a role with allowed_pages

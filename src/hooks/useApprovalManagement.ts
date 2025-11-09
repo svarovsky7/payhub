@@ -41,7 +41,7 @@ export const useApprovalManagement = () => {
     } catch (error) {
       console.error('[useApprovalManagement.loadUserRole] Error:', error)
     }
-  }, [user])
+  }, [])
 
   // Загрузка платежей на согласовании для текущей роли
   const loadPendingApprovals = useCallback(async () => {
@@ -60,14 +60,12 @@ export const useApprovalManagement = () => {
     } finally {
       setLoadingApprovals(false)
     }
-  }, [userRole, user])
+  }, [userRole])
 
   // Инициализация
   useEffect(() => {
-    if (user?.id) {
-      loadUserRole()
-    }
-  }, [user, loadUserRole])
+    loadUserRole()
+  }, [])
 
   useEffect(() => {
     if (userRole) {
