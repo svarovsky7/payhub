@@ -413,7 +413,7 @@ export const AttachmentRecognitionModal = ({
     }
   }
 
-  const handleCropSuccess = async (croppedPdfPath: string) => {
+  const handleCropSuccess = async () => {
     setCropModalVisible(false)
     message.success('Обрезанный документ сохранен')
     await loadAttachments()

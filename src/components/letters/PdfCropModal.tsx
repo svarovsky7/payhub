@@ -9,10 +9,10 @@ const { Text } = Typography
 interface PdfCropModalProps {
   visible: boolean
   onCancel: () => void
-  onSuccess: (croppedPdfPath: string) => void
+  onSuccess: () => void
   attachmentUrl: string
   fileName: string
-  letterId: number
+  letterId: string
 }
 
 interface Frame {
@@ -581,7 +581,7 @@ export const PdfCropModal = ({
       )
 
       message.success('Документ обрезан и сохранен')
-      onSuccess(storagePath)
+      onSuccess()
     } catch (error: any) {
       console.error('[PdfCropModal] Crop error:', error)
       message.error(error.message || 'Ошибка обрезки документа')

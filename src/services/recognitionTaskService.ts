@@ -15,7 +15,6 @@ export interface RecognitionTask {
   startedAt: number
 }
 
-const STORAGE_KEY = 'recognition_tasks'
 const tasks = new Map<string, RecognitionTask>()
 const listeners = new Set<() => void>()
 
