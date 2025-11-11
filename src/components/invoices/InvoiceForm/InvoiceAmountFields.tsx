@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo, useRef, useEffect } from 'react'
 import { Row, Col, Form, InputNumber, Typography, Divider, Select } from 'antd'
 
 const { Text } = Typography
@@ -11,28 +11,41 @@ interface InvoiceAmountFieldsProps {
   form?: any
 }
 
-export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
+export const InvoiceAmountFields = React.memo<InvoiceAmountFieldsProps>(({
   vatRate,
-  amountWithoutVat,
+  amountWithoutVat: _amountWithoutVat,
   onAmountChange,
   onVatRateChange,
   form
 }) => {
-  console.log('[InvoiceAmountFields] Props:', { vatRate, amountWithoutVat })
-
-  // Получаем значения из формы
   const amountWithVat = Form.useWatch('amount_with_vat', form) || 0
   const deliveryCost = Form.useWatch('delivery_cost', form) || 0
+  const debounceTimerRef = useRef<NodeJS.Timeout>()
 
-  // Рассчитываем НДС
-  const vatAmount = amountWithVat - amountWithoutVat
+  const amountWithoutVat = useMemo(() => {
+    return amountWithVat / (1 + vatRate / 100)
+  }, [amountWithVat, vatRate])
+
+  const vatAmount = useMemo(() => 
+    amountWithVat - amountWithoutVat, 
+    [amountWithVat, amountWithoutVat]
+  )
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    }
+  }, [])
 
   const handleAmountWithVatChange = useCallback((value: number | null) => {
     if (value !== null) {
-      // Когда пользователь устанавливает Сумму с НДС
       form.setFieldValue('delivery_cost', 0)
       form.setFieldValue('total_with_vat', value)
-      onAmountChange(value)
+      
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = setTimeout(() => {
+        onAmountChange(value)
+      }, 100)
     }
   }, [form, onAmountChange])
 
@@ -47,17 +60,22 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
 
   const handleTotalWithVatChange = useCallback((value: number | null) => {
     if (value !== null) {
-      // Когда пользователь устанавливает Общую сумму с НДС
       if (deliveryCost > 0) {
-        // Если уже указана доставка, пересчитываем сумму с НДС
         const newAmountWithVat = value - deliveryCost
         form.setFieldValue('amount_with_vat', newAmountWithVat)
-        onAmountChange(newAmountWithVat)
+        
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+        debounceTimerRef.current = setTimeout(() => {
+          onAmountChange(newAmountWithVat)
+        }, 100)
       } else {
-        // Если доставки нет, то общая = сумме с НДС
         form.setFieldValue('amount_with_vat', value)
         form.setFieldValue('delivery_cost', 0)
-        onAmountChange(value)
+        
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+        debounceTimerRef.current = setTimeout(() => {
+          onAmountChange(value)
+        }, 100)
       }
     }
   }, [form, onAmountChange, deliveryCost])
@@ -231,4 +249,4 @@ export const InvoiceAmountFields: React.FC<InvoiceAmountFieldsProps> = ({
       </Row>
     </>
   )
-}
+})
