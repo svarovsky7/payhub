@@ -350,7 +350,7 @@ export const useLetterManagement = () => {
       message.success('Письма связаны')
       setLinkModalVisible(false)
       setLinkingLetter(null)
-      await loadData()
+      await loadData(true)
     } catch (error) {
       console.error('[useLetterManagement.handleLinkLetters] Error:', error)
       message.error('Ошибка связывания писем')
@@ -365,7 +365,7 @@ export const useLetterManagement = () => {
     try {
       await unlinkLetters(parentId, childId)
       message.success('Связь удалена')
-      await loadData()
+      await loadData(true)
     } catch (error) {
       console.error('[useLetterManagement.handleUnlinkLetters] Error:', error)
       message.error('Ошибка удаления связи')
