@@ -31,14 +31,14 @@ export const getLetterTemplate = async (): Promise<{ exists: boolean; url?: stri
       return { exists: false }
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
+    // Get signed URL
+    const { data: urlData } = await supabase.storage
       .from(TEMPLATE_BUCKET)
-      .getPublicUrl(LETTER_TEMPLATE_PATH)
+      .createSignedUrl(LETTER_TEMPLATE_PATH, 3600)
 
     return {
       exists: true,
-      url: urlData.publicUrl,
+      url: urlData?.signedUrl,
       lastModified: templateFile.updated_at || templateFile.created_at
     }
   } catch (error) {
@@ -216,13 +216,13 @@ export const getAllProjectTemplates = async (): Promise<Record<number, { exists:
 
     const templates: Record<number, { exists: boolean; url?: string }> = {}
     for (const template of data) {
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = await supabase.storage
         .from(TEMPLATE_BUCKET)
-        .getPublicUrl(template.template_path)
+        .createSignedUrl(template.template_path, 3600)
       
       templates[template.project_id] = {
         exists: true,
-        url: urlData.publicUrl
+        url: urlData?.signedUrl
       }
     }
     
@@ -256,13 +256,13 @@ export const getProjectTemplate = async (projectId: number): Promise<{ exists: b
       return { exists: false }
     }
 
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = await supabase.storage
       .from(TEMPLATE_BUCKET)
-      .getPublicUrl(data.template_path)
+      .createSignedUrl(data.template_path, 3600)
 
     return {
       exists: true,
-      url: urlData.publicUrl
+      url: urlData?.signedUrl
     }
   } catch (error) {
     console.error('[templateService.getProjectTemplate] Error:', error)
