@@ -18,7 +18,6 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
   employees,
   form,
   isNewInvoice = false,
-  selectedProjectId,
   selectedContractId,
   contracts = []
 }) => {
@@ -41,7 +40,7 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
     setCurrentUser()
   }, [isNewInvoice, employees, form])
 
-  // Фильтрация контрагентов на основе выбранного проекта или договора
+  // Фильтрация контрагентов на основе выбранного договора
   useEffect(() => {
     let payersToShow = contractors
     let suppliersToShow = contractors
@@ -59,26 +58,11 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
           if (supplier) suppliersToShow = [supplier]
         }
       }
-    } else if (selectedProjectId) {
-      // Если выбран только проект, показываем контрагентов, связанных с проектом через договоры
-      const projectContracts = contracts.filter(c => c.project_id === selectedProjectId)
-
-      if (projectContracts.length > 0) {
-        const payerIds = new Set(projectContracts.map(c => c.payer_id).filter(Boolean))
-        const supplierIds = new Set(projectContracts.map(c => c.supplier_id).filter(Boolean))
-
-        if (payerIds.size > 0) {
-          payersToShow = contractors.filter(c => payerIds.has(c.id))
-        }
-        if (supplierIds.size > 0) {
-          suppliersToShow = contractors.filter(c => supplierIds.has(c.id))
-        }
-      }
     }
 
     setFilteredPayers(payersToShow)
     setFilteredSuppliers(suppliersToShow)
-  }, [contractors, selectedProjectId, selectedContractId, contracts])
+  }, [contractors, selectedContractId, contracts])
 
   return (
     <>
@@ -98,11 +82,7 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
                 value: contractor.id,
                 label: contractor.name,
               }))}
-              notFoundContent={
-                selectedProjectId && filteredPayers.length === 0
-                  ? "Нет плательщиков для выбранного проекта"
-                  : "Плательщики не найдены"
-              }
+              notFoundContent="Плательщики не найдены"
             />
           </Form.Item>
         </Col>
@@ -121,11 +101,7 @@ export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEn
                 value: contractor.id,
                 label: contractor.name,
               }))}
-              notFoundContent={
-                selectedProjectId && filteredSuppliers.length === 0
-                  ? "Нет поставщиков для выбранного проекта"
-                  : "Поставщики не найдены"
-              }
+              notFoundContent="Поставщики не найдены"
             />
           </Form.Item>
         </Col>

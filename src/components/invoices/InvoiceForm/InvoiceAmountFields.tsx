@@ -20,7 +20,7 @@ export const InvoiceAmountFields = React.memo<InvoiceAmountFieldsProps>(({
 }) => {
   const amountWithVat = Form.useWatch('amount_with_vat', form) || 0
   const deliveryCost = Form.useWatch('delivery_cost', form) || 0
-  const debounceTimerRef = useRef<NodeJS.Timeout>()
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const amountWithoutVat = useMemo(() => {
     return amountWithVat / (1 + vatRate / 100)
