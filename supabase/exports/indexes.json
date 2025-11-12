@@ -679,6 +679,22 @@
     "is_primary": false,
     "sql": "CREATE UNIQUE INDEX departments_name_key ON public.departments USING btree (name)"
   },
+  "public.document_task_attachments.idx_document_task_attachments_task_id": {
+    "schema": "public",
+    "name": "idx_document_task_attachments_task_id",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_document_task_attachments_task_id ON public.document_task_attachments USING btree (task_id)"
+  },
+  "public.document_tasks.idx_document_tasks_created_by": {
+    "schema": "public",
+    "name": "idx_document_tasks_created_by",
+    "table_name": null,
+    "is_unique": false,
+    "is_primary": false,
+    "sql": "CREATE INDEX idx_document_tasks_created_by ON public.document_tasks USING btree (created_by)"
+  },
   "public.employees.idx_employees_department_id": {
     "schema": "public",
     "name": "idx_employees_department_id",

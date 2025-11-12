@@ -1,5 +1,5 @@
 -- Database Schema Export
--- Generated: 2025-11-09T13:19:01.755098
+-- Generated: 2025-11-13T02:08:36.355361
 -- Database: postgres
 -- Host: 31.128.51.210
 
@@ -670,6 +670,29 @@ COMMENT ON COLUMN public.departments.name IS 'Department name';
 COMMENT ON COLUMN public.departments.description IS 'Department description';
 COMMENT ON COLUMN public.departments.created_at IS 'Timestamp when the department was created';
 COMMENT ON COLUMN public.departments.updated_at IS 'Timestamp when the department was last updated';
+
+CREATE TABLE IF NOT EXISTS public.document_task_attachments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    task_id uuid NOT NULL,
+    attachment_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT document_task_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),
+    CONSTRAINT document_task_attachments_pkey PRIMARY KEY (id),
+    CONSTRAINT document_task_attachments_task_id_fkey FOREIGN KEY (task_id) REFERENCES None.None(None)
+);
+
+-- Задания на обработку документов
+CREATE TABLE IF NOT EXISTS public.document_tasks (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    title character varying(255) NOT NULL,
+    description text,
+    created_by uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT document_tasks_pkey PRIMARY KEY (id)
+);
+
+COMMENT ON TABLE public.document_tasks IS 'Задания на обработку документов';
 
 -- Company employees registry
 CREATE TABLE IF NOT EXISTS public.employees (
@@ -5345,6 +5368,12 @@ CREATE INDEX idx_contracts_updated_at ON public.contracts USING btree (updated_a
 ;
 
 CREATE UNIQUE INDEX departments_name_key ON public.departments USING btree (name)
+;
+
+CREATE INDEX idx_document_task_attachments_task_id ON public.document_task_attachments USING btree (task_id)
+;
+
+CREATE INDEX idx_document_tasks_created_by ON public.document_tasks USING btree (created_by)
 ;
 
 CREATE INDEX idx_employees_department_id ON public.employees USING btree (department_id)

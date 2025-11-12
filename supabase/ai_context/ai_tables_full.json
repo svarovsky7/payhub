@@ -550,6 +550,70 @@
     "indexes": [],
     "comment": "Organizational departments"
   },
+  "public.document_task_attachments": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "task_id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "attachment_id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      }
+    },
+    "indexes": [],
+    "comment": null
+  },
+  "public.document_tasks": {
+    "schema": "public",
+    "columns": {
+      "id": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "title": {
+        "type": "character varying",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "description": {
+        "type": "text",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "created_by": {
+        "type": "uuid",
+        "nullable": false,
+        "foreign_key": null
+      },
+      "created_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      },
+      "updated_at": {
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "foreign_key": null
+      }
+    },
+    "indexes": [],
+    "comment": "Задания на обработку документов"
+  },
   "public.employees": {
     "schema": "public",
     "columns": {

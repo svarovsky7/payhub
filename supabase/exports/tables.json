@@ -4869,6 +4869,206 @@
     ],
     "sql": "-- Organizational departments\nCREATE TABLE IF NOT EXISTS public.departments (\n    id integer(32) NOT NULL DEFAULT nextval('departments_id_seq'::regclass),\n    name character varying(255) NOT NULL,\n    description text,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT departments_name_key UNIQUE (name),\n    CONSTRAINT departments_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.departments IS 'Organizational departments';\nCOMMENT ON COLUMN public.departments.id IS 'Primary key';\nCOMMENT ON COLUMN public.departments.name IS 'Department name';\nCOMMENT ON COLUMN public.departments.description IS 'Department description';\nCOMMENT ON COLUMN public.departments.created_at IS 'Timestamp when the department was created';\nCOMMENT ON COLUMN public.departments.updated_at IS 'Timestamp when the department was last updated';"
   },
+  "public.document_task_attachments": {
+    "schema": "public",
+    "name": "document_task_attachments",
+    "comment": null,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "task_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "attachment_id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_35416_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_35416_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_35416_3_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "document_task_attachments_attachment_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "attachment_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "document_task_attachments_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "document_task_attachments_task_id_fkey",
+        "type": "FOREIGN KEY",
+        "column": "task_id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "CREATE TABLE IF NOT EXISTS public.document_task_attachments (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    task_id uuid NOT NULL,\n    attachment_id uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT document_task_attachments_attachment_id_fkey FOREIGN KEY (attachment_id) REFERENCES None.None(None),\n    CONSTRAINT document_task_attachments_pkey PRIMARY KEY (id),\n    CONSTRAINT document_task_attachments_task_id_fkey FOREIGN KEY (task_id) REFERENCES None.None(None)\n);"
+  },
+  "public.document_tasks": {
+    "schema": "public",
+    "name": "document_tasks",
+    "comment": "Задания на обработку документов",
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": "gen_random_uuid()",
+        "comment": null
+      },
+      {
+        "name": "title",
+        "data_type": "character varying",
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "NO",
+        "default": null,
+        "comment": null
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_nullable": "YES",
+        "default": "now()",
+        "comment": null
+      }
+    ],
+    "constraints": [
+      {
+        "name": "2200_35406_1_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_35406_2_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "2200_35406_4_not_null",
+        "type": "CHECK",
+        "column": null,
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      },
+      {
+        "name": "document_tasks_pkey",
+        "type": "PRIMARY KEY",
+        "column": "id",
+        "foreign_table_schema": null,
+        "foreign_table": null,
+        "foreign_column": null
+      }
+    ],
+    "sql": "-- Задания на обработку документов\nCREATE TABLE IF NOT EXISTS public.document_tasks (\n    id uuid NOT NULL DEFAULT gen_random_uuid(),\n    title character varying(255) NOT NULL,\n    description text,\n    created_by uuid NOT NULL,\n    created_at timestamp with time zone DEFAULT now(),\n    updated_at timestamp with time zone DEFAULT now(),\n    CONSTRAINT document_tasks_pkey PRIMARY KEY (id)\n);\n\nCOMMENT ON TABLE public.document_tasks IS 'Задания на обработку документов';"
+  },
   "public.employees": {
     "schema": "public",
     "name": "employees",
