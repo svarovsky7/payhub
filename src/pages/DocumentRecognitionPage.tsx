@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button, Upload, Card, Space, message, Typography, Row, Col, Progress, Modal } from 'antd'
-import { UploadOutlined, ScanOutlined, ScissorOutlined, DownloadOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons'
+import { UploadOutlined, ScanOutlined, ScissorOutlined, DownloadOutlined, DeleteOutlined, EyeOutlined, ClearOutlined } from '@ant-design/icons'
 import type { UploadFile } from 'antd'
 import { supabase } from '../lib/supabase'
 import { DocumentCropModal } from '../components/documents/DocumentCropModal'
@@ -240,6 +240,87 @@ export const DocumentRecognitionPage = () => {
     setPreviewVisible(true)
   }
 
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buffer)
+    let binary = ''
+    const chunkSize = 8192
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize)
+      binary += String.fromCharCode.apply(null, Array.from(chunk))
+    }
+    return btoa(binary)
+  }
+
+  const base64ToArrayBuffer = (base64: string): Uint8Array => {
+    const binary = atob(base64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i)
+    }
+    return bytes
+  }
+
+  const handleRemoveStamps = async (doc: ProcessedDocument) => {
+    try {
+      message.loading({ content: 'Удаление штампов...', key: 'removeStamps' })
+
+      const response = await fetch(doc.url)
+      if (!response.ok) throw new Error('Ошибка загрузки PDF')
+      
+      const arrayBuffer = await response.arrayBuffer()
+      const base64Pdf = arrayBufferToBase64(arrayBuffer)
+
+      const cleanResponse = await fetch('https://pdf.fvds.ru/clean-pdf-base64', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdf_base64: base64Pdf })
+      })
+
+      if (!cleanResponse.ok) {
+        const errorData = await cleanResponse.json()
+        throw new Error(errorData.error || 'Ошибка обработки PDF')
+      }
+
+      const { pdf_base64: cleanedBase64 } = await cleanResponse.json()
+      const cleanedBytes = base64ToArrayBuffer(cleanedBase64)
+      const blob = new Blob([cleanedBytes], { type: 'application/pdf' })
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Пользователь не авторизован')
+
+      const timestamp = Date.now()
+      const baseName = doc.fileName.replace(/\.[^/.]+$/, '')
+      const cleanedFileName = `${baseName}_очищено.pdf`
+      const storagePath = `documents/${user.id}/${timestamp}_cleaned.pdf`
+
+      const { error: uploadError } = await supabase.storage
+        .from('attachments')
+        .upload(storagePath, blob)
+
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = await supabase.storage
+        .from('attachments')
+        .createSignedUrl(storagePath, 3600 * 24)
+
+      if (!urlData?.signedUrl) throw new Error('Не удалось получить URL файла')
+
+      const cleanedDoc: ProcessedDocument = {
+        id: timestamp.toString(),
+        fileName: cleanedFileName,
+        url: urlData.signedUrl,
+        storagePath,
+        status: 'uploaded'
+      }
+
+      setDocuments(prev => [...prev, cleanedDoc])
+      message.success({ content: 'Штампы удалены', key: 'removeStamps' })
+    } catch (error: any) {
+      console.error('Remove stamps error:', error)
+      message.error({ content: `Ошибка: ${error.message}`, key: 'removeStamps' })
+    }
+  }
+
   return (
     <div>
       <Title level={2}>Распознавание документов</Title>
@@ -307,6 +388,15 @@ export const DocumentRecognitionPage = () => {
                 <Space direction="vertical" style={{ width: '100%' }} size="small">
                   {(doc.status === 'uploaded' || doc.status === 'cropped') && (
                     <>
+                      {doc.status === 'uploaded' && !doc.fileName.includes('_очищено') && (
+                        <Button
+                          block
+                          icon={<ClearOutlined />}
+                          onClick={() => handleRemoveStamps(doc)}
+                        >
+                          Удалить штампы и QR
+                        </Button>
+                      )}
                       {!doc.isCropped && (
                         <Button
                           block
