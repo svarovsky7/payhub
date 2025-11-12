@@ -86,14 +86,23 @@ export async function deleteLetterAttachment(
     throw new Error('User not authenticated')
   }
 
-  // Delete recognition records first
-  const { error: recognitionError } = await supabase
+  // Delete recognition records first (both as original and recognized)
+  const { error: recognitionError1 } = await supabase
     .from('attachment_recognitions')
     .delete()
-    .eq('attachment_id', attachmentId)
+    .eq('original_attachment_id', attachmentId)
 
-  if (recognitionError) {
-    console.error('[letterFiles.deleteLetterAttachment] Recognition delete error:', recognitionError)
+  if (recognitionError1) {
+    console.error('[letterFiles.deleteLetterAttachment] Recognition delete error (original):', recognitionError1)
+  }
+
+  const { error: recognitionError2 } = await supabase
+    .from('attachment_recognitions')
+    .delete()
+    .eq('recognized_attachment_id', attachmentId)
+
+  if (recognitionError2) {
+    console.error('[letterFiles.deleteLetterAttachment] Recognition delete error (recognized):', recognitionError2)
   }
 
   // Delete file (cascades letter_attachments)

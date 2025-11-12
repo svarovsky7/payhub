@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuditLog } from '../../hooks/useAuditLog'
 import AuditLogTimeline from '../common/AuditLogTimeline'
 import { FilePreviewModal, getFileIcon } from '../common/FilePreviewModal'
-import { deleteLetterAttachment } from '../../services/letter/letterFiles'
+import { deleteLetterAttachment, getLetterAttachments } from '../../services/letter/letterFiles'
 
 const { Title } = Typography
 
@@ -28,23 +28,33 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
   const { auditLog, loading: auditLoading, refresh: refreshAuditLog } = useAuditLog('letter', letter?.id)
   const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: 'image' | 'pdf' | 'markdown' | 'other'; content?: string } | null>(null)
   const [deletingFile, setDeletingFile] = useState<string | null>(null)
+  const [attachments, setAttachments] = useState<any[]>([])
 
-  // Обновляем историю при изменении вложений письма
+  // Load attachments when letter changes
+  useEffect(() => {
+    if (letter?.id) {
+      getLetterAttachments(letter.id).then(setAttachments).catch(console.error)
+    } else {
+      setAttachments([])
+    }
+  }, [letter?.id])
+
+  // Обновляем историю при открытии модального окна
   useEffect(() => {
     if (visible && letter?.id) {
       refreshAuditLog()
     }
-  }, [letter?.attachments, visible])
+  }, [letter?.id, visible, refreshAuditLog])
 
   // Group attachments: identify parent files and their recognized markdown children
   const groupedAttachments = useMemo(() => {
-    if (!letter?.attachments) return []
+    if (!attachments.length) return []
 
-    const markdownFiles = letter.attachments.filter((item: any) => 
+    const markdownFiles = attachments.filter((item: any) => 
       item.attachments.mime_type === 'text/markdown'
     )
     
-    const parentFiles = letter.attachments.filter((item: any) => 
+    const parentFiles = attachments.filter((item: any) => 
       item.attachments.mime_type !== 'text/markdown'
     )
 
@@ -60,7 +70,7 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
         children: childrenMd
       }
     })
-  }, [letter?.attachments])
+  }, [attachments])
 
   if (!letter) return null
 
@@ -122,6 +132,10 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
       setDeletingFile(attachmentId)
       await deleteLetterAttachment(attachmentId, storagePath, letter.id)
       message.success(`Файл "${fileName}" удален`)
+      
+      // Reload attachments
+      const updatedAttachments = await getLetterAttachments(letter.id)
+      setAttachments(updatedAttachments)
       
       // Обновить данные
       onFileDeleted?.()
