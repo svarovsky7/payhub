@@ -13,6 +13,7 @@ const AVAILABLE_PAGES = [
   { value: '/contracts', label: 'Договоры' },
   { value: '/letters', label: 'Письма' },
   { value: '/letter-stats', label: 'Статистика писем' },
+  { value: '/documents', label: 'Распознавание документов' },
   { value: '/approvals', label: 'Согласования' },
   { value: '/project-budgets', label: 'Бюджеты проектов' },
   { value: '/admin', label: 'Администрирование' },

@@ -18,6 +18,7 @@ const LettersPage = lazy(() => import('./pages/LettersPage').then(m => ({ defaul
 const LetterStatsPage = lazy(() => import('./pages/LetterStatsPage').then(m => ({ default: m.LetterStatsPage })))
 const LetterSharePage = lazy(() => import('./pages/LetterSharePage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
+const DocumentRecognitionPage = lazy(() => import('./pages/DocumentRecognitionPage').then(m => ({ default: m.DocumentRecognitionPage })))
 
 function App() {
 
@@ -116,6 +117,16 @@ function App() {
                 <ProtectedRoute requiredPath="/letters">
                   <MainLayout>
                     <LetterStatsPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <ProtectedRoute requiredPath="/documents">
+                  <MainLayout>
+                    <DocumentRecognitionPage />
                   </MainLayout>
                 </ProtectedRoute>
               }

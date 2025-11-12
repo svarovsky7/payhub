@@ -11,6 +11,7 @@ import {
   DollarOutlined,
   MailOutlined,
   BarChartOutlined,
+  ScanOutlined,
 } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -60,7 +61,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }
         } else {
           // No role selected, allow all pages
-          setAllowedPages(['/invoices', '/material-requests', '/contracts', '/letters', '/letter-stats', '/approvals', '/project-budgets', '/admin'])
+          setAllowedPages(['/invoices', '/material-requests', '/contracts', '/letters', '/letter-stats', '/documents', '/approvals', '/project-budgets', '/admin'])
         }
 
       } catch (error) {
@@ -130,6 +131,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       key: '/letter-stats',
       icon: <BarChartOutlined />,
       label: 'Статистика писем',
+    },
+    {
+      key: '/documents',
+      icon: <ScanOutlined />,
+      label: 'Распознавание документов',
     },
     {
       key: '/approvals',
