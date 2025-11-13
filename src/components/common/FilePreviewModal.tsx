@@ -25,7 +25,7 @@ interface FilePreviewModalProps {
   open: boolean
   title: string
   url: string
-  type: 'image' | 'pdf' | 'markdown' | 'other'
+  type: 'image' | 'pdf' | 'markdown' | 'doc' | 'other'
   onClose: () => void
   content?: string
 }
@@ -52,10 +52,10 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       open={open}
       title={`Просмотр: ${title}`}
       footer={
-        type === 'pdf' ? (
+        type === 'pdf' || type === 'doc' ? (
           <Space>
             <Button icon={<DownloadOutlined />} onClick={handleDownload}>
-              Скачать PDF
+              Скачать {type === 'pdf' ? 'PDF' : 'файл'}
             </Button>
             <Button onClick={onClose}>Закрыть</Button>
           </Space>
@@ -64,10 +64,10 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         )
       }
       onCancel={onClose}
-      width={type === 'pdf' ? 1400 : 1200}
+      width={type === 'pdf' || type === 'doc' ? 1400 : 1200}
       style={{ top: 20 }}
       styles={{
-        body: type === 'pdf' ? {
+        body: type === 'pdf' || type === 'doc' ? {
           padding: 0,
           height: '75vh',
           overflow: 'hidden'
@@ -129,6 +129,30 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
           }}>
             {content || 'Содержимое файла недоступно'}
           </pre>
+        </div>
+      ) : type === 'doc' ? (
+        <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+          <iframe
+            src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
+            width="100%"
+            height="100%"
+            style={{ border: 'none' }}
+            title="Document Preview"
+          />
+          <div style={{
+            position: 'absolute',
+            bottom: 10,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(255,255,255,0.9)',
+            padding: '5px 10px',
+            borderRadius: '4px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Если документ не отображается, используйте кнопку "Скачать файл"
+            </Text>
+          </div>
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '40px' }}>

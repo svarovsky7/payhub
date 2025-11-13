@@ -26,7 +26,7 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
 }) => {
   // Load audit log for the letter
   const { auditLog, loading: auditLoading, refresh: refreshAuditLog } = useAuditLog('letter', letter?.id)
-  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: 'image' | 'pdf' | 'markdown' | 'other'; content?: string } | null>(null)
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: 'image' | 'pdf' | 'markdown' | 'doc' | 'other'; content?: string } | null>(null)
   const [deletingFile, setDeletingFile] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<any[]>([])
 
@@ -98,6 +98,18 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
 
   const handlePreviewFile = async (storagePath: string, fileName: string) => {
     try {
+      const ext = fileName.split('.').pop()?.toLowerCase()
+      
+      // For doc/docx, get public URL for viewer
+      if (['doc', 'docx'].includes(ext || '')) {
+        const { data: publicUrlData } = supabase.storage
+          .from('attachments')
+          .getPublicUrl(storagePath)
+        
+        setPreviewFile({ url: publicUrlData.publicUrl, name: fileName, type: 'doc' })
+        return
+      }
+
       const { data, error } = await supabase.storage
         .from('attachments')
         .download(storagePath)
@@ -105,9 +117,8 @@ export const LetterViewModal: React.FC<LetterViewModalProps> = ({
       if (error) throw error
 
       const url = window.URL.createObjectURL(data)
-      const ext = fileName.split('.').pop()?.toLowerCase()
       
-      let type: 'image' | 'pdf' | 'markdown' | 'other' = 'other'
+      let type: 'image' | 'pdf' | 'markdown' | 'doc' | 'other' = 'other'
       let content: string | undefined
       
       if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '')) {
