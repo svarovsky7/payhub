@@ -14,6 +14,7 @@ import { LetterFilters, type LetterFilterValues } from '../components/letters/Le
 import { ColumnSettings } from '../components/common/ColumnSettings'
 import type { Letter } from '../lib/supabase'
 import { exportLettersToExcel } from '../utils/letterExcelExport'
+import { downloadAllLetterMarkdowns } from '../utils/letterMarkdownExport'
 import { useAuth } from '../contexts/AuthContext'
 import { getTasks, subscribeToTasks, type RecognitionTask } from '../services/recognitionTaskService'
 
@@ -310,6 +311,12 @@ export const LettersPage = () => {
             onClick={() => exportLettersToExcel(filteredLetters)}
           >
             Скачать в Excel
+          </Button>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={downloadAllLetterMarkdowns}
+          >
+            Скачать Markdown
           </Button>
           <ColumnSettings
             columns={columnConfig}
