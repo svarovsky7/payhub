@@ -163,6 +163,65 @@ export const documentTaskService = {
     await this.linkAttachment(taskId, attachment.id)
 
     return attachment.id
+  },
+
+  async deleteAttachment(attachmentId: string): Promise<void> {
+    const { data: attachment } = await supabase
+      .from('attachments')
+      .select('storage_path')
+      .eq('id', attachmentId)
+      .single()
+
+    if (!attachment) throw new Error('Файл не найден')
+
+    const { data: recognition } = await supabase
+      .from('attachment_recognitions')
+      .select('recognized_attachment_id')
+      .eq('original_attachment_id', attachmentId)
+      .single()
+
+    if (recognition?.recognized_attachment_id) {
+      const { data: mdAttachment } = await supabase
+        .from('attachments')
+        .select('storage_path')
+        .eq('id', recognition.recognized_attachment_id)
+        .single()
+
+      if (mdAttachment) {
+        await supabase.storage
+          .from('attachments')
+          .remove([mdAttachment.storage_path])
+
+        await supabase
+          .from('document_task_attachments')
+          .delete()
+          .eq('attachment_id', recognition.recognized_attachment_id)
+
+        await supabase
+          .from('attachments')
+          .delete()
+          .eq('id', recognition.recognized_attachment_id)
+      }
+
+      await supabase
+        .from('attachment_recognitions')
+        .delete()
+        .eq('original_attachment_id', attachmentId)
+    }
+
+    await supabase.storage
+      .from('attachments')
+      .remove([attachment.storage_path])
+
+    await supabase
+      .from('document_task_attachments')
+      .delete()
+      .eq('attachment_id', attachmentId)
+
+    await supabase
+      .from('attachments')
+      .delete()
+      .eq('id', attachmentId)
   }
 }
 

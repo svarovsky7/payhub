@@ -43,7 +43,12 @@ export const DocumentCropModal = ({
   const [draggedFrameIndex, setDraggedFrameIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [pageBlobs, setPageBlobs] = useState<Blob[]>([])
+  const [scale, setScale] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [isPanning, setIsPanning] = useState(false)
+  const [spacePressed, setSpacePressed] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (visible && attachmentUrl) {
@@ -52,8 +57,32 @@ export const DocumentCropModal = ({
       setFrames([])
       setCurrentPage(1)
       setPageImages([])
+      setScale(1)
+      setPan({ x: 0, y: 0 })
     }
   }, [visible, attachmentUrl])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !spacePressed) {
+        e.preventDefault()
+        setSpacePressed(true)
+      }
+    }
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault()
+        setSpacePressed(false)
+        setIsPanning(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [spacePressed])
 
   useEffect(() => {
     if (pageImages.length > 0 && canvasRef.current) {
@@ -238,6 +267,20 @@ export const DocumentCropModal = ({
     return { x, y }
   }
 
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const delta = e.deltaY > 0 ? 0.9 : 1.1
+      setScale(prev => Math.max(0.1, Math.min(5, prev * delta)))
+    }
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+    return () => container.removeEventListener('wheel', handleWheel)
+  }, [pageImages])
+
   const getResizeHandle = (x: number, y: number, frame: Frame): 'tl' | 'tr' | 'bl' | 'br' | null => {
     const handleSize = 16
     const tolerance = handleSize
@@ -255,6 +298,12 @@ export const DocumentCropModal = ({
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (spacePressed) {
+      setIsPanning(true)
+      setDragStart({ x: e.clientX, y: e.clientY })
+      return
+    }
+
     const coords = getCanvasCoords(e)
     if (!coords) return
 
@@ -298,6 +347,14 @@ export const DocumentCropModal = ({
   }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isPanning && dragStart) {
+      const dx = e.clientX - dragStart.x
+      const dy = e.clientY - dragStart.y
+      setPan(prev => ({ x: prev.x + dx, y: prev.y + dy }))
+      setDragStart({ x: e.clientX, y: e.clientY })
+      return
+    }
+
     const coords = getCanvasCoords(e)
     if (!coords) return
 
@@ -361,6 +418,12 @@ export const DocumentCropModal = ({
   }
 
   const handleMouseUp = () => {
+    if (isPanning) {
+      setIsPanning(false)
+      setDragStart(null)
+      return
+    }
+
     if (drawing && currentFrame && Math.abs(currentFrame.width) > 5 && Math.abs(currentFrame.height) > 5) {
       const normalized = {
         page: currentFrame.page,
@@ -689,16 +752,19 @@ export const DocumentCropModal = ({
             </Button>
           </Space>
 
-          <div style={{ 
-            border: '1px solid #d9d9d9', 
-            borderRadius: 4, 
-            overflow: 'auto', 
-            maxHeight: 'calc(90vh - 200px)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            background: '#f5f5f5'
-          }}>
+          <div 
+            ref={containerRef}
+            style={{ 
+              border: '1px solid #d9d9d9', 
+              borderRadius: 4, 
+              overflow: 'auto', 
+              maxHeight: 'calc(90vh - 200px)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              background: '#f5f5f5'
+            }}
+          >
             <canvas
               ref={canvasRef}
               onMouseDown={handleMouseDown}
@@ -706,10 +772,13 @@ export const DocumentCropModal = ({
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
               style={{ 
-                cursor: drawing ? 'crosshair' : dragging ? 'move' : resizing ? 'nwse-resize' : 'default',
+                cursor: isPanning ? 'grabbing' : spacePressed ? 'grab' : drawing ? 'crosshair' : dragging ? 'move' : resizing ? 'nwse-resize' : 'default',
                 maxWidth: '100%',
                 maxHeight: 'calc(90vh - 200px)',
-                display: 'block'
+                display: 'block',
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+                transformOrigin: 'center center',
+                transition: isPanning ? 'none' : 'transform 0.1s ease-out'
               }}
             />
           </div>
@@ -738,7 +807,9 @@ export const DocumentCropModal = ({
                     ▪ Зажмите и тяните для создания области<br/>
                     ▪ Перетащите для изменения положения<br/>
                     ▪ Тяните за углы для изменения размера<br/>
-                    ▪ Delete для удаления выбранной области
+                    ▪ Delete для удаления выбранной области<br/>
+                    ▪ Колесико мыши для зума<br/>
+                    ▪ Space + ЛКМ для перемещения изображения
                   </div>
                 </div>
               ) : (

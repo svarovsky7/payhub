@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Upload, Button, Table, Space, message, Modal, Badge } from 'antd'
+import { Upload, Button, Table, Space, message, Modal, Badge, Popconfirm } from 'antd'
 import { UploadOutlined, ScanOutlined, DownloadOutlined, ClearOutlined, ScissorOutlined, EyeOutlined, FileMarkdownOutlined, DeleteOutlined } from '@ant-design/icons'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -426,13 +426,19 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
                 Скачать MD
               </Button>
             )}
-            <Button 
-              size="small" 
-              danger 
-              icon={<DeleteOutlined />} 
-              onClick={() => handleDeleteFile(record)}
-              title="Удалить файл"
-            />
+            <Popconfirm
+              title="Удалить файл?"
+              onConfirm={() => handleDeleteFile(record)}
+              okText="Да"
+              cancelText="Нет"
+            >
+              <Button 
+                size="small" 
+                danger 
+                icon={<DeleteOutlined />} 
+                title="Удалить файл"
+              />
+            </Popconfirm>
           </Space>
         )
       }
@@ -441,10 +447,7 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
 
   const handleDeleteFile = async (file: AttachmentWithRecognition) => {
     try {
-      await supabase.storage
-        .from('attachments')
-        .remove([file.storage_path])
-
+      await documentTaskService.deleteAttachment(file.id)
       message.success('Файл удален')
       onRefresh()
     } catch (error: any) {
