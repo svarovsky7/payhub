@@ -232,12 +232,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Header>
         <Content
           style={{
-            margin: '24px 16px',
+            margin: '24px 24px',
             padding: 24,
             minHeight: 280,
             background: '#fff',
             borderRadius: 8,
-              overflowX: 'clip',   // ← добавь это
+            overflowX: 'clip',
           }}
         >
           {children}
