@@ -42,7 +42,6 @@ export const DocumentCropModal = ({
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null)
   const [draggedFrameIndex, setDraggedFrameIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [pageDimensions, setPageDimensions] = useState<Array<{width: number, height: number}>>([])
   const [pageBlobs, setPageBlobs] = useState<Blob[]>([])
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -138,7 +137,6 @@ export const DocumentCropModal = ({
 
             setPageImages(imageFiles)
             setTotalPages(imageFiles.length)
-            setPageDimensions(imageDimensions)
             setPageBlobs(imageBlobs)
             
             const maxWidth = Math.max(...imageDimensions.map(d => d.width))

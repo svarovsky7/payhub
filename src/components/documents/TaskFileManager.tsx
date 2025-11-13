@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Upload, Button, Table, Space, message, Typography, Modal, Badge } from 'antd'
+import { Upload, Button, Table, Space, message, Modal, Badge } from 'antd'
 import { UploadOutlined, ScanOutlined, DownloadOutlined, ClearOutlined, ScissorOutlined, EyeOutlined, FileMarkdownOutlined, DeleteOutlined } from '@ant-design/icons'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -9,8 +9,6 @@ import { datalabService } from '../../services/datalabService'
 import { supabase } from '../../lib/supabase'
 import { DocumentCropModal } from './DocumentCropModal'
 import type { AttachmentWithRecognition } from '../../types/documentTask'
-
-const { Text } = Typography
 
 interface TaskFileManagerProps {
   taskId: string

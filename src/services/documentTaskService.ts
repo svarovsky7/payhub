@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import type { DocumentTask, DocumentTaskAttachment, AttachmentRecognition, AttachmentWithRecognition } from '../types/documentTask'
+import type { DocumentTask, AttachmentWithRecognition } from '../types/documentTask'
 
 export const documentTaskService = {
   async createTask(title: string, description?: string): Promise<DocumentTask> {
