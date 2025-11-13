@@ -198,6 +198,14 @@ export const AttachmentRecognitionModal = ({
       })
 
       setAttachments(filtered)
+      
+      // Обновляем selectedAttachment, если оно было выбрано
+      if (selectedAttachment) {
+        const updated = filtered.find(a => a.id === selectedAttachment.id)
+        if (updated) {
+          setSelectedAttachment(updated)
+        }
+      }
     } catch (error) {
       message.error('Ошибка загрузки вложений')
       console.error(error)
@@ -524,6 +532,7 @@ export const AttachmentRecognitionModal = ({
                 <Button
                   icon={<EditOutlined />}
                   onClick={() => setCropModalVisible(true)}
+                  disabled={processing || selectedAttachment.recognizing}
                 >
                   Разметить вручную
                 </Button>
@@ -532,7 +541,8 @@ export const AttachmentRecognitionModal = ({
                 type="primary"
                 icon={<ScanOutlined />}
                 onClick={() => handleMarkup()}
-                loading={processing}
+                loading={processing || selectedAttachment.recognizing}
+                disabled={processing || selectedAttachment.recognizing}
               >
                 Распознать
               </Button>
