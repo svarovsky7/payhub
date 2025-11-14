@@ -9,8 +9,7 @@ import {
   loadSingleInvoice,
   createInvoice,
   updateInvoice,
-  deleteInvoice,
-  recalculateAllInvoiceStatuses
+  deleteInvoice
 } from '../services/invoiceOperations'
 import { useAuth } from '../contexts/AuthContext'
 import dayjs from 'dayjs'
@@ -60,9 +59,6 @@ export const useInvoiceManagement = (showArchived: boolean = false) => {
     setLoading(true)
 
     try {
-      // Пересчитываем статусы всех счетов перед загрузкой
-      await recalculateAllInvoiceStatuses()
-
       const data = await loadInvoices(user.id, showArchived)
       setInvoices(data)
     } finally {

@@ -155,9 +155,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ]
 
   // Filter menu items based on allowed pages
-  const menuItems = currentRoleId && allowedPages.length > 0
-    ? allMenuItems.filter(item => allowedPages.includes(item.key))
-    : allMenuItems // Show all items if no role selected or no restrictions
+  const menuItems = currentRoleId
+    ? (allowedPages.length > 0
+        ? allMenuItems.filter(item => allowedPages.includes(item.key))
+        : [])
+    : allMenuItems
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

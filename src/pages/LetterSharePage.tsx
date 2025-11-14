@@ -1,11 +1,10 @@
 
-import { useEffect, useState } from 'react'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useState, useCallback } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { Spin, Empty, Card, Divider, Button, Space, message, Drawer, Alert } from 'antd'
 import { DownloadOutlined, FileOutlined } from '@ant-design/icons'
 import type { Letter } from '../lib/supabase'
 import { getLetterByShareToken } from '../services/letterOperations'
-import { useAuth } from '../contexts/AuthContext'
 import { getAttachments, downloadFile } from '../services/fileAttachmentService'
 import '../styles/letter-share-page.css'
 
@@ -19,31 +18,26 @@ interface FileAttachment {
 export default function LetterSharePage() {
   const { token } = useParams<{ token: string }>()
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const { user, loading: authLoading } = useAuth()
   const [letter, setLetter] = useState<Letter | null>(null)
   const [loading, setLoading] = useState(true)
   const [filesDrawerOpen, setFilesDrawerOpen] = useState(false)
   const [files, setFiles] = useState<FileAttachment[]>([])
   const isNewLetter = searchParams.get('id') !== null
 
-  useEffect(() => {
-    if (authLoading) return
-
-    if (!user) {
-      navigate(`/login?redirect=/letter-share/${token}`)
-      return
+  const loadFiles = useCallback(async (letterId: string) => {
+    try {
+      const { data } = await getAttachments('letter', letterId)
+      setFiles(data || [])
+    } catch (error) {
+      console.error('Error loading files:', error)
     }
+  }, [])
 
-    loadLetter()
-  }, [token, user, authLoading, navigate])
-
-  const loadLetter = async () => {
+  const loadLetter = useCallback(async () => {
     try {
       if (!token) throw new Error('Invalid token')
       const letterData = await getLetterByShareToken(token)
       if (!letterData) {
-        // Letter not found - might be unsaved
         return
       }
       setLetter(letterData)
@@ -53,16 +47,12 @@ export default function LetterSharePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token, loadFiles])
 
-  const loadFiles = async (letterId: string) => {
-    try {
-      const { data } = await getAttachments('letter', letterId)
-      setFiles(data || [])
-    } catch (error) {
-      console.error('Error loading files:', error)
-    }
-  }
+  useEffect(() => {
+    if (!token) return
+    loadLetter()
+  }, [token, loadLetter])
 
   const handleDownloadFile = async (file: FileAttachment) => {
     try {
@@ -79,7 +69,7 @@ export default function LetterSharePage() {
     }
   }
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="letter-share-loading">
         <Spin size="large" tip="Загрузка письма..." />
