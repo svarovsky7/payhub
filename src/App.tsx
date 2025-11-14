@@ -5,6 +5,8 @@ import ruRU from 'antd/locale/ru_RU'
 import { AuthProvider } from './contexts/AuthContext'
 import { MainLayout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { LettersPage } from './pages/LettersPage'
+import { LetterStatsPage } from './pages/LetterStatsPage'
 import 'antd/dist/reset.css'
 
 const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.AuthPage })))
@@ -14,8 +16,6 @@ const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage').then(m => ({ de
 const ContractsPage = lazy(() => import('./pages/ContractsPage').then(m => ({ default: m.ContractsPage })))
 const MaterialRequestsPage = lazy(() => import('./pages/MaterialRequestsPage').then(m => ({ default: m.MaterialRequestsPage })))
 const ProjectBudgetsPage = lazy(() => import('./pages/ProjectBudgetsPage').then(m => ({ default: m.ProjectBudgetsPage })))
-const LettersPage = lazy(() => import('./pages/LettersPage').then(m => ({ default: m.LettersPage })))
-const LetterStatsPage = lazy(() => import('./pages/LetterStatsPage').then(m => ({ default: m.LetterStatsPage })))
 const LetterSharePage = lazy(() => import('./pages/LetterSharePage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const DocumentRecognitionPage = lazy(() => import('./pages/DocumentRecognitionPage').then(m => ({ default: m.DocumentRecognitionPage })))
