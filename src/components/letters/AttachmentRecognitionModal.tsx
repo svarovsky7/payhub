@@ -305,10 +305,203 @@ export const AttachmentRecognitionModal = ({
 
       // Получаем ID старого распознанного файла
       const oldRecognizedId = await getRecognizedAttachmentId(selectedAttachment.id)
+
+      // Получаем полную информацию о письме
+      const { data: fullLetter } = await supabase
+        .from('letters')
+        .select('*')
+        .eq('id', letter.id)
+        .single()
+
+      // Загружаем связанные данные отдельно
+      let projectName = ''
+      let creatorName = ''
+      let senderName = ''
+      let recipientName = ''
+      
+      if (fullLetter?.project_id) {
+        const { data: proj } = await supabase.from('projects').select('name').eq('id', fullLetter.project_id).single()
+        projectName = proj?.name || ''
+      }
+      
+      if (fullLetter?.created_by) {
+        const { data: creator } = await supabase.from('user_profiles').select('full_name').eq('id', fullLetter.created_by).single()
+        creatorName = creator?.full_name || ''
+      }
+      
+      if (fullLetter?.sender_type === 'contractor' && fullLetter?.sender_contractor_id) {
+        const { data: sender } = await supabase.from('contractors').select('name').eq('id', fullLetter.sender_contractor_id).single()
+        senderName = sender?.name || ''
+      }
+      
+      if (fullLetter?.recipient_type === 'contractor' && fullLetter?.recipient_contractor_id) {
+        const { data: recipient } = await supabase.from('contractors').select('name').eq('id', fullLetter.recipient_contractor_id).single()
+        recipientName = recipient?.name || ''
+      }
+
+      // Получаем публичные ссылки
+      const { data: publicShares } = await supabase
+        .from('letter_public_shares')
+        .select('token')
+        .eq('letter_id', letter.id)
+
+      // Получаем вложения письма
+      const { data: letterAttachments } = await supabase
+        .from('letter_attachments')
+        .select('attachment_id')
+        .eq('letter_id', letter.id)
+      
+      // Получаем связи писем
+      const { data: parentLinks } = await supabase
+        .from('letter_links')
+        .select('parent_id')
+        .eq('child_id', letter.id)
+      
+      const { data: childLinks } = await supabase
+        .from('letter_links')
+        .select('child_id')
+        .eq('parent_id', letter.id)
+
+      // Формируем YAML frontmatter
+      let yamlFrontmatter = '---\n'
+      
+      if (fullLetter) {
+        // 1. ID письма
+        yamlFrontmatter += `id: ${fullLetter.id}\n`
+        
+        // 2. Номер письма от контрагента
+        if (fullLetter.number) {
+          yamlFrontmatter += `номер_письма_от_контрагента: "${fullLetter.number}"\n`
+        }
+        
+        // 3. Регистрационный номер письма
+        if (fullLetter.reg_number) {
+          yamlFrontmatter += `регистрационный_номер_письма: "${fullLetter.reg_number}"\n`
+        }
+        
+        // 4. Проект
+        if (projectName) {
+          yamlFrontmatter += `проект: ${projectName}\n`
+        }
+        
+        // 5. Дата письма
+        if (fullLetter.letter_date) {
+          yamlFrontmatter += `дата_письма: ${fullLetter.letter_date}\n`
+        }
+        
+        // 6. Тема
+        if (fullLetter.subject) {
+          yamlFrontmatter += `тема: "${fullLetter.subject}"\n`
+        }
+        
+        // 7. Направление
+        yamlFrontmatter += `направление: ${fullLetter.direction === 'incoming' ? 'входящее' : 'исходящее'}\n`
+        
+        // 8. Дата регистрации
+        if (fullLetter.reg_date) {
+          yamlFrontmatter += `дата_регистрации: ${fullLetter.reg_date}\n`
+        }
+        
+        // 9. Кто внес письмо
+        if (creatorName) {
+          yamlFrontmatter += `создал: ${creatorName}\n`
+        }
+        
+        // 10. Когда внесли письмо
+        if (fullLetter.created_at) {
+          yamlFrontmatter += `создано: ${fullLetter.created_at}\n`
+        }
+        
+        // 11. Метод доставки
+        if (fullLetter.delivery_method) {
+          yamlFrontmatter += `метод_доставки: "${fullLetter.delivery_method}"\n`
+        }
+        
+        // 12. Ответственный сотрудник
+        if (fullLetter.responsible_person_name) {
+          yamlFrontmatter += `ответственный: ${fullLetter.responsible_person_name}\n`
+        }
+        
+        // 13. Отправитель
+        if (senderName) {
+          yamlFrontmatter += `отправитель: ${senderName}\n`
+        } else if (fullLetter.sender) {
+          yamlFrontmatter += `отправитель: "${fullLetter.sender}"\n`
+        }
+        
+        // 14. Получатель
+        if (recipientName) {
+          yamlFrontmatter += `получатель: ${recipientName}\n`
+        } else if (fullLetter.recipient) {
+          yamlFrontmatter += `получатель: "${fullLetter.recipient}"\n`
+        }
+        
+        // 15. Вложения
+        if (letterAttachments && letterAttachments.length > 0) {
+          const attachmentIds = letterAttachments.map(la => la.attachment_id)
+          const { data: attachments } = await supabase
+            .from('attachments')
+            .select('original_name, mime_type')
+            .in('id', attachmentIds)
+          
+          if (attachments && attachments.length > 0) {
+            // Фильтруем markdown файлы
+            const filteredAttachments = attachments.filter(att => 
+              !att.mime_type?.includes('markdown') && !att.original_name.endsWith('.md')
+            )
+            
+            if (filteredAttachments.length > 0) {
+              yamlFrontmatter += `вложения:\n`
+              filteredAttachments.forEach(att => {
+                yamlFrontmatter += `  - "${att.original_name}"\n`
+              })
+            }
+          }
+        }
+        
+        // 16. Связанные письма
+        if (parentLinks && parentLinks.length > 0) {
+          yamlFrontmatter += `родительские_письма:\n`
+          parentLinks.forEach(link => {
+            yamlFrontmatter += `  - ${link.parent_id}\n`
+          })
+        }
+        
+        if (childLinks && childLinks.length > 0) {
+          yamlFrontmatter += `дочерние_письма:\n`
+          childLinks.forEach(link => {
+            yamlFrontmatter += `  - ${link.child_id}\n`
+          })
+        }
+      }
+      
+      yamlFrontmatter += '---\n\n'
+
+      console.log('🔖 Generated YAML frontmatter:', yamlFrontmatter)
+
+      // Проверяем, есть ли уже YAML frontmatter в currentMarkdown
+      const hasYamlFrontmatter = currentMarkdown.startsWith('---\n')
+      
+      // Если YAML уже есть, заменяем его
+      let markdownWithMetadata: string
+      if (hasYamlFrontmatter) {
+        // Находим конец YAML блока
+        const endIndex = currentMarkdown.indexOf('\n---\n', 4)
+        if (endIndex !== -1) {
+          // Заменяем старый YAML на новый
+          markdownWithMetadata = yamlFrontmatter + currentMarkdown.substring(endIndex + 5)
+        } else {
+          // Некорректный формат, добавляем новый YAML
+          markdownWithMetadata = yamlFrontmatter + currentMarkdown
+        }
+      } else {
+        // Добавляем YAML в начало
+        markdownWithMetadata = yamlFrontmatter + currentMarkdown
+      }
       
       const baseName = selectedAttachment.original_name.replace(/\.[^/.]+$/, '')
       const displayFileName = `${baseName}_распознано.md`
-      const blob = new Blob([currentMarkdown], { type: 'text/markdown' })
+      const blob = new Blob([markdownWithMetadata], { type: 'text/markdown' })
       
       const sanitizedName = baseName.replace(/[^\w\s.-]/g, '').replace(/\s+/g, '_')
       const storagePath = `letters/${letter.id}/${Date.now()}_recognized.md`
@@ -426,6 +619,187 @@ export const AttachmentRecognitionModal = ({
     message.success('Обрезанный документ сохранен')
     await loadAttachments()
     onSuccess?.()
+  }
+
+  const handleInsertYaml = async () => {
+    if (!letter || !currentMarkdown) return
+
+    setLoading(true)
+    try {
+      // Получаем полную информацию о письме
+      const { data: fullLetter } = await supabase
+        .from('letters')
+        .select('*')
+        .eq('id', letter.id)
+        .single()
+
+      // Загружаем связанные данные
+      let projectName = ''
+      let creatorName = ''
+      let senderName = ''
+      let recipientName = ''
+      
+      if (fullLetter?.project_id) {
+        const { data: proj } = await supabase.from('projects').select('name').eq('id', fullLetter.project_id).single()
+        projectName = proj?.name || ''
+      }
+      
+      if (fullLetter?.created_by) {
+        const { data: creator } = await supabase.from('user_profiles').select('full_name').eq('id', fullLetter.created_by).single()
+        creatorName = creator?.full_name || ''
+      }
+      
+      if (fullLetter?.sender_type === 'contractor' && fullLetter?.sender_contractor_id) {
+        const { data: sender } = await supabase.from('contractors').select('name').eq('id', fullLetter.sender_contractor_id).single()
+        senderName = sender?.name || ''
+      }
+      
+      if (fullLetter?.recipient_type === 'contractor' && fullLetter?.recipient_contractor_id) {
+        const { data: recipient } = await supabase.from('contractors').select('name').eq('id', fullLetter.recipient_contractor_id).single()
+        recipientName = recipient?.name || ''
+      }
+
+      // Получаем вложения письма
+      const { data: letterAttachments } = await supabase
+        .from('letter_attachments')
+        .select('attachment_id')
+        .eq('letter_id', letter.id)
+      
+      // Получаем связи писем
+      const { data: parentLinks } = await supabase
+        .from('letter_links')
+        .select('parent_id')
+        .eq('child_id', letter.id)
+      
+      const { data: childLinks } = await supabase
+        .from('letter_links')
+        .select('child_id')
+        .eq('parent_id', letter.id)
+
+      // Формируем YAML frontmatter
+      let yamlFrontmatter = '---\n'
+      
+      if (fullLetter) {
+        yamlFrontmatter += `id: ${fullLetter.id}\n`
+        
+        if (fullLetter.number) {
+          yamlFrontmatter += `номер_письма_от_контрагента: "${fullLetter.number}"\n`
+        }
+        
+        if (fullLetter.reg_number) {
+          yamlFrontmatter += `регистрационный_номер_письма: "${fullLetter.reg_number}"\n`
+        }
+        
+        if (projectName) {
+          yamlFrontmatter += `проект: ${projectName}\n`
+        }
+        
+        if (fullLetter.letter_date) {
+          yamlFrontmatter += `дата_письма: ${fullLetter.letter_date}\n`
+        }
+        
+        if (fullLetter.subject) {
+          yamlFrontmatter += `тема: "${fullLetter.subject}"\n`
+        }
+        
+        yamlFrontmatter += `направление: ${fullLetter.direction === 'incoming' ? 'входящее' : 'исходящее'}\n`
+        
+        if (fullLetter.reg_date) {
+          yamlFrontmatter += `дата_регистрации: ${fullLetter.reg_date}\n`
+        }
+        
+        if (creatorName) {
+          yamlFrontmatter += `создал: ${creatorName}\n`
+        }
+        
+        if (fullLetter.created_at) {
+          yamlFrontmatter += `создано: ${fullLetter.created_at}\n`
+        }
+        
+        if (fullLetter.delivery_method) {
+          yamlFrontmatter += `метод_доставки: "${fullLetter.delivery_method}"\n`
+        }
+        
+        if (fullLetter.responsible_person_name) {
+          yamlFrontmatter += `ответственный: ${fullLetter.responsible_person_name}\n`
+        }
+        
+        if (senderName) {
+          yamlFrontmatter += `отправитель: ${senderName}\n`
+        } else if (fullLetter.sender) {
+          yamlFrontmatter += `отправитель: "${fullLetter.sender}"\n`
+        }
+        
+        if (recipientName) {
+          yamlFrontmatter += `получатель: ${recipientName}\n`
+        } else if (fullLetter.recipient) {
+          yamlFrontmatter += `получатель: "${fullLetter.recipient}"\n`
+        }
+        
+        if (letterAttachments && letterAttachments.length > 0) {
+          const attachmentIds = letterAttachments.map(la => la.attachment_id)
+          const { data: attachments } = await supabase
+            .from('attachments')
+            .select('original_name, mime_type')
+            .in('id', attachmentIds)
+          
+          if (attachments && attachments.length > 0) {
+            // Фильтруем markdown файлы
+            const filteredAttachments = attachments.filter(att => 
+              !att.mime_type?.includes('markdown') && !att.original_name.endsWith('.md')
+            )
+            
+            if (filteredAttachments.length > 0) {
+              yamlFrontmatter += `вложения:\n`
+              filteredAttachments.forEach(att => {
+                yamlFrontmatter += `  - "${att.original_name}"\n`
+              })
+            }
+          }
+        }
+        
+        if (parentLinks && parentLinks.length > 0) {
+          yamlFrontmatter += `родительские_письма:\n`
+          parentLinks.forEach(link => {
+            yamlFrontmatter += `  - ${link.parent_id}\n`
+          })
+        }
+        
+        if (childLinks && childLinks.length > 0) {
+          yamlFrontmatter += `дочерние_письма:\n`
+          childLinks.forEach(link => {
+            yamlFrontmatter += `  - ${link.child_id}\n`
+          })
+        }
+      }
+      
+      yamlFrontmatter += '---\n\n'
+
+      // Проверяем, есть ли уже YAML frontmatter
+      const hasYamlFrontmatter = currentMarkdown.startsWith('---\n')
+      
+      let markdownWithMetadata: string
+      if (hasYamlFrontmatter) {
+        // Заменяем существующий YAML
+        const endIndex = currentMarkdown.indexOf('\n---\n', 4)
+        if (endIndex !== -1) {
+          markdownWithMetadata = yamlFrontmatter + currentMarkdown.substring(endIndex + 5)
+        } else {
+          markdownWithMetadata = yamlFrontmatter + currentMarkdown
+        }
+      } else {
+        // Добавляем YAML в начало
+        markdownWithMetadata = yamlFrontmatter + currentMarkdown
+      }
+
+      setCurrentMarkdown(markdownWithMetadata)
+      message.success('YAML блок добавлен')
+    } catch (error) {
+      message.error('Ошибка добавления YAML блока')
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const renderAttachmentList = () => (
@@ -556,6 +930,13 @@ export const AttachmentRecognitionModal = ({
                 loading={processing}
               >
                 Распознать заново
+              </Button>
+              <Button
+                onClick={handleInsertYaml}
+                loading={loading}
+                disabled={!currentMarkdown}
+              >
+                Вставить YAML данные
               </Button>
               <Button
                 type="primary"
