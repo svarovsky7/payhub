@@ -1,0 +1,488 @@
+[
+  {
+    "from": "public.approval_routes",
+    "column": "invoice_type_id",
+    "to": "public.invoice_types",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.approval_steps",
+    "column": "acted_by",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.approval_steps",
+    "column": "payment_approval_id",
+    "to": "public.payment_approvals",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.approval_steps",
+    "column": "stage_id",
+    "to": "public.workflow_stages",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.attachment_recognitions",
+    "column": "created_by",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.attachment_recognitions",
+    "column": "original_attachment_id",
+    "to": "public.attachments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.attachment_recognitions",
+    "column": "recognized_attachment_id",
+    "to": "public.attachments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.attachments",
+    "column": "created_by",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.audit_log",
+    "column": "user_id",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contract_attachments",
+    "column": "attachment_id",
+    "to": "public.attachments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contract_attachments",
+    "column": "contract_id",
+    "to": "public.contracts",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contract_invoices",
+    "column": "contract_id",
+    "to": "public.contracts",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contract_invoices",
+    "column": "invoice_id",
+    "to": "public.invoices",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contract_projects",
+    "column": "contract_id",
+    "to": "public.contracts",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contract_projects",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contractor_alternative_names",
+    "column": "contractor_id",
+    "to": "public.contractors",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contractors",
+    "column": "created_by",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contractors",
+    "column": "primary_name_id",
+    "to": "public.contractor_alternative_names",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contracts",
+    "column": "created_by",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contracts",
+    "column": "payer_id",
+    "to": "public.contractors",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contracts",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contracts",
+    "column": "status_id",
+    "to": "public.contract_statuses",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.contracts",
+    "column": "supplier_id",
+    "to": "public.contractors",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.document_task_attachments",
+    "column": "attachment_id",
+    "to": "public.attachments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.document_task_attachments",
+    "column": "task_id",
+    "to": "public.document_tasks",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.employees",
+    "column": "created_by",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.employees",
+    "column": "department_id",
+    "to": "public.departments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.employees",
+    "column": "position_id",
+    "to": "public.positions",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoice_attachments",
+    "column": "attachment_id",
+    "to": "public.attachments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoice_attachments",
+    "column": "invoice_id",
+    "to": "public.invoices",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoice_payments",
+    "column": "invoice_id",
+    "to": "public.invoices",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoice_payments",
+    "column": "payment_id",
+    "to": "public.payments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "responsible_id",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "contract_id",
+    "to": "public.contracts",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "invoice_type_id",
+    "to": "public.invoice_types",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "material_request_id",
+    "to": "public.material_requests",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "payer_id",
+    "to": "public.contractors",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "status_id",
+    "to": "public.invoice_statuses",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "supplier_id",
+    "to": "public.contractors",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.invoices",
+    "column": "user_id",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letter_attachments",
+    "column": "attachment_id",
+    "to": "public.attachments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letter_attachments",
+    "column": "letter_id",
+    "to": "public.letters",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letter_links",
+    "column": "child_id",
+    "to": "public.letters",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letter_links",
+    "column": "parent_id",
+    "to": "public.letters",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letter_public_shares",
+    "column": "letter_id",
+    "to": "public.letters",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letters",
+    "column": "recipient_contractor_id",
+    "to": "public.contractors",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letters",
+    "column": "sender_contractor_id",
+    "to": "public.contractors",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letters",
+    "column": "created_by",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letters",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letters",
+    "column": "responsible_user_id",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.letters",
+    "column": "status_id",
+    "to": "public.letter_statuses",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.material_classes",
+    "column": "parent_id",
+    "to": "public.material_classes",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.material_nomenclature",
+    "column": "material_class_id",
+    "to": "public.material_classes",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.material_request_items",
+    "column": "nomenclature_id",
+    "to": "public.material_nomenclature",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.material_request_items",
+    "column": "material_request_id",
+    "to": "public.material_requests",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.material_requests",
+    "column": "created_by",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.material_requests",
+    "column": "employee_id",
+    "to": "public.employees",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.material_requests",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payment_approvals",
+    "column": "payment_id",
+    "to": "public.payments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payment_approvals",
+    "column": "route_id",
+    "to": "public.approval_routes",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payment_approvals",
+    "column": "status_id",
+    "to": "public.payment_statuses",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payment_attachments",
+    "column": "attachment_id",
+    "to": "public.attachments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payment_attachments",
+    "column": "payment_id",
+    "to": "public.payments",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payments",
+    "column": "created_by",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payments",
+    "column": "invoice_id",
+    "to": "public.invoices",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payments",
+    "column": "payment_type_id",
+    "to": "public.payment_types",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.payments",
+    "column": "status_id",
+    "to": "public.payment_statuses",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.project_alternative_names",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.project_budgets",
+    "column": "created_by",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.project_budgets",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.project_templates",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.projects",
+    "column": "created_by",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.user_profiles",
+    "column": "id",
+    "to": "auth.users",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.user_profiles",
+    "column": "role_id",
+    "to": "public.roles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.user_projects",
+    "column": "project_id",
+    "to": "public.projects",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.user_projects",
+    "column": "user_id",
+    "to": "public.user_profiles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.workflow_stages",
+    "column": "invoice_status_id",
+    "to": "public.invoice_statuses",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.workflow_stages",
+    "column": "payment_status_id",
+    "to": "public.payment_statuses",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.workflow_stages",
+    "column": "role_id",
+    "to": "public.roles",
+    "toColumn": "id"
+  },
+  {
+    "from": "public.workflow_stages",
+    "column": "route_id",
+    "to": "public.approval_routes",
+    "toColumn": "id"
+  }
+]

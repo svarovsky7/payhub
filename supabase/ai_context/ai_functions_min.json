@@ -1,0 +1,98 @@
+{
+  "public.add_working_days(start_date date, days_to_add integer)": {
+    "schema": "public",
+    "name": "add_working_days",
+    "arguments": "start_date date, days_to_add integer",
+    "purpose": "Custom function"
+  },
+  "public.calculate_material_class_level()": {
+    "schema": "public",
+    "name": "calculate_material_class_level",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.calculate_preliminary_delivery_date(delivery_days integer, delivery_type character varying)": {
+    "schema": "public",
+    "name": "calculate_preliminary_delivery_date",
+    "arguments": "delivery_days integer, delivery_type character varying",
+    "purpose": "Custom function"
+  },
+  "public.delete_project(project_id_param integer)": {
+    "schema": "public",
+    "name": "delete_project",
+    "arguments": "project_id_param integer",
+    "purpose": "Custom function"
+  },
+  "public.get_material_class_path(class_id bigint)": {
+    "schema": "public",
+    "name": "get_material_class_path",
+    "arguments": "class_id bigint",
+    "purpose": "Custom function"
+  },
+  "public.is_weekend(check_date date)": {
+    "schema": "public",
+    "name": "is_weekend",
+    "arguments": "check_date date",
+    "purpose": "Custom function"
+  },
+  "public.log_approval_actions()": {
+    "schema": "public",
+    "name": "log_approval_actions",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.log_attachment_changes()": {
+    "schema": "public",
+    "name": "log_attachment_changes",
+    "arguments": "",
+    "purpose": "Fixed function to handle null user_id by getting from invoice/payment"
+  },
+  "public.log_invoice_changes()": {
+    "schema": "public",
+    "name": "log_invoice_changes",
+    "arguments": "",
+    "purpose": "Расширенная функция логирования изменений счетов с дополнительными полями"
+  },
+  "public.log_payment_changes()": {
+    "schema": "public",
+    "name": "log_payment_changes",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.recalculate_invoice_delivery_date()": {
+    "schema": "public",
+    "name": "recalculate_invoice_delivery_date",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.update_material_request_items_count()": {
+    "schema": "public",
+    "name": "update_material_request_items_count",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.update_preliminary_delivery_dates()": {
+    "schema": "public",
+    "name": "update_preliminary_delivery_dates",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.update_project_alternative_names_updated_at()": {
+    "schema": "public",
+    "name": "update_project_alternative_names_updated_at",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.update_project_templates_updated_at()": {
+    "schema": "public",
+    "name": "update_project_templates_updated_at",
+    "arguments": "",
+    "purpose": "Custom function"
+  },
+  "public.update_updated_at_column()": {
+    "schema": "public",
+    "name": "update_updated_at_column",
+    "arguments": "",
+    "purpose": "Custom function"
+  }
+}

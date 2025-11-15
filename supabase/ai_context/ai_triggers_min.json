@@ -1,0 +1,240 @@
+[
+  {
+    "table": "public.approval_routes",
+    "trigger": "update_approval_routes_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.approval_steps",
+    "trigger": "audit_approval_steps",
+    "function": "log_approval_actions",
+    "event": "AFTER",
+    "on": ""
+  },
+  {
+    "table": "public.attachments",
+    "trigger": "update_attachments_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.contract_statuses",
+    "trigger": "update_contract_statuses_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.contractors",
+    "trigger": "update_contractors_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.contracts",
+    "trigger": "update_contracts_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.departments",
+    "trigger": "update_departments_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.employees",
+    "trigger": "update_employees_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.invoice_attachments",
+    "trigger": "audit_invoice_attachments",
+    "function": "log_attachment_changes",
+    "event": "AFTER",
+    "on": ""
+  },
+  {
+    "table": "public.invoice_payments",
+    "trigger": "update_delivery_date_on_payment_change",
+    "function": "recalculate_invoice_delivery_date",
+    "event": "AFTER",
+    "on": ""
+  },
+  {
+    "table": "public.invoice_statuses",
+    "trigger": "update_invoice_statuses_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.invoice_types",
+    "trigger": "update_invoice_types_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.invoices",
+    "trigger": "audit_invoice_changes",
+    "function": "log_invoice_changes",
+    "event": "AFTER",
+    "on": ""
+  },
+  {
+    "table": "public.invoices",
+    "trigger": "update_invoices_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.letters",
+    "trigger": "update_letters_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.material_classes",
+    "trigger": "trigger_calculate_material_class_level",
+    "function": "calculate_material_class_level",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.material_classes",
+    "trigger": "update_material_classes_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.material_nomenclature",
+    "trigger": "update_material_nomenclature_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.material_request_items",
+    "trigger": "update_material_request_items_count_trigger",
+    "function": "update_material_request_items_count",
+    "event": "AFTER",
+    "on": ""
+  },
+  {
+    "table": "public.material_requests",
+    "trigger": "update_material_requests_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.payment_approvals",
+    "trigger": "update_payment_approvals_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.payment_attachments",
+    "trigger": "audit_payment_attachments",
+    "function": "log_attachment_changes",
+    "event": "AFTER",
+    "on": ""
+  },
+  {
+    "table": "public.payment_statuses",
+    "trigger": "update_payment_statuses_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.payment_types",
+    "trigger": "update_payment_types_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.payments",
+    "trigger": "audit_payment_changes",
+    "function": "log_payment_changes",
+    "event": "AFTER",
+    "on": ""
+  },
+  {
+    "table": "public.payments",
+    "trigger": "update_payments_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.positions",
+    "trigger": "update_positions_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.project_alternative_names",
+    "trigger": "trigger_project_alternative_names_updated_at",
+    "function": "update_project_alternative_names_updated_at",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.project_budgets",
+    "trigger": "update_project_budgets_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.project_templates",
+    "trigger": "trigger_project_templates_updated_at",
+    "function": "update_project_templates_updated_at",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.projects",
+    "trigger": "update_projects_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.roles",
+    "trigger": "update_roles_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.user_profiles",
+    "trigger": "update_user_profiles_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  },
+  {
+    "table": "public.workflow_stages",
+    "trigger": "update_workflow_stages_updated_at",
+    "function": "update_updated_at_column",
+    "event": "BEFORE",
+    "on": ""
+  }
+]

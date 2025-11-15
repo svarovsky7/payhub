@@ -1,0 +1,2639 @@
+{
+  "public.approval_routes": {
+    "schema": "public",
+    "name": "approval_routes",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "invoice_type_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.invoice_types(id)"
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.approval_steps": {
+    "schema": "public",
+    "name": "approval_steps",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "payment_approval_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.payment_approvals(id)"
+      },
+      {
+        "name": "stage_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.workflow_stages(id)"
+      },
+      {
+        "name": "action",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "acted_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "acted_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "comment",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.attachment_recognitions": {
+    "schema": "public",
+    "name": "attachment_recognitions",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "original_attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.attachments(id)"
+      },
+      {
+        "name": "recognized_attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.attachments(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "auth.users(id)"
+      }
+    ]
+  },
+  "public.attachments": {
+    "schema": "public",
+    "name": "attachments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "original_name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "storage_path",
+        "type": "character varying(500)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "size_bytes",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "mime_type",
+        "type": "character varying(100)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.audit_log": {
+    "schema": "public",
+    "name": "audit_log",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "entity_type",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "entity_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "action",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "field_name",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "old_value",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "new_value",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "auth.users(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "metadata",
+        "type": "jsonb",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.contract_attachments": {
+    "schema": "public",
+    "name": "contract_attachments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.contracts(id)"
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.attachments(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.contract_invoices": {
+    "schema": "public",
+    "name": "contract_invoices",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.contracts(id)"
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.invoices(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.contract_projects": {
+    "schema": "public",
+    "name": "contract_projects",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.contracts(id)"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.contract_statuses": {
+    "schema": "public",
+    "name": "contract_statuses",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "color",
+        "type": "character varying(7)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.contractor_alternative_names": {
+    "schema": "public",
+    "name": "contractor_alternative_names",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "contractor_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.contractors(id)"
+      },
+      {
+        "name": "alternative_name",
+        "type": "character varying",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_primary",
+        "type": "boolean",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.contractors": {
+    "schema": "public",
+    "name": "contractors",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "inn",
+        "type": "character varying(12)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "primary_name_id",
+        "type": "bigint",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contractor_alternative_names(id)"
+      }
+    ]
+  },
+  "public.contracts": {
+    "schema": "public",
+    "name": "contracts",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "contract_number",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "contract_date",
+        "type": "date",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "payer_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contractors(id)"
+      },
+      {
+        "name": "supplier_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contractors(id)"
+      },
+      {
+        "name": "vat_rate",
+        "type": "numeric(5,2)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "warranty_period_days",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "auth.users(id)"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contract_statuses(id)"
+      },
+      {
+        "name": "payment_terms",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "advance_percentage",
+        "type": "numeric(5,2)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.departments": {
+    "schema": "public",
+    "name": "departments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.document_task_attachments": {
+    "schema": "public",
+    "name": "document_task_attachments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "task_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.document_tasks(id)"
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.attachments(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.document_tasks": {
+    "schema": "public",
+    "name": "document_tasks",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "title",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.employees": {
+    "schema": "public",
+    "name": "employees",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "last_name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "first_name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "middle_name",
+        "type": "character varying(255)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "full_name",
+        "type": "character varying(765)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "department_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.departments(id)"
+      },
+      {
+        "name": "position_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.positions(id)"
+      },
+      {
+        "name": "email",
+        "type": "character varying(255)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "phone",
+        "type": "character varying(50)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "auth.users(id)"
+      }
+    ]
+  },
+  "public.invoice_attachments": {
+    "schema": "public",
+    "name": "invoice_attachments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.invoices(id)"
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.attachments(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.invoice_payments": {
+    "schema": "public",
+    "name": "invoice_payments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.invoices(id)"
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.payments(id)"
+      },
+      {
+        "name": "allocated_amount",
+        "type": "numeric(15,2)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.invoice_statuses": {
+    "schema": "public",
+    "name": "invoice_statuses",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "color",
+        "type": "character varying(20)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.invoice_types": {
+    "schema": "public",
+    "name": "invoice_types",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.invoices": {
+    "schema": "public",
+    "name": "invoices",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "auth.users(id)"
+      },
+      {
+        "name": "invoice_number",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "due_date",
+        "type": "date",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "invoice_date",
+        "type": "date",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "payer_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contractors(id)"
+      },
+      {
+        "name": "supplier_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contractors(id)"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "invoice_type_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.invoice_types(id)"
+      },
+      {
+        "name": "amount_with_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "vat_rate",
+        "type": "numeric(5,2)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "vat_amount",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "amount_without_vat",
+        "type": "numeric(15,2)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "delivery_days",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "delivery_days_type",
+        "type": "character varying(20)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "preliminary_delivery_date",
+        "type": "date",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.invoice_statuses(id)"
+      },
+      {
+        "name": "delivery_cost",
+        "type": "numeric(12,2)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "relevance_date",
+        "type": "date",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.material_requests(id)"
+      },
+      {
+        "name": "contract_id",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contracts(id)"
+      },
+      {
+        "name": "responsible_id",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "is_archived",
+        "type": "boolean",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "recipient",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.letter_attachments": {
+    "schema": "public",
+    "name": "letter_attachments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "letter_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.letters(id)"
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.attachments(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.letter_links": {
+    "schema": "public",
+    "name": "letter_links",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "parent_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.letters(id)"
+      },
+      {
+        "name": "child_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.letters(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.letter_public_shares": {
+    "schema": "public",
+    "name": "letter_public_shares",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "letter_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.letters(id)"
+      },
+      {
+        "name": "token",
+        "type": "character varying(16)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.letter_statuses": {
+    "schema": "public",
+    "name": "letter_statuses",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "color",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.letters": {
+    "schema": "public",
+    "name": "letters",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "project_id",
+        "type": "bigint",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "number",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.letter_statuses(id)"
+      },
+      {
+        "name": "letter_date",
+        "type": "date",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "subject",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "content",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "responsible_user_id",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "sender",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "recipient",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "direction",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "reg_number",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "reg_date",
+        "type": "date",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "delivery_method",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "responsible_person_name",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "response_deadline",
+        "type": "date",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sender_type",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sender_contractor_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contractors(id)"
+      },
+      {
+        "name": "recipient_type",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "recipient_contractor_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.contractors(id)"
+      }
+    ]
+  },
+  "public.material_classes": {
+    "schema": "public",
+    "name": "material_classes",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "parent_id",
+        "type": "bigint",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.material_classes(id)"
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.material_nomenclature": {
+    "schema": "public",
+    "name": "material_nomenclature",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(500)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "unit",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "material_class_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.material_classes(id)"
+      }
+    ]
+  },
+  "public.material_request_items": {
+    "schema": "public",
+    "name": "material_request_items",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "material_request_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.material_requests(id)"
+      },
+      {
+        "name": "material_name",
+        "type": "character varying(500)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "unit",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "quantity",
+        "type": "numeric(15,3)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "nomenclature_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.material_nomenclature(id)"
+      }
+    ]
+  },
+  "public.material_requests": {
+    "schema": "public",
+    "name": "material_requests",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "request_number",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "request_date",
+        "type": "date",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "employee_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.employees(id)"
+      },
+      {
+        "name": "total_items",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "auth.users(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.payment_approvals": {
+    "schema": "public",
+    "name": "payment_approvals",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.payments(id)"
+      },
+      {
+        "name": "route_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.approval_routes(id)"
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.payment_statuses(id)"
+      },
+      {
+        "name": "current_stage_index",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.payment_attachments": {
+    "schema": "public",
+    "name": "payment_attachments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "payment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.payments(id)"
+      },
+      {
+        "name": "attachment_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.attachments(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.payment_statuses": {
+    "schema": "public",
+    "name": "payment_statuses",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "color",
+        "type": "character varying(20)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.payment_types": {
+    "schema": "public",
+    "name": "payment_types",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.payments": {
+    "schema": "public",
+    "name": "payments",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "invoice_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.invoices(id)"
+      },
+      {
+        "name": "payment_number",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "payment_date",
+        "type": "date",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "amount",
+        "type": "numeric(15,2)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "payment_type_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.payment_types(id)"
+      },
+      {
+        "name": "status_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.payment_statuses(id)"
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_archived",
+        "type": "boolean",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "paid_date",
+        "type": "date",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "accountant_notes",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "requires_payment_order",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.positions": {
+    "schema": "public",
+    "name": "positions",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.project_alternative_names": {
+    "schema": "public",
+    "name": "project_alternative_names",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "alternative_name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.project_budgets": {
+    "schema": "public",
+    "name": "project_budgets",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "allocated_amount",
+        "type": "numeric(15,2)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "auth.users(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.project_templates": {
+    "schema": "public",
+    "name": "project_templates",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "template_path",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.projects": {
+    "schema": "public",
+    "name": "projects",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "character varying(50)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.roles": {
+    "schema": "public",
+    "name": "roles",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "code",
+        "type": "character varying(50)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "own_projects_only",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "allowed_pages",
+        "type": "jsonb",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.user_profiles": {
+    "schema": "public",
+    "name": "user_profiles",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": true,
+        "fk": "auth.users(id)"
+      },
+      {
+        "name": "email",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "full_name",
+        "type": "text",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "role_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.roles(id)"
+      },
+      {
+        "name": "is_disabled",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.user_projects": {
+    "schema": "public",
+    "name": "user_projects",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.user_profiles(id)"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.projects(id)"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      }
+    ]
+  },
+  "public.workflow_stages": {
+    "schema": "public",
+    "name": "workflow_stages",
+    "columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "nullable": false,
+        "pk": true,
+        "fk": null
+      },
+      {
+        "name": "route_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.approval_routes(id)"
+      },
+      {
+        "name": "order_index",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "role_id",
+        "type": "integer",
+        "nullable": false,
+        "pk": false,
+        "fk": "public.roles(id)"
+      },
+      {
+        "name": "name",
+        "type": "character varying(255)",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "payment_status_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.payment_statuses(id)"
+      },
+      {
+        "name": "permissions",
+        "type": "jsonb",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "nullable": true,
+        "pk": false,
+        "fk": null
+      },
+      {
+        "name": "invoice_status_id",
+        "type": "integer",
+        "nullable": true,
+        "pk": false,
+        "fk": "public.invoice_statuses(id)"
+      }
+    ]
+  }
+}

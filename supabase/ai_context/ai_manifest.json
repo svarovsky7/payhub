@@ -1,0 +1,12 @@
+{
+  "generated_at": "2025-11-15T19:40:27.859Z",
+  "source_hashes": {
+    "tables.json": "1e77782f7072affc329011bbd685ca7647ba8cdf4f9fb7a8b5a2a7f25f6c1219",
+    "indexes.json": "4e372682e6ff774476a961ad99a3e5308700d01201bf313bc02b5da66441a42f",
+    "triggers.json": "be6ed6113fdc1c68b2cd396a2e8391670b4a0a387c5f803bac56d226a213411a",
+    "functions.json": "bad4d34a4c739ae1ca1f4bcfe544604f708644724877e0c54535f548774a24c9",
+    "enums.json": "b279269c34c179cd6f5d88d3653730ad5d8731c76d3fb835f115072d297c9f4f",
+    "prod.sql": "310f2030a5aa9b6a2e17341f5fb5d7b6cb77576d2b6d08fc6f3683a5de9f05b6"
+  },
+  "version": "1.0.0"
+}

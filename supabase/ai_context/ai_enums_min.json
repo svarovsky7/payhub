@@ -1,0 +1,89 @@
+{
+  "auth.aal_level": {
+    "schema": "auth",
+    "name": "aal_level",
+    "values": [
+      "aal1",
+      "aal2",
+      "aal3"
+    ]
+  },
+  "auth.code_challenge_method": {
+    "schema": "auth",
+    "name": "code_challenge_method",
+    "values": [
+      "s256",
+      "plain"
+    ]
+  },
+  "auth.factor_status": {
+    "schema": "auth",
+    "name": "factor_status",
+    "values": [
+      "unverified",
+      "verified"
+    ]
+  },
+  "auth.factor_type": {
+    "schema": "auth",
+    "name": "factor_type",
+    "values": [
+      "totp",
+      "webauthn",
+      "phone"
+    ]
+  },
+  "auth.one_time_token_type": {
+    "schema": "auth",
+    "name": "one_time_token_type",
+    "values": [
+      "confirmation_token",
+      "reauthentication_token",
+      "recovery_token",
+      "email_change_token_new",
+      "email_change_token_current",
+      "phone_change_token"
+    ]
+  },
+  "net.request_status": {
+    "schema": "net",
+    "name": "request_status",
+    "values": [
+      "PENDING",
+      "SUCCESS",
+      "ERROR"
+    ]
+  },
+  "realtime.action": {
+    "schema": "realtime",
+    "name": "action",
+    "values": [
+      "INSERT",
+      "UPDATE",
+      "DELETE",
+      "TRUNCATE",
+      "ERROR"
+    ]
+  },
+  "realtime.equality_op": {
+    "schema": "realtime",
+    "name": "equality_op",
+    "values": [
+      "eq",
+      "neq",
+      "lt",
+      "lte",
+      "gt",
+      "gte",
+      "in"
+    ]
+  },
+  "storage.buckettype": {
+    "schema": "storage",
+    "name": "buckettype",
+    "values": [
+      "STANDARD",
+      "ANALYTICS"
+    ]
+  }
+}
