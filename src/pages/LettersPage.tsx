@@ -15,6 +15,7 @@ import { ColumnSettings } from '../components/common/ColumnSettings'
 import type { Letter } from '../lib/supabase'
 import { exportLettersToExcel } from '../utils/letterExcelExport'
 import { downloadAllLetterMarkdowns } from '../utils/letterMarkdownExport'
+import { addYamlToLetterMarkdowns } from '../utils/addYamlToLetterMarkdowns'
 import { useAuth } from '../contexts/AuthContext'
 import { getTasks, subscribeToTasks, type RecognitionTask } from '../services/recognitionTaskService'
 
@@ -262,6 +263,14 @@ export const LettersPage = () => {
     setRecognitionModalVisible(true)
   }
 
+  const handleAddYamlToMarkdowns = async () => {
+    try {
+      await addYamlToLetterMarkdowns(letters)
+    } catch (error) {
+      console.error('[LettersPage.handleAddYamlToMarkdowns] Error:', error)
+    }
+  }
+
   // Table columns
   const allColumns = getLetterTableColumns({
     letterStatuses,
@@ -317,6 +326,11 @@ export const LettersPage = () => {
             onClick={downloadAllLetterMarkdowns}
           >
             Скачать Markdown
+          </Button>
+          <Button
+            onClick={handleAddYamlToMarkdowns}
+          >
+            Добавить YAML
           </Button>
           <ColumnSettings
             columns={columnConfig}
