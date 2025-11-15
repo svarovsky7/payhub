@@ -1,0 +1,27 @@
+{
+  "extensions.pg_stat_statements": {
+    "schema": "extensions",
+    "name": "pg_stat_statements",
+    "sql": "CREATE OR REPLACE VIEW extensions.pg_stat_statements AS\n SELECT pg_stat_statements.userid,\n    pg_stat_statements.dbid,\n    pg_stat_statements.toplevel,\n    pg_stat_statements.queryid,\n    pg_stat_statements.query,\n    pg_stat_statements.plans,\n    pg_stat_statements.total_plan_time,\n    pg_stat_statements.min_plan_time,\n    pg_stat_statements.max_plan_time,\n    pg_stat_statements.mean_plan_time,\n    pg_stat_statements.stddev_plan_time,\n    pg_stat_statements.calls,\n    pg_stat_statements.total_exec_time,\n    pg_stat_statements.min_exec_time,\n    pg_stat_statements.max_exec_time,\n    pg_stat_statements.mean_exec_time,\n    pg_stat_statements.stddev_exec_time,\n    pg_stat_statements.rows,\n    pg_stat_statements.shared_blks_hit,\n    pg_stat_statements.shared_blks_read,\n    pg_stat_statements.shared_blks_dirtied,\n    pg_stat_statements.shared_blks_written,\n    pg_stat_statements.local_blks_hit,\n    pg_stat_statements.local_blks_read,\n    pg_stat_statements.local_blks_dirtied,\n    pg_stat_statements.local_blks_written,\n    pg_stat_statements.temp_blks_read,\n    pg_stat_statements.temp_blks_written,\n    pg_stat_statements.blk_read_time,\n    pg_stat_statements.blk_write_time,\n    pg_stat_statements.temp_blk_read_time,\n    pg_stat_statements.temp_blk_write_time,\n    pg_stat_statements.wal_records,\n    pg_stat_statements.wal_fpi,\n    pg_stat_statements.wal_bytes,\n    pg_stat_statements.jit_functions,\n    pg_stat_statements.jit_generation_time,\n    pg_stat_statements.jit_inlining_count,\n    pg_stat_statements.jit_inlining_time,\n    pg_stat_statements.jit_optimization_count,\n    pg_stat_statements.jit_optimization_time,\n    pg_stat_statements.jit_emission_count,\n    pg_stat_statements.jit_emission_time\n   FROM pg_stat_statements(true) pg_stat_statements(userid, dbid, toplevel, queryid, query, plans, total_plan_time, min_plan_time, max_plan_time, mean_plan_time, stddev_plan_time, calls, total_exec_time, min_exec_time, max_exec_time, mean_exec_time, stddev_exec_time, rows, shared_blks_hit, shared_blks_read, shared_blks_dirtied, shared_blks_written, local_blks_hit, local_blks_read, local_blks_dirtied, local_blks_written, temp_blks_read, temp_blks_written, blk_read_time, blk_write_time, temp_blk_read_time, temp_blk_write_time, wal_records, wal_fpi, wal_bytes, jit_functions, jit_generation_time, jit_inlining_count, jit_inlining_time, jit_optimization_count, jit_optimization_time, jit_emission_count, jit_emission_time);"
+  },
+  "extensions.pg_stat_statements_info": {
+    "schema": "extensions",
+    "name": "pg_stat_statements_info",
+    "sql": "CREATE OR REPLACE VIEW extensions.pg_stat_statements_info AS\n SELECT pg_stat_statements_info.dealloc,\n    pg_stat_statements_info.stats_reset\n   FROM pg_stat_statements_info() pg_stat_statements_info(dealloc, stats_reset);"
+  },
+  "public.audit_log_view": {
+    "schema": "public",
+    "name": "audit_log_view",
+    "sql": "CREATE OR REPLACE VIEW public.audit_log_view AS\n SELECT al.id,\n    al.entity_type,\n    al.entity_id,\n    al.action,\n    al.field_name,\n    al.old_value,\n    al.new_value,\n    al.created_at,\n    al.metadata,\n    up.full_name AS user_name,\n    up.email AS user_email\n   FROM (audit_log al\n     LEFT JOIN user_profiles up ON ((al.user_id = up.id)))\n  ORDER BY al.created_at DESC;"
+  },
+  "public.material_classes_hierarchy": {
+    "schema": "public",
+    "name": "material_classes_hierarchy",
+    "sql": "CREATE OR REPLACE VIEW public.material_classes_hierarchy AS\n SELECT c.id,\n    c.name,\n    c.parent_id,\n    c.level,\n    c.is_active,\n    p.name AS parent_name,\n    c.created_at,\n    c.updated_at\n   FROM (material_classes c\n     LEFT JOIN material_classes p ON ((c.parent_id = p.id)))\n  ORDER BY COALESCE(c.parent_id, c.id), c.id;"
+  },
+  "vault.decrypted_secrets": {
+    "schema": "vault",
+    "name": "decrypted_secrets",
+    "sql": "CREATE OR REPLACE VIEW vault.decrypted_secrets AS\n SELECT s.id,\n    s.name,\n    s.description,\n    s.secret,\n    convert_from(vault._crypto_aead_det_decrypt(message => decode(s.secret, 'base64'::text), additional => convert_to((s.id)::text, 'utf8'::name), key_id => (0)::bigint, context => '\\x7067736f6469756d'::bytea, nonce => s.nonce), 'utf8'::name) AS decrypted_secret,\n    s.key_id,\n    s.nonce,\n    s.created_at,\n    s.updated_at\n   FROM vault.secrets s;"
+  }
+}

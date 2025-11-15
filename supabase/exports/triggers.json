@@ -2,7 +2,7 @@
   "cron.job.cron_job_cache_invalidate": {
     "schema": "cron",
     "name": "cron_job_cache_invalidate",
-    "table_name": null,
+    "table_name": "job",
     "event": null,
     "timing": null,
     "comment": null,
@@ -11,7 +11,7 @@
   "public.approval_routes.update_approval_routes_updated_at": {
     "schema": "public",
     "name": "update_approval_routes_updated_at",
-    "table_name": null,
+    "table_name": "approval_routes",
     "event": null,
     "timing": null,
     "comment": null,
@@ -20,7 +20,7 @@
   "public.approval_steps.audit_approval_steps": {
     "schema": "public",
     "name": "audit_approval_steps",
-    "table_name": null,
+    "table_name": "approval_steps",
     "event": null,
     "timing": null,
     "comment": null,
@@ -29,7 +29,7 @@
   "public.attachments.update_attachments_updated_at": {
     "schema": "public",
     "name": "update_attachments_updated_at",
-    "table_name": null,
+    "table_name": "attachments",
     "event": null,
     "timing": null,
     "comment": null,
@@ -38,7 +38,7 @@
   "public.contract_statuses.update_contract_statuses_updated_at": {
     "schema": "public",
     "name": "update_contract_statuses_updated_at",
-    "table_name": null,
+    "table_name": "contract_statuses",
     "event": null,
     "timing": null,
     "comment": null,
@@ -47,7 +47,7 @@
   "public.contractors.update_contractors_updated_at": {
     "schema": "public",
     "name": "update_contractors_updated_at",
-    "table_name": null,
+    "table_name": "contractors",
     "event": null,
     "timing": null,
     "comment": null,
@@ -56,7 +56,7 @@
   "public.contracts.update_contracts_updated_at": {
     "schema": "public",
     "name": "update_contracts_updated_at",
-    "table_name": null,
+    "table_name": "contracts",
     "event": null,
     "timing": null,
     "comment": null,
@@ -65,7 +65,7 @@
   "public.departments.update_departments_updated_at": {
     "schema": "public",
     "name": "update_departments_updated_at",
-    "table_name": null,
+    "table_name": "departments",
     "event": null,
     "timing": null,
     "comment": null,
@@ -74,7 +74,7 @@
   "public.employees.update_employees_updated_at": {
     "schema": "public",
     "name": "update_employees_updated_at",
-    "table_name": null,
+    "table_name": "employees",
     "event": null,
     "timing": null,
     "comment": null,
@@ -83,7 +83,7 @@
   "public.invoice_attachments.audit_invoice_attachments": {
     "schema": "public",
     "name": "audit_invoice_attachments",
-    "table_name": null,
+    "table_name": "invoice_attachments",
     "event": null,
     "timing": null,
     "comment": null,
@@ -92,7 +92,7 @@
   "public.invoice_payments.update_delivery_date_on_payment_change": {
     "schema": "public",
     "name": "update_delivery_date_on_payment_change",
-    "table_name": null,
+    "table_name": "invoice_payments",
     "event": null,
     "timing": null,
     "comment": null,
@@ -101,7 +101,7 @@
   "public.invoice_statuses.update_invoice_statuses_updated_at": {
     "schema": "public",
     "name": "update_invoice_statuses_updated_at",
-    "table_name": null,
+    "table_name": "invoice_statuses",
     "event": null,
     "timing": null,
     "comment": null,
@@ -110,7 +110,7 @@
   "public.invoice_types.update_invoice_types_updated_at": {
     "schema": "public",
     "name": "update_invoice_types_updated_at",
-    "table_name": null,
+    "table_name": "invoice_types",
     "event": null,
     "timing": null,
     "comment": null,
@@ -119,7 +119,7 @@
   "public.invoices.audit_invoice_changes": {
     "schema": "public",
     "name": "audit_invoice_changes",
-    "table_name": null,
+    "table_name": "invoices",
     "event": null,
     "timing": null,
     "comment": null,
@@ -128,7 +128,7 @@
   "public.invoices.update_invoices_updated_at": {
     "schema": "public",
     "name": "update_invoices_updated_at",
-    "table_name": null,
+    "table_name": "invoices",
     "event": null,
     "timing": null,
     "comment": null,
@@ -137,7 +137,7 @@
   "public.letters.update_letters_updated_at": {
     "schema": "public",
     "name": "update_letters_updated_at",
-    "table_name": null,
+    "table_name": "letters",
     "event": null,
     "timing": null,
     "comment": null,
@@ -146,7 +146,7 @@
   "public.material_classes.trigger_calculate_material_class_level": {
     "schema": "public",
     "name": "trigger_calculate_material_class_level",
-    "table_name": null,
+    "table_name": "material_classes",
     "event": null,
     "timing": null,
     "comment": null,
@@ -155,7 +155,7 @@
   "public.material_classes.update_material_classes_updated_at": {
     "schema": "public",
     "name": "update_material_classes_updated_at",
-    "table_name": null,
+    "table_name": "material_classes",
     "event": null,
     "timing": null,
     "comment": null,
@@ -164,7 +164,7 @@
   "public.material_nomenclature.update_material_nomenclature_updated_at": {
     "schema": "public",
     "name": "update_material_nomenclature_updated_at",
-    "table_name": null,
+    "table_name": "material_nomenclature",
     "event": null,
     "timing": null,
     "comment": null,
@@ -173,7 +173,7 @@
   "public.material_request_items.update_material_request_items_count_trigger": {
     "schema": "public",
     "name": "update_material_request_items_count_trigger",
-    "table_name": null,
+    "table_name": "material_request_items",
     "event": null,
     "timing": null,
     "comment": null,
@@ -182,7 +182,7 @@
   "public.material_requests.update_material_requests_updated_at": {
     "schema": "public",
     "name": "update_material_requests_updated_at",
-    "table_name": null,
+    "table_name": "material_requests",
     "event": null,
     "timing": null,
     "comment": null,
@@ -191,7 +191,7 @@
   "public.payment_approvals.update_payment_approvals_updated_at": {
     "schema": "public",
     "name": "update_payment_approvals_updated_at",
-    "table_name": null,
+    "table_name": "payment_approvals",
     "event": null,
     "timing": null,
     "comment": null,
@@ -200,7 +200,7 @@
   "public.payment_attachments.audit_payment_attachments": {
     "schema": "public",
     "name": "audit_payment_attachments",
-    "table_name": null,
+    "table_name": "payment_attachments",
     "event": null,
     "timing": null,
     "comment": null,
@@ -209,7 +209,7 @@
   "public.payment_statuses.update_payment_statuses_updated_at": {
     "schema": "public",
     "name": "update_payment_statuses_updated_at",
-    "table_name": null,
+    "table_name": "payment_statuses",
     "event": null,
     "timing": null,
     "comment": null,
@@ -218,7 +218,7 @@
   "public.payment_types.update_payment_types_updated_at": {
     "schema": "public",
     "name": "update_payment_types_updated_at",
-    "table_name": null,
+    "table_name": "payment_types",
     "event": null,
     "timing": null,
     "comment": null,
@@ -227,7 +227,7 @@
   "public.payments.audit_payment_changes": {
     "schema": "public",
     "name": "audit_payment_changes",
-    "table_name": null,
+    "table_name": "payments",
     "event": null,
     "timing": null,
     "comment": null,
@@ -236,7 +236,7 @@
   "public.payments.update_payments_updated_at": {
     "schema": "public",
     "name": "update_payments_updated_at",
-    "table_name": null,
+    "table_name": "payments",
     "event": null,
     "timing": null,
     "comment": null,
@@ -245,7 +245,7 @@
   "public.positions.update_positions_updated_at": {
     "schema": "public",
     "name": "update_positions_updated_at",
-    "table_name": null,
+    "table_name": "positions",
     "event": null,
     "timing": null,
     "comment": null,
@@ -254,7 +254,7 @@
   "public.project_alternative_names.trigger_project_alternative_names_updated_at": {
     "schema": "public",
     "name": "trigger_project_alternative_names_updated_at",
-    "table_name": null,
+    "table_name": "project_alternative_names",
     "event": null,
     "timing": null,
     "comment": null,
@@ -263,7 +263,7 @@
   "public.project_budgets.update_project_budgets_updated_at": {
     "schema": "public",
     "name": "update_project_budgets_updated_at",
-    "table_name": null,
+    "table_name": "project_budgets",
     "event": null,
     "timing": null,
     "comment": null,
@@ -272,7 +272,7 @@
   "public.project_templates.trigger_project_templates_updated_at": {
     "schema": "public",
     "name": "trigger_project_templates_updated_at",
-    "table_name": null,
+    "table_name": "project_templates",
     "event": null,
     "timing": null,
     "comment": null,
@@ -281,7 +281,7 @@
   "public.projects.update_projects_updated_at": {
     "schema": "public",
     "name": "update_projects_updated_at",
-    "table_name": null,
+    "table_name": "projects",
     "event": null,
     "timing": null,
     "comment": null,
@@ -290,7 +290,7 @@
   "public.roles.update_roles_updated_at": {
     "schema": "public",
     "name": "update_roles_updated_at",
-    "table_name": null,
+    "table_name": "roles",
     "event": null,
     "timing": null,
     "comment": null,
@@ -299,7 +299,7 @@
   "public.user_profiles.update_user_profiles_updated_at": {
     "schema": "public",
     "name": "update_user_profiles_updated_at",
-    "table_name": null,
+    "table_name": "user_profiles",
     "event": null,
     "timing": null,
     "comment": null,
@@ -308,7 +308,7 @@
   "public.workflow_stages.update_workflow_stages_updated_at": {
     "schema": "public",
     "name": "update_workflow_stages_updated_at",
-    "table_name": null,
+    "table_name": "workflow_stages",
     "event": null,
     "timing": null,
     "comment": null,
@@ -317,7 +317,7 @@
   "realtime.subscription.tr_check_filters": {
     "schema": "realtime",
     "name": "tr_check_filters",
-    "table_name": null,
+    "table_name": "subscription",
     "event": null,
     "timing": null,
     "comment": null,
@@ -326,7 +326,7 @@
   "storage.buckets.enforce_bucket_name_length_trigger": {
     "schema": "storage",
     "name": "enforce_bucket_name_length_trigger",
-    "table_name": null,
+    "table_name": "buckets",
     "event": null,
     "timing": null,
     "comment": null,
@@ -335,7 +335,7 @@
   "storage.objects.objects_delete_delete_prefix": {
     "schema": "storage",
     "name": "objects_delete_delete_prefix",
-    "table_name": null,
+    "table_name": "objects",
     "event": null,
     "timing": null,
     "comment": null,
@@ -344,7 +344,7 @@
   "storage.objects.objects_insert_create_prefix": {
     "schema": "storage",
     "name": "objects_insert_create_prefix",
-    "table_name": null,
+    "table_name": "objects",
     "event": null,
     "timing": null,
     "comment": null,
@@ -353,7 +353,7 @@
   "storage.objects.objects_update_create_prefix": {
     "schema": "storage",
     "name": "objects_update_create_prefix",
-    "table_name": null,
+    "table_name": "objects",
     "event": null,
     "timing": null,
     "comment": null,
@@ -362,7 +362,7 @@
   "storage.objects.update_objects_updated_at": {
     "schema": "storage",
     "name": "update_objects_updated_at",
-    "table_name": null,
+    "table_name": "objects",
     "event": null,
     "timing": null,
     "comment": null,
@@ -371,7 +371,7 @@
   "storage.prefixes.prefixes_create_hierarchy": {
     "schema": "storage",
     "name": "prefixes_create_hierarchy",
-    "table_name": null,
+    "table_name": "prefixes",
     "event": null,
     "timing": null,
     "comment": null,
@@ -380,7 +380,7 @@
   "storage.prefixes.prefixes_delete_hierarchy": {
     "schema": "storage",
     "name": "prefixes_delete_hierarchy",
-    "table_name": null,
+    "table_name": "prefixes",
     "event": null,
     "timing": null,
     "comment": null,

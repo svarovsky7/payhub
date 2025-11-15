@@ -184,7 +184,7 @@ export const LettersPage = () => {
       }
 
       // Filter by number
-      if (filterValues.number && !letter.number.toLowerCase().includes(filterValues.number.toLowerCase())) {
+      if (filterValues.number && !letter.number?.toLowerCase().includes(filterValues.number.toLowerCase())) {
         return false
       }
 
