@@ -464,17 +464,12 @@ export default function AuditLogTimeline({
 
   // Load letter statuses if we have letter-related audit entries
   useEffect(() => {
-    console.log('[AuditLogTimeline.useEffect] Checking for letter entries:', {
-      auditLogCount: auditLog.length,
-      statusesLoaded,
-      sample: auditLog[0]
-    });
-    
     const hasLetterEntries = auditLog.some(entry => entry.entity_type === 'letter');
-    console.log('[AuditLogTimeline.useEffect] Has letter entries:', hasLetterEntries);
+    const statusesAlreadyLoaded = Object.keys(letterStatuses).length > 0;
     
-    if (hasLetterEntries && !statusesLoaded) {
+    if (hasLetterEntries && !statusesAlreadyLoaded && !statusesLoaded) {
       console.log('[AuditLogTimeline.useEffect] Loading letter statuses...');
+      setStatusesLoaded(true);
       supabase
         .from('letter_statuses')
         .select('id, name')
@@ -492,10 +487,9 @@ export default function AuditLogTimeline({
             });
             setLetterStatuses(statusMap);
           }
-          setStatusesLoaded(true);
         });
     }
-  }, [auditLog, statusesLoaded]);
+  }, [auditLog.length]);
 
   if (loading) {
     return (

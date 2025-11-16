@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { AuditLogView, AuditEntityType } from '../types/audit';
 import { getAuditLogForEntity } from '../services/auditLogService';
 import { message } from 'antd';
@@ -11,7 +11,7 @@ export function useAuditLog(entityType: AuditEntityType, entityId: string | unde
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const loadAuditLog = async () => {
+  const loadAuditLog = useCallback(async () => {
     if (!entityId) {
       setAuditLog([]);
       return;
@@ -33,11 +33,11 @@ export function useAuditLog(entityType: AuditEntityType, entityId: string | unde
     } finally {
       setLoading(false);
     }
-  };
+  }, [entityId, entityType]);
 
   useEffect(() => {
     loadAuditLog();
-  }, [entityType, entityId]);
+  }, [loadAuditLog]);
 
   return {
     auditLog,
