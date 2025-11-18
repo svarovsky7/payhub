@@ -95,8 +95,24 @@ export const RecognitionSettings = ({
   }
 
   const handleContinuationChange = (pageNumber: number, checked: boolean) => {
+    let newDescription = ''
+    
+    if (checked) {
+      const prevPage = localConfigs.find(p => p.pageNumber === pageNumber - 1)
+      if (prevPage?.description) {
+        const baseDesc = prevPage.description.replace(/ ПРОДОЛЖЕНИЕ$/, '')
+        newDescription = `${baseDesc} ПРОДОЛЖЕНИЕ`
+      }
+    }
+
     const newConfigs = localConfigs.map(p => 
-      p.pageNumber === pageNumber ? { ...p, isContinuation: checked, description: checked ? '' : p.description } : p
+      p.pageNumber === pageNumber 
+        ? { 
+            ...p, 
+            isContinuation: checked, 
+            description: checked ? newDescription : p.description 
+          } 
+        : p
     )
     setLocalConfigs(newConfigs)
     onPageConfigsChange?.(newConfigs)
