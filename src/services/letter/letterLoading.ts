@@ -94,7 +94,7 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
   }
 
   // Execute query
-  const { data, error } = await query.order('created_at', { ascending: false })
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(5000)
 
   if (error) {
     throw error
@@ -106,6 +106,7 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
   const { data: allLinks, error: linksError } = await supabase
     .from('letter_links')
     .select('parent_id, child_id')
+    .limit(5000)
 
   if (linksError) {
     throw linksError
@@ -129,43 +130,34 @@ export async function loadLetters(userId?: string): Promise<Letter[]> {
   const lettersById = new Map<string, Letter>()
   data.forEach(letter => lettersById.set(letter.id, letter))
 
-  // Function to get all descendants of a parent letter (flattened to one level) - NO DB QUERIES
-  const getAllDescendants = (parentId: string): Letter[] => {
-    const allDescendants: Letter[] = []
-    const visited = new Set<string>()
-    const queue: string[] = [parentId]
+  // Recursive function to build hierarchy
+  const buildHierarchy = (parentId: string, visited: Set<string>): Letter[] => {
+    const childIds = parentToChildrenMap.get(parentId) || []
+    const children: Letter[] = []
 
-    // BFS to collect all descendants using in-memory map
-    while (queue.length > 0) {
-      const currentId = queue.shift()!
+    for (const childId of childIds) {
+      // Prevent cycles
+      if (visited.has(childId)) continue
 
-      if (visited.has(currentId)) {
-        continue
-      }
-      visited.add(currentId)
-
-      const childIds = parentToChildrenMap.get(currentId) || []
-
-      for (const childId of childIds) {
-        const childLetter = lettersById.get(childId)
-        if (childLetter) {
-          // Add all descendants to the same level
-          allDescendants.push({
-            ...childLetter,
-            parent_id: parentId
-          })
-          // Add to queue to find its children
-          queue.push(childId)
-        }
+      const childLetter = lettersById.get(childId)
+      if (childLetter) {
+        const newVisited = new Set(visited).add(childId)
+        const grandChildren = buildHierarchy(childId, newVisited)
+        
+        children.push({
+          ...childLetter,
+          children: grandChildren.length > 0 ? grandChildren : undefined,
+          parent_id: parentId
+        })
       }
     }
-
-    return allDescendants
+    
+    return children
   }
 
-  // Build hierarchy for all parent letters (NO MORE ASYNC CALLS)
+  // Build hierarchy for all parent letters
   const lettersWithChildren = parentLetters.map((letter) => {
-    const children = getAllDescendants(letter.id)
+    const children = buildHierarchy(letter.id, new Set([letter.id]))
     return {
       ...letter,
       children: children.length > 0 ? children : undefined

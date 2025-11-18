@@ -212,26 +212,29 @@ export const LettersPage = () => {
 
     const filterLettersRecursive = (lettersList: Letter[]): Letter[] => {
       return lettersList
-        .filter(letter => {
-          // Check if parent letter matches
-          const parentMatches = filterLetter(letter)
-
-          // Check if any child matches
-          const childrenMatch = letter.children?.some(child => filterLetter(child))
-
-          return parentMatches || childrenMatch
-        })
         .map(letter => {
-          // Filter children if they exist
-          if (letter.children && letter.children.length > 0) {
-            const filteredChildren = letter.children.filter(child => filterLetter(child))
-            return {
-              ...letter,
-              children: filteredChildren.length > 0 ? filteredChildren : undefined
-            }
+          // Check if current letter matches
+          const matchesSelf = filterLetter(letter)
+          
+          // If matches self, return it with all children (showing full chain context)
+          if (matchesSelf) {
+            return letter
           }
-          return letter
+
+          // If doesn't match self, check children recursively
+          if (letter.children && letter.children.length > 0) {
+             const filteredChildren = filterLettersRecursive(letter.children)
+             if (filteredChildren.length > 0) {
+               return {
+                 ...letter,
+                 children: filteredChildren
+               }
+             }
+          }
+          
+          return null
         })
+        .filter((item): item is Letter => item !== null)
     }
 
     return filterLettersRecursive(letters)
