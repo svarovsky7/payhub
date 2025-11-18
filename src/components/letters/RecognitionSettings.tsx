@@ -28,7 +28,7 @@ interface RecognitionSettingsProps {
 export const RecognitionSettings = ({
   allPages,
   pageRange,
-  onAllPagesChange,
+  onAllPagesChange: _onAllPagesChange,
   onPageRangeChange,
   pdfUrl,
   pageConfigs = [],
