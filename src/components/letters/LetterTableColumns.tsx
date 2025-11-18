@@ -41,7 +41,8 @@ export const getLetterTableColumns = ({
       title: 'Напр.',
       dataIndex: 'direction',
       key: 'direction',
-      width: 80,
+      width: 110,
+      className: 'no-ellipsis-cell',
       filters: [
         { text: 'Входящие', value: 'incoming' },
         { text: 'Исходящие', value: 'outgoing' }

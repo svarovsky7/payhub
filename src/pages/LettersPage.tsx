@@ -293,7 +293,7 @@ export const LettersPage = () => {
   // Column settings
   const { columnConfig, setColumnConfig, visibleColumns, defaultConfig } = useColumnSettings(
     allColumns,
-    'letters_column_settings'
+    'letters_column_settings_v3'
   )
 
   // Handle form submit
@@ -377,7 +377,7 @@ export const LettersPage = () => {
         sticky
         className="compact-table"
         childrenColumnName="children"
-        indentSize={24}
+        indentSize={12}
         defaultExpandAllRows={false}
       />
 
