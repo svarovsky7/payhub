@@ -9,9 +9,25 @@
 
 .compact-table .ant-table-thead > tr > th {
   padding: 8px 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   background: #fafafa;
+  white-space: nowrap;
+}
+
+.compact-table .ant-table-thead > tr > th .ant-table-column-title {
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.compact-table .ant-table-thead > tr > th .ant-table-column-sorters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compact-table .ant-table-thead > tr > th .ant-table-filter-column {
+  justify-content: space-between;
 }
 
 .compact-table .ant-table-tbody > tr > td {

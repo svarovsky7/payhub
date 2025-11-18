@@ -38,15 +38,16 @@ export const getLetterTableColumns = ({
 }: GetLetterTableColumnsProps): ColumnsType<Letter> => {
   return [
     {
-      title: 'Направление',
+      title: 'Напр.',
       dataIndex: 'direction',
       key: 'direction',
-      width: 70,
+      width: 80,
       filters: [
         { text: 'Входящие', value: 'incoming' },
         { text: 'Исходящие', value: 'outgoing' }
       ],
       onFilter: (value, record) => record.direction === value,
+      sorter: (a, b) => (a.direction || '').localeCompare(b.direction || ''),
       render: (direction: 'incoming' | 'outgoing') => (
         <Tag color={direction === 'incoming' ? 'blue' : 'green'}>
           {direction === 'incoming' ? 'Вхд' : 'Исх'}
@@ -57,23 +58,29 @@ export const getLetterTableColumns = ({
       title: 'Номер письма',
       dataIndex: 'number',
       key: 'number',
+      width: 150,
       sorter: (a, b) => (a.number || '').localeCompare(b.number || ''),
       render: (text: string, record: Letter) => (
-        <Button type="link" onClick={() => handleViewLetter(record)} style={{ padding: 0 }}>
-          {text || '—'}
-        </Button>
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.4 }}>
+          <span 
+            style={{ cursor: 'pointer', color: '#1890ff' }}
+            onClick={() => handleViewLetter(record)}
+          >
+            {text || '—'}
+          </span>
+        </div>
       )
     },
     {
       title: 'Рег. номер',
       dataIndex: 'reg_number',
       key: 'reg_number',
-      width: 90,
+      width: 110,
       sorter: (a, b) => (a.reg_number || '').localeCompare(b.reg_number || ''),
       render: (text: string) => (
-        <Tooltip title={text || '—'}>
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
           {text || '—'}
-        </Tooltip>
+        </div>
       )
     },
     {

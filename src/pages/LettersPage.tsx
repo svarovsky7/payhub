@@ -373,7 +373,7 @@ export const LettersPage = () => {
           showTotal: (total, range) => `${range[0]}-${range[1]} из ${total}`,
           pageSizeOptions: ['50', '100', '200']
         }}
-        scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+        scroll={{ x: 1870, y: 'calc(100vh - 280px)' }}
         sticky
         className="compact-table"
         childrenColumnName="children"
