@@ -24,6 +24,7 @@ export interface RecognitionTask {
 
 const tasks = new Map<string, RecognitionTask>()
 const listeners = new Set<() => void>()
+let isPolling = false
 
 function notifyListeners() {
   console.log(`[recognitionTaskService] 📢 Notifying ${listeners.size} listeners, current tasks:`, getTasks().map(t => ({ id: t.id, letterId: t.letterId, status: t.status })))
@@ -49,10 +50,11 @@ export function getTaskProgress(attachmentId: string): number {
 }
 
 export function getTasksByLetterId(letterId: string): RecognitionTask[] {
-  return Array.from(tasks.values()).filter(t => t.letterId === letterId && t.status === 'processing')
+  return Array.from(tasks.values()).filter(t => t.letterId === letterId)
 }
 
 async function processTasks() {
+  isPolling = true
   const pendingTasks = Array.from(tasks.values()).filter(t => t.status === 'processing')
   
   for (const task of pendingTasks) {
@@ -106,14 +108,17 @@ async function processTasks() {
       console.error(`❌ Критическая ошибка распознавания ${task.attachmentName}:`, error)
       task.status = 'failed'
       task.error = error.message
-      tasks.delete(task.id)
+      // Не удаляем задачу, чтобы пользователь увидел ошибку
       notifyListeners()
     }
   }
   
   // Если есть активные задачи, продолжаем проверку
-  if (tasks.size > 0) {
+  const hasActiveTasks = Array.from(tasks.values()).some(t => t.status === 'processing')
+  if (hasActiveTasks) {
     setTimeout(processTasks, 5000)
+  } else {
+    isPolling = false
   }
 }
 
@@ -336,7 +341,13 @@ async function saveRecognizedFile(task: RecognitionTask) {
       attachment_id: newAttachment.id
     })
 
-  if (linkError) throw linkError
+  if (linkError) {
+    // Компенсация: удаляем созданное вложение и файл
+    console.error('Ошибка связывания файла, откат изменений:', linkError)
+    await supabase.from('attachments').delete().eq('id', newAttachment.id)
+    await supabase.storage.from('attachments').remove([storagePath])
+    throw linkError
+  }
 
   // Проверяем, есть ли уже связь распознавания
   const existingRecognitionId = await getRecognizedAttachmentId(task.attachmentId)
@@ -351,7 +362,14 @@ async function saveRecognizedFile(task: RecognitionTask) {
       })
       .eq('original_attachment_id', task.attachmentId)
 
-    if (updateError) throw updateError
+    if (updateError) {
+      // Компенсация: удаляем новую связь и вложение
+      console.error('Ошибка обновления связи распознавания, откат изменений:', updateError)
+      await supabase.from('letter_attachments').delete().eq('attachment_id', newAttachment.id) // удаляем связь с письмом
+      await supabase.from('attachments').delete().eq('id', newAttachment.id) // удаляем само вложение
+      await supabase.storage.from('attachments').remove([storagePath]) // удаляем файл
+      throw updateError
+    }
     
     // Удаляем старый распознанный файл из letter_attachments
     await supabase
@@ -387,18 +405,11 @@ async function saveRecognizedFile(task: RecognitionTask) {
 }
 
 function processMarkdownWithPageConfig(markdown: string, pages: PageConfig[]): string {
-  console.log('[processMarkdownWithPageConfig] ==================== START ====================')
-  console.log('[processMarkdownWithPageConfig] Input:', { 
-    markdownLength: markdown.length, 
-    pagesCount: pages.length,
-    pages: pages.map(p => ({ page: p.pageNumber, desc: p.description, cont: p.isContinuation }))
-  })
+  // console.log('[processMarkdownWithPageConfig] Processing markdown with pages:', pages.length)
   
   const pageMarkers = Array.from(markdown.matchAll(/\{(\d+)\}/g))
-  console.log('[processMarkdownWithPageConfig] Found page markers:', pageMarkers.map(m => ({ text: m[0], page: m[1], index: m.index })))
   
   if (pageMarkers.length === 0) {
-    console.log('[processMarkdownWithPageConfig] ⚠️ No page markers found, returning original')
     return markdown
   }
 
@@ -411,12 +422,6 @@ function processMarkdownWithPageConfig(markdown: string, pages: PageConfig[]): s
     const markerNum = parseInt(match[1]) // Номер маркера {0}, {1}, {2}...
     const pageNumber = markerNum + 1 // Номер страницы в UI: 1, 2, 3...
     const pageConfig = pageMap.get(pageNumber)
-
-    console.log(`[processMarkdownWithPageConfig] Processing marker {${markerNum}} (page ${pageNumber}) at index ${match.index}:`, {
-      hasConfig: !!pageConfig,
-      description: pageConfig?.description,
-      isContinuation: pageConfig?.isContinuation
-    })
 
     if (pageConfig) {
       let separator = ''
@@ -434,27 +439,19 @@ function processMarkdownWithPageConfig(markdown: string, pages: PageConfig[]): s
 
         if (prevPageConfig?.description) {
           separator = `{${markerNum}}------------------------------------------------{${prevPageConfig.description} ПРОДОЛЖЕНИЕ}`
-          console.log(`[processMarkdownWithPageConfig] ✓ Page ${pageNumber} is continuation of "${prevPageConfig.description}"`)
         } else {
           separator = `{${markerNum}}------------------------------------------------`
-          console.log(`[processMarkdownWithPageConfig] ⚠️ Page ${pageNumber} is continuation but no previous description found`)
         }
       } else if (pageConfig.description) {
         separator = `{${markerNum}}------------------------------------------------{${pageConfig.description}}`
-        console.log(`[processMarkdownWithPageConfig] ✓ Page ${pageNumber} has description "${pageConfig.description}"`)
       } else {
         separator = `{${markerNum}}------------------------------------------------`
-        console.log(`[processMarkdownWithPageConfig] ⚠️ Page ${pageNumber} has no description`)
       }
 
-      console.log(`[processMarkdownWithPageConfig] Replacing at index ${match.index}: "${match[0]}" -> "${separator}"`)
       result = result.slice(0, match.index!) + separator + result.slice(match.index! + match[0].length)
-    } else {
-      console.log(`[processMarkdownWithPageConfig] ⚠️ No config for page ${pageNumber}`)
     }
   }
 
-  console.log('[processMarkdownWithPageConfig] ==================== END ====================')
   return result
 }
 
@@ -508,7 +505,7 @@ export async function startRecognitionTask(
   notifyListeners()
   
   // Запускаем обработку, если еще не запущена
-  if (tasks.size === 1) {
+  if (!isPolling) {
     processTasks()
   }
 }
