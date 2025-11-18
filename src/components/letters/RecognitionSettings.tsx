@@ -1,8 +1,18 @@
-import { Checkbox, InputNumber, Space } from 'antd'
+import { Checkbox, InputNumber, Space, Table, Input } from 'antd'
+import { useState, useEffect } from 'react'
+import * as pdfjs from 'pdfjs-dist'
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
 interface PageRange {
   start: number
   end: number
+}
+
+export interface PageConfig {
+  pageNumber: number
+  description: string
+  isContinuation: boolean
 }
 
 interface RecognitionSettingsProps {
@@ -10,20 +20,130 @@ interface RecognitionSettingsProps {
   pageRange: PageRange
   onAllPagesChange: (checked: boolean) => void
   onPageRangeChange: (range: PageRange) => void
+  pdfUrl?: string
+  pageConfigs?: PageConfig[]
+  onPageConfigsChange?: (configs: PageConfig[]) => void
 }
 
 export const RecognitionSettings = ({
   allPages,
   pageRange,
   onAllPagesChange,
-  onPageRangeChange
+  onPageRangeChange,
+  pdfUrl,
+  pageConfigs = [],
+  onPageConfigsChange
 }: RecognitionSettingsProps) => {
+  const [numPages, setNumPages] = useState(0)
+  const [localConfigs, setLocalConfigs] = useState<PageConfig[]>(pageConfigs)
+  const [lastPdfUrl, setLastPdfUrl] = useState<string>('')
+
+  useEffect(() => {
+    // Загружаем PDF только если URL изменился
+    if (pdfUrl && pdfUrl !== lastPdfUrl) {
+      setLastPdfUrl(pdfUrl)
+      loadPdfPages(pdfUrl)
+    }
+  }, [pdfUrl, lastPdfUrl])
+
+  // Обновляем localConfigs при изменении pageConfigs
+  useEffect(() => {
+    // Если pageConfigs пришли извне и отличаются от текущих
+    if (pageConfigs.length > 0 && localConfigs.length === 0) {
+      setLocalConfigs(pageConfigs)
+    }
+    // Если pageConfigs сброшены (длина = 0), сбрасываем и локальные
+    if (pageConfigs.length === 0 && localConfigs.length > 0) {
+      setLocalConfigs([])
+      setLastPdfUrl('')
+      setNumPages(0)
+    }
+  }, [pageConfigs, localConfigs.length])
+
+  const loadPdfPages = async (url: string) => {
+    try {
+      console.log('[RecognitionSettings] Loading PDF:', url)
+      const pdf = await pdfjs.getDocument(url).promise
+      const count = pdf.numPages
+      setNumPages(count)
+      
+      console.log('[RecognitionSettings] PDF loaded, pages:', count, 'current configs:', localConfigs.length)
+      
+      // Инициализируем конфигурацию только если её нет или количество страниц изменилось
+      if (localConfigs.length === 0 || localConfigs.length !== count) {
+        const configs = Array.from({ length: count }, (_, i) => ({
+          pageNumber: i + 1,
+          description: '',
+          isContinuation: false
+        }))
+        console.log('[RecognitionSettings] Initializing page configs:', configs.length)
+        setLocalConfigs(configs)
+        onPageConfigsChange?.(configs)
+      }
+    } catch (error) {
+      console.error('[RecognitionSettings] PDF load error:', error)
+    }
+  }
+
+  const handleDescriptionChange = (pageNumber: number, description: string) => {
+    const newConfigs = localConfigs.map(p => 
+      p.pageNumber === pageNumber ? { ...p, description } : p
+    )
+    setLocalConfigs(newConfigs)
+    onPageConfigsChange?.(newConfigs)
+  }
+
+  const handleContinuationChange = (pageNumber: number, checked: boolean) => {
+    const newConfigs = localConfigs.map(p => 
+      p.pageNumber === pageNumber ? { ...p, isContinuation: checked, description: checked ? '' : p.description } : p
+    )
+    setLocalConfigs(newConfigs)
+    onPageConfigsChange?.(newConfigs)
+  }
+
+  const columns = [
+    {
+      title: 'Стр',
+      dataIndex: 'pageNumber',
+      key: 'pageNumber',
+      width: 60
+    },
+    {
+      title: 'Описание блока',
+      key: 'description',
+      render: (_: unknown, record: PageConfig) => (
+        <Input
+          size="small"
+          placeholder="Например: ПИСЬМО"
+          value={record.description}
+          onChange={(e) => handleDescriptionChange(record.pageNumber, e.target.value)}
+          disabled={record.isContinuation}
+        />
+      )
+    },
+    {
+      title: 'Продолжение',
+      key: 'continuation',
+      width: 120,
+      render: (_: unknown, record: PageConfig) => (
+        record.pageNumber > 1 ? (
+          <Checkbox
+            checked={record.isContinuation}
+            onChange={(e) => handleContinuationChange(record.pageNumber, e.target.checked)}
+          >
+            Предыдущей
+          </Checkbox>
+        ) : null
+      )
+    }
+  ]
+
   return (
     <div style={{ padding: '16px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fafafa' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <div>
           <Checkbox checked={allPages} onChange={(e) => onAllPagesChange(e.target.checked)}>
-            Распознать все страницы
+            Распознать все страницы {numPages > 0 && `(${numPages})`}
           </Checkbox>
         </div>
         {!allPages && (
@@ -47,6 +167,22 @@ export const RecognitionSettings = ({
             </Space>
           </div>
         )}
+        
+        {numPages > 0 && localConfigs.length > 0 && (
+          <div>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>Настройка блоков документа:</div>
+            <Table
+              columns={columns}
+              dataSource={localConfigs}
+              rowKey="pageNumber"
+              pagination={false}
+              scroll={{ y: 300 }}
+              size="small"
+              bordered
+            />
+          </div>
+        )}
+
         <div style={{ marginTop: 24, padding: 16, background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 4 }}>
           <p style={{ margin: 0, fontSize: 13, color: '#096dd9' }}>
             <strong>Информация:</strong> После нажатия кнопки "Распознать" содержимое файла будет преобразовано в текстовый формат Markdown. Вы сможете отредактировать результат перед сохранением.

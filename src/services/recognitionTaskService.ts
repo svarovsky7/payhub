@@ -2,6 +2,12 @@ import { supabase } from '../lib/supabase'
 import { datalabService } from './datalabService'
 import { createRecognitionLink, getRecognizedAttachmentId } from './attachmentRecognitionService'
 
+export interface PageConfig {
+  pageNumber: number
+  description: string
+  isContinuation: boolean
+}
+
 export interface RecognitionTask {
   id: string
   attachmentId: string
@@ -13,6 +19,7 @@ export interface RecognitionTask {
   markdown?: string
   error?: string
   startedAt: number
+  pageConfigs?: PageConfig[]
 }
 
 const tasks = new Map<string, RecognitionTask>()
@@ -63,9 +70,24 @@ async function processTasks() {
         // Распознавание завершено
         task.status = 'completed'
         task.progress = 100
-        task.markdown = statusCheck.markdown
         
         console.log(`✅ Распознавание завершено для ${task.attachmentName}`)
+        console.log(`📋 Configs from task:`, {
+          hasConfigs: !!task.pageConfigs,
+          configsCount: task.pageConfigs?.length || 0,
+          configs: task.pageConfigs
+        })
+        
+        // Обрабатываем markdown с учетом pageConfigs
+        let finalMarkdown = statusCheck.markdown
+        if (task.pageConfigs && task.pageConfigs.length > 0) {
+          console.log(`🔄 Processing markdown with ${task.pageConfigs.length} page configs`)
+          finalMarkdown = processMarkdownWithPageConfig(statusCheck.markdown, task.pageConfigs)
+          console.log(`✓ Markdown processed, length: ${finalMarkdown.length}`)
+        } else {
+          console.log(`⚠️ No page configs to process`)
+        }
+        task.markdown = finalMarkdown
         
         // Сохраняем файл
         await saveRecognizedFile(task)
@@ -135,7 +157,7 @@ async function saveRecognizedFile(task: RecognitionTask) {
   }
 
   // Получаем публичные ссылки
-  const { data: publicShares } = await supabase
+  const { data: _publicShares } = await supabase
     .from('letter_public_shares')
     .select('token')
     .eq('letter_id', task.letterId)
@@ -364,6 +386,78 @@ async function saveRecognizedFile(task: RecognitionTask) {
   })
 }
 
+function processMarkdownWithPageConfig(markdown: string, pages: PageConfig[]): string {
+  console.log('[processMarkdownWithPageConfig] ==================== START ====================')
+  console.log('[processMarkdownWithPageConfig] Input:', { 
+    markdownLength: markdown.length, 
+    pagesCount: pages.length,
+    pages: pages.map(p => ({ page: p.pageNumber, desc: p.description, cont: p.isContinuation }))
+  })
+  
+  const pageMarkers = Array.from(markdown.matchAll(/\{(\d+)\}/g))
+  console.log('[processMarkdownWithPageConfig] Found page markers:', pageMarkers.map(m => ({ text: m[0], page: m[1], index: m.index })))
+  
+  if (pageMarkers.length === 0) {
+    console.log('[processMarkdownWithPageConfig] ⚠️ No page markers found, returning original')
+    return markdown
+  }
+
+  let result = markdown
+  const pageMap = new Map(pages.map(p => [p.pageNumber, p]))
+
+  // Обрабатываем с конца, чтобы индексы не сдвигались
+  for (let i = pageMarkers.length - 1; i >= 0; i--) {
+    const match = pageMarkers[i]
+    const markerNum = parseInt(match[1]) // Номер маркера {0}, {1}, {2}...
+    const pageNumber = markerNum + 1 // Номер страницы в UI: 1, 2, 3...
+    const pageConfig = pageMap.get(pageNumber)
+
+    console.log(`[processMarkdownWithPageConfig] Processing marker {${markerNum}} (page ${pageNumber}) at index ${match.index}:`, {
+      hasConfig: !!pageConfig,
+      description: pageConfig?.description,
+      isContinuation: pageConfig?.isContinuation
+    })
+
+    if (pageConfig) {
+      let separator = ''
+
+      if (pageConfig.isContinuation) {
+        // Ищем предыдущую страницу с описанием
+        let prevPageConfig = null
+        for (let prevPageNum = pageNumber - 1; prevPageNum >= 1; prevPageNum--) {
+          const prev = pageMap.get(prevPageNum)
+          if (prev && prev.description && !prev.isContinuation) {
+            prevPageConfig = prev
+            break
+          }
+        }
+
+        if (prevPageConfig?.description) {
+          separator = `{${markerNum}}------------------------------------------------{${prevPageConfig.description} ПРОДОЛЖЕНИЕ}`
+          console.log(`[processMarkdownWithPageConfig] ✓ Page ${pageNumber} is continuation of "${prevPageConfig.description}"`)
+        } else {
+          separator = `{${markerNum}}------------------------------------------------`
+          console.log(`[processMarkdownWithPageConfig] ⚠️ Page ${pageNumber} is continuation but no previous description found`)
+        }
+      } else if (pageConfig.description) {
+        separator = `{${markerNum}}------------------------------------------------{${pageConfig.description}}`
+        console.log(`[processMarkdownWithPageConfig] ✓ Page ${pageNumber} has description "${pageConfig.description}"`)
+      } else {
+        separator = `{${markerNum}}------------------------------------------------`
+        console.log(`[processMarkdownWithPageConfig] ⚠️ Page ${pageNumber} has no description`)
+      }
+
+      console.log(`[processMarkdownWithPageConfig] Replacing at index ${match.index}: "${match[0]}" -> "${separator}"`)
+      result = result.slice(0, match.index!) + separator + result.slice(match.index! + match[0].length)
+    } else {
+      console.log(`[processMarkdownWithPageConfig] ⚠️ No config for page ${pageNumber}`)
+    }
+  }
+
+  console.log('[processMarkdownWithPageConfig] ==================== END ====================')
+  return result
+}
+
 export async function startRecognitionTask(
   attachmentId: string,
   attachmentName: string,
@@ -372,6 +466,7 @@ export async function startRecognitionTask(
   options?: {
     pageRange?: { start: number; end: number }
     maxPages?: number
+    pageConfigs?: PageConfig[]
   }
 ): Promise<void> {
   // Проверяем, нет ли уже задачи для этого вложения
@@ -379,7 +474,12 @@ export async function startRecognitionTask(
     throw new Error('Распознавание уже запущено для этого файла')
   }
 
-  console.log(`🚀 Запуск распознавания для ${attachmentName}`)
+  console.log(`🚀 Запуск распознавания для ${attachmentName}`, {
+    options,
+    hasPageConfigs: !!options?.pageConfigs,
+    pageConfigsCount: options?.pageConfigs?.length || 0,
+    pageConfigs: options?.pageConfigs
+  })
   
   // Запускаем распознавание
   const taskId = await datalabService.requestMarker(fileUrl, options)
@@ -394,8 +494,15 @@ export async function startRecognitionTask(
     taskId,
     status: 'processing',
     progress: 0,
-    startedAt: Date.now()
+    startedAt: Date.now(),
+    pageConfigs: options?.pageConfigs
   }
+  
+  console.log(`📦 Создана задача:`, {
+    id: task.id,
+    hasPageConfigs: !!task.pageConfigs,
+    pageConfigsCount: task.pageConfigs?.length || 0
+  })
   
   tasks.set(task.id, task)
   notifyListeners()

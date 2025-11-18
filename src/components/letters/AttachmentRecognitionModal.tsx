@@ -9,7 +9,7 @@ import { createAuditLogEntry } from '../../services/auditLogService'
 import type { Letter } from '../../lib/supabase'
 import { AttachmentCard } from './AttachmentCard'
 import { AttachmentPreview } from './AttachmentPreview'
-import { RecognitionSettings } from './RecognitionSettings'
+import { RecognitionSettings, type PageConfig } from './RecognitionSettings'
 import { MarkdownEditor } from './MarkdownEditor'
 import { PdfCropModal } from './PdfCropModal'
 import { truncateText } from '../../utils/textUtils'
@@ -56,6 +56,7 @@ export const AttachmentRecognitionModal = ({
   const [currentMarkdown, setCurrentMarkdown] = useState('')
   const [originalMarkdown, setOriginalMarkdown] = useState('')
   const [cropModalVisible, setCropModalVisible] = useState(false)
+  const [pageConfigs, setPageConfigs] = useState<PageConfig[]>([])
   const prevTaskRef = useRef<string | null>(null)
   const prevLetterTasksRef = useRef<Set<string>>(new Set())
 
@@ -71,6 +72,7 @@ export const AttachmentRecognitionModal = ({
       setOriginalMarkdown('')
       setPageRange({ start: 1, end: 1 })
       setAllPages(true)
+      setPageConfigs([]) // Сбрасываем pageConfigs при закрытии модального окна
       setCropModalVisible(false)
       prevTaskRef.current = null
       prevLetterTasksRef.current = new Set()
@@ -215,6 +217,12 @@ export const AttachmentRecognitionModal = ({
   }
 
   const handleSelectAttachment = async (attachment: Attachment) => {
+    // Сбрасываем pageConfigs только при выборе ДРУГОГО вложения
+    const isDifferentAttachment = selectedAttachment?.id !== attachment.id
+    if (isDifferentAttachment) {
+      setPageConfigs([])
+    }
+    
     setSelectedAttachment(attachment)
     setPageRange({ start: 1, end: 1 })
     setAllPages(true)
@@ -268,9 +276,16 @@ export const AttachmentRecognitionModal = ({
       
       message.info(`Запуск распознавания ${fileName}${pageInfo}...`)
       
+      // Передаем ВСЕ конфигурации, обработка произойдет на стороне processMarkdownWithPageConfig
+      console.log('[AttachmentRecognitionModal] Starting recognition with configs:', {
+        pageConfigs,
+        allPages,
+        pageRange
+      })
+      
       const options = allPages 
-        ? undefined 
-        : { pageRange }
+        ? { pageConfigs: pageConfigs.length > 0 ? pageConfigs : undefined } 
+        : { pageRange, pageConfigs: pageConfigs.length > 0 ? pageConfigs : undefined }
       
       await startRecognitionTask(
         selectedAttachment.id,
@@ -340,7 +355,7 @@ export const AttachmentRecognitionModal = ({
       }
 
       // Получаем публичные ссылки
-      const { data: publicShares } = await supabase
+      const { data: _publicShares } = await supabase
         .from('letter_public_shares')
         .select('token')
         .eq('letter_id', letter.id)
@@ -858,6 +873,9 @@ export const AttachmentRecognitionModal = ({
           pageRange={pageRange}
           onAllPagesChange={setAllPages}
           onPageRangeChange={setPageRange}
+          pdfUrl={selectedAttachment?.url}
+          pageConfigs={pageConfigs}
+          onPageConfigsChange={setPageConfigs}
         />
       </Col>
     </Row>

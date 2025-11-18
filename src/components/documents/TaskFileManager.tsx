@@ -8,7 +8,14 @@ import { documentTaskService } from '../../services/documentTaskService'
 import { datalabService } from '../../services/datalabService'
 import { supabase } from '../../lib/supabase'
 import { DocumentCropModal } from './DocumentCropModal'
+import { PageConfigModal } from './PageConfigModal'
 import type { AttachmentWithRecognition } from '../../types/documentTask'
+
+interface PageConfig {
+  pageNumber: number
+  description: string
+  isContinuation: boolean
+}
 
 interface TaskFileManagerProps {
   taskId: string
@@ -31,6 +38,9 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
   const [isEditingMarkdown, setIsEditingMarkdown] = useState(false)
   const [editedMarkdown, setEditedMarkdown] = useState('')
   const [currentMarkdownFile, setCurrentMarkdownFile] = useState<AttachmentWithRecognition | null>(null)
+  const [pageConfigModalVisible, setPageConfigModalVisible] = useState(false)
+  const [currentRecognizeFile, setCurrentRecognizeFile] = useState<AttachmentWithRecognition | null>(null)
+  const [currentRecognizePdfUrl, setCurrentRecognizePdfUrl] = useState('')
 
   useEffect(() => {
     if (previewFile) {
@@ -80,28 +90,42 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
 
   const handleRecognize = async (file: AttachmentWithRecognition) => {
     try {
-      setRecognizingFiles(prev => new Set(prev).add(file.id))
-      
       const { data } = await supabase.storage
         .from('attachments')
         .createSignedUrl(file.storage_path, 3600)
 
       if (!data?.signedUrl) throw new Error('Не удалось получить URL')
 
-      const externalTaskId = await datalabService.requestMarker(data.signedUrl)
-      await pollRecognition(externalTaskId, file.id, file.original_name)
+      setCurrentRecognizeFile(file)
+      setCurrentRecognizePdfUrl(data.signedUrl)
+      setPageConfigModalVisible(true)
+    } catch (error: any) {
+      console.error('Recognition error:', error)
+      message.error('Ошибка распознавания')
+    }
+  }
+
+  const handlePageConfigConfirm = async (pages: PageConfig[]) => {
+    if (!currentRecognizeFile || !currentRecognizePdfUrl) return
+
+    try {
+      setPageConfigModalVisible(false)
+      setRecognizingFiles(prev => new Set(prev).add(currentRecognizeFile.id))
+      
+      const externalTaskId = await datalabService.requestMarker(currentRecognizePdfUrl)
+      await pollRecognition(externalTaskId, currentRecognizeFile.id, currentRecognizeFile.original_name, pages)
     } catch (error: any) {
       console.error('Recognition error:', error)
       message.error('Ошибка распознавания')
       setRecognizingFiles(prev => {
         const next = new Set(prev)
-        next.delete(file.id)
+        next.delete(currentRecognizeFile.id)
         return next
       })
     }
   }
 
-  const pollRecognition = async (externalTaskId: string, originalAttachmentId: string, originalFileName: string) => {
+  const pollRecognition = async (externalTaskId: string, originalAttachmentId: string, originalFileName: string, pages?: PageConfig[]) => {
     let attempts = 0
     const maxAttempts = 60
 
@@ -111,9 +135,16 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
         const statusCheck = await datalabService.checkMarkerStatus(externalTaskId)
         
         if (statusCheck.isReady && statusCheck.markdown) {
+          let finalMarkdown = statusCheck.markdown
+
+          if (pages && pages.length > 0) {
+            console.log('[TaskFileManager] Processing with page configs:', pages)
+            finalMarkdown = processMarkdownWithPageConfig(statusCheck.markdown, pages)
+          }
+
           const markdownAttachmentId = await documentTaskService.createMarkdownAttachment(
             taskId,
-            statusCheck.markdown,
+            finalMarkdown,
             originalFileName
           )
           
@@ -133,7 +164,7 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
         }
 
         return false
-      } catch (error: any) {
+      } catch {
         message.error('Ошибка распознавания')
         setRecognizingFiles(prev => {
           const next = new Set(prev)
@@ -149,6 +180,78 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
       const done = await check()
       if (done) clearInterval(interval)
     }, 5000)
+  }
+
+  const processMarkdownWithPageConfig = (markdown: string, pages: PageConfig[]): string => {
+    console.log('[TaskFileManager.processMarkdownWithPageConfig] ==================== START ====================')
+    console.log('[TaskFileManager.processMarkdownWithPageConfig] Input:', { 
+      markdownLength: markdown.length, 
+      pagesCount: pages.length,
+      pages: pages.map(p => ({ page: p.pageNumber, desc: p.description, cont: p.isContinuation }))
+    })
+    
+    const pageMarkers = Array.from(markdown.matchAll(/\{(\d+)\}/g))
+    console.log('[TaskFileManager.processMarkdownWithPageConfig] Found page markers:', pageMarkers.map(m => ({ text: m[0], page: m[1], index: m.index })))
+    
+    if (pageMarkers.length === 0) {
+      console.log('[TaskFileManager.processMarkdownWithPageConfig] ⚠️ No page markers found')
+      return markdown
+    }
+
+    let result = markdown
+    const pageMap = new Map(pages.map(p => [p.pageNumber, p]))
+
+    // Обрабатываем с конца, чтобы индексы не сдвигались
+    for (let i = pageMarkers.length - 1; i >= 0; i--) {
+      const match = pageMarkers[i]
+      const markerNum = parseInt(match[1]) // Номер маркера {0}, {1}, {2}...
+      const pageNumber = markerNum + 1 // Номер страницы в UI: 1, 2, 3...
+      const pageConfig = pageMap.get(pageNumber)
+
+      console.log(`[TaskFileManager.processMarkdownWithPageConfig] Processing marker {${markerNum}} (page ${pageNumber}) at index ${match.index}:`, {
+        hasConfig: !!pageConfig,
+        description: pageConfig?.description,
+        isContinuation: pageConfig?.isContinuation
+      })
+
+      if (pageConfig) {
+        let separator = ''
+
+        if (pageConfig.isContinuation) {
+          // Ищем предыдущую страницу с описанием
+          let prevPageConfig = null
+          for (let prevPageNum = pageNumber - 1; prevPageNum >= 1; prevPageNum--) {
+            const prev = pageMap.get(prevPageNum)
+            if (prev && prev.description && !prev.isContinuation) {
+              prevPageConfig = prev
+              break
+            }
+          }
+
+          if (prevPageConfig?.description) {
+            separator = `{${markerNum}}------------------------------------------------{${prevPageConfig.description} ПРОДОЛЖЕНИЕ}`
+            console.log(`[TaskFileManager.processMarkdownWithPageConfig] ✓ Page ${pageNumber} is continuation of "${prevPageConfig.description}"`)
+          } else {
+            separator = `{${markerNum}}------------------------------------------------`
+            console.log(`[TaskFileManager.processMarkdownWithPageConfig] ⚠️ Page ${pageNumber} is continuation but no previous description found`)
+          }
+        } else if (pageConfig.description) {
+          separator = `{${markerNum}}------------------------------------------------{${pageConfig.description}}`
+          console.log(`[TaskFileManager.processMarkdownWithPageConfig] ✓ Page ${pageNumber} has description "${pageConfig.description}"`)
+        } else {
+          separator = `{${markerNum}}------------------------------------------------`
+          console.log(`[TaskFileManager.processMarkdownWithPageConfig] ⚠️ Page ${pageNumber} has no description`)
+        }
+
+        console.log(`[TaskFileManager.processMarkdownWithPageConfig] Replacing at index ${match.index}: "${match[0]}" -> "${separator}"`)
+        result = result.slice(0, match.index!) + separator + result.slice(match.index! + match[0].length)
+      } else {
+        console.log(`[TaskFileManager.processMarkdownWithPageConfig] ⚠️ No config for page ${pageNumber}`)
+      }
+    }
+
+    console.log('[TaskFileManager.processMarkdownWithPageConfig] ==================== END ====================')
+    return result
   }
 
   const handlePreview = (file: AttachmentWithRecognition) => {
@@ -519,6 +622,19 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
           onSuccess={handleCropSuccess}
           attachmentUrl={cropUrl}
           fileName={cropFile.original_name}
+        />
+      )}
+
+      {currentRecognizeFile && (
+        <PageConfigModal
+          visible={pageConfigModalVisible}
+          pdfUrl={currentRecognizePdfUrl}
+          onConfirm={handlePageConfigConfirm}
+          onCancel={() => {
+            setPageConfigModalVisible(false)
+            setCurrentRecognizeFile(null)
+            setCurrentRecognizePdfUrl('')
+          }}
         />
       )}
 
