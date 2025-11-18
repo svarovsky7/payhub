@@ -1,4 +1,4 @@
-import { Modal, Table, Input, Checkbox, Button } from 'antd'
+import { Modal, Table, Input, Checkbox, Button, Space, Tag } from 'antd'
 import { useState, useEffect } from 'react'
 import * as pdfjs from 'pdfjs-dist'
 
@@ -56,21 +56,38 @@ export const PageConfigModal = ({ visible, pdfUrl, onConfirm, onCancel }: PageCo
 
   const columns = [
     {
-      title: 'Страница',
+      title: 'Стр',
       dataIndex: 'pageNumber',
       key: 'pageNumber',
-      width: 100
+      width: 60
     },
     {
       title: 'Описание блока',
       key: 'description',
+      width: 240,
       render: (_: unknown, record: PageConfig) => (
-        <Input
-          placeholder="Например: ПИСЬМО"
-          value={record.description}
-          onChange={(e) => handleDescriptionChange(record.pageNumber, e.target.value)}
-          disabled={record.isContinuation}
-        />
+        <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          <Input
+            size="small"
+            placeholder="Например: ПИСЬМО"
+            value={record.description}
+            onChange={(e) => handleDescriptionChange(record.pageNumber, e.target.value)}
+            disabled={record.isContinuation}
+          />
+          {!record.isContinuation && (
+            <Space size={4} wrap>
+              {['Письмо', 'Требование', 'Договор', 'Счет', 'УПД'].map(tag => (
+                <Tag
+                  key={tag}
+                  style={{ cursor: 'pointer', margin: 0 }}
+                  onClick={() => handleDescriptionChange(record.pageNumber, tag.toUpperCase())}
+                >
+                  {tag}
+                </Tag>
+              ))}
+            </Space>
+          )}
+        </Space>
       )
     },
     {
@@ -103,13 +120,13 @@ export const PageConfigModal = ({ visible, pdfUrl, onConfirm, onCancel }: PageCo
         </Button>
       ]}
     >
-      <div style={{ marginBottom: 16 }}>
-        <strong>Распознать все страницы ({numPages})</strong>
-        <div style={{ marginTop: 8, color: '#666' }}>
-          Информация: После нажатия кнопки "Распознать" содержимое файла будет преобразовано в текстовый формат Markdown. 
+      <div style={{ marginBottom: 12, padding: 12, background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 4 }}>
+        <p style={{ margin: 0, fontSize: 13, color: '#096dd9' }}>
+          <strong>Информация:</strong> После нажатия кнопки "Распознать" содержимое файла будет преобразовано в текстовый формат Markdown. 
           Вы сможете отредактировать результат позже.
-        </div>
+        </p>
       </div>
+      <div style={{ marginBottom: 8, fontWeight: 500 }}>Настройка блоков документа: ({numPages} стр.)</div>
       <Table
         columns={columns}
         dataSource={pages}
@@ -117,6 +134,7 @@ export const PageConfigModal = ({ visible, pdfUrl, onConfirm, onCancel }: PageCo
         pagination={false}
         scroll={{ y: 400 }}
         size="small"
+        bordered
       />
     </Modal>
   )

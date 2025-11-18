@@ -1,4 +1,4 @@
-import { Checkbox, InputNumber, Space, Table, Input } from 'antd'
+import { Checkbox, InputNumber, Space, Table, Input, Tag } from 'antd'
 import { useState, useEffect } from 'react'
 import * as pdfjs from 'pdfjs-dist'
 
@@ -111,14 +111,30 @@ export const RecognitionSettings = ({
     {
       title: 'Описание блока',
       key: 'description',
+      width: 240,
       render: (_: unknown, record: PageConfig) => (
-        <Input
-          size="small"
-          placeholder="Например: ПИСЬМО"
-          value={record.description}
-          onChange={(e) => handleDescriptionChange(record.pageNumber, e.target.value)}
-          disabled={record.isContinuation}
-        />
+        <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          <Input
+            size="small"
+            placeholder="Например: ПИСЬМО"
+            value={record.description}
+            onChange={(e) => handleDescriptionChange(record.pageNumber, e.target.value)}
+            disabled={record.isContinuation}
+          />
+          {!record.isContinuation && (
+            <Space size={4} wrap>
+              {['Письмо', 'Требование', 'Договор', 'Счет', 'УПД'].map(tag => (
+                <Tag
+                  key={tag}
+                  style={{ cursor: 'pointer', margin: 0 }}
+                  onClick={() => handleDescriptionChange(record.pageNumber, tag.toUpperCase())}
+                >
+                  {tag}
+                </Tag>
+              ))}
+            </Space>
+          )}
+        </Space>
       )
     },
     {
@@ -141,11 +157,6 @@ export const RecognitionSettings = ({
   return (
     <div style={{ padding: '16px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fafafa' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div>
-          <Checkbox checked={allPages} onChange={(e) => onAllPagesChange(e.target.checked)}>
-            Распознать все страницы {numPages > 0 && `(${numPages})`}
-          </Checkbox>
-        </div>
         {!allPages && (
           <div>
             <div style={{ marginBottom: 8 }}>Укажите диапазон страниц:</div>
@@ -170,7 +181,7 @@ export const RecognitionSettings = ({
         
         {numPages > 0 && localConfigs.length > 0 && (
           <div>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>Настройка блоков документа:</div>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>Настройка блоков документа: ({numPages} стр.)</div>
             <Table
               columns={columns}
               dataSource={localConfigs}
