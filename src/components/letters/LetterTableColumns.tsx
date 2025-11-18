@@ -57,17 +57,11 @@ export const getLetterTableColumns = ({
       title: 'Номер письма',
       dataIndex: 'number',
       key: 'number',
-      width: 100,
       sorter: (a, b) => (a.number || '').localeCompare(b.number || ''),
-      ellipsis: {
-        showTitle: false
-      },
       render: (text: string, record: Letter) => (
-        <Tooltip placement="topLeft" title={text || '—'}>
-          <Button type="link" onClick={() => handleViewLetter(record)} style={{ padding: 0 }}>
-            {truncateText(text, 15)}
-          </Button>
-        </Tooltip>
+        <Button type="link" onClick={() => handleViewLetter(record)} style={{ padding: 0 }}>
+          {text || '—'}
+        </Button>
       )
     },
     {
