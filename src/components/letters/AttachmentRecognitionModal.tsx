@@ -90,13 +90,33 @@ export const AttachmentRecognitionModal = ({
       // Проверяем, есть ли задачи для ТЕКУЩЕГО письма
       const letterTasks = getTasks().filter(t => t.letterId === letter.id)
       const taskJustCompleted = wasProcessing && !currentTask
-      const hasRelevantUpdate = letterTasks.length > 0 || taskJustCompleted
+      const hasActiveTask = letterTasks.some(t => t.status === 'processing')
       
       // Обновляем ref текущим состоянием
       prevTaskRef.current = currentTask ? selectedAttachment?.id || null : null
       
-      // Загружаем вложения только если есть обновления для текущего письма
-      if (hasRelevantUpdate) {
+      // Обновляем только статусы без перезагрузки URL (чтобы не перезагружать PDF)
+      if (hasActiveTask && !taskJustCompleted) {
+        setAttachments(prev => prev.map(att => {
+          const task = getTaskByAttachmentId(att.id)
+          return {
+            ...att,
+            recognizing: !!task,
+            progress: task ? getTaskProgress(att.id) : att.progress || 0
+          }
+        }))
+        if (selectedAttachment) {
+          const task = getTaskByAttachmentId(selectedAttachment.id)
+          if (task) {
+            setSelectedAttachment(prev => prev ? {
+              ...prev,
+              recognizing: true,
+              progress: getTaskProgress(prev.id)
+            } : null)
+          }
+        }
+      } else if (taskJustCompleted || !hasActiveTask) {
+        // Полная перезагрузка только после завершения
         await loadAttachments()
       }
       
