@@ -884,6 +884,8 @@ export const AttachmentRecognitionModal = ({
         <AttachmentPreview 
           url={selectedAttachment?.url}
           mimeType={selectedAttachment?.mime_type || ''}
+          style={{ minHeight: '70vh' }}
+          height="100%"
         />
       </Col>
       <Col span={12}>

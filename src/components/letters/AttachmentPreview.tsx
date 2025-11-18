@@ -6,6 +6,8 @@ const { Text } = Typography
 interface AttachmentPreviewProps {
   url?: string
   mimeType: string
+  style?: React.CSSProperties
+  height?: string | number
 }
 
 const isImage = (mimeType: string) => mimeType.startsWith('image/')
@@ -14,19 +16,19 @@ const isDoc = (mimeType: string) =>
   mimeType === 'application/msword' || 
   mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
-export const AttachmentPreview = ({ url, mimeType }: AttachmentPreviewProps) => {
+export const AttachmentPreview = ({ url, mimeType, style, height = '60vh' }: AttachmentPreviewProps) => {
   return (
-    <div style={{ maxHeight: '60vh', overflow: 'auto', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff' }}>
+    <div style={{ height, overflow: 'auto', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fff', ...style }}>
       {url && isImage(mimeType) ? (
         <Image src={url} style={{ width: '100%' }} />
       ) : url && isPdf(mimeType) ? (
         <iframe 
           src={url} 
-          style={{ width: '100%', height: '60vh', border: 'none' }}
+          style={{ width: '100%', height: '100%', border: 'none', minHeight: '100%' }}
           title="PDF Preview"
         />
       ) : url && isDoc(mimeType) ? (
-        <div style={{ height: '60vh', width: '100%', position: 'relative' }}>
+        <div style={{ height: '100%', width: '100%', position: 'relative' }}>
           <iframe
             src={`https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`}
             width="100%"
