@@ -37,6 +37,7 @@ export const RecognitionSettings = ({
   const [numPages, setNumPages] = useState(0)
   const [localConfigs, setLocalConfigs] = useState<PageConfig[]>(pageConfigs)
   const [lastPdfUrl, setLastPdfUrl] = useState<string>('')
+  const [focusedPageNumber, setFocusedPageNumber] = useState<number | null>(null)
 
   useEffect(() => {
     // Загружаем PDF только если URL изменился
@@ -101,6 +102,12 @@ export const RecognitionSettings = ({
     onPageConfigsChange?.(newConfigs)
   }
 
+  const handleQuickTag = (tag: string) => {
+    if (focusedPageNumber !== null) {
+      handleDescriptionChange(focusedPageNumber, tag.toUpperCase())
+    }
+  }
+
   const columns = [
     {
       title: 'Стр',
@@ -113,28 +120,14 @@ export const RecognitionSettings = ({
       key: 'description',
       width: 240,
       render: (_: unknown, record: PageConfig) => (
-        <Space direction="vertical" size={4} style={{ width: '100%' }}>
-          <Input
-            size="small"
-            placeholder="Например: ПИСЬМО"
-            value={record.description}
-            onChange={(e) => handleDescriptionChange(record.pageNumber, e.target.value)}
-            disabled={record.isContinuation}
-          />
-          {!record.isContinuation && (
-            <Space size={4} wrap>
-              {['Письмо', 'Требование', 'Договор', 'Счет', 'УПД'].map(tag => (
-                <Tag
-                  key={tag}
-                  style={{ cursor: 'pointer', margin: 0 }}
-                  onClick={() => handleDescriptionChange(record.pageNumber, tag.toUpperCase())}
-                >
-                  {tag}
-                </Tag>
-              ))}
-            </Space>
-          )}
-        </Space>
+        <Input
+          size="small"
+          placeholder="Например: ПИСЬМО"
+          value={record.description}
+          onChange={(e) => handleDescriptionChange(record.pageNumber, e.target.value)}
+          onFocus={() => setFocusedPageNumber(record.pageNumber)}
+          disabled={record.isContinuation}
+        />
       )
     },
     {
@@ -155,7 +148,7 @@ export const RecognitionSettings = ({
   ]
 
   return (
-    <div style={{ padding: '16px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fafafa' }}>
+    <div style={{ padding: '16px', border: '1px solid #d9d9d9', borderRadius: '4px', background: '#fafafa', width: '100%', minHeight: '70vh' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {!allPages && (
           <div>
@@ -182,6 +175,21 @@ export const RecognitionSettings = ({
         {numPages > 0 && localConfigs.length > 0 && (
           <div>
             <div style={{ marginBottom: 8, fontWeight: 500 }}>Настройка блоков документа: ({numPages} стр.)</div>
+            <div style={{ marginBottom: 8 }}>
+              <Space size={4} wrap>
+                <span style={{ marginRight: 4 }}>Быстрые теги:</span>
+                {['Письмо', 'Требование', 'Договор', 'Счет', 'УПД', 'Акт', 'Вызов'].map(tag => (
+                  <Tag
+                    key={tag}
+                    style={{ cursor: 'pointer', margin: 0 }}
+                    onClick={() => handleQuickTag(tag)}
+                    color={focusedPageNumber !== null ? 'blue' : 'default'}
+                  >
+                    {tag}
+                  </Tag>
+                ))}
+              </Space>
+            </div>
             <Table
               columns={columns}
               dataSource={localConfigs}
