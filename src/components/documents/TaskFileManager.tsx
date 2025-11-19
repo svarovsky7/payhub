@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Upload, Button, Table, Space, message, Modal, Badge, Popconfirm } from 'antd'
+import { Upload, Button, Table, Space, message, Modal, Badge, Popconfirm, Tabs, Input, Checkbox, Tag } from 'antd'
 import { UploadOutlined, ScanOutlined, DownloadOutlined, ClearOutlined, ScissorOutlined, EyeOutlined, FileMarkdownOutlined, DeleteOutlined } from '@ant-design/icons'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -41,6 +41,8 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
   const [pageConfigModalVisible, setPageConfigModalVisible] = useState(false)
   const [currentRecognizeFile, setCurrentRecognizeFile] = useState<AttachmentWithRecognition | null>(null)
   const [currentRecognizePdfUrl, setCurrentRecognizePdfUrl] = useState('')
+  const [pageConfigs, setPageConfigs] = useState<PageConfig[]>([])
+  const [selectedPageRow, setSelectedPageRow] = useState<number | null>(null)
 
   useEffect(() => {
     if (previewFile) {
@@ -254,6 +256,72 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
     return result
   }
 
+  const extractPageConfigsFromMarkdown = (markdown: string): PageConfig[] => {
+    const configs: PageConfig[] = []
+    const regex = /\{(\d+)\}(-+)(?:\{([^}]+)\})?(-+)?/g
+    let match
+    
+    while ((match = regex.exec(markdown)) !== null) {
+      const markerNum = parseInt(match[1])
+      const pageNumber = markerNum + 1
+      const description = match[3] || ''
+      const isContinuation = description.includes('ПРОДОЛЖЕНИЕ')
+      const cleanDescription = isContinuation ? description.replace(' ПРОДОЛЖЕНИЕ', '').trim() : description.trim()
+      
+      configs.push({
+        pageNumber,
+        description: cleanDescription,
+        isContinuation
+      })
+    }
+    
+    return configs
+  }
+
+  const updateMarkdownWithPageConfigs = (markdown: string, configs: PageConfig[]): string => {
+    const pageMarkers = Array.from(markdown.matchAll(/\{(\d+)\}(?:-+)?(?:\{[^}]*\})?(?:-+)?/g))
+    if (pageMarkers.length === 0) return markdown
+
+    let result = markdown
+    const pageMap = new Map(configs.map(p => [p.pageNumber, p]))
+
+    for (let i = pageMarkers.length - 1; i >= 0; i--) {
+      const match = pageMarkers[i]
+      const markerNum = parseInt(match[1])
+      const pageNumber = markerNum + 1
+      const pageConfig = pageMap.get(pageNumber)
+
+      if (pageConfig) {
+        let separator = ''
+
+        if (pageConfig.isContinuation) {
+          let prevPageConfig = null
+          for (let prevPageNum = pageNumber - 1; prevPageNum >= 1; prevPageNum--) {
+            const prev = pageMap.get(prevPageNum)
+            if (prev && prev.description && !prev.isContinuation) {
+              prevPageConfig = prev
+              break
+            }
+          }
+
+          if (prevPageConfig?.description) {
+            separator = `{${markerNum}}------------------------------------------------{${prevPageConfig.description} ПРОДОЛЖЕНИЕ}------------------------------------------------`
+          } else {
+            separator = `{${markerNum}}------------------------------------------------`
+          }
+        } else if (pageConfig.description) {
+          separator = `{${markerNum}}------------------------------------------------{${pageConfig.description}}------------------------------------------------`
+        } else {
+          separator = `{${markerNum}}------------------------------------------------`
+        }
+
+        result = result.slice(0, match.index!) + separator + result.slice(match.index! + match[0].length)
+      }
+    }
+
+    return result
+  }
+
   const handlePreview = (file: AttachmentWithRecognition) => {
     setPreviewFile(file)
     setPreviewVisible(true)
@@ -344,12 +412,41 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
       setMarkdownPreview(text)
       setEditedMarkdown(text)
       setCurrentMarkdownFile(file)
+      setPageConfigs(extractPageConfigsFromMarkdown(text))
       setMarkdownModalVisible(true)
       setIsEditingMarkdown(false)
     } catch (error: any) {
       console.error('View error:', error)
       message.error('Ошибка загрузки')
     }
+  }
+
+  const handlePageDescriptionChange = (pageNumber: number, description: string) => {
+    const updatedConfigs = pageConfigs.map(p => 
+      p.pageNumber === pageNumber ? { ...p, description } : p
+    )
+    setPageConfigs(updatedConfigs)
+    const updatedMarkdown = updateMarkdownWithPageConfigs(editedMarkdown, updatedConfigs)
+    setEditedMarkdown(updatedMarkdown)
+    setMarkdownPreview(updatedMarkdown)
+  }
+
+  const handleContinuationChange = (pageNumber: number, checked: boolean) => {
+    const updatedConfigs = pageConfigs.map(p => 
+      p.pageNumber === pageNumber ? { ...p, isContinuation: checked, description: checked ? '' : p.description } : p
+    )
+    setPageConfigs(updatedConfigs)
+    const updatedMarkdown = updateMarkdownWithPageConfigs(editedMarkdown, updatedConfigs)
+    setEditedMarkdown(updatedMarkdown)
+    setMarkdownPreview(updatedMarkdown)
+  }
+
+  const handleQuickFillTag = (tag: string) => {
+    if (selectedPageRow === null) {
+      message.warning('Выберите страницу в таблице')
+      return
+    }
+    handlePageDescriptionChange(selectedPageRow, tag)
   }
 
   const handleSaveMarkdown = async () => {
@@ -646,6 +743,8 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
           setMarkdownPreview(null)
           setIsEditingMarkdown(false)
           setCurrentMarkdownFile(null)
+          setPageConfigs([])
+          setSelectedPageRow(null)
         }}
         width="90vw"
         footer={
@@ -655,6 +754,8 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
               setMarkdownPreview(null)
               setIsEditingMarkdown(false)
               setCurrentMarkdownFile(null)
+              setPageConfigs([])
+              setSelectedPageRow(null)
             }}>
               Закрыть
             </Button>
@@ -664,131 +765,217 @@ export const TaskFileManager = ({ taskId, files, onRefresh }: TaskFileManagerPro
               </Button>
             ) : (
               <Button type="primary" onClick={() => setIsEditingMarkdown(true)}>
-                Редактировать
+                Редактировать текст
               </Button>
             )}
           </Space>
         }
         style={{ top: 20 }}
       >
-        <div 
-          style={{ 
-            height: 'calc(90vh - 100px)', 
-            overflow: 'auto', 
-            padding: '20px 24px',
-            background: '#fff',
-            fontSize: '14px',
-            lineHeight: '1.6'
-          }}
-          className="markdown-preview"
-        >
-          {isEditingMarkdown ? (
-            <textarea
-              value={editedMarkdown}
-              onChange={(e) => setEditedMarkdown(e.target.value)}
-              style={{
-                width: '100%',
-                height: '100%',
-                border: '1px solid #d9d9d9',
-                borderRadius: '4px',
-                padding: '12px',
-                fontSize: '14px',
-                fontFamily: 'monospace',
-                resize: 'none'
-              }}
-            />
-          ) : (
-            markdownPreview && (
-              <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                table: ({node, ...props}) => (
-                  <table style={{ 
-                    borderCollapse: 'collapse', 
-                    width: '100%', 
-                    marginBottom: '16px',
-                    border: '1px solid #e8e8e8'
-                  }} {...props} />
-                ),
-                thead: ({node, ...props}) => (
-                  <thead style={{ background: '#fafafa' }} {...props} />
-                ),
-                th: ({node, ...props}) => (
-                  <th style={{ 
-                    border: '1px solid #e8e8e8', 
-                    padding: '8px 12px',
-                    textAlign: 'left',
-                    fontWeight: 600
-                  }} {...props} />
-                ),
-                td: ({node, ...props}) => (
-                  <td style={{ 
-                    border: '1px solid #e8e8e8', 
-                    padding: '8px 12px'
-                  }} {...props} />
-                ),
-                h1: ({node, ...props}) => (
-                  <h1 style={{ 
-                    fontSize: '24px', 
-                    fontWeight: 600, 
-                    marginTop: '24px', 
-                    marginBottom: '16px',
-                    borderBottom: '1px solid #e8e8e8',
-                    paddingBottom: '8px'
-                  }} {...props} />
-                ),
-                h2: ({node, ...props}) => (
-                  <h2 style={{ 
-                    fontSize: '20px', 
-                    fontWeight: 600, 
-                    marginTop: '20px', 
-                    marginBottom: '12px'
-                  }} {...props} />
-                ),
-                h3: ({node, ...props}) => (
-                  <h3 style={{ 
-                    fontSize: '16px', 
-                    fontWeight: 600, 
-                    marginTop: '16px', 
-                    marginBottom: '8px'
-                  }} {...props} />
-                ),
-                p: ({node, ...props}) => (
-                  <p style={{ marginBottom: '12px' }} {...props} />
-                ),
-                code: ({node, inline, ...props}: any) => (
-                  inline 
-                    ? <code style={{ 
-                        background: '#f5f5f5', 
-                        padding: '2px 6px', 
-                        borderRadius: '3px',
-                        fontSize: '13px'
-                      }} {...props} />
-                    : <code style={{ 
-                        display: 'block',
-                        background: '#f5f5f5', 
-                        padding: '12px', 
+        <Tabs
+          defaultActiveKey="1"
+          items={[
+            {
+              key: '1',
+              label: 'Распознанный текст (Markdown)',
+              children: (
+                <div 
+                  style={{ 
+                    height: 'calc(90vh - 160px)', 
+                    overflow: 'auto', 
+                    padding: '20px 24px',
+                    background: '#fff',
+                    fontSize: '14px',
+                    lineHeight: '1.6'
+                  }}
+                  className="markdown-preview"
+                >
+                  {isEditingMarkdown ? (
+                    <textarea
+                      value={editedMarkdown}
+                      onChange={(e) => setEditedMarkdown(e.target.value)}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: '1px solid #d9d9d9',
                         borderRadius: '4px',
-                        fontSize: '13px',
-                        overflow: 'auto'
-                      }} {...props} />
-                ),
-                ul: ({node, ...props}) => (
-                  <ul style={{ paddingLeft: '24px', marginBottom: '12px' }} {...props} />
-                ),
-                ol: ({node, ...props}) => (
-                  <ol style={{ paddingLeft: '24px', marginBottom: '12px' }} {...props} />
-                ),
-                li: ({node, ...props}) => (
-                  <li style={{ marginBottom: '4px' }} {...props} />
-                )
-              }}
-            >
-              {markdownPreview}
-            </ReactMarkdown>
-            )
-          )}
-        </div>
+                        padding: '12px',
+                        fontSize: '14px',
+                        fontFamily: 'monospace',
+                        resize: 'none'
+                      }}
+                    />
+                  ) : (
+                    markdownPreview && (
+                      <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        table: ({node, ...props}) => (
+                          <table style={{ 
+                            borderCollapse: 'collapse', 
+                            width: '100%', 
+                            marginBottom: '16px',
+                            border: '1px solid #e8e8e8'
+                          }} {...props} />
+                        ),
+                        thead: ({node, ...props}) => (
+                          <thead style={{ background: '#fafafa' }} {...props} />
+                        ),
+                        th: ({node, ...props}) => (
+                          <th style={{ 
+                            border: '1px solid #e8e8e8', 
+                            padding: '8px 12px',
+                            textAlign: 'left',
+                            fontWeight: 600
+                          }} {...props} />
+                        ),
+                        td: ({node, ...props}) => (
+                          <td style={{ 
+                            border: '1px solid #e8e8e8', 
+                            padding: '8px 12px'
+                          }} {...props} />
+                        ),
+                        h1: ({node, ...props}) => (
+                          <h1 style={{ 
+                            fontSize: '24px', 
+                            fontWeight: 600, 
+                            marginTop: '24px', 
+                            marginBottom: '16px',
+                            borderBottom: '1px solid #e8e8e8',
+                            paddingBottom: '8px'
+                          }} {...props} />
+                        ),
+                        h2: ({node, ...props}) => (
+                          <h2 style={{ 
+                            fontSize: '20px', 
+                            fontWeight: 600, 
+                            marginTop: '20px', 
+                            marginBottom: '12px'
+                          }} {...props} />
+                        ),
+                        h3: ({node, ...props}) => (
+                          <h3 style={{ 
+                            fontSize: '16px', 
+                            fontWeight: 600, 
+                            marginTop: '16px', 
+                            marginBottom: '8px'
+                          }} {...props} />
+                        ),
+                        p: ({node, ...props}) => (
+                          <p style={{ marginBottom: '12px' }} {...props} />
+                        ),
+                        code: ({node, inline, ...props}: any) => (
+                          inline 
+                            ? <code style={{ 
+                                background: '#f5f5f5', 
+                                padding: '2px 6px', 
+                                borderRadius: '3px',
+                                fontSize: '13px'
+                              }} {...props} />
+                            : <code style={{ 
+                                display: 'block',
+                                background: '#f5f5f5', 
+                                padding: '12px', 
+                                borderRadius: '4px',
+                                fontSize: '13px',
+                                overflow: 'auto'
+                              }} {...props} />
+                        ),
+                        ul: ({node, ...props}) => (
+                          <ul style={{ paddingLeft: '24px', marginBottom: '12px' }} {...props} />
+                        ),
+                        ol: ({node, ...props}) => (
+                          <ol style={{ paddingLeft: '24px', marginBottom: '12px' }} {...props} />
+                        ),
+                        li: ({node, ...props}) => (
+                          <li style={{ marginBottom: '4px' }} {...props} />
+                        )
+                      }}
+                    >
+                      {markdownPreview}
+                    </ReactMarkdown>
+                    )
+                  )}
+                </div>
+              )
+            },
+            {
+              key: '2',
+              label: 'Список страниц',
+              children: (
+                <div style={{ height: 'calc(90vh - 160px)', overflow: 'auto', padding: '12px' }}>
+                  <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 4 }}>
+                    <span style={{ marginRight: 8, fontWeight: 500 }}>Быстрое заполнение:</span>
+                    <Space size={4} wrap>
+                      {['ПИСЬМО', 'АКТ', 'ТРЕБОВАНИЕ', 'ДОГОВОР', 'СЧЕТ', 'УПД', 'СПЕЦИФИКАЦИЯ'].map(tag => (
+                        <Tag
+                          key={tag}
+                          style={{ cursor: 'pointer', margin: 0 }}
+                          color="blue"
+                          onClick={() => handleQuickFillTag(tag)}
+                        >
+                          {tag}
+                        </Tag>
+                      ))}
+                    </Space>
+                  </div>
+                  <Table
+                    columns={[
+                      {
+                        title: 'Страница',
+                        dataIndex: 'pageNumber',
+                        key: 'pageNumber',
+                        width: 100
+                      },
+                      {
+                        title: 'Описание блока',
+                        key: 'description',
+                        render: (_: unknown, record: PageConfig) => {
+                          const displayValue = record.isContinuation 
+                            ? `${record.description} ПРОДОЛЖЕНИЕ`
+                            : record.description
+                          return (
+                            <Input
+                              value={displayValue}
+                              onChange={(e) => handlePageDescriptionChange(record.pageNumber, e.target.value)}
+                              placeholder="Например: ПИСЬМО"
+                              disabled={record.isContinuation}
+                            />
+                          )
+                        }
+                      },
+                      {
+                        title: 'Продолжение',
+                        key: 'isContinuation',
+                        width: 120,
+                        render: (_: unknown, record: PageConfig) => (
+                          record.pageNumber > 1 ? (
+                            <Checkbox
+                              checked={record.isContinuation}
+                              onChange={(e) => handleContinuationChange(record.pageNumber, e.target.checked)}
+                            >
+                              Предыдущей
+                            </Checkbox>
+                          ) : null
+                        )
+                      }
+                    ]}
+                    dataSource={pageConfigs}
+                    rowKey="pageNumber"
+                    pagination={false}
+                    size="small"
+                    bordered
+                    onRow={(record) => ({
+                      onClick: () => setSelectedPageRow(record.pageNumber),
+                      style: { cursor: 'pointer' }
+                    })}
+                    rowClassName={(record) => record.pageNumber === selectedPageRow ? 'ant-table-row-selected' : ''}
+                  />
+                </div>
+              )
+            }
+          ]}
+        />
       </Modal>
     </Space>
   )

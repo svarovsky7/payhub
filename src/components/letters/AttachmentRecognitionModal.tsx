@@ -1,4 +1,4 @@
-﻿import { Modal, Button, Space, Spin, message, List, Row, Col } from 'antd'
+﻿import { Modal, Button, Space, Spin, message, List, Row, Col, Tabs, Table, Input, Checkbox, Tag } from 'antd'
 import { ScanOutlined, ReloadOutlined, SaveOutlined, EditOutlined } from '@ant-design/icons'
 import { useState, useEffect, useRef } from 'react'
 import { getLetterAttachments } from '../../services/letter/letterFiles'
@@ -57,6 +57,7 @@ export const AttachmentRecognitionModal = ({
   const [originalMarkdown, setOriginalMarkdown] = useState('')
   const [cropModalVisible, setCropModalVisible] = useState(false)
   const [pageConfigs, setPageConfigs] = useState<PageConfig[]>([])
+  const [selectedPageRow, setSelectedPageRow] = useState<number | null>(null)
   const prevTaskRef = useRef<string | null>(null)
   const prevLetterTasksRef = useRef<Set<string>>(new Set())
 
@@ -73,6 +74,7 @@ export const AttachmentRecognitionModal = ({
       setPageRange({ start: 1, end: 1 })
       setAllPages(true)
       setPageConfigs([]) // Сбрасываем pageConfigs при закрытии модального окна
+      setSelectedPageRow(null)
       setCropModalVisible(false)
       prevTaskRef.current = null
       prevLetterTasksRef.current = new Set()
@@ -127,6 +129,7 @@ export const AttachmentRecognitionModal = ({
         if (markdown) {
           setCurrentMarkdown(markdown)
           setOriginalMarkdown(markdown)
+          setPageConfigs(extractPageConfigsFromMarkdown(markdown))
           setEditMode(true)
           setPreviewMode(false)
         }
@@ -236,6 +239,98 @@ export const AttachmentRecognitionModal = ({
     }
   }
 
+  const extractPageConfigsFromMarkdown = (markdown: string): PageConfig[] => {
+    const configs: PageConfig[] = []
+    const regex = /\{(\d+)\}(-+)(?:\{([^}]+)\})?(-+)?/g
+    let match
+    
+    while ((match = regex.exec(markdown)) !== null) {
+      const markerNum = parseInt(match[1])
+      const pageNumber = markerNum + 1
+      const description = match[3] || ''
+      const isContinuation = description.includes('ПРОДОЛЖЕНИЕ')
+      const cleanDescription = isContinuation ? description.replace(' ПРОДОЛЖЕНИЕ', '').trim() : description.trim()
+      
+      configs.push({
+        pageNumber,
+        description: cleanDescription,
+        isContinuation
+      })
+    }
+    
+    return configs
+  }
+
+  const updateMarkdownWithPageConfigs = (markdown: string, configs: PageConfig[]): string => {
+    const pageMarkers = Array.from(markdown.matchAll(/\{(\d+)\}(?:-+)?(?:\{[^}]*\})?(?:-+)?/g))
+    if (pageMarkers.length === 0) return markdown
+
+    let result = markdown
+    const pageMap = new Map(configs.map(p => [p.pageNumber, p]))
+
+    for (let i = pageMarkers.length - 1; i >= 0; i--) {
+      const match = pageMarkers[i]
+      const markerNum = parseInt(match[1])
+      const pageNumber = markerNum + 1
+      const pageConfig = pageMap.get(pageNumber)
+
+      if (pageConfig) {
+        let separator = ''
+
+        if (pageConfig.isContinuation) {
+          let prevPageConfig = null
+          for (let prevPageNum = pageNumber - 1; prevPageNum >= 1; prevPageNum--) {
+            const prev = pageMap.get(prevPageNum)
+            if (prev && prev.description && !prev.isContinuation) {
+              prevPageConfig = prev
+              break
+            }
+          }
+
+          if (prevPageConfig?.description) {
+            separator = `{${markerNum}}------------------------------------------------{${prevPageConfig.description} ПРОДОЛЖЕНИЕ}------------------------------------------------`
+          } else {
+            separator = `{${markerNum}}------------------------------------------------`
+          }
+        } else if (pageConfig.description) {
+          separator = `{${markerNum}}------------------------------------------------{${pageConfig.description}}------------------------------------------------`
+        } else {
+          separator = `{${markerNum}}------------------------------------------------`
+        }
+
+        result = result.slice(0, match.index!) + separator + result.slice(match.index! + match[0].length)
+      }
+    }
+
+    return result
+  }
+
+  const handlePageDescriptionChange = (pageNumber: number, description: string) => {
+    const updatedConfigs = pageConfigs.map(p => 
+      p.pageNumber === pageNumber ? { ...p, description } : p
+    )
+    setPageConfigs(updatedConfigs)
+    const updatedMarkdown = updateMarkdownWithPageConfigs(currentMarkdown, updatedConfigs)
+    setCurrentMarkdown(updatedMarkdown)
+  }
+
+  const handleContinuationChange = (pageNumber: number, checked: boolean) => {
+    const updatedConfigs = pageConfigs.map(p => 
+      p.pageNumber === pageNumber ? { ...p, isContinuation: checked, description: checked ? '' : p.description } : p
+    )
+    setPageConfigs(updatedConfigs)
+    const updatedMarkdown = updateMarkdownWithPageConfigs(currentMarkdown, updatedConfigs)
+    setCurrentMarkdown(updatedMarkdown)
+  }
+
+  const handleQuickFillTag = (tag: string) => {
+    if (selectedPageRow === null) {
+      message.warning('Выберите страницу в таблице')
+      return
+    }
+    handlePageDescriptionChange(selectedPageRow, tag)
+  }
+
   const handleSelectAttachment = async (attachment: Attachment) => {
     // Сбрасываем pageConfigs только при выборе ДРУГОГО вложения
     const isDifferentAttachment = selectedAttachment?.id !== attachment.id
@@ -259,6 +354,7 @@ export const AttachmentRecognitionModal = ({
         if (markdown) {
           setCurrentMarkdown(markdown)
           setOriginalMarkdown(markdown)
+          setPageConfigs(extractPageConfigsFromMarkdown(markdown))
           setEditMode(true)
           setPreviewMode(false)
         } else {
@@ -871,8 +967,96 @@ export const AttachmentRecognitionModal = ({
         />
       </Col>
       <Col span={12}>
-        <h4>Распознанный текст (Markdown):</h4>
-        <MarkdownEditor value={currentMarkdown} onChange={setCurrentMarkdown} />
+        <Tabs
+          defaultActiveKey="1"
+          items={[
+            {
+              key: '1',
+              label: 'Распознанный текст (Markdown)',
+              children: (
+                <div style={{ marginTop: 8 }}>
+                  <MarkdownEditor value={currentMarkdown} onChange={setCurrentMarkdown} />
+                </div>
+              )
+            },
+            {
+              key: '2',
+              label: 'Список страниц',
+              children: (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 4 }}>
+                    <span style={{ marginRight: 8, fontWeight: 500 }}>Быстрое заполнение:</span>
+                    <Space size={4} wrap>
+                      {['ПИСЬМО', 'АКТ', 'ТРЕБОВАНИЕ', 'ДОГОВОР', 'СЧЕТ', 'УПД', 'СПЕЦИФИКАЦИЯ'].map(tag => (
+                        <Tag
+                          key={tag}
+                          style={{ cursor: 'pointer', margin: 0 }}
+                          color="blue"
+                          onClick={() => handleQuickFillTag(tag)}
+                        >
+                          {tag}
+                        </Tag>
+                      ))}
+                    </Space>
+                  </div>
+                  <Table
+                    columns={[
+                      {
+                        title: 'Страница',
+                        dataIndex: 'pageNumber',
+                        key: 'pageNumber',
+                        width: 100
+                      },
+                      {
+                        title: 'Описание блока',
+                        key: 'description',
+                        render: (_: unknown, record: PageConfig) => {
+                          const displayValue = record.isContinuation 
+                            ? `${record.description} ПРОДОЛЖЕНИЕ`
+                            : record.description
+                          return (
+                            <Input
+                              value={displayValue}
+                              onChange={(e) => handlePageDescriptionChange(record.pageNumber, e.target.value)}
+                              placeholder="Например: ПИСЬМО"
+                              disabled={record.isContinuation}
+                            />
+                          )
+                        }
+                      },
+                      {
+                        title: 'Продолжение',
+                        key: 'isContinuation',
+                        width: 120,
+                        render: (_: unknown, record: PageConfig) => (
+                          record.pageNumber > 1 ? (
+                            <Checkbox
+                              checked={record.isContinuation}
+                              onChange={(e) => handleContinuationChange(record.pageNumber, e.target.checked)}
+                            >
+                              Предыдущей
+                            </Checkbox>
+                          ) : null
+                        )
+                      }
+                    ]}
+                    dataSource={pageConfigs}
+                    rowKey="pageNumber"
+                    pagination={false}
+                    scroll={{ y: 'calc(70vh - 120px)' }}
+                    size="small"
+                    bordered
+                    onRow={(record) => ({
+                      onClick: () => setSelectedPageRow(record.pageNumber),
+                      style: { cursor: 'pointer' }
+                    })}
+                    rowClassName={(record) => record.pageNumber === selectedPageRow ? 'ant-table-row-selected' : ''}
+                  />
+                </div>
+              )
+            }
+          ]}
+        />
       </Col>
     </Row>
   )
