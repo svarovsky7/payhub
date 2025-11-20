@@ -3,6 +3,7 @@ import PizZip from 'pizzip'
 import { downloadLetterTemplateBlob, downloadProjectTemplateBlob } from './templateService'
 import { supabase } from '../lib/supabase'
 import type { Letter } from '../lib/supabase'
+import { generateShareToken } from '../utils/shareToken'
 
 /**
  * Generate URL for letter view page using public share token
@@ -40,7 +41,7 @@ const generateLetterViewUrl = async (letterId: string, publicToken?: string): Pr
       token = existingShare.token
     } else {
       // Generate new token
-      token = crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+      token = generateShareToken()
       
       const { error } = await supabase
         .from('letter_public_shares')

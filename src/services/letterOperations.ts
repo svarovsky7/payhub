@@ -12,6 +12,7 @@
  */
 
 import { supabase, type Letter } from '../lib/supabase'
+import { generateShareToken } from '../utils/shareToken'
 
 // Loading operations
 export {
@@ -62,7 +63,7 @@ export async function generatePublicShareLink(letterId: string): Promise<string>
     }
 
     // Generate new token
-    const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+    const token = generateShareToken()
     
     const { error } = await supabase
       .from('letter_public_shares')

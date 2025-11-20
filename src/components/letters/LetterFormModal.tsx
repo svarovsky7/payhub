@@ -13,6 +13,7 @@ import { usePopularContractors } from '../../hooks/usePopularContractors'
 import { LetterBasicFields } from './LetterBasicFields'
 import { LetterParticipantsSection } from './LetterParticipantsSection'
 import { LetterDetailsSection } from './LetterDetailsSection'
+import { generateShareToken } from '../../utils/shareToken'
 
 const LAST_SELECTED_PROJECT_KEY = 'lastSelectedLetterProject'
 
@@ -94,7 +95,7 @@ export const LetterFormModal: React.FC<LetterFormModalProps> = ({
   }, [visible, editingLetter])
 
   const generateNewPublicShareToken = () => {
-    const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16)
+    const token = generateShareToken()
     setPublicShareToken(token)
     const baseUrl = window.location.origin
     setQrLink(`${baseUrl}/letter-share/${token}`)
