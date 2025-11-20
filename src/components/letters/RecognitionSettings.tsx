@@ -1,5 +1,5 @@
 import { Checkbox, InputNumber, Space, Table, Input, Tag } from 'antd'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import * as pdfjs from 'pdfjs-dist'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
@@ -39,6 +39,7 @@ export const RecognitionSettings = ({
   const [lastPdfUrl, setLastPdfUrl] = useState<string>('')
   const [focusedPageNumber, setFocusedPageNumber] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const firstInputRef = useRef<any>(null)
 
   useEffect(() => {
     // Загружаем PDF только если URL изменился
@@ -61,6 +62,16 @@ export const RecognitionSettings = ({
       setNumPages(0)
     }
   }, [pageConfigs, localConfigs.length])
+
+  // Устанавливаем фокус на первое поле и активируем быстрые теги
+  useEffect(() => {
+    if (localConfigs.length > 0 && firstInputRef.current) {
+      setTimeout(() => {
+        firstInputRef.current?.focus()
+        setFocusedPageNumber(1)
+      }, 100)
+    }
+  }, [localConfigs.length])
 
   const loadPdfPages = async (url: string) => {
     setLoading(true)
@@ -141,6 +152,7 @@ export const RecognitionSettings = ({
       width: 240,
       render: (_: unknown, record: PageConfig) => (
         <Input
+          ref={record.pageNumber === 1 ? firstInputRef : null}
           size="small"
           placeholder="Например: ПИСЬМО"
           value={record.description}
