@@ -1,18 +1,18 @@
-﻿import { Modal, Button, Space, Spin, message, List, Row, Col, Tabs, Table, Input, Checkbox, Tag } from 'antd'
+﻿import { Modal, Button, Space, Spin, message } from 'antd'
 import { ScanOutlined, ReloadOutlined, SaveOutlined, EditOutlined } from '@ant-design/icons'
 import { useState, useEffect, useRef } from 'react'
-import { getLetterAttachments } from '../../services/letter/letterFiles'
-import { supabase } from '../../lib/supabase'
-import { getRecognitionStatuses, getRecognizedMarkdown, getRecognizedAttachmentId } from '../../services/attachmentRecognitionService'
+import { getRecognizedMarkdown } from '../../services/attachmentRecognitionService'
 import { startRecognitionTask, subscribeToTasks, getTaskByAttachmentId, getTaskProgress, getTasks } from '../../services/recognitionTaskService'
-import { createAuditLogEntry } from '../../services/auditLogService'
 import type { Letter } from '../../lib/supabase'
-import { AttachmentCard } from './AttachmentCard'
-import { AttachmentPreview } from './AttachmentPreview'
-import { RecognitionSettings, type PageConfig } from './RecognitionSettings'
-import { MarkdownEditor } from './MarkdownEditor'
-import { PdfCropModal } from './PdfCropModal'
+import { AttachmentsList } from './AttachmentsList'
+import { RecognitionEditor } from './RecognitionEditor'
+import { RecognitionPreview } from './RecognitionPreview'
+import { PdfCropModal } from '../common/PdfCropModal'
 import { truncateText } from '../../utils/textUtils'
+import { usePageConfigs } from '../../hooks/usePageConfigs'
+import { useYamlGenerator } from '../../hooks/useYamlGenerator'
+import { useAttachmentSaver } from '../../hooks/useAttachmentSaver'
+import { useAttachmentLoader } from '../../hooks/useAttachmentLoader'
 
 interface AttachmentRecognitionModalProps {
   visible: boolean
@@ -45,8 +45,6 @@ export const AttachmentRecognitionModal = ({
   onCancel,
   onSuccess
 }: AttachmentRecognitionModalProps) => {
-  const [loading, setLoading] = useState(false)
-  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [processing, setProcessing] = useState(false)
   const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null)
   const [previewMode, setPreviewMode] = useState(false)
@@ -56,16 +54,19 @@ export const AttachmentRecognitionModal = ({
   const [currentMarkdown, setCurrentMarkdown] = useState('')
   const [originalMarkdown, setOriginalMarkdown] = useState('')
   const [cropModalVisible, setCropModalVisible] = useState(false)
-  const [pageConfigs, setPageConfigs] = useState<PageConfig[]>([])
-  const [selectedPageRow, setSelectedPageRow] = useState<number | null>(null)
   const prevTaskRef = useRef<string | null>(null)
   const prevLetterTasksRef = useRef<Set<string>>(new Set())
+  
+  const pageConfigsHook = usePageConfigs()
+  const { generateYaml } = useYamlGenerator()
+  const { saveMarkdownAttachment } = useAttachmentSaver()
+  const attachmentLoader = useAttachmentLoader()
 
   useEffect(() => {
     if (visible && letter) {
-      loadAttachments()
+      attachmentLoader.loadAttachments(letter.id, selectedAttachment?.id)
     } else {
-      setAttachments([])
+      attachmentLoader.setAttachments([])
       setSelectedAttachment(null)
       setPreviewMode(false)
       setEditMode(false)
@@ -73,8 +74,8 @@ export const AttachmentRecognitionModal = ({
       setOriginalMarkdown('')
       setPageRange({ start: 1, end: 1 })
       setAllPages(true)
-      setPageConfigs([]) // Сбрасываем pageConfigs при закрытии модального окна
-      setSelectedPageRow(null)
+      pageConfigsHook.setPageConfigs([])
+      pageConfigsHook.setSelectedPageRow(null)
       setCropModalVisible(false)
       prevTaskRef.current = null
       prevLetterTasksRef.current = new Set()
@@ -118,8 +119,9 @@ export const AttachmentRecognitionModal = ({
           }
         }
       } else if (taskJustCompleted || !hasActiveTask) {
-        // Полная перезагрузка только после завершения
-        await loadAttachments()
+        if (letter) {
+          await attachmentLoader.loadAttachments(letter.id, selectedAttachment?.id)
+        }
       }
       
       // Если вложение было в процессе распознавания и задача завершилась (исчезла)
@@ -129,7 +131,7 @@ export const AttachmentRecognitionModal = ({
         if (markdown) {
           setCurrentMarkdown(markdown)
           setOriginalMarkdown(markdown)
-          setPageConfigs(extractPageConfigsFromMarkdown(markdown))
+          pageConfigsHook.setPageConfigs(pageConfigsHook.extractPageConfigsFromMarkdown(markdown))
           setEditMode(true)
           setPreviewMode(false)
         }
@@ -182,183 +184,42 @@ export const AttachmentRecognitionModal = ({
     }
   }, [letter, onSuccess])
 
-  const loadAttachments = async () => {
-    if (!letter) return
-
-    setLoading(true)
-    try {
-      const data = await getLetterAttachments(letter.id)
-      
-      const attachmentsWithUrls = await Promise.all(
-        data.map(async (item: any) => {
-          const att = item.attachments
-          if (!att) return null
-
-          const { data: urlData } = await supabase.storage
-            .from('attachments')
-            .createSignedUrl(att.storage_path, 3600)
-
-          return {
-            id: att.id,
-            original_name: att.original_name,
-            storage_path: att.storage_path,
-            mime_type: att.mime_type,
-            url: urlData?.signedUrl,
-            recognized: false
-          }
-        })
-      )
-
-      const filtered = attachmentsWithUrls.filter(Boolean) as Attachment[]
-      
-      // Проверяем статусы распознавания
-      const ids = filtered.map(a => a.id)
-      const statuses = await getRecognitionStatuses(ids)
-      
-      filtered.forEach(att => {
-        att.recognized = statuses[att.id] || false
-        const task = getTaskByAttachmentId(att.id)
-        att.recognizing = !!task
-        att.progress = task ? getTaskProgress(att.id) : 0
-      })
-
-      setAttachments(filtered)
-      
-      // Обновляем selectedAttachment, если оно было выбрано
-      if (selectedAttachment) {
-        const updated = filtered.find(a => a.id === selectedAttachment.id)
-        if (updated) {
-          setSelectedAttachment(updated)
-        }
-      }
-    } catch (error) {
-      message.error('Ошибка загрузки вложений')
-      console.error(error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const extractPageConfigsFromMarkdown = (markdown: string): PageConfig[] => {
-    const configs: PageConfig[] = []
-    const regex = /\{(\d+)\}(-+)(?:\{([^}]+)\})?(-+)?/g
-    let match
-    
-    while ((match = regex.exec(markdown)) !== null) {
-      const markerNum = parseInt(match[1])
-      const pageNumber = markerNum + 1
-      const description = match[3] || ''
-      const isContinuation = description.includes('ПРОДОЛЖЕНИЕ')
-      const cleanDescription = isContinuation ? description.replace(' ПРОДОЛЖЕНИЕ', '').trim() : description.trim()
-      
-      configs.push({
-        pageNumber,
-        description: cleanDescription,
-        isContinuation
-      })
-    }
-    
-    return configs
-  }
-
-  const updateMarkdownWithPageConfigs = (markdown: string, configs: PageConfig[]): string => {
-    const pageMarkers = Array.from(markdown.matchAll(/\{(\d+)\}(?:-+)?(?:\{[^}]*\})?(?:-+)?/g))
-    if (pageMarkers.length === 0) return markdown
-
-    let result = markdown
-    const pageMap = new Map(configs.map(p => [p.pageNumber, p]))
-
-    for (let i = pageMarkers.length - 1; i >= 0; i--) {
-      const match = pageMarkers[i]
-      const markerNum = parseInt(match[1])
-      const pageNumber = markerNum + 1
-      const pageConfig = pageMap.get(pageNumber)
-
-      if (pageConfig) {
-        let separator = ''
-
-        if (pageConfig.isContinuation) {
-          let prevPageConfig = null
-          for (let prevPageNum = pageNumber - 1; prevPageNum >= 1; prevPageNum--) {
-            const prev = pageMap.get(prevPageNum)
-            if (prev && prev.description && !prev.isContinuation) {
-              prevPageConfig = prev
-              break
-            }
-          }
-
-          if (prevPageConfig?.description) {
-            separator = `{${markerNum}}------------------------------------------------{${prevPageConfig.description} ПРОДОЛЖЕНИЕ}------------------------------------------------`
-          } else {
-            separator = `{${markerNum}}------------------------------------------------`
-          }
-        } else if (pageConfig.description) {
-          separator = `{${markerNum}}------------------------------------------------{${pageConfig.description}}------------------------------------------------`
-        } else {
-          separator = `{${markerNum}}------------------------------------------------`
-        }
-
-        result = result.slice(0, match.index!) + separator + result.slice(match.index! + match[0].length)
-      }
-    }
-
-    return result
-  }
 
   const handlePageDescriptionChange = (pageNumber: number, description: string) => {
-    const updatedConfigs = pageConfigs.map(p => 
-      p.pageNumber === pageNumber ? { ...p, description } : p
-    )
-    setPageConfigs(updatedConfigs)
-    const updatedMarkdown = updateMarkdownWithPageConfigs(currentMarkdown, updatedConfigs)
+    const updatedConfigs = pageConfigsHook.handlePageDescriptionChange(pageNumber, description)
+    const updatedMarkdown = pageConfigsHook.updateMarkdownWithPageConfigs(currentMarkdown, updatedConfigs)
     setCurrentMarkdown(updatedMarkdown)
   }
 
   const handleContinuationChange = (pageNumber: number, checked: boolean) => {
-    const updatedConfigs = pageConfigs.map(p => 
-      p.pageNumber === pageNumber ? { ...p, isContinuation: checked, description: checked ? '' : p.description } : p
-    )
-    setPageConfigs(updatedConfigs)
-    const updatedMarkdown = updateMarkdownWithPageConfigs(currentMarkdown, updatedConfigs)
+    const updatedConfigs = pageConfigsHook.handleContinuationChange(pageNumber, checked)
+    const updatedMarkdown = pageConfigsHook.updateMarkdownWithPageConfigs(currentMarkdown, updatedConfigs)
     setCurrentMarkdown(updatedMarkdown)
   }
 
-  const handleQuickFillTag = (tag: string) => {
-    if (selectedPageRow === null) {
-      message.warning('Выберите страницу в таблице')
-      return
-    }
-    handlePageDescriptionChange(selectedPageRow, tag)
-  }
-
   const handleSelectAttachment = async (attachment: Attachment) => {
-    // Сбрасываем pageConfigs только при выборе ДРУГОГО вложения
     const isDifferentAttachment = selectedAttachment?.id !== attachment.id
     if (isDifferentAttachment) {
-      setPageConfigs([])
+      pageConfigsHook.setPageConfigs([])
     }
     
     setSelectedAttachment(attachment)
     setPageRange({ start: 1, end: 1 })
     setAllPages(true)
     
-    // Обновляем ref для отслеживания задачи
     const task = getTaskByAttachmentId(attachment.id)
     prevTaskRef.current = task ? attachment.id : null
     
-    // Если файл уже распознан, загружаем markdown
     if (attachment.recognized) {
-      setLoading(true)
       try {
         const markdown = await getRecognizedMarkdown(attachment.id)
         if (markdown) {
           setCurrentMarkdown(markdown)
           setOriginalMarkdown(markdown)
-          setPageConfigs(extractPageConfigsFromMarkdown(markdown))
+          pageConfigsHook.setPageConfigs(pageConfigsHook.extractPageConfigsFromMarkdown(markdown))
           setEditMode(true)
           setPreviewMode(false)
         } else {
-          // Файл помечен как распознанный, но markdown не найден
           setPreviewMode(true)
           setEditMode(false)
         }
@@ -367,11 +228,8 @@ export const AttachmentRecognitionModal = ({
         message.error('Не удалось загрузить распознанный текст')
         setPreviewMode(true)
         setEditMode(false)
-      } finally {
-        setLoading(false)
       }
     } else {
-      // Файл не распознан - показываем предпросмотр
       setPreviewMode(true)
       setEditMode(false)
     }
@@ -393,15 +251,9 @@ export const AttachmentRecognitionModal = ({
       message.info(`Запуск распознавания ${fileName}${pageInfo}...`)
       
       // Передаем ВСЕ конфигурации, обработка произойдет на стороне processMarkdownWithPageConfig
-      console.log('[AttachmentRecognitionModal] Starting recognition with configs:', {
-        pageConfigs,
-        allPages,
-        pageRange
-      })
-      
       const options = allPages 
-        ? { pageConfigs: pageConfigs.length > 0 ? pageConfigs : undefined } 
-        : { pageRange, pageConfigs: pageConfigs.length > 0 ? pageConfigs : undefined }
+        ? { pageConfigs: pageConfigsHook.pageConfigs.length > 0 ? pageConfigsHook.pageConfigs : undefined } 
+        : { pageRange, pageConfigs: pageConfigsHook.pageConfigs.length > 0 ? pageConfigsHook.pageConfigs : undefined }
       
       await startRecognitionTask(
         selectedAttachment.id,
@@ -416,8 +268,9 @@ export const AttachmentRecognitionModal = ({
 
       message.success('Распознавание запущено. Можете закрыть окно и продолжить работу или дождаться завершения.')
       
-      // Обновляем список вложений, чтобы показать статус
-      await loadAttachments()
+      if (letter) {
+        await attachmentLoader.loadAttachments(letter.id, selectedAttachment.id)
+      }
     } catch (error: any) {
       message.error(error.message || 'Ошибка запуска распознавания')
       console.error(error)
@@ -429,662 +282,86 @@ export const AttachmentRecognitionModal = ({
   const handleSaveChanges = async () => {
     if (!letter || !selectedAttachment || !currentMarkdown) return
 
-    setLoading(true)
+    attachmentLoader.setAttachments(prev => prev.map(a => 
+      a.id === selectedAttachment.id ? { ...a, recognized: true } : a
+    ))
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Пользователь не авторизован')
-
-      // Получаем ID старого распознанного файла
-      const oldRecognizedId = await getRecognizedAttachmentId(selectedAttachment.id)
-
-      // Получаем полную информацию о письме
-      const { data: fullLetter } = await supabase
-        .from('letters')
-        .select('*')
-        .eq('id', letter.id)
-        .single()
-
-      // Загружаем связанные данные отдельно
-      let projectName = ''
-      let creatorName = ''
-      let senderName = ''
-      let recipientName = ''
+      const yamlMarkdown = await generateYaml({ letterId: letter.id, markdown: currentMarkdown })
       
-      if (fullLetter?.project_id) {
-        const { data: proj } = await supabase.from('projects').select('name').eq('id', fullLetter.project_id).single()
-        projectName = proj?.name || ''
-      }
-      
-      if (fullLetter?.created_by) {
-        const { data: creator } = await supabase.from('user_profiles').select('full_name').eq('id', fullLetter.created_by).single()
-        creatorName = creator?.full_name || ''
-      }
-      
-      if (fullLetter?.sender_type === 'contractor' && fullLetter?.sender_contractor_id) {
-        const { data: sender } = await supabase.from('contractors').select('name').eq('id', fullLetter.sender_contractor_id).single()
-        senderName = sender?.name || ''
-      }
-      
-      if (fullLetter?.recipient_type === 'contractor' && fullLetter?.recipient_contractor_id) {
-        const { data: recipient } = await supabase.from('contractors').select('name').eq('id', fullLetter.recipient_contractor_id).single()
-        recipientName = recipient?.name || ''
-      }
+      await saveMarkdownAttachment({
+        letterId: letter.id,
+        attachmentId: selectedAttachment.id,
+        attachmentName: selectedAttachment.original_name,
+        markdown: yamlMarkdown
+      })
 
-      // Получаем публичные ссылки
-      const { data: _publicShares } = await supabase
-        .from('letter_public_shares')
-        .select('token')
-        .eq('letter_id', letter.id)
-
-      // Получаем вложения письма
-      const { data: letterAttachments } = await supabase
-        .from('letter_attachments')
-        .select('attachment_id')
-        .eq('letter_id', letter.id)
-      
-      // Получаем связи писем
-      const { data: parentLinks } = await supabase
-        .from('letter_links')
-        .select('parent_id')
-        .eq('child_id', letter.id)
-      
-      const { data: childLinks } = await supabase
-        .from('letter_links')
-        .select('child_id')
-        .eq('parent_id', letter.id)
-
-      // Формируем YAML frontmatter
-      let yamlFrontmatter = '---\n'
-      
-      if (fullLetter) {
-        // 1. ID письма
-        yamlFrontmatter += `id: ${fullLetter.id}\n`
-        
-        // 2. Номер письма от контрагента
-        if (fullLetter.number) {
-          yamlFrontmatter += `номер_письма_от_контрагента: "${fullLetter.number}"\n`
-        }
-        
-        // 3. Регистрационный номер письма
-        if (fullLetter.reg_number) {
-          yamlFrontmatter += `регистрационный_номер_письма: "${fullLetter.reg_number}"\n`
-        }
-        
-        // 4. Проект
-        if (projectName) {
-          yamlFrontmatter += `проект: ${projectName}\n`
-        }
-        
-        // 5. Дата письма
-        if (fullLetter.letter_date) {
-          yamlFrontmatter += `дата_письма: ${fullLetter.letter_date}\n`
-        }
-        
-        // 6. Тема
-        if (fullLetter.subject) {
-          yamlFrontmatter += `тема: "${fullLetter.subject}"\n`
-        }
-        
-        // 7. Направление
-        yamlFrontmatter += `направление: ${fullLetter.direction === 'incoming' ? 'входящее' : 'исходящее'}\n`
-        
-        // 8. Дата регистрации
-        if (fullLetter.reg_date) {
-          yamlFrontmatter += `дата_регистрации: ${fullLetter.reg_date}\n`
-        }
-        
-        // 9. Кто внес письмо
-        if (creatorName) {
-          yamlFrontmatter += `создал: ${creatorName}\n`
-        }
-        
-        // 10. Когда внесли письмо
-        if (fullLetter.created_at) {
-          yamlFrontmatter += `создано: ${fullLetter.created_at}\n`
-        }
-        
-        // 11. Метод доставки
-        if (fullLetter.delivery_method) {
-          yamlFrontmatter += `метод_доставки: "${fullLetter.delivery_method}"\n`
-        }
-        
-        // 12. Ответственный сотрудник
-        if (fullLetter.responsible_person_name) {
-          yamlFrontmatter += `ответственный: ${fullLetter.responsible_person_name}\n`
-        }
-        
-        // 13. Отправитель
-        if (senderName) {
-          yamlFrontmatter += `отправитель: ${senderName}\n`
-        } else if (fullLetter.sender) {
-          yamlFrontmatter += `отправитель: "${fullLetter.sender}"\n`
-        }
-        
-        // 14. Получатель
-        if (recipientName) {
-          yamlFrontmatter += `получатель: ${recipientName}\n`
-        } else if (fullLetter.recipient) {
-          yamlFrontmatter += `получатель: "${fullLetter.recipient}"\n`
-        }
-        
-        // 15. Вложения
-        if (letterAttachments && letterAttachments.length > 0) {
-          const attachmentIds = letterAttachments.map(la => la.attachment_id)
-          const { data: attachments } = await supabase
-            .from('attachments')
-            .select('original_name, mime_type')
-            .in('id', attachmentIds)
-          
-          if (attachments && attachments.length > 0) {
-            // Фильтруем markdown файлы
-            const filteredAttachments = attachments.filter(att => 
-              !att.mime_type?.includes('markdown') && !att.original_name.endsWith('.md')
-            )
-            
-            if (filteredAttachments.length > 0) {
-              yamlFrontmatter += `вложения:\n`
-              filteredAttachments.forEach(att => {
-                yamlFrontmatter += `  - "${att.original_name}"\n`
-              })
-            }
-          }
-        }
-        
-        // 16. Связанные письма
-        if (parentLinks && parentLinks.length > 0) {
-          yamlFrontmatter += `родительские_письма:\n`
-          parentLinks.forEach(link => {
-            yamlFrontmatter += `  - ${link.parent_id}\n`
-          })
-        }
-        
-        if (childLinks && childLinks.length > 0) {
-          yamlFrontmatter += `дочерние_письма:\n`
-          childLinks.forEach(link => {
-            yamlFrontmatter += `  - ${link.child_id}\n`
-          })
-        }
-      }
-      
-      yamlFrontmatter += '---\n\n'
-
-      console.log('🔖 Generated YAML frontmatter:', yamlFrontmatter)
-
-      // Проверяем, есть ли уже YAML frontmatter в currentMarkdown
-      const hasYamlFrontmatter = currentMarkdown.startsWith('---\n')
-      
-      // Если YAML уже есть, заменяем его
-      let markdownWithMetadata: string
-      if (hasYamlFrontmatter) {
-        // Находим конец YAML блока
-        const endIndex = currentMarkdown.indexOf('\n---\n', 4)
-        if (endIndex !== -1) {
-          // Заменяем старый YAML на новый
-          markdownWithMetadata = yamlFrontmatter + currentMarkdown.substring(endIndex + 5)
-        } else {
-          // Некорректный формат, добавляем новый YAML
-          markdownWithMetadata = yamlFrontmatter + currentMarkdown
-        }
-      } else {
-        // Добавляем YAML в начало
-        markdownWithMetadata = yamlFrontmatter + currentMarkdown
-      }
-      
-      const baseName = selectedAttachment.original_name.replace(/\.[^/.]+$/, '')
-      const displayFileName = `${baseName}_распознано.md`
-      const blob = new Blob([markdownWithMetadata], { type: 'text/markdown' })
-      
-      const sanitizedName = baseName.replace(/[^\w\s.-]/g, '').replace(/\s+/g, '_')
-      const storagePath = `letters/${letter.id}/${Date.now()}_recognized.md`
-      const file = new File([blob], sanitizedName + '_recognized.md')
-      
-      // Загружаем новый файл
-      const { error: uploadError } = await supabase.storage
-        .from('attachments')
-        .upload(storagePath, file)
-
-      if (uploadError) throw uploadError
-
-      // Создаем запись о новом файле
-      const { data: newAttachment, error: dbError } = await supabase
-        .from('attachments')
-        .insert({
-          original_name: displayFileName,
-          storage_path: storagePath,
-          size_bytes: blob.size,
-          mime_type: 'text/markdown',
-          description: `Распознанный текст из ${selectedAttachment.original_name}`,
-          created_by: user.id
-        })
-        .select()
-        .single()
-      
-      if (dbError) throw dbError
-      if (!newAttachment) throw new Error('Не удалось создать запись о вложении')
-
-      // Обновляем связь (или создаем новую)
-      if (oldRecognizedId) {
-        // Обновляем существующую связь
-        const { error: updateError } = await supabase
-          .from('attachment_recognitions')
-          .update({ recognized_attachment_id: newAttachment.id })
-          .eq('original_attachment_id', selectedAttachment.id)
-
-        if (updateError) throw updateError
-
-        // Удаляем старый файл из letter_attachments
-        await supabase
-          .from('letter_attachments')
-          .delete()
-          .eq('attachment_id', oldRecognizedId)
-
-        // Удаляем старый файл из storage и attachments
-        const { data: oldAttachment } = await supabase
-          .from('attachments')
-          .select('storage_path')
-          .eq('id', oldRecognizedId)
-          .single()
-
-        if (oldAttachment) {
-          await supabase.storage.from('attachments').remove([oldAttachment.storage_path])
-        }
-        
-        await supabase.from('attachments').delete().eq('id', oldRecognizedId)
-      } else {
-        // Создаем новую связь
-        const { error: linkError } = await supabase
-          .from('attachment_recognitions')
-          .insert({
-            original_attachment_id: selectedAttachment.id,
-            recognized_attachment_id: newAttachment.id,
-            created_by: user.id
-          })
-
-        if (linkError) throw linkError
-      }
-
-      // Привязываем к письму
-      const { error: letterLinkError } = await supabase
-        .from('letter_attachments')
-        .insert({
-          letter_id: letter.id,
-          attachment_id: newAttachment.id
-        })
-
-      if (letterLinkError) throw letterLinkError
-
-      // Создаем запись в истории письма
-      await createAuditLogEntry(
-        'letter',
-        letter.id,
-        'file_add',
-        user.id,
-        {
-          fieldName: 'recognized_attachment',
-          newValue: displayFileName,
-          metadata: {
-            file_id: newAttachment.id,
-            file_name: displayFileName,
-            file_size: blob.size,
-            mime_type: 'text/markdown',
-            original_file: selectedAttachment.original_name,
-            description: `Распознанный текст из файла "${selectedAttachment.original_name}"`
-          }
-        }
-      )
-
-      message.success('Изменения сохранены')
       setOriginalMarkdown(currentMarkdown)
-      await loadAttachments()
-      onSuccess?.() // Уведомляем родительский компонент об успешном сохранении
+      await attachmentLoader.loadAttachments(letter.id, selectedAttachment.id)
+      onSuccess?.()
     } catch (error) {
       message.error('Ошибка сохранения')
       console.error(error)
-    } finally {
-      setLoading(false)
     }
   }
 
   const handleCropSuccess = async () => {
     setCropModalVisible(false)
     message.success('Обрезанный документ сохранен')
-    await loadAttachments()
+    if (letter) {
+      await attachmentLoader.loadAttachments(letter.id, selectedAttachment?.id)
+    }
     onSuccess?.()
   }
 
   const handleInsertYaml = async () => {
     if (!letter || !currentMarkdown) return
 
-    setLoading(true)
     try {
-      // Получаем полную информацию о письме
-      const { data: fullLetter } = await supabase
-        .from('letters')
-        .select('*')
-        .eq('id', letter.id)
-        .single()
-
-      // Загружаем связанные данные
-      let projectName = ''
-      let creatorName = ''
-      let senderName = ''
-      let recipientName = ''
-      
-      if (fullLetter?.project_id) {
-        const { data: proj } = await supabase.from('projects').select('name').eq('id', fullLetter.project_id).single()
-        projectName = proj?.name || ''
-      }
-      
-      if (fullLetter?.created_by) {
-        const { data: creator } = await supabase.from('user_profiles').select('full_name').eq('id', fullLetter.created_by).single()
-        creatorName = creator?.full_name || ''
-      }
-      
-      if (fullLetter?.sender_type === 'contractor' && fullLetter?.sender_contractor_id) {
-        const { data: sender } = await supabase.from('contractors').select('name').eq('id', fullLetter.sender_contractor_id).single()
-        senderName = sender?.name || ''
-      }
-      
-      if (fullLetter?.recipient_type === 'contractor' && fullLetter?.recipient_contractor_id) {
-        const { data: recipient } = await supabase.from('contractors').select('name').eq('id', fullLetter.recipient_contractor_id).single()
-        recipientName = recipient?.name || ''
-      }
-
-      // Получаем вложения письма
-      const { data: letterAttachments } = await supabase
-        .from('letter_attachments')
-        .select('attachment_id')
-        .eq('letter_id', letter.id)
-      
-      // Получаем связи писем
-      const { data: parentLinks } = await supabase
-        .from('letter_links')
-        .select('parent_id')
-        .eq('child_id', letter.id)
-      
-      const { data: childLinks } = await supabase
-        .from('letter_links')
-        .select('child_id')
-        .eq('parent_id', letter.id)
-
-      // Формируем YAML frontmatter
-      let yamlFrontmatter = '---\n'
-      
-      if (fullLetter) {
-        yamlFrontmatter += `id: ${fullLetter.id}\n`
-        
-        if (fullLetter.number) {
-          yamlFrontmatter += `номер_письма_от_контрагента: "${fullLetter.number}"\n`
-        }
-        
-        if (fullLetter.reg_number) {
-          yamlFrontmatter += `регистрационный_номер_письма: "${fullLetter.reg_number}"\n`
-        }
-        
-        if (projectName) {
-          yamlFrontmatter += `проект: ${projectName}\n`
-        }
-        
-        if (fullLetter.letter_date) {
-          yamlFrontmatter += `дата_письма: ${fullLetter.letter_date}\n`
-        }
-        
-        if (fullLetter.subject) {
-          yamlFrontmatter += `тема: "${fullLetter.subject}"\n`
-        }
-        
-        yamlFrontmatter += `направление: ${fullLetter.direction === 'incoming' ? 'входящее' : 'исходящее'}\n`
-        
-        if (fullLetter.reg_date) {
-          yamlFrontmatter += `дата_регистрации: ${fullLetter.reg_date}\n`
-        }
-        
-        if (creatorName) {
-          yamlFrontmatter += `создал: ${creatorName}\n`
-        }
-        
-        if (fullLetter.created_at) {
-          yamlFrontmatter += `создано: ${fullLetter.created_at}\n`
-        }
-        
-        if (fullLetter.delivery_method) {
-          yamlFrontmatter += `метод_доставки: "${fullLetter.delivery_method}"\n`
-        }
-        
-        if (fullLetter.responsible_person_name) {
-          yamlFrontmatter += `ответственный: ${fullLetter.responsible_person_name}\n`
-        }
-        
-        if (senderName) {
-          yamlFrontmatter += `отправитель: ${senderName}\n`
-        } else if (fullLetter.sender) {
-          yamlFrontmatter += `отправитель: "${fullLetter.sender}"\n`
-        }
-        
-        if (recipientName) {
-          yamlFrontmatter += `получатель: ${recipientName}\n`
-        } else if (fullLetter.recipient) {
-          yamlFrontmatter += `получатель: "${fullLetter.recipient}"\n`
-        }
-        
-        if (letterAttachments && letterAttachments.length > 0) {
-          const attachmentIds = letterAttachments.map(la => la.attachment_id)
-          const { data: attachments } = await supabase
-            .from('attachments')
-            .select('original_name, mime_type')
-            .in('id', attachmentIds)
-          
-          if (attachments && attachments.length > 0) {
-            // Фильтруем markdown файлы
-            const filteredAttachments = attachments.filter(att => 
-              !att.mime_type?.includes('markdown') && !att.original_name.endsWith('.md')
-            )
-            
-            if (filteredAttachments.length > 0) {
-              yamlFrontmatter += `вложения:\n`
-              filteredAttachments.forEach(att => {
-                yamlFrontmatter += `  - "${att.original_name}"\n`
-              })
-            }
-          }
-        }
-        
-        if (parentLinks && parentLinks.length > 0) {
-          yamlFrontmatter += `родительские_письма:\n`
-          parentLinks.forEach(link => {
-            yamlFrontmatter += `  - ${link.parent_id}\n`
-          })
-        }
-        
-        if (childLinks && childLinks.length > 0) {
-          yamlFrontmatter += `дочерние_письма:\n`
-          childLinks.forEach(link => {
-            yamlFrontmatter += `  - ${link.child_id}\n`
-          })
-        }
-      }
-      
-      yamlFrontmatter += '---\n\n'
-
-      // Проверяем, есть ли уже YAML frontmatter
-      const hasYamlFrontmatter = currentMarkdown.startsWith('---\n')
-      
-      let markdownWithMetadata: string
-      if (hasYamlFrontmatter) {
-        // Заменяем существующий YAML
-        const endIndex = currentMarkdown.indexOf('\n---\n', 4)
-        if (endIndex !== -1) {
-          markdownWithMetadata = yamlFrontmatter + currentMarkdown.substring(endIndex + 5)
-        } else {
-          markdownWithMetadata = yamlFrontmatter + currentMarkdown
-        }
-      } else {
-        // Добавляем YAML в начало
-        markdownWithMetadata = yamlFrontmatter + currentMarkdown
-      }
-
+      const markdownWithMetadata = await generateYaml({
+        letterId: letter.id,
+        markdown: currentMarkdown
+      })
       setCurrentMarkdown(markdownWithMetadata)
       message.success('YAML блок добавлен')
     } catch (error) {
       message.error('Ошибка добавления YAML блока')
       console.error(error)
-    } finally {
-      setLoading(false)
     }
   }
 
   const renderAttachmentList = () => (
-    <div>
-      <h4>Выберите вложение для распознавания:</h4>
-      <List
-        grid={{ gutter: 16, xs: 2, sm: 3, md: 4, lg: 5, xl: 6, xxl: 6 }}
-        dataSource={attachments.filter(att => !att.mime_type.includes('markdown'))}
-        renderItem={(att) => (
-          <List.Item>
-            <AttachmentCard
-              id={att.id}
-              originalName={att.original_name}
-              mimeType={att.mime_type}
-              url={att.url}
-              recognized={att.recognized}
-              recognizing={att.recognizing}
-              progress={att.progress}
-              onClick={() => handleSelectAttachment(att)}
-            />
-          </List.Item>
-        )}
-      />
-    </div>
+    <AttachmentsList
+      attachments={attachmentLoader.attachments}
+      onSelectAttachment={handleSelectAttachment}
+    />
   )
 
   const renderEditor = () => (
-    <Row gutter={24}>
-      <Col span={12}>
-        <h4>Предпросмотр исходного файла:</h4>
-        <AttachmentPreview 
-          url={selectedAttachment?.url}
-          mimeType={selectedAttachment?.mime_type || ''}
-        />
-      </Col>
-      <Col span={12}>
-        <Tabs
-          defaultActiveKey="1"
-          items={[
-            {
-              key: '1',
-              label: 'Распознанный текст (Markdown)',
-              children: (
-                <div style={{ marginTop: 8 }}>
-                  <MarkdownEditor value={currentMarkdown} onChange={setCurrentMarkdown} />
-                </div>
-              )
-            },
-            {
-              key: '2',
-              label: 'Список страниц',
-              children: (
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 4 }}>
-                    <span style={{ marginRight: 8, fontWeight: 500 }}>Быстрое заполнение:</span>
-                    <Space size={4} wrap>
-                      {['ПИСЬМО', 'АКТ', 'ТРЕБОВАНИЕ', 'ДОГОВОР', 'СЧЕТ', 'УПД', 'СПЕЦИФИКАЦИЯ'].map(tag => (
-                        <Tag
-                          key={tag}
-                          style={{ cursor: 'pointer', margin: 0 }}
-                          color="blue"
-                          onClick={() => handleQuickFillTag(tag)}
-                        >
-                          {tag}
-                        </Tag>
-                      ))}
-                    </Space>
-                  </div>
-                  <Table
-                    columns={[
-                      {
-                        title: 'Страница',
-                        dataIndex: 'pageNumber',
-                        key: 'pageNumber',
-                        width: 100
-                      },
-                      {
-                        title: 'Описание блока',
-                        key: 'description',
-                        render: (_: unknown, record: PageConfig) => {
-                          const displayValue = record.isContinuation 
-                            ? `${record.description} ПРОДОЛЖЕНИЕ`
-                            : record.description
-                          return (
-                            <Input
-                              value={displayValue}
-                              onChange={(e) => handlePageDescriptionChange(record.pageNumber, e.target.value)}
-                              placeholder="Например: ПИСЬМО"
-                              disabled={record.isContinuation}
-                            />
-                          )
-                        }
-                      },
-                      {
-                        title: 'Продолжение',
-                        key: 'isContinuation',
-                        width: 120,
-                        render: (_: unknown, record: PageConfig) => (
-                          record.pageNumber > 1 ? (
-                            <Checkbox
-                              checked={record.isContinuation}
-                              onChange={(e) => handleContinuationChange(record.pageNumber, e.target.checked)}
-                            >
-                              Предыдущей
-                            </Checkbox>
-                          ) : null
-                        )
-                      }
-                    ]}
-                    dataSource={pageConfigs}
-                    rowKey="pageNumber"
-                    pagination={false}
-                    scroll={{ y: 'calc(70vh - 120px)' }}
-                    size="small"
-                    bordered
-                    onRow={(record) => ({
-                      onClick: () => setSelectedPageRow(record.pageNumber),
-                      style: { cursor: 'pointer' }
-                    })}
-                    rowClassName={(record) => record.pageNumber === selectedPageRow ? 'ant-table-row-selected' : ''}
-                  />
-                </div>
-              )
-            }
-          ]}
-        />
-      </Col>
-    </Row>
+    <RecognitionEditor
+      attachmentUrl={selectedAttachment?.url}
+      attachmentMimeType={selectedAttachment?.mime_type || ''}
+      markdown={currentMarkdown}
+      onMarkdownChange={setCurrentMarkdown}
+      pageConfigs={pageConfigsHook.pageConfigs}
+      selectedPageRow={pageConfigsHook.selectedPageRow}
+      onSelectRow={pageConfigsHook.setSelectedPageRow}
+      onPageDescriptionChange={handlePageDescriptionChange}
+      onContinuationChange={handleContinuationChange}
+    />
   )
 
   const renderPreview = () => (
-    <Row gutter={24}>
-      <Col span={12}>
-        <h4>Предпросмотр файла:</h4>
-        <AttachmentPreview 
-          url={selectedAttachment?.url}
-          mimeType={selectedAttachment?.mime_type || ''}
-          style={{ minHeight: '70vh' }}
-          height="100%"
-        />
-      </Col>
-      <Col span={12}>
-        <h4>Настройки распознавания:</h4>
-        <RecognitionSettings
-          allPages={allPages}
-          pageRange={pageRange}
-          onAllPagesChange={setAllPages}
-          onPageRangeChange={setPageRange}
-          pdfUrl={selectedAttachment?.url}
-          pageConfigs={pageConfigs}
-          onPageConfigsChange={setPageConfigs}
-        />
-      </Col>
-    </Row>
+    <RecognitionPreview
+      attachmentUrl={selectedAttachment?.url}
+      attachmentMimeType={selectedAttachment?.mime_type || ''}
+      allPages={allPages}
+      pageRange={pageRange}
+      onAllPagesChange={setAllPages}
+      onPageRangeChange={setPageRange}
+      pageConfigs={pageConfigsHook.pageConfigs}
+      onPageConfigsChange={pageConfigsHook.setPageConfigs}
+    />
   )
 
 
@@ -1157,7 +434,6 @@ export const AttachmentRecognitionModal = ({
               </Button>
               <Button
                 onClick={handleInsertYaml}
-                loading={loading}
                 disabled={!currentMarkdown}
               >
                 Вставить YAML данные
@@ -1166,7 +442,6 @@ export const AttachmentRecognitionModal = ({
                 type="primary"
                 icon={<SaveOutlined />}
                 onClick={handleSaveChanges}
-                loading={loading}
                 disabled={currentMarkdown === originalMarkdown || !currentMarkdown.trim()}
               >
                 Сохранить изменения
@@ -1176,7 +451,7 @@ export const AttachmentRecognitionModal = ({
         </Space>
       }
     >
-      <Spin spinning={loading || processing} tip={processing ? 'Запуск распознавания...' : 'Загрузка...'}>
+      <Spin spinning={attachmentLoader.loading || processing} tip={processing ? 'Запуск распознавания...' : 'Загрузка...'}>
         {!selectedAttachment ? renderAttachmentList() : (editMode ? renderEditor() : renderPreview())}
       </Spin>
 

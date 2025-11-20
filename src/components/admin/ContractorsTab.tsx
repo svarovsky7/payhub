@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Table, Space, Button, Modal, Form, Input, App, type InputRef, Divider, Radio, List } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons'
-import type { ColumnsType, ColumnType } from 'antd/es/table'
-import { supabase, type Contractor } from '../../lib/supabase'
+import { useState, useEffect, useCallback } from 'react'
+import { Table, Space, Button, Modal, Form, Input, App, Divider, Radio, List } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
+import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { ImportContractorsModal } from './ImportContractorsModal'
 import {
@@ -12,9 +12,7 @@ import {
   setPrimaryContractorName,
 } from '../../services/employeeOperations'
 import type { FormValues } from '../../types/common'
-import type { FilterConfirmProps } from 'antd/es/table/interface'
-
-type DataIndex = keyof Contractor
+import { useTableSearch } from '../../hooks/useTableSearch'
 
 export const ContractorsTab = () => {
   const { message: messageApi, modal } = App.useApp()
@@ -28,7 +26,7 @@ export const ContractorsTab = () => {
   const [newNameInput, setNewNameInput] = useState('')
   const [form] = Form.useForm()
   const { user } = useAuth()
-  const searchInput = useRef<InputRef>(null)
+  const { getColumnSearchProps } = useTableSearch()
 
   const loadContractors = useCallback(async () => {
     setLoading(true)
@@ -194,70 +192,6 @@ export const ContractorsTab = () => {
     return primary ? primary.alternative_name : contractor.name
   }
 
-  const handleSearch = (
-    confirm: (param?: FilterConfirmProps) => void
-  ) => {
-    confirm()
-  }
-
-  const handleReset = (clearFilters: () => void) => {
-    clearFilters()
-  }
-
-  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<Contractor> => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-        <Input
-          ref={searchInput}
-          placeholder={`Поиск по ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(confirm)}
-          style={{ marginBottom: 8, display: 'block' }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(confirm)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Поиск
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Сброс
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close()
-            }}
-          >
-            Закрыть
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered: boolean) => (
-      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex]
-        ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
-        : false,
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100)
-      }
-    }
-  })
-
   const handlePrefixClick = (prefix: string) => {
     const currentName = (form.getFieldValue('name') as string | undefined) || ''
     const withoutExistingPrefix = currentName
@@ -311,53 +245,6 @@ export const ContractorsTab = () => {
         return record.alternative_names.some((name: any) =>
           name.alternative_name.toLowerCase().includes(searchValue)
         )
-      },
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-          <Input
-            ref={searchInput}
-            placeholder="Поиск по названиям"
-            value={selectedKeys[0]}
-            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => handleSearch(confirm)}
-            style={{ marginBottom: 8, display: 'block' }}
-          />
-          <Space>
-            <Button
-              type="primary"
-              onClick={() => handleSearch(confirm)}
-              icon={<SearchOutlined />}
-              size="small"
-              style={{ width: 90 }}
-            >
-              Поиск
-            </Button>
-            <Button
-              onClick={() => clearFilters && handleReset(clearFilters)}
-              size="small"
-              style={{ width: 90 }}
-            >
-              Сброс
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                close()
-              }}
-            >
-              Закрыть
-            </Button>
-          </Space>
-        </div>
-      ),
-      filterIcon: (filtered: boolean) => (
-        <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
-      ),
-      onFilterDropdownOpenChange: (visible) => {
-        if (visible) {
-          setTimeout(() => searchInput.current?.select(), 100)
-        }
       }
     },
     {

@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Table, Button, Modal, Form, Input, Switch, Space, message, Popconfirm, Select, type InputRef } from 'antd'
+import { useState, useEffect, useCallback } from 'react'
+import { Table, Button, Modal, Form, Input, Switch, Space, message, Popconfirm, Select } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons'
-import type { ColumnsType, ColumnType, TablePaginationConfig } from 'antd/es/table'
-import type { FilterConfirmProps, FilterValue } from 'antd/es/table/interface'
+import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import type { FilterValue } from 'antd/es/table/interface'
 import { debounce } from 'lodash'
 import { useLocation } from 'react-router-dom'
 import {
@@ -19,8 +19,7 @@ import type {
 import { loadMaterialClasses, loadSubclasses } from '../../services/materialClassOperations'
 import type { MaterialClass } from '../../services/materialClassOperations'
 import { ImportNomenclatureModal } from './ImportNomenclatureModal'
-
-type DataIndex = keyof MaterialNomenclature
+import { useTableSearch } from '../../hooks/useTableSearch'
 
 export default function MaterialNomenclatureTab() {
   const location = useLocation()
@@ -43,7 +42,7 @@ export default function MaterialNomenclatureTab() {
     pageSizeOptions: ['50', '100', '200']
   })
   const [form] = Form.useForm()
-  const searchInput = useRef<InputRef>(null)
+  const { getColumnSearchProps } = useTableSearch()
 
   // Загрузка данных с пагинацией
   const loadData = useCallback(async (
@@ -214,70 +213,6 @@ export default function MaterialNomenclatureTab() {
     }
   }
 
-  const handleSearch = (
-    confirm: (param?: FilterConfirmProps) => void
-  ) => {
-    confirm()
-  }
-
-  const handleReset = (clearFilters: () => void) => {
-    clearFilters()
-  }
-
-  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<MaterialNomenclature> => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-        <Input
-          ref={searchInput}
-          placeholder={`Поиск по ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(confirm)}
-          style={{ marginBottom: 8, display: 'block' }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(confirm)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Поиск
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Сброс
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close()
-            }}
-          >
-            Закрыть
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered: boolean) => (
-      <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex]
-        ? record[dataIndex]!.toString().toLowerCase().includes((value as string).toLowerCase())
-        : false,
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100)
-      }
-    }
-  })
-
   const handleModalCancel = () => {
     console.log('[MaterialNomenclatureTab.handleModalCancel] Closing modal')
     setModalVisible(false)
@@ -333,7 +268,7 @@ export default function MaterialNomenclatureTab() {
       key: 'name',
       sorter: (a, b) => a.name.localeCompare(b.name),
       ellipsis: true,
-      ...getColumnSearchProps('name')
+      ...(getColumnSearchProps('name') as any)
     },
     {
       title: 'Класс материалов',
@@ -381,7 +316,7 @@ export default function MaterialNomenclatureTab() {
       dataIndex: 'unit',
       key: 'unit',
       sorter: (a, b) => a.unit.localeCompare(b.unit),
-      ...getColumnSearchProps('unit')
+      ...(getColumnSearchProps('unit') as any)
     },
     {
       title: 'Активен',
