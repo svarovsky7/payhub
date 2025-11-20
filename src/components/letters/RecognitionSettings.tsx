@@ -38,6 +38,7 @@ export const RecognitionSettings = ({
   const [localConfigs, setLocalConfigs] = useState<PageConfig[]>(pageConfigs)
   const [lastPdfUrl, setLastPdfUrl] = useState<string>('')
   const [focusedPageNumber, setFocusedPageNumber] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // Загружаем PDF только если URL изменился
@@ -62,6 +63,7 @@ export const RecognitionSettings = ({
   }, [pageConfigs, localConfigs.length])
 
   const loadPdfPages = async (url: string) => {
+    setLoading(true)
     try {
       console.log('[RecognitionSettings] Loading PDF:', url)
       const pdf = await pdfjs.getDocument(url).promise
@@ -83,6 +85,8 @@ export const RecognitionSettings = ({
       }
     } catch (error) {
       console.error('[RecognitionSettings] PDF load error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -188,35 +192,40 @@ export const RecognitionSettings = ({
           </div>
         )}
         
-        {numPages > 0 && localConfigs.length > 0 && (
-          <div>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>Настройка блоков документа: ({numPages} стр.)</div>
-            <div style={{ marginBottom: 8 }}>
-              <Space size={4} wrap>
-                <span style={{ marginRight: 4 }}>Быстрые теги:</span>
-                {['Письмо', 'Требование', 'Договор', 'Счет', 'УПД', 'Акт', 'Вызов'].map(tag => (
-                  <Tag
-                    key={tag}
-                    style={{ cursor: 'pointer', margin: 0 }}
-                    onClick={() => handleQuickTag(tag)}
-                    color={focusedPageNumber !== null ? 'blue' : 'default'}
-                  >
-                    {tag}
-                  </Tag>
-                ))}
-              </Space>
-            </div>
-            <Table
-              columns={columns}
-              dataSource={localConfigs}
-              rowKey="pageNumber"
-              pagination={false}
-              scroll={{ y: 300 }}
-              size="small"
-              bordered
-            />
+        <div>
+          <div style={{ marginBottom: 8, fontWeight: 500 }}>
+            Настройка блоков документа: 
+            {numPages > 0 ? ` (${numPages} стр.)` : loading ? ' (загрузка...)' : ''}
           </div>
-        )}
+          {numPages > 0 && localConfigs.length > 0 && (
+            <>
+              <div style={{ marginBottom: 8 }}>
+                <Space size={4} wrap>
+                  <span style={{ marginRight: 4 }}>Быстрые теги:</span>
+                  {['Письмо', 'Требование', 'Договор', 'Счет', 'УПД', 'Акт', 'Вызов'].map(tag => (
+                    <Tag
+                      key={tag}
+                      style={{ cursor: 'pointer', margin: 0 }}
+                      onClick={() => handleQuickTag(tag)}
+                      color={focusedPageNumber !== null ? 'blue' : 'default'}
+                    >
+                      {tag}
+                    </Tag>
+                  ))}
+                </Space>
+              </div>
+              <Table
+                columns={columns}
+                dataSource={localConfigs}
+                rowKey="pageNumber"
+                pagination={false}
+                scroll={{ y: 300 }}
+                size="small"
+                bordered
+              />
+            </>
+          )}
+        </div>
 
         <div style={{ marginTop: 24, padding: 16, background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: 4 }}>
           <p style={{ margin: 0, fontSize: 13, color: '#096dd9' }}>
