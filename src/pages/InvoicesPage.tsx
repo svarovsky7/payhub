@@ -204,7 +204,7 @@ export const InvoicesPage = () => {
   }
 
   // Handle invoice form submit
-  const handleInvoiceFormSubmit = async (values: any, files: any, originalFiles?: any) => {
+  const handleInvoiceFormSubmit = async (values: Record<string, any>, files: File[], originalFiles?: string[]) => {
 
     // Add VAT calculation data to form values
     // Remove VAT-related fields from form values to avoid conflicts with state values

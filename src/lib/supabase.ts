@@ -40,7 +40,7 @@ export type Role = {
   name: string
   description?: string
   own_projects_only: boolean
-  allowed_pages?: any // JSON field for storing allowed pages array
+  allowed_pages?: string | string[] // JSON field for storing allowed pages array
   created_at: string
   updated_at: string
 }

@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { Row, Col, Form, Select } from 'antd'
-import type { Contractor, UserProfile } from '../../../lib/supabase'
+import type { FormInstance } from 'antd'
+import type { Contractor, UserProfile, Contract } from '../../../lib/supabase'
 import { supabase } from '../../../lib/supabase'
 
 interface InvoiceContractorFieldsEnhancedProps {
   contractors: Contractor[]
   employees: UserProfile[]
-  form?: any
+  form?: FormInstance
   isNewInvoice?: boolean
   selectedProjectId?: number | null
   selectedContractId?: string | null
-  contracts?: any[]
+  contracts?: Contract[]
 }
 
 export const InvoiceContractorFieldsEnhanced: React.FC<InvoiceContractorFieldsEnhancedProps> = ({

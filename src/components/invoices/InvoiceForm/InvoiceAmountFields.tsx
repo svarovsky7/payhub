@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react'
 import { Row, Col, Form, InputNumber, Typography, Divider, Select } from 'antd'
+import type { FormInstance } from 'antd'
 
 const { Text } = Typography
 
@@ -8,7 +9,7 @@ interface InvoiceAmountFieldsProps {
   amountWithoutVat: number
   onAmountChange: (value: number | null) => void
   onVatRateChange: (value: number | null) => void
-  form?: any
+  form?: FormInstance
 }
 
 export const InvoiceAmountFields = React.memo<InvoiceAmountFieldsProps>(({
