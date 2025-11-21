@@ -21,6 +21,7 @@ interface LetterRow {
   sender_contractor_id: number | null
   recipient_contractor_id: number | null
   created_by: string | null
+  created_at: string
   responsible_user_id?: string | null
   responsible_user?: { full_name: string } | null
   project_id?: string | null
@@ -34,6 +35,9 @@ export interface LetterFilters {
   directionFilter?: string | null
   searchQuery?: string
   excludeOU_SU10?: boolean
+  dateRange?: [any, any] | null
+  statusFilter?: string | null
+  responsibleFilter?: string | null
 }
 
 export const useLetterStatistics = (filters?: LetterFilters) => {
@@ -66,6 +70,7 @@ export const useLetterStatistics = (filters?: LetterFilters) => {
             sender_contractor_id,
             recipient_contractor_id,
             created_by,
+            created_at,
             responsible_user: user_profiles!letters_responsible_user_id_fkey(full_name),
             project: projects(name),
             status: letter_statuses(name, color)
@@ -75,11 +80,6 @@ export const useLetterStatistics = (filters?: LetterFilters) => {
 
         let lettersList = (letters as unknown as LetterRow[]) || []
         
-        console.log('[useLetterStatistics] Letters fetched:', {
-          total: lettersList.length,
-          sample: lettersList.slice(0, 2)
-        })
-
         // Применяем фильтры к сырым данным
         if (filters?.selectedProjectName) {
           lettersList = lettersList.filter(letter => {
@@ -93,6 +93,22 @@ export const useLetterStatistics = (filters?: LetterFilters) => {
         if (filters?.directionFilter) {
           const direction = filters.directionFilter === 'Входящие' ? 'incoming' : 'outgoing'
           lettersList = lettersList.filter(letter => letter.direction === direction)
+        }
+
+        if (filters?.statusFilter) {
+          lettersList = lettersList.filter(letter => letter.status?.name === filters.statusFilter)
+        }
+
+        if (filters?.dateRange) {
+          const [start, end] = filters.dateRange
+          if (start && end) {
+             const startDate = new Date(start).setHours(0, 0, 0, 0)
+             const endDate = new Date(end).setHours(23, 59, 59, 999)
+             lettersList = lettersList.filter(letter => {
+               const letterDate = new Date(letter.created_at).getTime()
+               return letterDate >= startDate && letterDate <= endDate
+             })
+          }
         }
         
         console.log('[useLetterStatistics] After direction filter:', {
@@ -139,7 +155,7 @@ export const useLetterStatistics = (filters?: LetterFilters) => {
           }
         }
 
-        // Применяем фильтрацию по поиску после загрузки данных контрагентов
+        // Применяем фильтрацию по поиску
         if (filters?.searchQuery) {
           const query = filters.searchQuery.toLowerCase()
           lettersList = lettersList.filter(letter => {
@@ -155,6 +171,34 @@ export const useLetterStatistics = (filters?: LetterFilters) => {
                    recipient.toLowerCase().includes(query) || 
                    responsible.toLowerCase().includes(query)
           })
+        }
+
+        // Предварительная обработка ответственных для фильтрации
+        lettersList.forEach(letter => {
+           if (!letter.responsible_person_name && !letter.responsible_user?.full_name) {
+             let inferred = null;
+             if (letter.direction === 'incoming' && letter.recipient) {
+                inferred = letter.recipient
+             } else if (letter.direction === 'outgoing' && letter.sender) {
+                inferred = letter.sender
+             } else if (letter.direction === 'incoming' && letter.recipient_contractor_id) {
+                inferred = contractorMap.has(letter.recipient_contractor_id) ? contractorMap.get(letter.recipient_contractor_id)! : null
+             } else if (letter.direction === 'outgoing' && letter.sender_contractor_id) {
+                inferred = contractorMap.has(letter.sender_contractor_id) ? contractorMap.get(letter.sender_contractor_id)! : null
+             }
+             if (inferred) {
+               // Временно сохраняем вычисленного ответственного в объект, чтобы фильтр мог его использовать
+               // Это хак для локальной фильтрации, не меняет данные в базе
+               (letter as any)._inferredResponsible = inferred
+             }
+           }
+        })
+
+        if (filters?.responsibleFilter) {
+           lettersList = lettersList.filter(letter => {
+             const responsible = letter.responsible_person_name || letter.responsible_user?.full_name || (letter as any)._inferredResponsible || 'Не назначен'
+             return responsible === filters.responsibleFilter
+           })
         }
 
         // Применяем исключение ООО СУ-10
@@ -202,7 +246,7 @@ export const useLetterStatistics = (filters?: LetterFilters) => {
         // By responsible person
         const responsibleMap = new Map<string, number>()
         lettersList.forEach(letter => {
-          let responsible = letter.responsible_person_name || letter.responsible_user?.full_name
+          let responsible = letter.responsible_person_name || letter.responsible_user?.full_name || (letter as any)._inferredResponsible
 
           // Если нет явного ответственного, используем контрагента в зависимости от направления
           if (!responsible) {
@@ -332,7 +376,15 @@ export const useLetterStatistics = (filters?: LetterFilters) => {
     return () => {
       isMounted = false
     }
-  }, [filters?.selectedProjectName, filters?.directionFilter, filters?.searchQuery, filters?.excludeOU_SU10])
+  }, [
+    filters?.selectedProjectName, 
+    filters?.directionFilter, 
+    filters?.searchQuery, 
+    filters?.excludeOU_SU10,
+    filters?.statusFilter,
+    filters?.responsibleFilter,
+    filters?.dateRange
+  ])
 
   return { stats, loading }
 }

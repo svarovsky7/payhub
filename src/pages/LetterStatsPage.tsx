@@ -12,6 +12,8 @@ export const LetterStatsPage = () => {
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null)
   const [directionFilter, setDirectionFilter] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  const [responsibleFilter, setResponsibleFilter] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [excludeOU_SU10, setExcludeOU_SU10] = useState(false)
   
@@ -24,8 +26,11 @@ export const LetterStatsPage = () => {
     selectedProjectName: selectedProject || undefined,
     directionFilter,
     searchQuery,
-    excludeOU_SU10
-  }), [selectedProject, directionFilter, searchQuery, excludeOU_SU10])
+    excludeOU_SU10,
+    statusFilter,
+    responsibleFilter,
+    dateRange: dateRange ? [dateRange[0].toISOString(), dateRange[1].toISOString()] : null
+  }), [selectedProject, directionFilter, searchQuery, excludeOU_SU10, statusFilter, responsibleFilter, dateRange])
   
   const { stats, loading } = useLetterStatistics(filters)
 
@@ -142,11 +147,13 @@ export const LetterStatsPage = () => {
     setSelectedProject(null)
     setDateRange(null)
     setDirectionFilter(null)
+    setStatusFilter(null)
+    setResponsibleFilter(null)
     setSearchQuery('')
     setExcludeOU_SU10(false)
   }
 
-  const hasActiveFilters = selectedProject || dateRange || directionFilter || searchQuery || excludeOU_SU10
+  const hasActiveFilters = selectedProject || dateRange || directionFilter || searchQuery || excludeOU_SU10 || statusFilter || responsibleFilter
 
   console.log('[LetterStatsPage] Render:', {
     loading,
@@ -227,6 +234,8 @@ export const LetterStatsPage = () => {
           <div style={{ marginTop: 12 }}>
             {selectedProject && <Tag closable onClose={() => setSelectedProject(null)}>Проект: {selectedProject}</Tag>}
             {directionFilter && <Tag closable onClose={() => setDirectionFilter(null)}>{directionFilter}</Tag>}
+            {statusFilter && <Tag closable onClose={() => setStatusFilter(null)}>Статус: {statusFilter}</Tag>}
+            {responsibleFilter && <Tag closable onClose={() => setResponsibleFilter(null)}>Отв.: {responsibleFilter}</Tag>}
             {dateRange && <Tag closable onClose={() => setDateRange(null)}>Период: {dateRange[0].format('DD.MM.YY')} - {dateRange[1].format('DD.MM.YY')}</Tag>}
             {searchQuery && <Tag closable onClose={() => setSearchQuery('')}>Поиск: {searchQuery}</Tag>}
             {excludeOU_SU10 && <Tag closable onClose={() => setExcludeOU_SU10(false)}>Без ООО СУ-10</Tag>}
@@ -296,9 +305,18 @@ export const LetterStatsPage = () => {
                   cy="50%"
                   outerRadius={100}
                   label
+                  onClick={(data) => {
+                    setDirectionFilter(prev => prev === data.direction ? null : data.direction)
+                  }}
+                  cursor="pointer"
                 >
-                  {stats.lettersByDirection.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {stats.lettersByDirection.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                      stroke={directionFilter === entry.direction ? '#000' : undefined}
+                      strokeWidth={directionFilter === entry.direction ? 2 : 0}
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -321,7 +339,24 @@ export const LetterStatsPage = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" fill="#1890ff" radius={[8, 8, 0, 0]} />
+                <Bar 
+                  dataKey="count" 
+                  fill="#1890ff" 
+                  radius={[8, 8, 0, 0]} 
+                  onClick={(data) => {
+                    setStatusFilter(prev => prev === data.name ? null : data.name)
+                  }}
+                  cursor="pointer"
+                >
+                  {stats.lettersByStatus.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color !== 'default' ? entry.color : '#1890ff'} 
+                      stroke={statusFilter === entry.name ? '#000' : undefined}
+                      strokeWidth={statusFilter === entry.name ? 2 : 0}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -346,7 +381,24 @@ export const LetterStatsPage = () => {
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={190} />
                 <Tooltip />
-                <Bar dataKey="count" fill="#52c41a" radius={[0, 8, 8, 0]} />
+                <Bar 
+                  dataKey="count" 
+                  fill="#52c41a" 
+                  radius={[0, 8, 8, 0]} 
+                  onClick={(data) => {
+                    setResponsibleFilter(prev => prev === data.name ? null : data.name)
+                  }}
+                  cursor="pointer"
+                >
+                  {stats.lettersByResponsible.slice(0, 10).map((entry, index) => (
+                     <Cell 
+                       key={`cell-${index}`} 
+                       fill="#52c41a"
+                       stroke={responsibleFilter === entry.name ? '#000' : undefined}
+                       strokeWidth={responsibleFilter === entry.name ? 2 : 0}
+                     />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </Card>
