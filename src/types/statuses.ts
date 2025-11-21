@@ -11,8 +11,8 @@ export interface Status {
   updated_at?: string
 }
 
-export interface InvoiceStatus extends Status {}
+export type InvoiceStatus = Status
 
-export interface PaymentStatus extends Status {}
+export type PaymentStatus = Status
 
-export interface ContractStatus extends Status {}
+export type ContractStatus = Status

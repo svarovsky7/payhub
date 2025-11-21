@@ -17,6 +17,7 @@ import {
   createPaymentForInvoice
 } from '../../services/invoice/invoiceImportOperations'
 import { supabase } from '../../lib/supabase'
+import { stripInvisibleCharacters } from '../../utils/textUtils'
 
 interface ImportInvoicesModalProps {
   visible: boolean
@@ -79,9 +80,7 @@ export const ImportInvoicesModal: React.FC<ImportInvoicesModalProps> = ({
         const linkedFiles: string[] = []
         if (invoice.fileLinks && invoice.fileLinks.length > 0) {
           invoice.fileLinks.forEach(fileLink => {
-            const cleanedLink = fileLink
-              .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\uFEFF]/g, '')
-              .trim()
+            const cleanedLink = stripInvisibleCharacters(fileLink)
             const baseName = cleanedLink.split(/[/\\]/).pop() || ''
             
             const uploadedFile = uploadedFiles.find(f => f.name === baseName)

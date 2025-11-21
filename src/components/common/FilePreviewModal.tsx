@@ -1,25 +1,9 @@
 import React from 'react'
 import { Modal, Button, Space, Image, Typography } from 'antd'
-import { DownloadOutlined, FileTextOutlined, FilePdfOutlined, FileImageOutlined, FileExcelOutlined, FileWordOutlined } from '@ant-design/icons'
+import { DownloadOutlined } from '@ant-design/icons'
+import { getFileIcon } from './fileIcons'
 
 const { Text, Title } = Typography
-
-export const getFileIcon = (fileName: string) => {
-  const ext = fileName.split('.').pop()?.toLowerCase()
-  if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext || '')) {
-    return <FileImageOutlined />
-  }
-  if (ext === 'pdf') {
-    return <FilePdfOutlined />
-  }
-  if (['doc', 'docx'].includes(ext || '')) {
-    return <FileWordOutlined />
-  }
-  if (['xls', 'xlsx'].includes(ext || '')) {
-    return <FileExcelOutlined />
-  }
-  return <FileTextOutlined />
-}
 
 interface FilePreviewModalProps {
   open: boolean

@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { stripInvisibleCharacters } from '../../utils/textUtils'
 import type { ImportedInvoice } from './invoiceImportService'
 
 // Получить payment_type_id для bank_transfer
@@ -30,8 +31,7 @@ export const uploadAndAttachFile = async (
   userId: string
 ): Promise<void> => {
   const timestamp = Date.now()
-  const cleanFileName = fileName
-    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\uFEFF]/g, '')
+  const cleanFileName = stripInvisibleCharacters(fileName)
     .replace(/[^a-zA-Z0-9.\-_а-яА-Я]/g, '_')
     .replace(/_{2,}/g, '_')
   const path = `invoices/${invoiceId}/${timestamp}_${cleanFileName}`

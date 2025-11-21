@@ -1,7 +1,7 @@
 import React from 'react'
 import { List, Button, Input, Typography, Tooltip, Popconfirm, Tag, Space } from 'antd'
 import { EyeOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons'
-import { getFileIcon } from './FilePreviewModal'
+import { getFileIcon } from './fileIcons'
 import dayjs from 'dayjs'
 import type { UploadFile } from 'antd/es/upload'
 import type { ExistingFile } from './FileUploadBlock'

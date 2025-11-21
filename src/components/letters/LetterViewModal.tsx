@@ -6,7 +6,8 @@ import type { Letter } from '../../lib/supabase'
 import { supabase } from '../../lib/supabase'
 import { useAuditLog } from '../../hooks/useAuditLog'
 import AuditLogTimeline from '../common/AuditLogTimeline'
-import { FilePreviewModal, getFileIcon } from '../common/FilePreviewModal'
+import { FilePreviewModal } from '../common/FilePreviewModal'
+import { getFileIcon } from '../common/fileIcons'
 import { deleteLetterAttachment, getLetterAttachments } from '../../services/letter/letterFiles'
 
 const { Title } = Typography
